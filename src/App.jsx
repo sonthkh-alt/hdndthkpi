@@ -348,15 +348,20 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-100 text-slate-800" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
-      <header className="bg-gradient-to-br from-red-900 via-red-800 to-red-700 text-white">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
+    <div className="min-h-screen text-slate-800" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
+      <header className="relative overflow-hidden text-white bg-gradient-to-br from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]">
+        <div className="absolute inset-0 tech-grid pointer-events-none" />
+        <div className="absolute -top-24 -right-10 w-80 h-80 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
+        <div className="absolute -bottom-24 -left-10 w-72 h-72 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
-            <div className="shrink-0 w-14 h-14 rounded-full bg-amber-400 flex items-center justify-center shadow-lg ring-4 ring-amber-300/30"><Award className="w-7 h-7 text-red-900" /></div>
+            <div className="shrink-0 w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-xl ring-2 ring-amber-300/60 emblem-glow animate-floatY p-1.5">
+              <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
+            </div>
             <div>
-              <p className="text-amber-300 text-xs font-medium tracking-widest uppercase">Hệ thống quản trị OKR/KPI</p>
-              <h1 className="text-base sm:text-xl font-bold leading-tight">Đánh giá, xếp loại cán bộ, công chức hằng tháng</h1>
-              <p className="text-red-100 text-xs sm:text-sm mt-0.5">{unit}</p>
+              <p className="text-amber-300 text-[11px] font-semibold tracking-[0.22em] uppercase">Hệ thống quản trị OKR / KPI</p>
+              <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
+              <p className="text-red-100/90 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -382,10 +387,10 @@ export default function App() {
             </div>
           </div>
         </div>
-        <div className="bg-red-950/40 backdrop-blur border-t border-red-600/30">
-          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto">
+        <div className="relative glass-dark border-t border-white/10">
+          <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
             {tabs.map((t) => { const Ic = t.icon; const on = tab === t.id;
-              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3 sm:px-5 py-3 text-sm font-semibold whitespace-nowrap transition-all border-b-[3px] ${on ? 'border-amber-400 text-white' : 'border-transparent text-red-200 hover:text-white'}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
+              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50' : 'text-red-100/80 hover:text-white hover:bg-white/10'}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
       </header>
