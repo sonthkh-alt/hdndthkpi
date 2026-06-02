@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
-import { supabase, loadState, saveState } from './lib/supabase';
+import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { ND335_CATALOG } from './lib/nd335';
 
 const CRITERIA = {
@@ -183,49 +183,89 @@ export default function App() {
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const loaded = useRef(false);
+  const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
+  const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
+  const [conflict, setConflict] = useState(false);
+  const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
+  const [trends, setTrends] = useState([]);
+
+  const bumpCounters = (ppl) => {
+    pid = Math.max(pid, 0, ...ppl.map((p) => p.id || 0)) + 1;
+    t335Id = Math.max(t335Id, 0, ...ppl.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
+    trkId = Math.max(trkId, 0, ...ppl.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
+  };
+
+  const refreshTrends = async () => {
+    const all = await loadAllPeriods();
+    setTrends(all.map(({ year, month, state }) => {
+      const ppl = state?.people || [];
+      const d = { A: 0, B: 0, C: 0, D: 0 }; let sum = 0;
+      ppl.forEach((p) => { const t = computePerson(p).totalMgr; d[classify(t).code]++; sum += t; });
+      return { year, month, dist: d, avg: ppl.length ? sum / ppl.length : 0, count: ppl.length };
+    }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
+  };
+
+  const loadPeriod = async (p) => {
+    loadingRef.current = true;
+    setConflict(false); setSeedFrom(null);
+    const res = await loadState(p);
+    serverTsRef.current = res.serverTs;
+    if (res.state) {
+      const ppl = res.state.people || [];
+      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
+      bumpCounters(ppl);
+    } else {
+      const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
+      if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
+      // chưa có kỳ nào khác -> giữ nguyên dữ liệu mẫu khởi tạo (lần chạy đầu)
+    }
+    setCloud({ ready: !!supabase, saving: false });
+    loaded.current = true;
+    loadingRef.current = false;
+  };
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { loadPeriod(period); refreshTrends(); }, []);
 
   useEffect(() => {
-    (async () => {
-      const s = await loadState();
-      if (s) {
-        if (s.people?.length) {
-          setPeople(s.people); setCurId(s.people[0].id);
-          pid = Math.max(pid, ...s.people.map((p) => p.id || 0)) + 1;
-          t335Id = Math.max(t335Id, ...s.people.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
-          trkId = Math.max(trkId, ...s.people.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
-        }
-        if (s.objectives) setObjectives(s.objectives);
-        if (s.period) setPeriod(s.period);
-      }
-      setCloud({ ready: !!supabase, saving: false });
-      loaded.current = true;
-    })();
-  }, []);
-
-  useEffect(() => {
-    if (!loaded.current) return;
+    if (!loaded.current || loadingRef.current) return;
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      await saveState({ people, objectives, period });
+      const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+      if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
+      else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
     }, 900);
     return () => clearTimeout(t);
   }, [people, objectives, period]);
 
-  const handleManualSave = async () => {
-    setCloud((c) => ({ ...c, saving: true }));
-    await saveState({ people, objectives, period });
-    setCloud((c) => ({ ...c, saving: false }));
+  const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
+
+  const copyFromPeriod = async (src) => {
+    const res = await loadState({ year: src.year, month: src.month });
+    if (!res.state) return;
+    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], selfNote: '', mgrNote: '', trackings: [] }));
+    setObjectives(res.state.objectives || []);
+    setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
 
-  const cur = people.find((p) => p.id === curId) || people[0];
+  const handleManualSave = async () => {
+    setCloud((c) => ({ ...c, saving: true }));
+    const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+    if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
+    else if (res.conflict) setConflict(true);
+    setCloud((c) => ({ ...c, saving: false }));
+    refreshTrends();
+  };
+
+  const cur = people.find((p) => p.id === curId) || people[0] || null;
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
-  const curC = computed.find((x) => x.p.id === curId)?.c || computePerson(cur);
+  const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[classify(c.totalMgr).code]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
@@ -242,10 +282,10 @@ export default function App() {
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
   ];
-  const cfg = CRITERIA[cur.type];
-  const result = classify(curC.totalMgr);
-  const minLv = MIN_DIGITAL[cur.type];
-  const digPassed = DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length;
+  const cfg = cur ? CRITERIA[cur.type] : null;
+  const result = curC ? classify(curC.totalMgr) : classify(0);
+  const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
+  const digPassed = cur ? DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length : 0;
 
   // Lazy-load: chỉ tải xlsx/docx khi người dùng bấm xuất (giảm dung lượng tải lần đầu)
   const doExcel = async () => {
@@ -284,11 +324,11 @@ export default function App() {
             <button onClick={handleManualSave} disabled={cloud.saving} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors disabled:opacity-50 border border-blue-500/50">
               <Save className="w-3.5 h-3.5" /> Lưu ngay
             </button>
-            <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30">
+            <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title="Chọn tháng/năm để xem hoặc nhập kỳ khác">
               <CalendarDays className="w-4 h-4 text-amber-300" />
-              <input type="number" min="1" max="12" value={period.month} onChange={(e) => setPeriod({ ...period, month: e.target.value })} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
+              <input type="number" min="1" max="12" value={period.month} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, month: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
               <span className="text-red-200">/</span>
-              <input type="number" value={period.year} onChange={(e) => setPeriod({ ...period, year: e.target.value })} className="w-16 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
+              <input type="number" value={period.year} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, year: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-16 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
             </div>
           </div>
         </div>
@@ -301,7 +341,30 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {tab === 'dash' && (
+        {conflict && (
+          <div className="mb-5 bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
+            <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="text-sm text-rose-700 font-semibold">Dữ liệu kỳ này vừa được cập nhật từ nơi khác.</p>
+              <p className="text-xs text-rose-600 mt-0.5">Để tránh ghi đè lên thay đổi của người khác, hãy tải lại dữ liệu mới nhất rồi chỉnh sửa tiếp.</p>
+            </div>
+            <button onClick={() => loadPeriod(period)} className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold"><RotateCcw className="w-3.5 h-3.5" /> Tải lại</button>
+          </div>
+        )}
+
+        {people.length === 0 && (
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center max-w-xl mx-auto">
+            <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
+            <h2 className="font-bold text-slate-800 text-lg">Kỳ tháng {period.month}/{period.year} chưa có dữ liệu</h2>
+            <p className="text-sm text-slate-500 mt-1 mb-5">Bắt đầu bằng cách sao chép danh sách cán bộ từ kỳ gần nhất (giữ người, đặt lại điểm) hoặc thêm cán bộ mới.</p>
+            <div className="flex flex-col sm:flex-row gap-2 justify-center">
+              {seedFrom && <button onClick={() => copyFromPeriod(seedFrom)} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Users className="w-4 h-4" /> Sao chép cán bộ từ kỳ {seedFrom.month}/{seedFrom.year}</button>}
+              <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ mới</button>
+            </div>
+          </div>
+        )}
+
+        {people.length > 0 && tab === 'dash' && (
           <div className="space-y-6">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <Stat icon={Users} label="Tổng số cán bộ" value={people.length} color="slate" />
@@ -362,10 +425,38 @@ export default function App() {
               </div>
               <div className="p-3 border-t border-slate-100"><AddPerson onAdd={(name, type) => setPeople((ps) => [...ps, newPerson(name, type)])} /></div>
             </section>
+
+            {trends.length > 0 && (
+              <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between">
+                  <h2 className="flex items-center gap-2 font-bold"><TrendingUp className="w-5 h-5 text-amber-300" /> Xu hướng theo kỳ</h2>
+                  <button onClick={refreshTrends} className="flex items-center gap-1.5 text-xs bg-white/15 hover:bg-white/25 px-3 py-1.5 rounded-lg"><RotateCcw className="w-3.5 h-3.5" /> Làm mới</button>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5 font-semibold">Kỳ</th><th className="text-center px-3 py-2.5 font-semibold">Số CB</th><th className="text-center px-3 py-2.5 font-semibold">Điểm TB</th><th className="text-center px-3 py-2.5 font-semibold text-emerald-600">A</th><th className="text-center px-3 py-2.5 font-semibold text-sky-600">B</th><th className="text-center px-3 py-2.5 font-semibold text-amber-600">C</th><th className="text-center px-3 py-2.5 font-semibold text-rose-600">D</th></tr></thead>
+                    <tbody className="divide-y divide-slate-100">
+                      {trends.map((t) => (
+                        <tr key={`${t.year}-${t.month}`} className="hover:bg-slate-50">
+                          <td className="px-4 py-3 font-semibold text-slate-700">Tháng {t.month}/{t.year}</td>
+                          <td className="px-3 py-3 text-center text-slate-500">{t.count}</td>
+                          <td className="px-3 py-3 text-center font-bold text-slate-800">{t.avg.toFixed(1)}</td>
+                          <td className="px-3 py-3 text-center text-emerald-600 font-semibold">{t.dist.A}</td>
+                          <td className="px-3 py-3 text-center text-sky-600 font-semibold">{t.dist.B}</td>
+                          <td className="px-3 py-3 text-center text-amber-600 font-semibold">{t.dist.C}</td>
+                          <td className="px-3 py-3 text-center text-rose-600 font-semibold">{t.dist.D}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[11px] text-slate-400 px-4 py-2.5 border-t border-slate-100">Tổng hợp từ dữ liệu đã lưu của các kỳ. Bấm "Làm mới" sau khi cập nhật điểm để đồng bộ.</p>
+              </section>
+            )}
           </div>
         )}
 
-        {tab === 'eval' && (
+        {people.length > 0 && tab === 'eval' && (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -446,7 +537,7 @@ export default function App() {
           </div>
         )}
 
-        {tab === 'digital' && (
+        {people.length > 0 && tab === 'digital' && (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
             <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -469,7 +560,7 @@ export default function App() {
           </div>
         )}
 
-        {tab === 'tracking' && (
+        {people.length > 0 && tab === 'tracking' && (
           <div className="flex flex-col md:flex-row gap-6">
             <aside className="w-full md:w-64 shrink-0 print:hidden space-y-4">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
