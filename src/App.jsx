@@ -1,7 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, Calculator } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
 import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
+import { ND335_CATALOG } from './lib/nd335';
 
 const CRITERIA = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
@@ -113,12 +114,20 @@ function computePerson(p) {
   const k = aggKpi(p.tasks);
   const nhomII = (k.val / 100) * 70;
   const ded = Number(p.deduction || 0);
-  return { nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded) };
+  
+  const n335 = (p.nd335Tasks || []).reduce((sum, t) => {
+    const cat = ND335_CATALOG.find(c => c.id === t.catalogId);
+    if (cat && cat.hasFactor) return sum + (Number(t.point || 0) / 5);
+    return sum;
+  }, 0);
+
+  return { nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded), n335 };
 }
-let pid = 3, tid = 100, trkId = 1;
+let pid = 3, tid = 100, trkId = 1, n335Id = 1;
 const newTask = () => ({ id: tid++, name: '', objId: '', weight: 1, qty: 100, quality: 100, progress: 100, weeks: [0, 0, 0, 0], note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+const newND335Task = () => ({ id: n335Id++, catalogId: '', point: 0 });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [], nd335Tasks: [] });
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -160,6 +169,7 @@ export default function App() {
           pid = Math.max(pid, ...s.people.map((p) => p.id || 0)) + 1;
           tid = Math.max(tid, ...s.people.flatMap((p) => (p.tasks || []).map((t) => t.id || 0))) + 1;
           trkId = Math.max(trkId, ...s.people.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
+          n335Id = Math.max(n335Id, ...s.people.flatMap((p) => (p.nd335Tasks || []).map((t) => t.id || 0))) + 1;
         }
         if (s.objectives) setObjectives(s.objectives);
         if (s.period) setPeriod(s.period);
@@ -190,6 +200,7 @@ export default function App() {
   const upCur = (patch) => upPerson(curId, patch);
   const upTask = (taskId, patch) => upCur({ tasks: cur.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
+  const upND335 = (nId, patch) => upCur({ nd335Tasks: (cur.nd335Tasks || []).map((t) => (t.id === nId ? { ...t, ...patch } : t)) });
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
   const curC = computed.find((x) => x.p.id === curId)?.c || computePerson(cur);
@@ -203,8 +214,10 @@ export default function App() {
   };
 
   const tabs = [
-    { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
-    { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
+    { id: 'dash', label: 'Tổng quan (KPI)', icon: LayoutDashboard },
+    { id: 'eval', label: 'Đánh giá (KPI)', icon: BarChart3 },
+    { id: 'dash335', label: 'Tổng quan (NĐ335)', icon: Activity },
+    { id: 'eval335', label: 'Đánh giá (NĐ335)', icon: Calculator },
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
@@ -383,6 +396,123 @@ export default function App() {
                   <button onClick={() => upCur({ selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], selfNote: '', mgrNote: '' })} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>
                 </div>
               </div></aside>
+            </div>
+          </div>
+        )}
+
+        {tab === 'dash335' && (
+          <div className="space-y-6">
+            <div className="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div>
+                <h2 className="text-xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-indigo-300" /> Bảng Tổng hợp Hệ số quy đổi (NĐ 335)</h2>
+                <p className="text-indigo-200 mt-1 text-sm">Thống kê tổng hệ số quy đổi của toàn bộ cán bộ, công chức trong cơ quan.</p>
+              </div>
+              <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
+                <p className="text-xs text-indigo-200 uppercase font-bold tracking-wider">Tổng hệ số toàn cơ quan</p>
+                <p className="text-3xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335, 0).toFixed(2)}</p>
+              </div>
+            </div>
+            
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm whitespace-nowrap">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
+                    <tr>
+                      <th className="px-5 py-4">STT</th>
+                      <th className="px-5 py-4">Họ và tên cán bộ</th>
+                      <th className="px-5 py-4">Chức vụ / Vị trí</th>
+                      <th className="px-5 py-4 text-center">Số nhiệm vụ NĐ335</th>
+                      <th className="px-5 py-4 text-right">Tổng Hệ số quy đổi</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {computed.map((x, idx) => (
+                      <tr key={x.p.id} className="hover:bg-slate-50/50 transition-colors">
+                        <td className="px-5 py-4 text-slate-400">{idx + 1}</td>
+                        <td className="px-5 py-4 font-bold text-slate-700">
+                          <div className="flex items-center gap-2">
+                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs"><User className="w-3.5 h-3.5" /></div>
+                            {x.p.name || '(Chưa tên)'}
+                          </div>
+                        </td>
+                        <td className="px-5 py-4 text-slate-600">{x.p.position || CRITERIA[x.p.type].label}</td>
+                        <td className="px-5 py-4 text-center">
+                          <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-bold">
+                            {(x.p.nd335Tasks || []).length}
+                          </span>
+                        </td>
+                        <td className="px-5 py-4 text-right font-extrabold text-indigo-600 text-base">{x.c.n335.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                    {computed.length === 0 && <tr><td colSpan="5" className="px-5 py-8 text-center text-slate-400">Chưa có dữ liệu.</td></tr>}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {tab === 'eval335' && (
+          <div className="space-y-6">
+            <PersonChips people={people} curId={curId} setCurId={setCurId} onDelete={(id) => setPeople((ps) => ps.filter((p) => p.id !== id))} onAdd={(name, type) => { const np = newPerson(name, type); setPeople((ps) => [...ps, np]); setCurId(np.id); }} />
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-50 to-white px-5 py-4 border-b border-slate-200 flex items-center justify-between">
+                <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><Calculator className="w-5 h-5 text-indigo-600" /> Bảng điểm đánh giá theo NĐ 335</h2>
+                <div className="text-right">
+                  <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-0.5">Tổng Hệ số quy đổi</p>
+                  <p className="text-2xl font-extrabold text-indigo-600 leading-none">{curC.n335.toFixed(2)}</p>
+                </div>
+              </div>
+              <div className="p-5 space-y-5">
+                {(cur.nd335Tasks || []).map((t, idx) => {
+                  const catalogItem = ND335_CATALOG.find(c => c.id === t.catalogId);
+                  const factor = catalogItem?.hasFactor ? (Number(t.point || 0) / 5).toFixed(2) : (catalogItem ? 'Không QĐ' : '0.00');
+                  return (
+                    <div key={t.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 relative group">
+                      <button onClick={() => upCur({ nd335Tasks: (cur.nd335Tasks || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                      <div className="mb-3 font-semibold text-slate-700 text-sm flex items-center gap-2">
+                        <span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded text-xs">Nhiệm vụ #{idx + 1}</span>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-12 gap-5">
+                        <div className="md:col-span-8">
+                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Chọn Nhóm nhiệm vụ từ Danh mục</label>
+                          <select value={t.catalogId} onChange={(e) => upND335(t.id, { catalogId: e.target.value, point: 0 })} className="w-full text-sm p-2.5 border border-slate-200 rounded-lg outline-none focus:border-indigo-400 bg-white font-medium text-slate-700">
+                            <option value="">-- Chọn nhóm nhiệm vụ chuẩn NĐ 335 --</option>
+                            {ND335_CATALOG.map(c => <option key={c.id} value={c.id}>[{c.id}] {c.name}</option>)}
+                          </select>
+                          {catalogItem && (
+                            <div className="mt-3 p-3 bg-indigo-50/50 border border-indigo-100 rounded-lg text-xs text-indigo-900 space-y-1.5">
+                              <p><span className="font-semibold text-indigo-700">Đầu ra:</span> {catalogItem.output}</p>
+                              <div className="flex gap-4">
+                                <p><span className="font-semibold text-indigo-700">Phân nhóm:</span> {catalogItem.level}</p>
+                                <p><span className="font-semibold text-indigo-700">Khung điểm tối đa:</span> {catalogItem.maxScore}</p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Điểm chấm</label>
+                          <input type="number" min="0" max={catalogItem?.maxScore || 100} value={t.point} onChange={(e) => {
+                            let val = Number(e.target.value);
+                            if (catalogItem && val > catalogItem.maxScore) val = catalogItem.maxScore;
+                            upND335(t.id, { point: val });
+                          }} className="w-full text-base p-2 border border-slate-200 rounded-lg outline-none focus:border-indigo-400 font-extrabold text-center text-slate-700" disabled={!catalogItem || !catalogItem.hasFactor} />
+                        </div>
+                        
+                        <div className="md:col-span-2">
+                          <label className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1.5 block">Hệ số QĐ</label>
+                          <div className="w-full text-base p-2 bg-slate-200/50 border border-slate-200 rounded-lg text-center font-extrabold text-indigo-700">
+                            {factor}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+                {!(cur.nd335Tasks?.length) && <div className="text-center py-10 text-slate-400 text-sm">Chưa có nhiệm vụ nào được đánh giá theo NĐ 335.</div>}
+                <button onClick={() => upCur({ nd335Tasks: [...(cur.nd335Tasks || []), newND335Task()] })} className="w-full flex items-center justify-center gap-2 py-3.5 border-2 border-dashed border-indigo-200 rounded-xl text-sm font-bold text-indigo-600 bg-indigo-50 hover:border-indigo-400 hover:bg-indigo-100 transition-colors"><Plus className="w-5 h-5" /> Thêm nhiệm vụ NĐ 335</button>
+              </div>
             </div>
           </div>
         )}
