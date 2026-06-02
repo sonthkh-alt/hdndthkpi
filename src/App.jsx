@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
 import { exportExcel1A, exportWordPhieu } from './lib/exporters';
 
@@ -164,6 +164,12 @@ export default function App() {
     return () => clearTimeout(t);
   }, [people, objectives, period]);
 
+  const handleManualSave = async () => {
+    setCloud((c) => ({ ...c, saving: true }));
+    await saveState({ people, objectives, period });
+    setCloud((c) => ({ ...c, saving: false }));
+  };
+
   const cur = people.find((p) => p.id === curId) || people[0];
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
@@ -214,6 +220,9 @@ export default function App() {
               {cloud.ready ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
               {cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ'}
             </span>
+            <button onClick={handleManualSave} disabled={cloud.saving} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors disabled:opacity-50 border border-blue-500/50">
+              <Save className="w-3.5 h-3.5" /> Lưu ngay
+            </button>
             <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30">
               <CalendarDays className="w-4 h-4 text-amber-300" />
               <input type="number" min="1" max="12" value={period.month} onChange={(e) => setPeriod({ ...period, month: e.target.value })} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
