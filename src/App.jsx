@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, Calculator } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
 import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
-import { ND335_CATALOG } from './lib/nd335';
+import { ND335_CATALOG, CRITERIA_335 } from './lib/nd335';
 
 const CRITERIA = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
@@ -103,6 +103,31 @@ function aggKpi(tasks) {
   const c = valid.reduce((s, t) => s + t.weight * Number(t.progress), 0) / tw;
   return { a, b, c, val: (a + b + c) / 3 };
 }
+function agg335(tasks335) {
+  const valid = (tasks335 || []).filter(t => t.catalogId);
+  if (valid.length === 0) return { a: 0, b: 0, c: 0, val: 0 };
+  let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0;
+  valid.forEach(t => {
+    const cat = ND335_CATALOG.find(c => c.id === t.catalogId);
+    if (!cat) return;
+    const w = Number(cat.maxScore) || 0;
+    const as = Number(t.assigned) || 0;
+    const cp = Number(t.completed) || 0;
+    const qI = Number(t.qualityIssues) || 0;
+    const dl = Number(t.delays) || 0;
+    
+    totalAssignedScore += as * w;
+    totalCompletedScore += cp * w;
+    totalQualityScore += cp * w * Math.max(0, 1 - 0.25 * qI);
+    totalDelayScore += cp * w * Math.max(0, 1 - 0.25 * dl);
+  });
+  if (totalAssignedScore === 0) return { a: 0, b: 0, c: 0, val: 0 };
+  const a = Math.min(100, (totalCompletedScore / totalAssignedScore) * 100);
+  const b = totalCompletedScore > 0 ? (totalQualityScore / totalCompletedScore) * 100 : 100;
+  const c = totalCompletedScore > 0 ? (totalDelayScore / totalCompletedScore) * 100 : 100;
+  return { a, b, c, val: (a + b + c) / 3 };
+}
+
 function getND335Groups(type) {
   if (type === 'contract') return ND335_CATALOG.filter(c => c.id.startsWith('III'));
   if (type === 'staff') return ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
@@ -131,12 +156,26 @@ function computePerson(p) {
     return sum;
   }, 0);
 
-  return { nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded), n335: n335Mgr, n335Self };
+  let n335SelfPart1 = 0, n335MgrPart1 = 0;
+  CRITERIA_335.forEach((it) => {
+    const sv = p.scores335Self?.[it.id] ?? it.maxScore;
+    n335SelfPart1 += sv; n335MgrPart1 += p.scores335Mgr?.[it.id] ?? sv;
+  });
+  n335SelfPart1 = Math.min(n335SelfPart1, 30); n335MgrPart1 = Math.min(n335MgrPart1, 30);
+  const k335 = agg335(p.tasks335);
+  const nhomII335 = (k335.val / 100) * 70;
+
+  return { 
+    nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded), 
+    n335: n335Mgr, n335Self,
+    n335Part1Self: n335SelfPart1, n335Part1Mgr: n335MgrPart1, k335, nhomII335, total335Self: clamp(n335SelfPart1 + nhomII335), total335Mgr: clamp(n335MgrPart1 + nhomII335)
+  };
 }
-let pid = 3, tid = 100, trkId = 1;
+let pid = 3, tid = 100, trkId = 1, t335Id = 100;
 const newTask = () => ({ id: tid++, name: '', objId: '', weight: 1, qty: 100, quality: 100, progress: 100, weeks: [0, 0, 0, 0], note: '' });
+const newTask335 = () => ({ id: t335Id++, catalogId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [], nd335Self: {}, nd335Mgr: {} });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [], nd335Self: {}, nd335Mgr: {}, tasks335: [newTask335()], scores335Self: {}, scores335Mgr: {} });
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -177,6 +216,7 @@ export default function App() {
           setPeople(s.people); setCurId(s.people[0].id);
           pid = Math.max(pid, ...s.people.map((p) => p.id || 0)) + 1;
           tid = Math.max(tid, ...s.people.flatMap((p) => (p.tasks || []).map((t) => t.id || 0))) + 1;
+          t335Id = Math.max(t335Id, ...s.people.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
           trkId = Math.max(trkId, ...s.people.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
         }
         if (s.objectives) setObjectives(s.objectives);
@@ -207,6 +247,7 @@ export default function App() {
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
   const upTask = (taskId, patch) => upCur({ tasks: cur.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
+  const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
@@ -423,21 +464,21 @@ export default function App() {
           </div>
         )}
 
-        {tab === 'dash335' && (
+                {tab === 'dash335' && (
           <div className="space-y-6">
             <div className="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div>
-                <h2 className="text-xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-indigo-300" /> Bảng Tổng hợp Hệ số quy đổi (NĐ 335)</h2>
-                <p className="text-indigo-200 mt-1 text-sm">Thống kê tổng hệ số quy đổi của toàn bộ cán bộ, công chức trong cơ quan.</p>
+                <h2 className="text-xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-indigo-300" /> Bảng Tổng hợp Điểm Đánh giá (NĐ 335)</h2>
+                <p className="text-indigo-200 mt-1 text-sm">Thống kê điểm số và xếp loại theo Nghị định 335/2025/NĐ-CP.</p>
               </div>
               <div className="flex gap-4">
                 <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Tổng Tự ĐG</p>
-                  <p className="text-2xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335Self, 0).toFixed(2)}</p>
+                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Xuất sắc</p>
+                  <p className="text-2xl font-extrabold text-white mt-1">{computed.filter(x => classify(x.c.total335Mgr).code === 'A').length}</p>
                 </div>
                 <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Tổng Cấp Duyệt</p>
-                  <p className="text-2xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335, 0).toFixed(2)}</p>
+                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Hoàn thành Tốt</p>
+                  <p className="text-2xl font-extrabold text-white mt-1">{computed.filter(x => classify(x.c.total335Mgr).code === 'B').length}</p>
                 </div>
               </div>
             </div>
@@ -450,129 +491,41 @@ export default function App() {
                       <th className="px-5 py-4">STT</th>
                       <th className="px-5 py-4">Họ và tên cán bộ</th>
                       <th className="px-5 py-4">Chức vụ / Vị trí</th>
-                      <th className="px-5 py-4 text-center">Số nhiệm vụ NĐ335</th>
-                      <th className="px-5 py-4 text-center">Tự ĐG</th>
-                      <th className="px-5 py-4 text-center">Cấp duyệt</th>
+                      <th className="px-5 py-4 text-center">Tiêu chí chung (30đ)</th>
+                      <th className="px-5 py-4 text-center">Thực hiện NV (70đ)</th>
+                      <th className="px-5 py-4 text-center">Tổng điểm (100đ)</th>
+                      <th className="px-5 py-4 text-center">Xếp loại</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
-                    {computed.map((x, idx) => (
-                      <tr key={x.p.id} className="hover:bg-slate-50/50 transition-colors">
-                        <td className="px-5 py-4 text-slate-400">{idx + 1}</td>
-                        <td className="px-5 py-4 font-bold text-slate-700">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs"><User className="w-3.5 h-3.5" /></div>
-                            {x.p.name || '(Chưa tên)'}
-                          </div>
-                        </td>
-                        <td className="px-5 py-4 text-slate-600">{x.p.position || CRITERIA[x.p.type].label}</td>
-                        <td className="px-5 py-4 text-center">
-                          <span className="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full text-xs font-bold">
-                            {Object.values(x.p.nd335Mgr || {}).filter(v => typeof v === 'number' && !isNaN(v)).length}
-                          </span>
-                        </td>
-                        <td className="px-5 py-4 text-center text-slate-500 font-semibold">{x.c.n335Self.toFixed(2)}</td>
-                        <td className="px-5 py-4 text-center font-extrabold text-indigo-600 text-base">{x.c.n335.toFixed(2)}</td>
-                      </tr>
-                    ))}
-                    {computed.length === 0 && <tr><td colSpan="5" className="px-5 py-8 text-center text-slate-400">Chưa có dữ liệu.</td></tr>}
+                    {computed.map((x, idx) => {
+                      const r = classify(x.c.total335Mgr);
+                      return (
+                        <tr key={x.p.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setCurId(x.p.id); setTab('eval335'); }}>
+                          <td className="px-5 py-4 text-slate-400">{idx + 1}</td>
+                          <td className="px-5 py-4 font-bold text-slate-700">
+                            <div className="flex items-center gap-2">
+                              <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs"><User className="w-3.5 h-3.5" /></div>
+                              {x.p.name || '(Chưa tên)'}
+                            </div>
+                          </td>
+                          <td className="px-5 py-4 text-slate-600">{x.p.position || CRITERIA[x.p.type].label}</td>
+                          <td className="px-5 py-4 text-center font-medium text-slate-600">{x.c.n335Part1Mgr.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-center font-medium text-slate-600">{x.c.nhomII335.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-center font-extrabold text-indigo-600 text-base">{x.c.total335Mgr.toFixed(1)}</td>
+                          <td className="px-5 py-4 text-center">
+                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold ${r.soft}`}>
+                              <span className={`w-5 h-5 rounded-full ${r.cls} text-white flex items-center justify-center text-[10px] mr-1`}>{r.code}</span>
+                              {r.name}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {computed.length === 0 && <tr><td colSpan="7" className="px-5 py-8 text-center text-slate-400">Chưa có dữ liệu.</td></tr>}
                   </tbody>
                 </table>
               </div>
-            </div>
-          </div>
-        )}
-
-        {tab === 'eval335' && (
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
-                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-indigo-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
-                <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Hệ số NĐ335 (Tự ĐG)</p>
-                <p className="text-3xl font-extrabold text-slate-400">{curC.n335Self.toFixed(2)}</p>
-                <div className="my-4 border-b border-slate-100"></div>
-                <p className="text-xs text-indigo-500 uppercase font-bold tracking-wider mb-2">Hệ số NĐ335 (Cấp duyệt)</p>
-                <p className="text-4xl font-extrabold text-indigo-600 leading-none">{curC.n335.toFixed(2)}</p>
-              </div>
-            </aside>
-
-            <div className="flex-1 space-y-5">
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
-                <div className="flex justify-between items-center">
-                  <h2 className="font-bold text-slate-800 flex items-center gap-2"><User className="w-5 h-5 text-red-600" /> Thông tin người được đánh giá</h2>
-                  {people.length > 1 && <button onClick={() => setPeople(ps => ps.filter(p => p.id !== cur.id))} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <Field label="Họ và tên"><input value={cur.name} onChange={(e) => upCur({ name: e.target.value })} className="inp" placeholder="Ví dụ: Nguyễn Văn A" /></Field>
-                  <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} onChange={(e) => upCur({ position: e.target.value })} className="inp" placeholder="Ví dụ: Chuyên viên" /></Field>
-                </div>
-                <div>
-                  <span className="text-xs font-semibold text-slate-500 mb-2 block">Nhóm đối tượng đánh giá</span>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    {Object.entries(CRITERIA).map(([k, v]) => (
-                      <button key={k} onClick={() => upCur({ type: k, nd335Self: {}, nd335Mgr: {} })} className={`text-left p-3 border-2 rounded-xl transition-all ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
-                        <p className={`text-[11px] font-bold mb-1 ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</p>
-                        <p className={`text-sm font-semibold leading-tight ${cur.type === k ? 'text-slate-800' : 'text-slate-600'}`}>{v.label}</p>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {['I.A. LÃNH ĐẠO VĂN PHÒNG', 'I.B. LÃNH ĐẠO CẤP PHÒNG', 'II.A. DÙNG CHUNG', 'II.B. ĐẶC THÙ', 'III. HỖ TRỢ, PHỤC VỤ'].map(groupName => {
-                const groupItems = getND335Groups(cur.type).filter(c => c.group === groupName);
-                if (groupItems.length === 0) return null;
-                return (
-                  <section key={groupName} className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                    <div className="bg-gradient-to-r from-slate-100 to-white px-5 py-3 border-b border-slate-200">
-                      <h2 className="font-bold text-slate-700">{groupName}</h2>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {groupItems.map(c => {
-                        const sVal = cur.nd335Self?.[c.id] ?? '';
-                        const mVal = cur.nd335Mgr?.[c.id] ?? '';
-                        const sFac = (sVal !== '' && c.hasFactor) ? (Number(sVal)/5).toFixed(2) : '-';
-                        const mFac = (mVal !== '' && c.hasFactor) ? (Number(mVal)/5).toFixed(2) : '-';
-
-                        return (
-                          <div key={c.id} className="p-4 sm:p-5 hover:bg-slate-50/50 transition-colors flex flex-col lg:flex-row gap-5">
-                            <div className="flex-1">
-                              <h3 className="font-semibold text-slate-800 text-sm mb-1.5"><span className="text-indigo-600 bg-indigo-50 px-1.5 py-0.5 rounded mr-1">[{c.id}]</span> {c.name}</h3>
-                              <p className="text-[13px] text-slate-500"><b>Sản phẩm đầu ra:</b> {c.output}</p>
-                              <div className="mt-2 flex flex-wrap gap-2">
-                                <span className="text-[11px] font-medium bg-slate-100 text-slate-600 px-2 py-0.5 rounded border border-slate-200">Nhóm {c.level}</span>
-                                {c.hasFactor ? (
-                                  <span className="text-[11px] font-medium bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded border border-indigo-100">Khung điểm tối đa: {c.maxScore}</span>
-                                ) : (
-                                  <span className="text-[11px] font-medium bg-slate-50 text-slate-500 px-2 py-0.5 rounded border border-slate-200">Không tính hệ số</span>
-                                )}
-                              </div>
-                            </div>
-                            
-                            <div className="shrink-0 flex gap-4 items-start">
-                              <div className="w-20 sm:w-24">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block text-center">Tự ĐG</label>
-                                <input type="number" min="0" max={c.maxScore} value={sVal} onChange={(e) => upCur({ nd335Self: { ...cur.nd335Self, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 font-semibold text-center text-slate-600" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : String(c.maxScore)} />
-                                <div className="text-[11px] text-center mt-1 text-slate-400 font-medium">HS: {sFac}</div>
-                              </div>
-                              <div className="w-20 sm:w-24">
-                                <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1 block text-center">Cấp duyệt</label>
-                                <input type="number" min="0" max={c.maxScore} value={mVal} onChange={(e) => upCur({ nd335Mgr: { ...cur.nd335Mgr, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 bg-indigo-50" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : String(c.maxScore)} />
-                                <div className="text-[11px] text-center mt-1 text-indigo-500 font-bold">HS: {mFac}</div>
-                              </div>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </section>
-                );
-              })}
             </div>
           </div>
         )}

@@ -59,3 +59,17 @@ export const ND335_CATALOG = [
   { id: 'III.3', group: 'III. Há»– TRá»¢, PHá»¤C Vá»¤', name: 'Vá»‡ sinh cÆ¡ quan, phÃ²ng lÃ m viá»‡c; phá»¥c vá»¥ há»™i nghá»‹, tiáº¿p khÃ¡ch', output: 'Nháº­t kÃ½ vá»‡ sinh; BÃ¡o cÃ¡o phá»¥c vá»¥ há»™i nghá»‹', level: 'Há»— trá»£', maxScore: 0, hasFactor: false },
   { id: 'III.4', group: 'III. Há»– TRá»¢, PHá»¤C Vá»¤', name: 'Báº£o trÃ¬, váº­n hÃ nh, sá»­a chá»¯a thiáº¿t bá»‹, phÆ°Æ¡ng tiá»‡n ká»¹ thuáº­t', output: 'BiÃªn báº£n bÃ n giao sá»­a chá»¯a; BiÃªn báº£n nghiá»‡m thu; Nháº­t kÃ½ váº­n hÃ nh', level: 'Há»— trá»£', maxScore: 0, hasFactor: false },
 ];
+
+export const CRITERIA_335 = [
+  { id: '1', name: 'Ph?m ch?t chính tr?, ph?m ch?t d?o d?c, van hóa th?c thi công v?', maxScore: 5 },
+  { id: '2', name: 'Ý th?c k? lu?t, k? cuong trong th?c thi công v?', maxScore: 5 },
+  { id: '3', name: 'Nang l?c chuyên môn, nghi?p v? theo yêu c?u c?a v? trí vi?c làm', maxScore: 2.5 },
+  { id: '4', name: 'Kh? nang dáp ?ng yêu c?u th?c thi nhi?m v? du?c giao thu?ng xuyên, d?t xu?t', maxScore: 2.5 },
+  { id: '5', name: 'Tinh th?n trách nhi?m trong th?c thi công v?', maxScore: 2.5 },
+  { id: '6', name: 'Thái d? ph?c v? ngu?i dân, doanh nghi?p và kh? nang ph?i h?p', maxScore: 2.5 },
+  { id: '7', name: 'Có s?n ph?m, gi?i pháp d?t phá, sáng t?o dem l?i giá tr?, hi?u qu? thi?t th?c', maxScore: 2.5 },
+  { id: '8', name: 'S?n sàng tham gia th?c hi?n nhi?m v? chính tr? d?c bi?t quan tr?ng, d?t xu?t', maxScore: 2.5 },
+  { id: '9', name: 'Có tinh th?n ch?u trách nhi?m tru?c k?t qu? công vi?c; ch? d?ng nh?n l?i', maxScore: 2.5 },
+  { id: '10', name: 'Ch? d?ng dua ra quy?t d?nh trong ph?m vi th?m quy?n, không né tránh', maxScore: 2.5 }
+];
+
