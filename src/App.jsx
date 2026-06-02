@@ -461,8 +461,11 @@ export default function App() {
 
         {tab === 'eval335' && (
           <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
-              <PersonChips people={people} curId={curId} setCurId={setCurId} onDelete={(id) => setPeople((ps) => ps.filter((p) => p.id !== id))} onAdd={(name, type) => { const np = newPerson(name, type); setPeople((ps) => [...ps, np]); setCurId(np.id); }} vertical />
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
+                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-indigo-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
+                <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>
+              </div>
               
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
                 <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Hệ số NĐ335 (Tự ĐG)</p>
@@ -474,6 +477,28 @@ export default function App() {
             </aside>
 
             <div className="flex-1 space-y-5">
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
+                <div className="flex justify-between items-center">
+                  <h2 className="font-bold text-slate-800 flex items-center gap-2"><User className="w-5 h-5 text-red-600" /> Thông tin người được đánh giá</h2>
+                  {people.length > 1 && <button onClick={() => setPeople(ps => ps.filter(p => p.id !== cur.id))} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <Field label="Họ và tên"><input value={cur.name} onChange={(e) => upCur({ name: e.target.value })} className="inp" placeholder="Ví dụ: Nguyễn Văn A" /></Field>
+                  <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} onChange={(e) => upCur({ position: e.target.value })} className="inp" placeholder="Ví dụ: Chuyên viên" /></Field>
+                </div>
+                <div>
+                  <span className="text-xs font-semibold text-slate-500 mb-2 block">Nhóm đối tượng đánh giá</span>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    {Object.entries(CRITERIA).map(([k, v]) => (
+                      <button key={k} onClick={() => upCur({ type: k, nd335Self: {}, nd335Mgr: {} })} className={`text-left p-3 border-2 rounded-xl transition-all ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
+                        <p className={`text-[11px] font-bold mb-1 ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</p>
+                        <p className={`text-sm font-semibold leading-tight ${cur.type === k ? 'text-slate-800' : 'text-slate-600'}`}>{v.label}</p>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
               {['I.A. LÃNH ĐẠO VĂN PHÒNG', 'I.B. LÃNH ĐẠO CẤP PHÒNG', 'II.A. DÙNG CHUNG', 'II.B. ĐẶC THÙ', 'III. HỖ TRỢ, PHỤC VỤ'].map(groupName => {
                 const groupItems = getND335Groups(cur.type).filter(c => c.group === groupName);
                 if (groupItems.length === 0) return null;
