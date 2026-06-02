@@ -20,16 +20,22 @@ export async function loadState() {
     console.warn('loadState local:', e);
   }
 
-  // 2. Nếu có Supabase, đồng bộ từ máy chủ về (ưu tiên dữ liệu server nếu có)
+  // 2. Nếu có Supabase, đồng bộ từ máy chủ về
   if (supabase) {
     const { data, error } = await supabase
       .from('app_state').select('data').eq('id', STATE_ID).maybeSingle();
     if (error) { 
       console.warn('loadState supabase:', error.message); 
     } else if (data?.data) {
-      state = data.data;
-      // Cập nhật lại Local Storage cho đồng bộ
-      localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+      const serverState = data.data;
+      const localTs = state?._ts || 0;
+      const serverTs = serverState._ts || 0;
+      
+      // Chỉ ghi đè dữ liệu local nếu dữ liệu trên server MỚI HƠN hoặc local trống
+      if (serverTs >= localTs || !state) {
+        state = serverState;
+        localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
+      }
     }
   }
   
@@ -37,6 +43,9 @@ export async function loadState() {
 }
 
 export async function saveState(state) {
+  // Thêm mốc thời gian để đồng bộ chuẩn xác
+  state._ts = Date.now();
+
   // Luôn lưu vào Local Storage ngay lập tức
   try {
     localStorage.setItem(LOCAL_KEY, JSON.stringify(state));
