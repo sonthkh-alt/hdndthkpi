@@ -4,3 +4,11 @@ dist/
 .env.local
 *.log
 .DS_Store
+
+# Claude Code local settings
+.claude/
+
+# One-off fix/migration scripts
+fix_exporters.py
+fix_nd335.py
+reinject.py
