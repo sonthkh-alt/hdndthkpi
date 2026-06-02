@@ -407,6 +407,7 @@ export default function App() {
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
                 <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-amber-50/50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-amber-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
+                <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>
               </div>
             </aside>
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
@@ -421,13 +422,20 @@ export default function App() {
                 </div>
               </div>
               <div className="p-5 space-y-4">
+                <datalist id="coordination-list">
+                  <option value="Văn phòng Đoàn ĐBQH và HĐND tỉnh" />
+                  <option value="Ban Pháp chế HĐND tỉnh" />
+                  <option value="Ban Kinh tế - Ngân sách HĐND tỉnh" />
+                  <option value="Ban Văn hóa - Xã hội HĐND tỉnh" />
+                  <option value="Ban Dân tộc HĐND tỉnh" />
+                </datalist>
                 {(cur.trackings || []).map((t, idx) => (
                   <div key={t.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 relative group">
                     <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
                     <div className="mb-3 font-semibold text-slate-700 text-sm">Công việc #{idx + 1}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                       <div><label className="text-[11px] font-medium text-slate-500">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
-                      <div><label className="text-[11px] font-medium text-slate-500">Đơn vị chủ trì, phối hợp</label><textarea value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Đơn vị chủ trì, phối hợp</label><input type="text" list="coordination-list" value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400" /></div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                       <div><label className="text-[11px] font-medium text-slate-500">Ý kiến chỉ đạo của TT HĐND</label><textarea value={t.directive} onChange={(e) => upTracking(t.id, { directive: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
