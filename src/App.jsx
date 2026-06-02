@@ -421,6 +421,16 @@ export default function App() {
                   <button onClick={doExcelTracking} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất Bảng</button>
                 </div>
               </div>
+              <div className="px-5 py-4 bg-slate-50/50 border-b border-slate-100 flex flex-col sm:flex-row items-center gap-4">
+                <div className="flex-1 w-full">
+                  <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Họ và tên cán bộ</label>
+                  <input type="text" value={cur.name} onChange={(e) => upCur({ name: e.target.value })} placeholder="Nhập tên cán bộ..." className="mt-1.5 w-full text-sm p-2 border border-slate-200 rounded-lg outline-none focus:border-amber-400 font-semibold text-slate-800 bg-white" />
+                </div>
+                <div className="flex-1 w-full">
+                  <label className="text-[11px] font-medium text-slate-500 uppercase tracking-wider">Chức vụ / Vị trí</label>
+                  <input type="text" value={cur.position} onChange={(e) => upCur({ position: e.target.value })} placeholder="Nhập chức vụ..." className="mt-1.5 w-full text-sm p-2 border border-slate-200 rounded-lg outline-none focus:border-amber-400 text-slate-700 bg-white" />
+                </div>
+              </div>
               <div className="p-5 space-y-4">
                 <datalist id="coordination-list">
                   <option value="Văn phòng Đoàn ĐBQH và HĐND tỉnh" />
