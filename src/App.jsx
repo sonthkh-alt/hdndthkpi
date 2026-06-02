@@ -155,7 +155,7 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (!loaded.current || !supabase) return;
+    if (!loaded.current) return;
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
       await saveState({ people, objectives, period });
