@@ -6,6 +6,9 @@ import Login from './Login.jsx';
 import { ND335_CATALOG } from './lib/nd335';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị' };
+// Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
+// Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
+const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
 
 const CRITERIA = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
@@ -327,8 +330,10 @@ export default function App() {
   };
 
   // ===== Phân quyền (thực thi ở tầng ứng dụng) =====
-  const role = !supabase ? 'quantri' : (profile?.role || 'canbo');
   const myEmail = (session && session.user && session.user.email) || '';
+  const isBootstrapAdmin = !!myEmail && BOOTSTRAP_ADMIN_EMAILS.includes(myEmail.toLowerCase());
+  // Ưu tiên hồ sơ profiles; chưa có hồ sơ thì email bootstrap -> quản trị, còn lại -> cán bộ (chỉ xem)
+  const role = !supabase ? 'quantri' : (profile?.role || (isBootstrapAdmin ? 'quantri' : 'canbo'));
   const isAdmin = role === 'quantri';
   const canManage = isAdmin; // thêm/xóa cán bộ, sửa mục tiêu OKR
   const canEditMgrOf = (p) => isAdmin || (role === 'truongphong' && !!p?.department && p.department === profile?.department);
@@ -389,6 +394,12 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
+        {supabase && session && session !== 'local' && !profile && isBootstrapAdmin && (
+          <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-amber-800">Bạn đang đăng nhập với <b>quyền Quản trị tạm thời</b> (chưa dựng bảng phân quyền chi tiết). Để phân quyền theo phòng cho từng cán bộ, hãy chạy <code className="text-[12px] font-mono bg-white px-1 rounded border border-amber-200">supabase/schema.sql</code> (Bước 2–3) và khai báo email cán bộ.</p>
+          </div>
+        )}
         {conflict && (
           <div className="mb-5 bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
             <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
