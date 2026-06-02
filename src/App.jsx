@@ -343,12 +343,28 @@ export default function App() {
         )}
 
         {tab === 'eval' && (
-          <div className="space-y-5">
-            <PersonChips people={people} curId={curId} setCurId={setCurId} onDelete={(id) => { if (people.length > 1) { setPeople((ps) => ps.filter((p) => p.id !== id)); if (curId === id) setCurId(people.find((p) => p.id !== id).id); } }} onAdd={(name, type) => { const np = newPerson(name, type); setPeople((ps) => [...ps, np]); setCurId(np.id); }} />
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
-                  <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4"><User className="w-5 h-5 text-red-700" /> Thông tin người được đánh giá</h2>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
+                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-red-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-red-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
+                <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>
+              </div>
+
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Tổng điểm KPI</p>
+                <div className="flex justify-center items-end gap-2 text-red-600"><span className="text-4xl font-extrabold leading-none">{curC.totalMgr.toFixed(1)}</span><span className="text-sm font-bold pb-1">/ 100</span></div>
+                <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${result.soft}`}>{result.name}</span></div>
+              </div>
+            </aside>
+
+            <div className="flex-1 space-y-6">
+              <div className="space-y-6">
+                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
+                  <div className="flex justify-between items-center">
+                    <h2 className="flex items-center gap-2 font-bold text-slate-800"><User className="w-5 h-5 text-red-700" /> Thông tin người được đánh giá</h2>
+                    {people.length > 1 && <button onClick={() => { setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
+                  </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Field label="Họ và tên"><input value={cur.name} onChange={(e) => upCur({ name: e.target.value })} className="inp" /></Field>
                     <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} onChange={(e) => upCur({ position: e.target.value })} placeholder="VD: Chuyên viên" className="inp" /></Field>
@@ -553,15 +569,24 @@ export default function App() {
         )}
 
         {tab === 'digital' && (
-          <div className="space-y-5">
-            <PersonChips people={people} curId={curId} setCurId={setCurId} onDelete={() => {}} onAdd={(name, type) => { const np = newPerson(name, type); setPeople((ps) => [...ps, np]); setCurId(np.id); }} hideDelete />
-            <div className="grid lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-4">
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 className="flex items-center gap-2 font-bold text-slate-800"><Cpu className="w-5 h-5 text-red-700" /> Tự đánh giá Khung năng lực số</h2><p className="text-sm text-slate-500 mt-1">Mức chuẩn tối thiểu cho <b>{CRITERIA[cur.type].label}</b>: <b className="text-red-700">Mức {minLv}</b>. Kết quả là chỉ số phụ trợ, không cộng vào điểm tháng.</p></section>
+          <div className="flex flex-col lg:flex-row gap-6 items-start">
+            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
+                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-emerald-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-emerald-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
+              </div>
+              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Chỉ tiêu tối thiểu</p>
+                <p className="text-3xl font-extrabold text-emerald-600 leading-none">Mức {minLv}</p>
+                <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${digPassed === DIGITAL.length ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'}`}>{digPassed} / {DIGITAL.length} kỹ năng đạt</span></div>
+              </div>
+            </aside>
+            <div className="flex-1 space-y-6">
+              <div className="space-y-4">
+                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5"><h2 className="flex items-center gap-2 font-bold text-slate-800"><Cpu className="w-5 h-5 text-emerald-700" /> Tự đánh giá Khung năng lực số</h2><p className="text-sm text-slate-500 mt-1">Mức chuẩn tối thiểu cho <b>{CRITERIA[cur.type].label}</b>: <b className="text-emerald-700">Mức {minLv}</b>. Kết quả là chỉ số phụ trợ, không cộng vào điểm tháng.</p></section>
                 {DIGITAL.map((d) => { const lv = cur.digital[d.id] || 0; const ok = lv >= minLv;
                   return (<div key={d.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4"><div className="flex items-start gap-3"><span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${ok ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>{d.id}</span><div className="flex-1"><div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-slate-800 text-sm">{d.name}</p>{d.mandatory && <span className="text-[10px] font-bold bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded">BẮT BUỘC</span>}{lv > 0 && (ok ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-amber-500" />)}</div><div className="flex flex-wrap gap-1.5 mt-2.5">{LEVELS.map((L) => (<button key={L.v} onClick={() => upCur({ digital: { ...cur.digital, [d.id]: L.v } })} className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${lv === L.v ? (L.v >= minLv ? 'bg-emerald-600 text-white border-emerald-600' : L.v === 0 ? 'bg-slate-500 text-white border-slate-500' : 'bg-amber-500 text-white border-amber-500') : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}>{L.s}</button>))}</div></div></div></div>); })}
               </div>
-              <aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4"><div className="bg-white rounded-2xl shadow-md border border-slate-200 p-5 text-center"><p className="text-xs text-slate-500 uppercase tracking-wider">Đạt chuẩn tối thiểu</p><p className="text-5xl font-extrabold text-red-700 mt-1">{digPassed}<span className="text-2xl text-slate-300">/8</span></p><div className="mt-3 h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-red-600 to-amber-400 transition-all" style={{ width: `${(digPassed / 8) * 100}%` }} /></div><p className="text-sm font-semibold text-slate-600 mt-2">{Math.round((digPassed / 8) * 100)}% nhóm năng lực đạt chuẩn</p></div></div></aside>
             </div>
           </div>
         )}
