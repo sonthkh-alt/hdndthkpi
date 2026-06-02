@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
-import { onAuthChange, getSession, getMyProfile, signOut } from './lib/auth';
+import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import { ND335_CATALOG } from './lib/nd335';
 
@@ -158,7 +158,7 @@ function computePerson(p) {
 let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -190,7 +190,6 @@ export default function App() {
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; null = chưa đăng nhập
-  const [profile, setProfile] = useState(null);
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -241,13 +240,8 @@ export default function App() {
     if (!supabase) { setSession('local'); return; }
     let unsub = () => {};
     (async () => {
-      const s = await getSession();
-      setSession(s);
-      if (s) setProfile(await getMyProfile());
-      unsub = onAuthChange(async (ns) => {
-        setSession(ns);
-        setProfile(ns ? await getMyProfile() : null);
-      });
+      setSession(await getSession());
+      unsub = onAuthChange((ns) => setSession(ns));
     })();
     return () => unsub();
   }, []);
@@ -332,11 +326,13 @@ export default function App() {
   // ===== Phân quyền (thực thi ở tầng ứng dụng) =====
   const myEmail = (session && session.user && session.user.email) || '';
   const isBootstrapAdmin = !!myEmail && BOOTSTRAP_ADMIN_EMAILS.includes(myEmail.toLowerCase());
-  // Ưu tiên hồ sơ profiles; chưa có hồ sơ thì email bootstrap -> quản trị, còn lại -> cán bộ (chỉ xem)
-  const role = !supabase ? 'quantri' : (profile?.role || (isBootstrapAdmin ? 'quantri' : 'canbo'));
+  // Hồ sơ của chính người đăng nhập = cán bộ có email khớp; vai trò lấy từ ô "Vai trò" do quản trị đặt.
+  const myPerson = supabase ? people.find((p) => p.email && myEmail && p.email.toLowerCase() === myEmail.toLowerCase()) : null;
+  const myDept = myPerson?.department || '';
+  const role = !supabase ? 'quantri' : (isBootstrapAdmin ? 'quantri' : (myPerson?.role || 'canbo'));
   const isAdmin = role === 'quantri';
-  const canManage = isAdmin; // thêm/xóa cán bộ, sửa mục tiêu OKR
-  const canEditMgrOf = (p) => isAdmin || (role === 'truongphong' && !!p?.department && p.department === profile?.department);
+  const canManage = isAdmin; // thêm/xóa cán bộ, sửa mục tiêu OKR, đặt vai trò
+  const canEditMgrOf = (p) => isAdmin || (role === 'truongphong' && !!myDept && p?.department === myDept);
   const canEditSelfOf = (p) => isAdmin || (!!myEmail && !!p?.email && p.email.toLowerCase() === myEmail.toLowerCase());
   const selfEditable = cur ? canEditSelfOf(cur) : false;
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
@@ -373,7 +369,7 @@ export default function App() {
             {supabase && session && session !== 'local' && (
               <div className="flex items-center gap-2 bg-red-950/40 rounded-lg px-2.5 py-1.5 border border-red-600/30">
                 <User className="w-3.5 h-3.5 text-amber-300" />
-                <span className="text-xs text-red-100 max-w-[140px] truncate" title={myEmail}>{profile?.full_name || myEmail}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
+                <span className="text-xs text-red-100 max-w-[160px] truncate" title={myEmail}>{myPerson?.name || myEmail}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
                 <button onClick={signOut} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
               </div>
             )}
@@ -394,10 +390,10 @@ export default function App() {
       </header>
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {supabase && session && session !== 'local' && !profile && isBootstrapAdmin && (
-          <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">Bạn đang đăng nhập với <b>quyền Quản trị tạm thời</b> (chưa dựng bảng phân quyền chi tiết). Để phân quyền theo phòng cho từng cán bộ, hãy chạy <code className="text-[12px] font-mono bg-white px-1 rounded border border-amber-200">supabase/schema.sql</code> (Bước 2–3) và khai báo email cán bộ.</p>
+        {supabase && session && session !== 'local' && isBootstrapAdmin && (
+          <div className="mb-5 bg-sky-50 border border-sky-200 rounded-xl p-4 flex items-start gap-3">
+            <ShieldCheck className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
+            <p className="text-sm text-sky-800">Bạn là <b>Quản trị</b>. Để phân quyền: vào tab <b>Đánh giá</b>, chọn từng cán bộ rồi điền <b>Email đăng nhập</b>, <b>Phòng</b> và chọn <b>Vai trò</b> (Cán bộ / Trưởng phòng / Quản trị). Cán bộ đăng nhập sẽ tự nhận đúng quyền theo email.</p>
           </div>
         )}
         {conflict && (
@@ -545,7 +541,8 @@ export default function App() {
                     <Field label="Họ và tên"><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} placeholder="VD: Chuyên viên" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     <Field label="Phòng / Bộ phận"><input value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value })} placeholder="VD: Phòng Tổng hợp" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
-                    <Field label="Email (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
+                    <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
+                    {canManage && <Field label="Vai trò (quyền truy cập)"><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className="inp"><option value="canbo">Cán bộ — tự đánh giá phần mình</option><option value="truongphong">Trưởng phòng — duyệt trong phòng</option><option value="quantri">Quản trị — toàn quyền</option></select></Field>}
                   </div>
                   <Field label="Nhóm đối tượng đánh giá" className="mt-3">
                     <div className="grid sm:grid-cols-3 gap-2">
@@ -775,11 +772,12 @@ export default function App() {
             </GB>
 
             <GB icon={ShieldCheck} title="10. Đăng nhập & phân quyền">
-              <p>Truy cập bằng <b>tài khoản email</b> (đăng nhập qua liên kết gửi tới hộp thư — không cần nhớ mật khẩu). Chỉ người có tài khoản mới xem được dữ liệu nhân sự. Ba vai trò:</p>
-              <ul className="list-disc pl-5 space-y-1 mt-1">
-                <li><b>Cán bộ:</b> xem và tự đánh giá phần của chính mình.</li>
-                <li><b>Trưởng phòng:</b> duyệt (chấm cột Cấp duyệt) cho cán bộ trong phòng mình.</li>
-                <li><b>Quản trị:</b> toàn quyền — thêm/xóa cán bộ, sửa mục tiêu, mọi kỳ.</li>
+              <p>Truy cập bằng <b>email</b> (đăng nhập qua liên kết gửi tới hộp thư — không cần mật khẩu). Khi mới đăng nhập, mọi người mặc định là <b>Cán bộ</b>; tài khoản <b>Quản trị</b> ban đầu là email người quản lý hệ thống.</p>
+              <p className="mt-2"><b>Quản trị phân quyền ngay trong trang</b> (không cần thao tác kỹ thuật): tab <b>Đánh giá</b> → chọn cán bộ → điền <b>Email đăng nhập</b>, <b>Phòng</b> và chọn <b>Vai trò</b>. Cán bộ đăng nhập sẽ tự nhận đúng quyền theo email.</p>
+              <ul className="list-disc pl-5 space-y-1 mt-2">
+                <li><b>Cán bộ:</b> xem và tự đánh giá (cột Tự ĐG) phần của chính mình.</li>
+                <li><b>Trưởng phòng:</b> thêm quyền duyệt (cột Cấp duyệt) cho cán bộ cùng phòng.</li>
+                <li><b>Quản trị:</b> toàn quyền — thêm/xóa cán bộ, đặt vai trò, sửa mục tiêu, mọi kỳ.</li>
               </ul>
             </GB>
 
