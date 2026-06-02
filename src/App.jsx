@@ -310,7 +310,7 @@ export default function App() {
               <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Mục tiêu cấp Văn phòng (OKR)</h2></div>
                 <div className="p-4 space-y-3">
-                  {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.tasks).filter((t) => t.objId === o.id).length;
+                  {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.tasks335 || []).filter((t) => t.objId === o.id && t.catalogId).length;
                     return (
                       <div key={o.id} className="border border-slate-200 rounded-xl p-3">
                         <div className="flex items-start justify-between gap-2">
