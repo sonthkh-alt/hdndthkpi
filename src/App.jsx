@@ -381,6 +381,25 @@ export default function App() {
             <GB icon={Activity} title="Trạng thái & check-in tuần"><p><b className="text-emerald-600">Xanh ≥90%</b> (đúng tiến độ), <b className="text-amber-600">Vàng 70–90%</b> (cần chú ý), <b className="text-rose-600">Đỏ &lt;70%</b> (chậm/rủi ro).</p></GB>
             <GB icon={Award} title="Bốn mức xếp loại"><div className="grid sm:grid-cols-2 gap-2">{[['A', '≥ 90', 'Hoàn thành xuất sắc', 'emerald'], ['B', '70 → <90', 'Hoàn thành tốt', 'sky'], ['C', '50 → <70', 'Hoàn thành nhiệm vụ', 'amber'], ['D', '< 50', 'Không hoàn thành', 'rose']].map(([c, r, n, col]) => (<div key={c} className={`flex items-center gap-3 p-3 rounded-xl border bg-${col}-50 border-${col}-200`}><span className={`w-9 h-9 rounded-full bg-${col}-500 text-white font-extrabold flex items-center justify-center`}>{c}</span><div><p className={`font-bold text-${col}-700 text-sm`}>{n}</p><p className="text-xs text-slate-500">{r} điểm</p></div></div>))}</div></GB>
             <GB icon={CalendarDays} title="Quy trình 2 cấp & mốc thời gian"><ol className="list-decimal pl-5 space-y-1"><li>Trước ngày 25: cán bộ tự đánh giá (cột Tự ĐG).</li><li>Trước ngày 26: cấp có thẩm quyền cho ý kiến.</li><li>Trước ngày 28: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt).</li><li>Trước ngày 05 tháng sau: công khai, biểu dương.</li></ol></GB>
+            <GB icon={Cloud} title="Kiến trúc hệ thống">
+              <div className="space-y-3">
+                <p>Hệ thống được thiết kế theo mô hình <b>Serverless SPA (Single Page Application)</b>, vận hành hoàn toàn trên trình duyệt:</p>
+                <div className="grid sm:grid-cols-3 gap-2">
+                  <div className="border border-slate-200 rounded-lg p-2.5 bg-slate-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Frontend (Client)</p><p className="text-[11px] text-slate-500 leading-snug">React + Vite + Tailwind CSS. Đóng gói toàn bộ giao diện, tính toán logic và kết xuất báo cáo (Excel, Word, PDF) phía client.</p></div>
+                  <div className="border border-slate-200 rounded-lg p-2.5 bg-emerald-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Backend (BaaS)</p><p className="text-[11px] text-slate-500 leading-snug">Supabase (PostgreSQL). Cung cấp cơ sở dữ liệu lưu trữ lâu dài và API tự động; đồng bộ dữ liệu thời gian thực.</p></div>
+                  <div className="border border-slate-200 rounded-lg p-2.5 bg-sky-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Hosting (Triển khai)</p><p className="text-[11px] text-slate-500 leading-snug">Vercel (Cloud) hoặc Web Server nội bộ. Tích hợp CI/CD tự động build từ mã nguồn trên GitHub.</p></div>
+                </div>
+                <p>Trạng thái (State) được ưu tiên xử lý trên <b>Local Storage</b> và lưu ngầm (background sync) lên <b>Supabase</b> giúp ứng dụng siêu nhẹ, phản hồi tức thời mà không bị gián đoạn mạng.</p>
+              </div>
+            </GB>
+            <GB icon={ShieldCheck} title="Hướng dẫn triển khai (Dành cho Quản trị viên)">
+              <ol className="list-decimal pl-5 space-y-1">
+                <li><b>Khởi tạo Cơ sở dữ liệu:</b> Đăng ký Supabase, tạo project. Chạy script <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">supabase/schema.sql</code> trong SQL Editor. Lấy <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">Project URL</code> và <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">anon public key</code>.</li>
+                <li><b>Quản lý Mã nguồn:</b> Đẩy mã nguồn lên kho lưu trữ GitHub (khuyên dùng Private repo).</li>
+                <li><b>Triển khai qua Cloud (Vercel):</b> Tạo project mới trên Vercel, chọn nguồn từ repo GitHub, chọn framework Vite. Bổ sung biến môi trường <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_URL</code> và <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_ANON_KEY</code>.</li>
+                <li><b>Triển khai On-premise (Máy chủ nội bộ):</b> Chạy lệnh <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">npm install</code>, tạo file <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">.env</code> chứa các key, tiếp tục chạy <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">npm run build</code>. Cuối cùng, đưa nội dung thư mục <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">dist</code> lên Apache hoặc Nginx.</li>
+              </ol>
+            </GB>
           </div>
         )}
       </main>
