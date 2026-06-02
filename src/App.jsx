@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
-import { exportExcel1A, exportWordPhieu } from './lib/exporters';
+import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
 
 const CRITERIA = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
@@ -115,13 +115,27 @@ function computePerson(p) {
   const ded = Number(p.deduction || 0);
   return { nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded) };
 }
-let pid = 3, tid = 100;
+let pid = 3, tid = 100, trkId = 1;
 const newTask = () => ({ id: tid++, name: '', objId: '', weight: 1, qty: 100, quality: 100, progress: 100, weeks: [0, 0, 0, 0], note: '' });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '' });
+const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+
+function getWeekTitle(dateObj) {
+  const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
+  const dayNum = d.getUTCDay() || 7;
+  d.setUTCDate(d.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+  const weekNo = Math.ceil((((d - yearStart) / 86400000) + 1) / 7);
+  const start = new Date(d); start.setUTCDate(d.getUTCDate() - 3);
+  const end = new Date(d); end.setUTCDate(d.getUTCDate() + 3);
+  const fmt = (dt) => `${dt.getDate().toString().padStart(2, '0')}/${(dt.getMonth() + 1).toString().padStart(2, '0')}/${dt.getFullYear()}`;
+  return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
+}
 
 export default function App() {
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
+  const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
   const [unit] = useState('Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa');
   const [objectives, setObjectives] = useState([
     { id: 'o1', title: 'Nâng cao chất lượng tham mưu xây dựng, ban hành nghị quyết HĐND tỉnh', source: 'NQ 66-NQ/TW' },
@@ -145,6 +159,7 @@ export default function App() {
           setPeople(s.people); setCurId(s.people[0].id);
           pid = Math.max(pid, ...s.people.map((p) => p.id || 0)) + 1;
           tid = Math.max(tid, ...s.people.flatMap((p) => (p.tasks || []).map((t) => t.id || 0))) + 1;
+          trkId = Math.max(trkId, ...s.people.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
         }
         if (s.objectives) setObjectives(s.objectives);
         if (s.period) setPeriod(s.period);
@@ -174,6 +189,7 @@ export default function App() {
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
   const upTask = (taskId, patch) => upCur({ tasks: cur.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
+  const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
   const curC = computed.find((x) => x.p.id === curId)?.c || computePerson(cur);
@@ -190,6 +206,7 @@ export default function App() {
     { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
+    { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
   ];
   const cfg = CRITERIA[cur.type];
@@ -202,6 +219,7 @@ export default function App() {
     period, unit
   );
   const doWord = () => exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
+  const doExcelTracking = () => exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), unit);
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -379,6 +397,58 @@ export default function App() {
                   return (<div key={d.id} className="bg-white rounded-2xl shadow-sm border border-slate-200 p-4"><div className="flex items-start gap-3"><span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${ok ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-400'}`}>{d.id}</span><div className="flex-1"><div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-slate-800 text-sm">{d.name}</p>{d.mandatory && <span className="text-[10px] font-bold bg-rose-100 text-rose-600 px-1.5 py-0.5 rounded">BẮT BUỘC</span>}{lv > 0 && (ok ? <CheckCircle2 className="w-4 h-4 text-emerald-500" /> : <AlertTriangle className="w-4 h-4 text-amber-500" />)}</div><div className="flex flex-wrap gap-1.5 mt-2.5">{LEVELS.map((L) => (<button key={L.v} onClick={() => upCur({ digital: { ...cur.digital, [d.id]: L.v } })} className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition-all ${lv === L.v ? (L.v >= minLv ? 'bg-emerald-600 text-white border-emerald-600' : L.v === 0 ? 'bg-slate-500 text-white border-slate-500' : 'bg-amber-500 text-white border-amber-500') : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'}`}>{L.s}</button>))}</div></div></div></div>); })}
               </div>
               <aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4"><div className="bg-white rounded-2xl shadow-md border border-slate-200 p-5 text-center"><p className="text-xs text-slate-500 uppercase tracking-wider">Đạt chuẩn tối thiểu</p><p className="text-5xl font-extrabold text-red-700 mt-1">{digPassed}<span className="text-2xl text-slate-300">/8</span></p><div className="mt-3 h-3 bg-slate-100 rounded-full overflow-hidden"><div className="h-full bg-gradient-to-r from-red-600 to-amber-400 transition-all" style={{ width: `${(digPassed / 8) * 100}%` }} /></div><p className="text-sm font-semibold text-slate-600 mt-2">{Math.round((digPassed / 8) * 100)}% nhóm năng lực đạt chuẩn</p></div></div></aside>
+            </div>
+          </div>
+        )}
+
+        {tab === 'tracking' && (
+          <div className="flex flex-col md:flex-row gap-6">
+            <aside className="w-full md:w-64 shrink-0 print:hidden space-y-4">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
+                <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-amber-50/50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-amber-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
+              </div>
+            </aside>
+            <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="p-5 border-b border-slate-100 flex items-center justify-between flex-wrap gap-4">
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><ClipboardList className="w-5 h-5 text-amber-500" /> Bảng kiểm đếm, theo dõi công việc</h2>
+                  <p className="text-sm text-slate-500 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" />
+                  <button onClick={doExcelTracking} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất Bảng</button>
+                </div>
+              </div>
+              <div className="p-5 space-y-4">
+                {(cur.trackings || []).map((t, idx) => (
+                  <div key={t.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 relative group">
+                    <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
+                    <div className="mb-3 font-semibold text-slate-700 text-sm">Công việc #{idx + 1}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-500">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Đơn vị chủ trì, phối hợp</label><textarea value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-500">Ý kiến chỉ đạo của TT HĐND</label><textarea value={t.directive} onChange={(e) => upTracking(t.id, { directive: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Sản phẩm cuối cùng</label><textarea value={t.finalProduct} onChange={(e) => upTracking(t.id, { finalProduct: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-500">Triển khai (dd/mm/yyyy)</label><input type="text" placeholder="Ví dụ: 01/06/2026" value={t.startDate} onChange={(e) => upTracking(t.id, { startDate: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Hoàn thành (dd/mm/yyyy)</label><input type="text" placeholder="Ví dụ: 07/06/2026" value={t.endDate} onChange={(e) => upTracking(t.id, { endDate: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Đã thực hiện</label><textarea value={t.doneWork} onChange={(e) => upTracking(t.id, { doneWork: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Đang thực hiện</label><textarea value={t.doingWork} onChange={(e) => upTracking(t.id, { doingWork: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div><label className="text-[11px] font-medium text-slate-500">Khó khăn, vướng mắc</label><textarea value={t.difficulties} onChange={(e) => upTracking(t.id, { difficulties: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Đề xuất, kiến nghị</label><textarea value={t.proposals} onChange={(e) => upTracking(t.id, { proposals: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                      <div><label className="text-[11px] font-medium text-slate-500">Ghi chú</label><textarea value={t.note} onChange={(e) => upTracking(t.id, { note: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                    </div>
+                  </div>
+                ))}
+                {!(cur.trackings?.length) && <div className="text-center py-10 text-slate-400 text-sm">Chưa có công việc nào. Hãy thêm mới!</div>}
+                <button onClick={() => upCur({ trackings: [...(cur.trackings || []), newTracking()] })} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-amber-400 hover:text-amber-600 transition-colors"><Plus className="w-4 h-4" /> Thêm công việc</button>
+              </div>
             </div>
           </div>
         )}
