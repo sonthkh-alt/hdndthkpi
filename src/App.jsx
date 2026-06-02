@@ -1,8 +1,8 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, Calculator } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
-import { exportExcel1A, exportWordPhieu, exportWordPhieu335, exportTrackingExcel } from './lib/exporters';
-import { ND335_CATALOG, CRITERIA_335 } from './lib/nd335';
+import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
+import { ND335_CATALOG } from './lib/nd335';
 
 const CRITERIA = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
@@ -93,15 +93,14 @@ function statusOf(p) {
   return { label: 'Chậm / rủi ro', dot: 'bg-rose-500', txt: 'text-rose-600', soft: 'bg-rose-50' };
 }
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
-const taskScore = (t) => (Number(t.qty) + Number(t.quality) + Number(t.progress)) / 3;
-function aggKpi(tasks) {
-  const valid = tasks.filter((t) => Number(t.weight) > 0);
-  const tw = valid.reduce((s, t) => s + Number(t.weight || 0), 0);
-  if (tw === 0) return { a: 0, b: 0, c: 0, val: 0 };
-  const a = valid.reduce((s, t) => s + t.weight * Number(t.qty), 0) / tw;
-  const b = valid.reduce((s, t) => s + t.weight * Number(t.quality), 0) / tw;
-  const c = valid.reduce((s, t) => s + t.weight * Number(t.progress), 0) / tw;
-  return { a, b, c, val: (a + b + c) / 3 };
+// Điểm % của 1 nhiệm vụ Nhóm II (đếm khách quan) — dùng cho màu trạng thái & tiến độ OKR
+function task335Score(t) {
+  const as = Number(t.assigned) || 0;
+  if (as === 0) return 0;
+  const a = Math.min(100, (Number(t.completed) || 0) / as * 100);
+  const b = Math.max(0, 1 - 0.25 * (Number(t.qualityIssues) || 0)) * 100;
+  const c = Math.max(0, 1 - 0.25 * (Number(t.delays) || 0)) * 100;
+  return (a + b + c) / 3;
 }
 function agg335(tasks335) {
   const valid = (tasks335 || []).filter(t => t.catalogId);
@@ -141,41 +140,19 @@ function computePerson(p) {
     nself += sv; nmgr += p.mgrScores[it.id] ?? sv;
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
-  const k = aggKpi(p.tasks);
+  const k = agg335(p.tasks335);
   const nhomII = (k.val / 100) * 70;
   const ded = Number(p.deduction || 0);
-  
-  const n335Self = Object.entries(p.nd335Self || {}).reduce((sum, [catId, point]) => {
-    const cat = ND335_CATALOG.find(c => c.id === catId);
-    if (cat && cat.hasFactor) return sum + (Number(point || 0) / 5);
-    return sum;
-  }, 0);
-  const n335Mgr = Object.entries(p.nd335Mgr || {}).reduce((sum, [catId, point]) => {
-    const cat = ND335_CATALOG.find(c => c.id === catId);
-    if (cat && cat.hasFactor) return sum + (Number(point || 0) / 5);
-    return sum;
-  }, 0);
 
-  let n335SelfPart1 = 0, n335MgrPart1 = 0;
-  CRITERIA_335.forEach((it) => {
-    const sv = p.scores335Self?.[it.id] ?? it.maxScore;
-    n335SelfPart1 += sv; n335MgrPart1 += p.scores335Mgr?.[it.id] ?? sv;
-  });
-  n335SelfPart1 = Math.min(n335SelfPart1, 30); n335MgrPart1 = Math.min(n335MgrPart1, 30);
-  const k335 = agg335(p.tasks335);
-  const nhomII335 = (k335.val / 100) * 70;
-
-  return { 
-    nself, nmgr, k, nhomII, totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded), 
-    n335: n335Mgr, n335Self,
-    n335Part1Self: n335SelfPart1, n335Part1Mgr: n335MgrPart1, k335, nhomII335, total335Self: clamp(n335SelfPart1 + nhomII335), total335Mgr: clamp(n335MgrPart1 + nhomII335)
+  return {
+    nself, nmgr, k, nhomII,
+    totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded),
   };
 }
-let pid = 3, tid = 100, trkId = 1, t335Id = 100;
-const newTask = () => ({ id: tid++, name: '', objId: '', weight: 1, qty: 100, quality: 100, progress: 100, weeks: [0, 0, 0, 0], note: '' });
-const newTask335 = () => ({ id: t335Id++, catalogId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
+let pid = 3, trkId = 1, t335Id = 100;
+const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], digital: {}, selfNote: '', mgrNote: '', trackings: [], nd335Self: {}, nd335Mgr: {}, tasks335: [newTask335()], scores335Self: {}, scores335Mgr: {} });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -215,7 +192,6 @@ export default function App() {
         if (s.people?.length) {
           setPeople(s.people); setCurId(s.people[0].id);
           pid = Math.max(pid, ...s.people.map((p) => p.id || 0)) + 1;
-          tid = Math.max(tid, ...s.people.flatMap((p) => (p.tasks || []).map((t) => t.id || 0))) + 1;
           t335Id = Math.max(t335Id, ...s.people.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
           trkId = Math.max(trkId, ...s.people.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
         }
@@ -246,7 +222,6 @@ export default function App() {
   const cur = people.find((p) => p.id === curId) || people[0];
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
-  const upTask = (taskId, patch) => upCur({ tasks: cur.tasks.map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
 
@@ -256,16 +231,14 @@ export default function App() {
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
-    const ts = people.flatMap((p) => p.tasks).filter((t) => t.objId === oid && Number(t.weight) > 0);
+    const ts = people.flatMap((p) => p.tasks335 || []).filter((t) => t.objId === oid && t.catalogId);
     if (!ts.length) return null;
-    return ts.reduce((s, t) => s + taskScore(t), 0) / ts.length;
+    return ts.reduce((s, t) => s + task335Score(t), 0) / ts.length;
   };
 
   const tabs = [
-    { id: 'dash', label: 'Tổng quan (KPI)', icon: LayoutDashboard },
-    { id: 'eval', label: 'Đánh giá (KPI)', icon: BarChart3 },
-    { id: 'dash335', label: 'Tổng quan (NĐ335)', icon: Activity },
-    { id: 'eval335', label: 'Đánh giá (NĐ335)', icon: Calculator },
+    { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
@@ -279,7 +252,7 @@ export default function App() {
     computed.map(({ p, c }) => ({ name: p.name || '(Chưa tên)', position: p.position || CRITERIA[p.type].label, self: c.totalSelf.toFixed(1), mgr: c.totalMgr.toFixed(1), cls: classify(c.totalMgr).code })),
     period, unit
   );
-  const doWord = () => exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
+  const doWord = () => exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
   const doExcelTracking = () => exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), unit);
 
   return (
@@ -428,18 +401,18 @@ export default function App() {
                   </div>
                 </section>
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ (KPI)</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
+                  <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-4">
-                    <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Liên kết mỗi nhiệm vụ với mục tiêu (OKR). Trạng thái màu tự động theo tiến độ. KPI quy đổi = trung bình {cfg.formula} theo trọng số × 70%.</p>
-                    <div className="space-y-3">{cur.tasks.map((t, i) => { const sc = taskScore(t); const st = statusOf(sc);
-                      return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}><div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><input value={t.name} onChange={(e) => upTask(t.id, { name: e.target.value })} placeholder={`Nhiệm vụ / sản phẩm ${i + 1}...`} className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-sm outline-none focus:border-red-400" /><span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span>{cur.tasks.length > 1 && <button onClick={() => upCur({ tasks: cur.tasks.filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
-                        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId} onChange={(e) => upTask(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400"><option value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2"><MiniNum label="Trọng số" value={t.weight} step={0.5} onChange={(v) => upTask(t.id, { weight: v })} /><MiniNum label="Số lượng %" value={t.qty} max={100} onChange={(v) => upTask(t.id, { qty: v })} /><MiniNum label="Chất lượng %" value={t.quality} max={100} onChange={(v) => upTask(t.id, { quality: v })} /><MiniNum label="Tiến độ %" value={t.progress} max={100} onChange={(v) => upTask(t.id, { progress: v })} /></div>
-                        <div className="mt-2 flex items-center gap-2"><span className="text-[10px] font-semibold text-slate-400 flex items-center gap-1"><Activity className="w-3 h-3" /> Check-in tuần:</span>{t.weeks.map((w, wi) => (<input key={wi} type="number" min="0" max="100" value={w} onChange={(e) => { const nw = [...t.weeks]; nw[wi] = clamp(Number(e.target.value)); upTask(t.id, { weeks: nw }); }} className="w-12 bg-white border border-slate-200 rounded px-1 py-1 text-[11px] text-center text-slate-600 outline-none focus:border-red-400" />))}</div>
-                        <div className="mt-2"><input value={t.note || ''} onChange={(e) => upTask(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors" /></div>
+                    <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục (trọng số = hệ số cấp độ N1–N4) và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Điểm Nhóm II = trung bình (a+b+c) theo trọng số × 70%.</p>
+                    <div className="space-y-3">{(cur.tasks335 || []).map((t, i) => { const sc = task335Score(t); const st = statusOf(sc);
+                      return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
+                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span><select value={t.catalogId} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400"><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name} (Hệ số: {c.maxScore})</option>))}</select><span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span>{(cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
+                        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400"><option value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
+                        <div className="mt-2"><input value={t.note || ''} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors" /></div>
                       </div>); })}</div>
-                    <button onClick={() => upCur({ tasks: [...cur.tasks, newTask()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
-                    <div className="mt-4 grid grid-cols-3 gap-2 text-center">{[['Số lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c]].map(([l, v]) => (<div key={l} className="bg-slate-50 rounded-lg py-2 border border-slate-100"><p className="text-[11px] text-slate-500">{l}</p><p className="font-bold text-slate-700">{Number(v).toFixed(1)}%</p></div>))}</div>
+                    <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
+                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ['Trung bình', curC.k.val]].map(([l, v], idx) => (<div key={l} className={`${idx === 3 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${idx === 3 ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>))}</div>
                   </div>
                 </section>
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
@@ -457,199 +430,9 @@ export default function App() {
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 space-y-2">
                   <button onClick={doWord} className="w-full flex items-center justify-center gap-2 bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2.5 rounded-xl"><FileText className="w-4 h-4" /> Xuất phiếu Word</button>
                   <button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl"><Printer className="w-4 h-4" /> In phiếu (PDF)</button>
-                  <button onClick={() => upCur({ selfScores: {}, mgrScores: {}, deduction: 0, tasks: [newTask(), newTask()], selfNote: '', mgrNote: '' })} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>
+                  <button onClick={() => upCur({ selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], selfNote: '', mgrNote: '' })} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>
                 </div>
               </div></aside>
-            </div>
-          </div>
-        )}
-
-                {tab === 'dash335' && (
-          <div className="space-y-6">
-            <div className="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white rounded-2xl shadow-sm p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div>
-                <h2 className="text-xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-indigo-300" /> Bảng Tổng hợp Điểm Đánh giá (NĐ 335)</h2>
-                <p className="text-indigo-200 mt-1 text-sm">Thống kê điểm số và xếp loại theo Nghị định 335/2025/NĐ-CP.</p>
-              </div>
-              <div className="flex gap-4">
-                <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Xuất sắc</p>
-                  <p className="text-2xl font-extrabold text-white mt-1">{computed.filter(x => classify(x.c.total335Mgr).code === 'A').length}</p>
-                </div>
-                <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
-                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Hoàn thành Tốt</p>
-                  <p className="text-2xl font-extrabold text-white mt-1">{computed.filter(x => classify(x.c.total335Mgr).code === 'B').length}</p>
-                </div>
-              </div>
-            </div>
-            
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-sm whitespace-nowrap">
-                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold">
-                    <tr>
-                      <th className="px-5 py-4">STT</th>
-                      <th className="px-5 py-4">Họ và tên cán bộ</th>
-                      <th className="px-5 py-4">Chức vụ / Vị trí</th>
-                      <th className="px-5 py-4 text-center">Tiêu chí chung (30đ)</th>
-                      <th className="px-5 py-4 text-center">Thực hiện NV (70đ)</th>
-                      <th className="px-5 py-4 text-center">Tổng điểm (100đ)</th>
-                      <th className="px-5 py-4 text-center">Xếp loại</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {computed.map((x, idx) => {
-                      const r = classify(x.c.total335Mgr);
-                      return (
-                        <tr key={x.p.id} className="hover:bg-slate-50/50 transition-colors cursor-pointer" onClick={() => { setCurId(x.p.id); setTab('eval335'); }}>
-                          <td className="px-5 py-4 text-slate-400">{idx + 1}</td>
-                          <td className="px-5 py-4 font-bold text-slate-700">
-                            <div className="flex items-center gap-2">
-                              <div className="w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs"><User className="w-3.5 h-3.5" /></div>
-                              {x.p.name || '(Chưa tên)'}
-                            </div>
-                          </td>
-                          <td className="px-5 py-4 text-slate-600">{x.p.position || CRITERIA[x.p.type].label}</td>
-                          <td className="px-5 py-4 text-center font-medium text-slate-600">{x.c.n335Part1Mgr.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-center font-medium text-slate-600">{x.c.nhomII335.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-center font-extrabold text-indigo-600 text-base">{x.c.total335Mgr.toFixed(1)}</td>
-                          <td className="px-5 py-4 text-center">
-                            <span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold ${r.soft}`}>
-                              <span className={`w-5 h-5 rounded-full ${r.cls} text-white flex items-center justify-center text-[10px] mr-1`}>{r.code}</span>
-                              {r.name}
-                            </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                    {computed.length === 0 && <tr><td colSpan="7" className="px-5 py-8 text-center text-slate-400">Chưa có dữ liệu.</td></tr>}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-                {tab === 'eval335' && (
-          <div className="flex flex-col lg:flex-row gap-6 items-start">
-            <aside className="w-full lg:w-64 shrink-0 lg:sticky lg:top-4 space-y-4">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-                <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
-                <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-indigo-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-indigo-100 text-indigo-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-indigo-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
-                <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>
-              </div>
-              
-              <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Tổng điểm NĐ 335</p>
-                <div className="flex justify-center items-end gap-2 text-indigo-600"><span className="text-4xl font-extrabold leading-none">{curC.total335Mgr.toFixed(1)}</span><span className="text-sm font-bold pb-1">/ 100</span></div>
-                <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${classify(curC.total335Mgr).soft}`}>{classify(curC.total335Mgr).name}</span></div>
-              </div>
-            </aside>
-
-            <div className="flex-1 space-y-6">
-              <div className="space-y-6">
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <h2 className="font-bold text-slate-800 flex items-center gap-2"><User className="w-5 h-5 text-indigo-600" /> Thông tin người được đánh giá</h2>
-                    {people.length > 1 && <button onClick={() => setPeople(ps => ps.filter(p => p.id !== cur.id))} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <Field label="Họ và tên"><input value={cur.name} onChange={(e) => upCur({ name: e.target.value })} className="inp" placeholder="Ví dụ: Nguyễn Văn A" /></Field>
-                    <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} onChange={(e) => upCur({ position: e.target.value })} className="inp" placeholder="Ví dụ: Chuyên viên" /></Field>
-                  </div>
-                  <div>
-                    <span className="text-xs font-semibold text-slate-500 mb-2 block">Nhóm đối tượng đánh giá</span>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                      {Object.entries(CRITERIA).map(([k, v]) => (
-                        <button key={k} onClick={() => upCur({ type: k, scores335Self: {}, scores335Mgr: {} })} className={`text-left p-3 border-2 rounded-xl transition-all ${cur.type === k ? 'border-indigo-600 bg-indigo-50' : 'border-slate-200 bg-white hover:border-slate-300'}`}>
-                          <p className={`text-[11px] font-bold mb-1 ${cur.type === k ? 'text-indigo-700' : 'text-slate-400'}`}>{v.mau}</p>
-                          <p className={`text-sm font-semibold leading-tight ${cur.type === k ? 'text-slate-800' : 'text-slate-600'}`}>{v.label}</p>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-indigo-300" /> Nhóm I — Tiêu chí chung (Mẫu 01)</h2><div className="flex items-center gap-3 text-sm"><span className="text-slate-300">Tự: <b className="text-white">{curC.n335Part1Self.toFixed(1)}</b></span><span className="text-indigo-300 font-bold">Duyệt: {curC.n335Part1Mgr.toFixed(1)}/30</span></div></div>
-                  <div className="px-4 pt-3 flex justify-end gap-2 text-[11px] font-bold text-slate-400 pr-2"><span className="w-16 text-center">TỰ ĐG</span><span className="w-16 text-center text-indigo-600">CẤP DUYỆT</span></div>
-                  <div className="p-4 pt-2 space-y-4">
-                    <div className="divide-y divide-slate-100">
-                      {CRITERIA_335.map((it) => { 
-                        const sv = cur.scores335Self?.[it.id] ?? it.maxScore; 
-                        const mv = cur.scores335Mgr?.[it.id] ?? sv;
-                        return (
-                          <div key={it.id} className="px-4 py-3 hover:bg-slate-50/50 transition-colors">
-                            <div className="flex items-start gap-3">
-                              <span className="shrink-0 text-xs font-bold text-slate-400 w-7 pt-1.5">{it.id}</span>
-                              <div className="flex-1 text-left text-sm text-slate-600 pt-1">
-                                {it.name}
-                                <p className="text-[11px] text-indigo-500 font-medium mt-1">Điểm tối đa: {it.maxScore}</p>
-                              </div>
-                              <div className="shrink-0 flex gap-2">
-                                <input type="number" min="0" max={it.maxScore} step="0.5" value={sv} onChange={(e) => upCur({ scores335Self: { ...cur.scores335Self, [it.id]: clamp(Number(e.target.value), 0, it.maxScore) } })} className="w-16 text-center text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 text-sm outline-none focus:border-slate-400" />
-                                <input type="number" min="0" max={it.maxScore} step="0.5" value={mv} onChange={(e) => upCur({ scores335Mgr: { ...cur.scores335Mgr, [it.id]: clamp(Number(e.target.value), 0, it.maxScore) } })} className="w-16 text-center font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 rounded-lg py-1 text-sm outline-none focus:border-indigo-400" />
-                              </div>
-                            </div>
-                          </div>
-                        ); 
-                      })}
-                    </div>
-                  </div>
-                </section>
-
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-                  <div className="bg-gradient-to-r from-indigo-800 to-indigo-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-indigo-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-indigo-300 font-bold text-sm">{curC.nhomII335.toFixed(2)} / 70</span></div>
-                  <div className="p-4">
-                    <p className="text-xs text-slate-500 mb-3 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">Thêm nhiệm vụ từ danh mục. Nếu nhiệm vụ bị trả lại yêu cầu sửa, tăng "Lỗi chất lượng" (+1 = -25%). Nếu nộp chậm, tăng "Chậm tiến độ" (+1 = -25%).</p>
-                    <div className="space-y-3">
-                      {(cur.tasks335 || []).map((t, i) => { 
-                        return (
-                          <div key={t.id} className="border rounded-xl p-3 bg-white border-slate-200 hover:border-indigo-200 transition-colors">
-                            <div className="flex items-center gap-2 mb-2">
-                              <span className="shrink-0 w-6 h-6 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center text-xs font-bold">{i + 1}</span>
-                              <select value={t.catalogId} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-indigo-400">
-                                <option value="">— Chọn công việc từ danh mục —</option>
-                                {getND335Groups(cur.type).map((c) => (
-                                  <option key={c.id} value={c.id}>[{c.id}] {c.name} (Hệ số: {c.maxScore})</option>
-                                ))}
-                              </select>
-                              {(cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}
-                            </div>
-                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 bg-slate-50 p-2 rounded-lg">
-                              <MiniNum label="Số lượng giao" value={t.assigned} min={1} onChange={(v) => upTask335(t.id, { assigned: v })} />
-                              <MiniNum label="Số lượng HT" value={t.completed} min={0} onChange={(v) => upTask335(t.id, { completed: v })} />
-                              <MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} onChange={(v) => upTask335(t.id, { qualityIssues: v })} />
-                              <MiniNum label="Chậm tiến độ" value={t.delays} min={0} onChange={(v) => upTask335(t.id, { delays: v })} />
-                            </div>
-                            <div className="mt-2"><input value={t.note || ''} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Ghi chú thêm..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 transition-colors" /></div>
-                          </div>
-                        ); 
-                      })}
-                    </div>
-                    <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
-                    
-                    <div className="mt-4 grid grid-cols-4 gap-2 text-center">
-                      {[
-                        ['Tỷ lệ Khối lượng (a)', curC.k335.a], 
-                        ['Tỷ lệ Chất lượng (b)', curC.k335.b], 
-                        ['Tỷ lệ Tiến độ (c)', curC.k335.c],
-                        ['Tổng TB (a+b+c)/3', curC.k335.val]
-                      ].map(([l, v], idx) => (
-                        <div key={l} className={`${idx === 3 ? 'bg-indigo-50 border-indigo-200 text-indigo-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}>
-                          <p className={`text-[10px] ${idx === 3 ? 'text-indigo-500' : 'text-slate-500'}`}>{l}</p>
-                          <p className="font-bold">{Number(v).toFixed(1)}%</p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </section>
-                
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-                  <Field label="Ý kiến tự nhận xét của cá nhân"><textarea value={cur.selfNote} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className="inp" /></Field>
-                  <Field label="Nhận xét, kết luận của cấp có thẩm quyền"><textarea value={cur.mgrNote} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className="inp" /></Field>
-                </section>
-              </div>
             </div>
           </div>
         )}
@@ -750,9 +533,10 @@ export default function App() {
         {tab === 'guide' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 max-w-3xl mx-auto">
             <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn & phương pháp</h2></div>
-            <GB icon={TrendingUp} title="Thang điểm tổng (100 điểm)"><p><b>Tổng = Nhóm I (tối đa 30) + Nhóm II (tối đa 70) − Điểm trừ.</b> Nhóm II = Điểm KPI quy đổi × 70%.</p></GB>
-            <GB icon={Target} title="Liên kết OKR và KPI"><p>Mục tiêu (OKR) cấp Văn phòng gắn Nghị quyết, chương trình công tác. Mỗi nhiệm vụ KPI cá nhân liên kết lên một mục tiêu. Tiến độ mục tiêu = trung bình tiến độ các nhiệm vụ liên kết.</p></GB>
-            <GB icon={Activity} title="Trạng thái & check-in tuần"><p><b className="text-emerald-600">Xanh ≥90%</b> (đúng tiến độ), <b className="text-amber-600">Vàng 70–90%</b> (cần chú ý), <b className="text-rose-600">Đỏ &lt;70%</b> (chậm/rủi ro).</p></GB>
+            <GB icon={TrendingUp} title="Thang điểm tổng (100 điểm)"><p><b>Tổng = Nhóm I — Tiêu chí chung (tối đa 30) + Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70) − Điểm trừ.</b> Nhóm II = trung bình (a Khối lượng + b Chất lượng + c Tiến độ) × 70%.</p></GB>
+            <GB icon={ClipboardList} title="Nhóm II — Đếm khách quan theo danh mục"><p>Mỗi nhiệm vụ chọn từ <b>danh mục công việc</b>; <b>trọng số</b> lấy theo hệ số cấp độ N1–N4 của danh mục. Nhập <b>Số lượng giao</b>, <b>Số lượng hoàn thành</b> để tính tỷ lệ khối lượng (a); mỗi <b>Lỗi chất lượng</b> trừ 25% chất lượng (b); mỗi lần <b>Chậm tiến độ</b> trừ 25% tiến độ (c). Các tỷ lệ được bình quân theo trọng số toàn bộ nhiệm vụ.</p></GB>
+            <GB icon={Target} title="Liên kết OKR"><p>Mục tiêu (OKR) cấp Văn phòng gắn Nghị quyết, chương trình công tác. Mỗi nhiệm vụ cá nhân liên kết lên một mục tiêu. Tiến độ mục tiêu = trung bình điểm các nhiệm vụ liên kết.</p></GB>
+            <GB icon={Activity} title="Trạng thái nhiệm vụ"><p><b className="text-emerald-600">Xanh ≥90%</b> (đúng tiến độ), <b className="text-amber-600">Vàng 70–90%</b> (cần chú ý), <b className="text-rose-600">Đỏ &lt;70%</b> (chậm/rủi ro).</p></GB>
             <GB icon={Award} title="Bốn mức xếp loại"><div className="grid sm:grid-cols-2 gap-2">{[['A', '≥ 90', 'Hoàn thành xuất sắc', 'emerald'], ['B', '70 → <90', 'Hoàn thành tốt', 'sky'], ['C', '50 → <70', 'Hoàn thành nhiệm vụ', 'amber'], ['D', '< 50', 'Không hoàn thành', 'rose']].map(([c, r, n, col]) => (<div key={c} className={`flex items-center gap-3 p-3 rounded-xl border bg-${col}-50 border-${col}-200`}><span className={`w-9 h-9 rounded-full bg-${col}-500 text-white font-extrabold flex items-center justify-center`}>{c}</span><div><p className={`font-bold text-${col}-700 text-sm`}>{n}</p><p className="text-xs text-slate-500">{r} điểm</p></div></div>))}</div></GB>
             <GB icon={CalendarDays} title="Quy trình 2 cấp & mốc thời gian"><ol className="list-decimal pl-5 space-y-1"><li>Trước ngày 25: cán bộ tự đánh giá (cột Tự ĐG).</li><li>Trước ngày 26: cấp có thẩm quyền cho ý kiến.</li><li>Trước ngày 28: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt).</li><li>Trước ngày 05 tháng sau: công khai, biểu dương.</li></ol></GB>
             <GB icon={Cloud} title="Kiến trúc hệ thống">
