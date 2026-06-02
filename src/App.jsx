@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, Calculator } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
-import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
+import { exportExcel1A, exportWordPhieu, exportWordPhieu335, exportTrackingExcel } from './lib/exporters';
 import { ND335_CATALOG, CRITERIA_335 } from './lib/nd335';
 
 const CRITERIA = {

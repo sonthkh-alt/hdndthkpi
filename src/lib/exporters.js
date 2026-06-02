@@ -137,3 +137,41 @@ export function exportTrackingExcel(people, weekTitle, unit) {
   const safeTitle = weekTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
   XLSX.writeFile(wb, `KiemDem_${safeTitle}.xlsx`);
 }
+
+// WORD — Phi?u dánh giá cá nhân (NÐ 335)
+export async function exportWordPhieu335(ev) {
+  const doc = new Document({
+    sections: [{
+      children: [
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: ev.unit.toUpperCase(), bold: true, size: 24 })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'C?NG HÒA XÃ H?I CH? NGHIA VI?T NAM', bold: true, size: 24 })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Ð?c l?p - T? do - H?nh phúc', bold: true, size: 24 })] }),
+        new Paragraph(''),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'PHI?U THEO DÕI, ÐÁNH GIÁ CÔNG CH?C', bold: true, size: 30 })] }),
+        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: "(K? theo dõi, dánh giá: Tháng /)", italics: true, size: 22 })] }),
+        new Paragraph(''),
+        new Paragraph("H? và tên: "),
+        new Paragraph("Ch?c v?, ch?c danh: "),
+        new Paragraph("Ðon v? công tác: "),
+        new Paragraph(''),
+        new Paragraph({ children: [new TextRun({ text: 'I. K?T QU? THEO DÕI, ÐÁNH GIÁ THEO TIÊU CHÍ CHUNG (T?i da 30 di?m)', bold: true })] }),
+        new Paragraph("Ði?m t? dánh giá: "),
+        new Paragraph("Ði?m c?p có th?m quy?n dánh giá: "),
+        new Paragraph(''),
+        new Paragraph({ children: [new TextRun({ text: 'II. T?NG H?P K?T QU? THEO DÕI, ÐÁNH GIÁ CÔNG CH?C', bold: true })] }),
+        new Paragraph("1. Ði?m tiêu chí chung: "),
+        new Paragraph("2. Ði?m tiêu chí k?t qu? th?c hi?n nhi?m v?: "),
+        new Paragraph("(Trong dó: T? l? Kh?i lu?ng a = %; T? l? Ch?t lu?ng b = %; T? l? Ti?n d? c = %)"),
+        new Paragraph({ children: [new TextRun({ text: "3. T?ng di?m theo dõi, dánh giá công ch?c: ", bold: true })] }),
+        new Paragraph(''),
+        new Paragraph("4. Uu di?m: "),
+        new Paragraph("5. H?n ch?, khuy?t di?m: "),
+        new Paragraph(''),
+        new Paragraph({ children: [new TextRun({ text: "III. K?T QU? X?P LO?I CH?T LU?NG C?A C?P CÓ TH?M QUY?N: ", bold: true })] }),
+      ],
+    }],
+  });
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, "Phieu_ND335___.docx");
+}
+
