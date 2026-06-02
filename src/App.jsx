@@ -430,9 +430,15 @@ export default function App() {
                 <h2 className="text-xl font-bold flex items-center gap-2"><Activity className="w-6 h-6 text-indigo-300" /> Bảng Tổng hợp Hệ số quy đổi (NĐ 335)</h2>
                 <p className="text-indigo-200 mt-1 text-sm">Thống kê tổng hệ số quy đổi của toàn bộ cán bộ, công chức trong cơ quan.</p>
               </div>
-              <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
-                <p className="text-xs text-indigo-200 uppercase font-bold tracking-wider">Tổng hệ số toàn cơ quan</p>
-                <p className="text-3xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335, 0).toFixed(2)}</p>
+              <div className="flex gap-4">
+                <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
+                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Tổng Tự ĐG</p>
+                  <p className="text-2xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335Self, 0).toFixed(2)}</p>
+                </div>
+                <div className="bg-white/10 rounded-xl px-6 py-3 text-center border border-white/20">
+                  <p className="text-[10px] text-indigo-200 uppercase font-bold tracking-wider">Tổng Cấp Duyệt</p>
+                  <p className="text-2xl font-extrabold text-white mt-1">{computed.reduce((s, x) => s + x.c.n335, 0).toFixed(2)}</p>
+                </div>
               </div>
             </div>
             
@@ -445,7 +451,8 @@ export default function App() {
                       <th className="px-5 py-4">Họ và tên cán bộ</th>
                       <th className="px-5 py-4">Chức vụ / Vị trí</th>
                       <th className="px-5 py-4 text-center">Số nhiệm vụ NĐ335</th>
-                      <th className="px-5 py-4 text-right">Tổng Hệ số quy đổi</th>
+                      <th className="px-5 py-4 text-center">Tự ĐG</th>
+                      <th className="px-5 py-4 text-center">Cấp duyệt</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-100">
@@ -464,7 +471,8 @@ export default function App() {
                             {Object.values(x.p.nd335Mgr || {}).filter(v => typeof v === 'number' && !isNaN(v)).length}
                           </span>
                         </td>
-                        <td className="px-5 py-4 text-right font-extrabold text-indigo-600 text-base">{x.c.n335.toFixed(2)}</td>
+                        <td className="px-5 py-4 text-center text-slate-500 font-semibold">{x.c.n335Self.toFixed(2)}</td>
+                        <td className="px-5 py-4 text-center font-extrabold text-indigo-600 text-base">{x.c.n335.toFixed(2)}</td>
                       </tr>
                     ))}
                     {computed.length === 0 && <tr><td colSpan="5" className="px-5 py-8 text-center text-slate-400">Chưa có dữ liệu.</td></tr>}
