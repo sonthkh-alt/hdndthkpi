@@ -549,12 +549,12 @@ export default function App() {
                             <div className="shrink-0 flex gap-4 items-start">
                               <div className="w-20 sm:w-24">
                                 <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1 block text-center">Tự ĐG</label>
-                                <input type="number" min="0" max={c.maxScore} value={sVal} onChange={(e) => upCur({ nd335Self: { ...cur.nd335Self, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 font-semibold text-center text-slate-600" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : '0'} />
+                                <input type="number" min="0" max={c.maxScore} value={sVal} onChange={(e) => upCur({ nd335Self: { ...cur.nd335Self, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 font-semibold text-center text-slate-600" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : String(c.maxScore)} />
                                 <div className="text-[11px] text-center mt-1 text-slate-400 font-medium">HS: {sFac}</div>
                               </div>
                               <div className="w-20 sm:w-24">
                                 <label className="text-[10px] font-bold text-indigo-500 uppercase tracking-wider mb-1 block text-center">Cấp duyệt</label>
-                                <input type="number" min="0" max={c.maxScore} value={mVal} onChange={(e) => upCur({ nd335Mgr: { ...cur.nd335Mgr, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 bg-indigo-50" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : '0'} />
+                                <input type="number" min="0" max={c.maxScore} value={mVal} onChange={(e) => upCur({ nd335Mgr: { ...cur.nd335Mgr, [c.id]: e.target.value === '' ? '' : Number(e.target.value) } })} className="w-full text-sm p-1.5 border border-indigo-200 rounded outline-none focus:border-indigo-500 font-bold text-center text-indigo-700 bg-indigo-50" disabled={!c.hasFactor} placeholder={!c.hasFactor ? '-' : String(c.maxScore)} />
                                 <div className="text-[11px] text-center mt-1 text-indigo-500 font-bold">HS: {mFac}</div>
                               </div>
                             </div>
