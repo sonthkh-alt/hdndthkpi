@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save } from 'lucide-react';
 import { supabase, loadState, saveState } from './lib/supabase';
-import { exportExcel1A, exportWordPhieu, exportTrackingExcel } from './lib/exporters';
 import { ND335_CATALOG } from './lib/nd335';
 
 const CRITERIA = {
@@ -248,12 +247,22 @@ export default function App() {
   const minLv = MIN_DIGITAL[cur.type];
   const digPassed = DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length;
 
-  const doExcel = () => exportExcel1A(
-    computed.map(({ p, c }) => ({ name: p.name || '(Chưa tên)', position: p.position || CRITERIA[p.type].label, self: c.totalSelf.toFixed(1), mgr: c.totalMgr.toFixed(1), cls: classify(c.totalMgr).code })),
-    period, unit
-  );
-  const doWord = () => exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
-  const doExcelTracking = () => exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), unit);
+  // Lazy-load: chỉ tải xlsx/docx khi người dùng bấm xuất (giảm dung lượng tải lần đầu)
+  const doExcel = async () => {
+    const { exportExcel1A } = await import('./lib/exporters');
+    exportExcel1A(
+      computed.map(({ p, c }) => ({ name: p.name || '(Chưa tên)', position: p.position || CRITERIA[p.type].label, self: c.totalSelf.toFixed(1), mgr: c.totalMgr.toFixed(1), cls: classify(c.totalMgr).code })),
+      period, unit
+    );
+  };
+  const doWord = async () => {
+    const { exportWordPhieu } = await import('./lib/exporters');
+    exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
+  };
+  const doExcelTracking = async () => {
+    const { exportTrackingExcel } = await import('./lib/exporters');
+    exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), unit);
+  };
 
   return (
     <div className="min-h-screen bg-slate-100 text-slate-800" style={{ fontFamily: "'Segoe UI', system-ui, sans-serif" }}>
@@ -377,7 +386,7 @@ export default function App() {
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
                   <div className="flex justify-between items-center">
                     <h2 className="flex items-center gap-2 font-bold text-slate-800"><User className="w-5 h-5 text-red-700" /> Thông tin người được đánh giá</h2>
-                    {people.length > 1 && <button onClick={() => { setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
+                    {people.length > 1 && <button onClick={() => { if (!window.confirm(`Xóa cán bộ "${cur.name || '(Chưa tên)'}"? Toàn bộ điểm và nhiệm vụ của kỳ này sẽ mất và không thể hoàn tác.`)) return; setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Field label="Họ và tên"><input value={cur.name} onChange={(e) => upCur({ name: e.target.value })} className="inp" /></Field>
@@ -532,30 +541,107 @@ export default function App() {
 
         {tab === 'guide' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 max-w-3xl mx-auto">
-            <div><h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn & phương pháp</h2></div>
-            <GB icon={TrendingUp} title="Thang điểm tổng (100 điểm)"><p><b>Tổng = Nhóm I — Tiêu chí chung (tối đa 30) + Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70) − Điểm trừ.</b> Nhóm II = trung bình (a Khối lượng + b Chất lượng + c Tiến độ) × 70%.</p></GB>
-            <GB icon={ClipboardList} title="Nhóm II — Đếm khách quan theo danh mục"><p>Mỗi nhiệm vụ chọn từ <b>danh mục công việc</b>; <b>trọng số</b> lấy theo hệ số cấp độ N1–N4 của danh mục. Nhập <b>Số lượng giao</b>, <b>Số lượng hoàn thành</b> để tính tỷ lệ khối lượng (a); mỗi <b>Lỗi chất lượng</b> trừ 25% chất lượng (b); mỗi lần <b>Chậm tiến độ</b> trừ 25% tiến độ (c). Các tỷ lệ được bình quân theo trọng số toàn bộ nhiệm vụ.</p></GB>
-            <GB icon={Target} title="Liên kết OKR"><p>Mục tiêu (OKR) cấp Văn phòng gắn Nghị quyết, chương trình công tác. Mỗi nhiệm vụ cá nhân liên kết lên một mục tiêu. Tiến độ mục tiêu = trung bình điểm các nhiệm vụ liên kết.</p></GB>
-            <GB icon={Activity} title="Trạng thái nhiệm vụ"><p><b className="text-emerald-600">Xanh ≥90%</b> (đúng tiến độ), <b className="text-amber-600">Vàng 70–90%</b> (cần chú ý), <b className="text-rose-600">Đỏ &lt;70%</b> (chậm/rủi ro).</p></GB>
-            <GB icon={Award} title="Bốn mức xếp loại"><div className="grid sm:grid-cols-2 gap-2">{[['A', '≥ 90', 'Hoàn thành xuất sắc', 'emerald'], ['B', '70 → <90', 'Hoàn thành tốt', 'sky'], ['C', '50 → <70', 'Hoàn thành nhiệm vụ', 'amber'], ['D', '< 50', 'Không hoàn thành', 'rose']].map(([c, r, n, col]) => (<div key={c} className={`flex items-center gap-3 p-3 rounded-xl border bg-${col}-50 border-${col}-200`}><span className={`w-9 h-9 rounded-full bg-${col}-500 text-white font-extrabold flex items-center justify-center`}>{c}</span><div><p className={`font-bold text-${col}-700 text-sm`}>{n}</p><p className="text-xs text-slate-500">{r} điểm</p></div></div>))}</div></GB>
-            <GB icon={CalendarDays} title="Quy trình 2 cấp & mốc thời gian"><ol className="list-decimal pl-5 space-y-1"><li>Trước ngày 25: cán bộ tự đánh giá (cột Tự ĐG).</li><li>Trước ngày 26: cấp có thẩm quyền cho ý kiến.</li><li>Trước ngày 28: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt).</li><li>Trước ngày 05 tháng sau: công khai, biểu dương.</li></ol></GB>
-            <GB icon={Cloud} title="Kiến trúc hệ thống">
-              <div className="space-y-3">
-                <p>Hệ thống được thiết kế theo mô hình <b>Serverless SPA (Single Page Application)</b>, vận hành hoàn toàn trên trình duyệt:</p>
-                <div className="grid sm:grid-cols-3 gap-2">
-                  <div className="border border-slate-200 rounded-lg p-2.5 bg-slate-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Frontend (Client)</p><p className="text-[11px] text-slate-500 leading-snug">React + Vite + Tailwind CSS. Đóng gói toàn bộ giao diện, tính toán logic và kết xuất báo cáo (Excel, Word, PDF) phía client.</p></div>
-                  <div className="border border-slate-200 rounded-lg p-2.5 bg-emerald-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Backend (BaaS)</p><p className="text-[11px] text-slate-500 leading-snug">Supabase (PostgreSQL). Cung cấp cơ sở dữ liệu lưu trữ lâu dài và API tự động; đồng bộ dữ liệu thời gian thực.</p></div>
-                  <div className="border border-slate-200 rounded-lg p-2.5 bg-sky-50 text-center"><p className="font-bold text-slate-700 text-xs mb-1">Hosting (Triển khai)</p><p className="text-[11px] text-slate-500 leading-snug">Vercel (Cloud) hoặc Web Server nội bộ. Tích hợp CI/CD tự động build từ mã nguồn trên GitHub.</p></div>
-                </div>
-                <p>Trạng thái (State) được ưu tiên xử lý trên <b>Local Storage</b> và lưu ngầm (background sync) lên <b>Supabase</b> giúp ứng dụng siêu nhẹ, phản hồi tức thời mà không bị gián đoạn mạng.</p>
-              </div>
+            <div>
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
+              <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Người mới đọc cũng hiểu cách hệ thống chấm điểm và sử dụng.</p>
+            </div>
+
+            <GB icon={LayoutDashboard} title="1. Năm khu vực (tab) của hệ thống">
+              <ul className="list-disc pl-5 space-y-1">
+                <li><b>Tổng quan:</b> Mục tiêu OKR cấp Văn phòng, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A) và xu hướng theo kỳ.</li>
+                <li><b>Đánh giá:</b> Nơi chấm điểm từng cán bộ — Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ).</li>
+                <li><b>Năng lực số:</b> Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</li>
+                <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần, xuất Excel theo mẫu.</li>
+                <li><b>Hướng dẫn:</b> Trang này.</li>
+              </ul>
             </GB>
-            <GB icon={ShieldCheck} title="Hướng dẫn triển khai (Dành cho Quản trị viên)">
+
+            <GB icon={TrendingUp} title="2. Thang điểm tổng — 100 điểm">
+              <p className="bg-slate-50 border border-slate-200 rounded-lg p-3 font-semibold text-slate-700">TỔNG = Nhóm I (tối đa 30) + Nhóm II (tối đa 70) − Điểm trừ</p>
+              <p className="mt-2">Mỗi cán bộ được chấm 2 cấp: <b>Tự đánh giá</b> (cá nhân tự chấm) và <b>Cấp duyệt</b> (cấp có thẩm quyền quyết định). Điểm xếp loại chính thức lấy theo cột <b>Cấp duyệt</b>.</p>
+            </GB>
+
+            <GB icon={ClipboardList} title="3. Nhóm I — Tiêu chí chung (tối đa 30 điểm)">
+              <p>Đánh giá phẩm chất chính trị, đạo đức, ý thức kỷ luật, năng lực, thái độ... theo bộ tiêu chí tương ứng nhóm đối tượng:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li><b>Mẫu 02</b> — Cán bộ lãnh đạo, quản lý.</li>
+                <li><b>Mẫu 03</b> — Công chức, viên chức không lãnh đạo.</li>
+                <li><b>Mẫu 04</b> — Lao động hợp đồng hỗ trợ, phục vụ.</li>
+              </ul>
+              <p className="mt-2">Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí, <b>giới hạn không quá 30</b>. Nhập điểm ở 2 cột Tự ĐG và Cấp duyệt.</p>
+            </GB>
+
+            <GB icon={Target} title="4. Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)">
+              <p>Chấm bằng <b>đếm khách quan</b>, không cảm tính. Mỗi nhiệm vụ chọn từ <b>danh mục công việc</b> (đã gán sẵn <b>hệ số</b> theo cấp độ), rồi nhập 4 con số: <b>Số lượng giao</b>, <b>Số lượng hoàn thành</b>, <b>Lỗi chất lượng</b>, <b>Chậm tiến độ</b>.</p>
+              <p className="mt-2 font-semibold text-slate-700">Hệ thống tự tính 3 tỷ lệ (bình quân theo hệ số của tất cả nhiệm vụ):</p>
+              <div className="mt-1 space-y-1 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[13px]">
+                <p><b>a — Khối lượng</b> = Σ(Hoàn thành × hệ số) ÷ Σ(Giao × hệ số) × 100%</p>
+                <p><b>b — Chất lượng</b> = bình quân [1 − 0,25 × số Lỗi] theo hệ số × 100% <span className="text-slate-500">(mỗi lỗi −25%)</span></p>
+                <p><b>c — Tiến độ</b> = bình quân [1 − 0,25 × số lần Chậm] theo hệ số × 100% <span className="text-slate-500">(mỗi lần chậm −25%)</span></p>
+                <p className="pt-1 border-t border-slate-200 font-bold text-red-700">Điểm Nhóm II = (a + b + c) ÷ 3 × 70%</p>
+              </div>
+              <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                <p className="font-bold text-amber-800 mb-1">Ví dụ tính cụ thể</p>
+                <p className="text-[13px]">• NV1 (hệ số 300): Giao 4, Hoàn thành 4, Lỗi 0, Chậm 1.<br/>• NV2 (hệ số 100): Giao 10, Hoàn thành 8, Lỗi 1, Chậm 0.</p>
+                <p className="text-[13px] mt-2">
+                  a = (4×300 + 8×100) ÷ (4×300 + 10×100) × 100 = 2000 ÷ 2200 = <b>90,9%</b><br/>
+                  b = (1200×1 + 800×0,75) ÷ 2000 × 100 = 1800 ÷ 2000 = <b>90,0%</b><br/>
+                  c = (1200×0,75 + 800×1) ÷ 2000 × 100 = 1700 ÷ 2000 = <b>85,0%</b><br/>
+                  Trung bình = (90,9 + 90,0 + 85,0) ÷ 3 = <b>88,6%</b> → Nhóm II = 88,6% × 70% ≈ <b>62,0 / 70</b>
+                </p>
+              </div>
+              <p className="mt-3"><b>Hệ số (N1–N4)</b> phản ánh độ phức tạp/cấp độ của công việc (N1 = 100 đến N4 = 400). Việc khó hơn có hệ số cao hơn nên đóng góp nhiều hơn vào điểm — đảm bảo công bằng giữa việc khó và việc đơn giản.</p>
+            </GB>
+
+            <GB icon={Link2} title="5. Liên kết mục tiêu (OKR)">
+              <p>Mục tiêu (OKR) cấp Văn phòng gắn với Nghị quyết, chương trình công tác. Mỗi nhiệm vụ cá nhân nên <b>liên kết lên một mục tiêu</b> để dồn sức vào việc chiến lược, tránh phân mảnh. Tiến độ một mục tiêu = trung bình điểm các nhiệm vụ liên kết với nó (hiển thị ở tab Tổng quan).</p>
+            </GB>
+
+            <GB icon={Activity} title="6. Trạng thái nhiệm vụ (màu)">
+              <p><b className="text-emerald-600">Xanh ≥ 90%</b> đúng tiến độ · <b className="text-amber-600">Vàng 70–90%</b> cần chú ý · <b className="text-rose-600">Đỏ &lt; 70%</b> chậm/rủi ro. Màu tự cập nhật theo số liệu nhập.</p>
+            </GB>
+
+            <GB icon={Award} title="7. Bốn mức xếp loại & trần tỷ lệ">
+              <div className="grid sm:grid-cols-2 gap-2">{[['A', '≥ 90', 'Hoàn thành xuất sắc', 'emerald'], ['B', '70 → <90', 'Hoàn thành tốt', 'sky'], ['C', '50 → <70', 'Hoàn thành nhiệm vụ', 'amber'], ['D', '< 50', 'Không hoàn thành', 'rose']].map(([c, r, n, col]) => (<div key={c} className={`flex items-center gap-3 p-3 rounded-xl border bg-${col}-50 border-${col}-200`}><span className={`w-9 h-9 rounded-full bg-${col}-500 text-white font-extrabold flex items-center justify-center`}>{c}</span><div><p className={`font-bold text-${col}-700 text-sm`}>{n}</p><p className="text-xs text-slate-500">{r} điểm</p></div></div>))}</div>
+              <p className="mt-2"><b>Trần xuất sắc:</b> số "Hoàn thành xuất sắc" (A) không vượt quá <b>20%</b> số "Hoàn thành tốt" (B). Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</p>
+            </GB>
+
+            <GB icon={CalendarDays} title="8. Quy trình 2 cấp & mốc thời gian">
               <ol className="list-decimal pl-5 space-y-1">
-                <li><b>Khởi tạo Cơ sở dữ liệu:</b> Đăng ký Supabase, tạo project. Chạy script <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">supabase/schema.sql</code> trong SQL Editor. Lấy <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">Project URL</code> và <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">anon public key</code>.</li>
-                <li><b>Quản lý Mã nguồn:</b> Đẩy mã nguồn lên kho lưu trữ GitHub (khuyên dùng Private repo).</li>
-                <li><b>Triển khai qua Cloud (Vercel):</b> Tạo project mới trên Vercel, chọn nguồn từ repo GitHub, chọn framework Vite. Bổ sung biến môi trường <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_URL</code> và <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_ANON_KEY</code>.</li>
-                <li><b>Triển khai On-premise (Máy chủ nội bộ):</b> Chạy lệnh <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">npm install</code>, tạo file <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">.env</code> chứa các key, tiếp tục chạy <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">npm run build</code>. Cuối cùng, đưa nội dung thư mục <code className="text-[11px] font-mono bg-slate-100 text-slate-600 px-1 py-0.5 rounded border border-slate-200">dist</code> lên Apache hoặc Nginx.</li>
+                <li>Trước ngày <b>25</b>: cán bộ tự đánh giá (cột Tự ĐG).</li>
+                <li>Trước ngày <b>26</b>: cấp có thẩm quyền cho ý kiến.</li>
+                <li>Trước ngày <b>28</b>: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt).</li>
+                <li>Trước ngày <b>05 tháng sau</b>: công khai, biểu dương.</li>
+              </ol>
+            </GB>
+
+            <GB icon={Cloud} title="9. Lưu dữ liệu theo kỳ & lịch sử">
+              <p>Dữ liệu được lưu <b>riêng theo từng tháng/năm</b>: đổi tháng ở góc trên để xem lại kỳ trước hoặc nhập kỳ mới (có thể sao chép danh sách cán bộ từ kỳ gần nhất). Hệ thống lưu ngầm lên máy chủ và cảnh báo nếu phát hiện người khác vừa sửa cùng kỳ (tránh ghi đè mất dữ liệu).</p>
+            </GB>
+
+            <GB icon={ShieldCheck} title="10. Đăng nhập & phân quyền">
+              <p>Truy cập bằng <b>tài khoản email</b> (đăng nhập qua liên kết gửi tới hộp thư — không cần nhớ mật khẩu). Chỉ người có tài khoản mới xem được dữ liệu nhân sự. Ba vai trò:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li><b>Cán bộ:</b> xem và tự đánh giá phần của chính mình.</li>
+                <li><b>Trưởng phòng:</b> duyệt (chấm cột Cấp duyệt) cho cán bộ trong phòng mình.</li>
+                <li><b>Quản trị:</b> toàn quyền — thêm/xóa cán bộ, sửa mục tiêu, mọi kỳ.</li>
+              </ul>
+            </GB>
+
+            <GB icon={BarChart3} title="11. Triết lý OKR vs KPI (khuyến nghị áp dụng)">
+              <ul className="list-disc pl-5 space-y-1">
+                <li><b>OKR là định hướng, khát vọng</b> — nên tham vọng, không cào bằng; dùng để dẫn dắt, không phải để "đặt thấp cho dễ đạt".</li>
+                <li><b>KPI là đo lường khách quan</b> — gắn minh chứng (sản phẩm) cho nhiệm vụ trọng số cao; tránh "đếm cho có" bằng việc chia nhỏ nhiệm vụ vụn vặt.</li>
+                <li>Nên có <b>họp hiệu chỉnh</b> giữa các phòng trước khi chốt, tránh nơi chấm chặt nơi chấm lỏng.</li>
+              </ul>
+            </GB>
+
+            <GB icon={Cpu} title="12. Kiến trúc & triển khai (cho Quản trị viên)">
+              <p>SPA (React + Vite + Tailwind) chạy trên trình duyệt; dữ liệu lưu tại <b>Supabase (PostgreSQL)</b>; hosting <b>Vercel</b> tự build từ GitHub. Báo cáo Excel/Word kết xuất ngay trên máy người dùng.</p>
+              <ol className="list-decimal pl-5 space-y-1 mt-2">
+                <li>Tạo project Supabase, chạy <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">supabase/schema.sql</code>; bật đăng nhập Email (magic link).</li>
+                <li>Khai báo biến môi trường <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_URL</code>, <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_ANON_KEY</code> trên Vercel.</li>
+                <li>Tạo hồ sơ (profiles) gán vai trò + phòng cho từng tài khoản.</li>
               </ol>
             </GB>
           </div>
