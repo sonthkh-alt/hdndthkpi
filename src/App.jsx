@@ -199,6 +199,7 @@ export default function App() {
   const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
   const [trends, setTrends] = useState([]);
   const [showChangePw, setShowChangePw] = useState(false);
+  const [sheetSync, setSheetSync] = useState({ at: null, busy: false }); // đồng bộ Google Sheet
 
   const bumpCounters = (ppl) => {
     pid = Math.max(pid, 0, ...ppl.map((p) => p.id || 0)) + 1;
@@ -326,6 +327,47 @@ export default function App() {
   const doExportTracking = async () => {
     const { exportTrackingPDF } = await import('./lib/exporters');
     exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), unit, period);
+  };
+
+  // Đồng bộ "Bảng kiểm đếm" từ Google Sheet (qua proxy /api/kiemdem) -> nạp thành dòng theo dõi có thể sửa.
+  // Khớp cán bộ theo tên; idempotent: chỉ thay nhóm dòng có cờ fromSheet, giữ nguyên dòng nhập tay.
+  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
+  const syncFromSheet = async () => {
+    setSheetSync((s) => ({ ...s, busy: true }));
+    try {
+      const r = await fetch('/api/kiemdem', { cache: 'no-store' });
+      const data = await r.json();
+      if (!r.ok || data.error) { alert('Không đồng bộ được Google Sheet: ' + (data.error || `HTTP ${r.status}`)); return; }
+      const sps = data.persons || [];
+      if (!sps.length) { alert('Google Sheet chưa có dòng công việc nào để đồng bộ.'); return; }
+      const mkTrk = (t) => ({ ...newTracking(), fromSheet: true,
+        content: t.content || '', coordination: t.coordination || '', directive: t.directive || '',
+        finalProduct: t.finalProduct || '', startDate: t.startDate || '', endDate: t.endDate || '',
+        doneWork: t.doneWork || '', doingWork: t.doingWork || '', difficulties: t.difficulties || '',
+        proposals: t.proposals || '', note: t.note || '' });
+      let added = 0;
+      setPeople((ps) => {
+        const next = ps.map((p) => ({ ...p }));
+        sps.forEach((sp) => {
+          const nm = (sp.name || '').trim(); if (!nm) return;
+          const trks = (sp.trackings || []).map(mkTrk); added += trks.length;
+          const i = next.findIndex((p) => (p.name || '').trim().toLowerCase() === nm.toLowerCase());
+          if (i >= 0) {
+            const keep = (next[i].trackings || []).filter((t) => !t.fromSheet);
+            next[i] = { ...next[i], trackings: [...keep, ...trks] };
+          } else {
+            next.push({ ...newPerson(nm, 'staff'), trackings: trks });
+          }
+        });
+        return next;
+      });
+      setSheetSync({ at: data.fetchedAt || new Date().toISOString(), busy: false });
+      alert(`Đã đồng bộ ${added} công việc từ Google Sheet cho ${sps.length} cán bộ vào tab Theo dõi CV.`);
+    } catch (e) {
+      alert('Lỗi đồng bộ Google Sheet: ' + (e && e.message ? e.message : e));
+    } finally {
+      setSheetSync((s) => ({ ...s, busy: false }));
+    }
   };
 
   // Thu thập các dòng "Bảng theo dõi CV" (đã gắn Danh mục) thành nhiệm vụ Nhóm II của cán bộ hiện tại.
@@ -704,9 +746,11 @@ export default function App() {
                 <div>
                   <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><ClipboardList className="w-5 h-5 text-amber-500" /> Bảng kiểm đếm, theo dõi công việc</h2>
                   <p className="text-sm text-slate-500 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
+                  {canManage && <p className="text-[11px] text-slate-400 mt-0.5">Nguồn đồng bộ: <a href={SHEET_URL} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">Google Sheet</a>{sheetSync.at ? ` · Đã đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ' · Bấm "Đồng bộ từ Google Sheet" để nạp dữ liệu mới nhất'}</p>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" />
+                  {canManage && <button onClick={syncFromSheet} disabled={sheetSync.busy} title="Nạp dữ liệu kiểm đếm mới nhất từ Google Sheet" className="flex items-center gap-2 px-3 py-1.5 bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-60 rounded-lg text-xs font-semibold transition-colors"><Cloud className="w-3.5 h-3.5" /> {sheetSync.busy ? 'Đang đồng bộ...' : 'Đồng bộ từ Google Sheet'}</button>}
                   {taskEditable && <button onClick={doCollectTracking} title="Tạo nhiệm vụ Nhóm II từ các công việc đã gắn Danh mục" className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập vào đánh giá KPI</button>}
                   <button onClick={doExportTracking} className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors border border-red-200"><FileText className="w-3.5 h-3.5" /> Xuất bảng (PDF)</button>
                 </div>
@@ -733,7 +777,7 @@ export default function App() {
                 {(cur.trackings || []).map((t, idx) => (
                   <div key={t.id} className="p-4 border border-slate-200 rounded-xl bg-slate-50/50 relative group">
                     <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-md transition-colors"><Trash2 className="w-4 h-4" /></button>
-                    <div className="mb-3 font-semibold text-slate-700 text-sm">Công việc #{idx + 1}</div>
+                    <div className="mb-3 font-semibold text-slate-700 text-sm flex items-center gap-2">Công việc #{idx + 1}{t.fromSheet && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-100 border border-emerald-200 rounded px-1.5 py-0.5">từ Google Sheet</span>}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
                       <div><label className="text-[11px] font-medium text-slate-500">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[60px]" /></div>
                       <div><label className="text-[11px] font-medium text-slate-500">Đơn vị chủ trì, phối hợp</label><input type="text" list="coordination-list" value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className="mt-1 w-full text-xs p-2 border border-slate-200 rounded outline-none focus:border-amber-400" /></div>
