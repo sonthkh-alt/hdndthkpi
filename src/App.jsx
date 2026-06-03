@@ -193,6 +193,20 @@ let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+// Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
+function bumpIds(people) {
+  const ppl = people || [];
+  pid = Math.max(pid, 0, ...ppl.map((p) => p.id || 0)) + 1;
+  t335Id = Math.max(t335Id, 0, ...ppl.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
+  trkId = Math.max(trkId, 0, ...ppl.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
+}
+
+// ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
+export {
+  CRITERIA, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
+  classify, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson,
+  newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
+};
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -206,7 +220,7 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App() {
+export default function App({ version = 'classic', onPickVersion } = {}) {
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -463,7 +477,7 @@ export default function App() {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500 text-sm">Đang kiểm tra đăng nhập...</div>;
   }
   if (supabase && !session) {
-    return <Login unit={unit} onGuest={() => setSession('guest')} />;
+    return <Login unit={unit} version={version} onPickVersion={onPickVersion} onGuest={() => setSession('guest')} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {

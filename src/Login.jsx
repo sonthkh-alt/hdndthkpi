@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
 import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './lib/auth';
 
-export default function Login({ unit, onGuest }) {
+export default function Login({ unit, onGuest, version = 'classic', onPickVersion }) {
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
@@ -54,6 +54,13 @@ export default function Login({ unit, onGuest }) {
           <h1 className="text-xl font-extrabold leading-tight aurora-text mt-1.5">Đánh giá, xếp loại cán bộ, công chức</h1>
           <p className="text-red-100/90 text-sm mt-1.5">{unit || 'Đăng nhập để tiếp tục'}</p>
         </div>
+
+        {onPickVersion && (
+          <div className="mb-4 bg-white/10 border border-white/20 rounded-xl p-1.5 flex gap-1.5">
+            <button type="button" onClick={() => onPickVersion('classic')} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${version !== 'modern' ? 'bg-white text-red-800 shadow' : 'text-red-100/80 hover:text-white'}`}>Giao diện cổ điển</button>
+            <button type="button" onClick={() => onPickVersion('modern')} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${version === 'modern' ? 'bg-amber-400 text-red-900 shadow' : 'text-red-100/80 hover:text-white'}`}>Giao diện mới ✨</button>
+          </div>
+        )}
 
         <div className="glass rounded-2xl shadow-2xl border border-white/40 p-6 text-slate-800">
           {mode === 'link' && status === 'sent' ? (
