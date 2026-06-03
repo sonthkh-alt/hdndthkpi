@@ -7,6 +7,21 @@ import SetPassword from './SetPassword.jsx';
 import { ND335_CATALOG } from './lib/nd335';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
+// Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
+const ORG_UNITS = [
+  { dept: 'HĐND tỉnh', positions: ['Chủ tịch', 'Phó Chủ tịch'] },
+  { dept: 'Đoàn ĐBQH tỉnh', positions: ['Phó Trưởng Đoàn', 'Ủy viên chuyên trách'] },
+  { dept: 'Ban Kinh tế - Ngân sách', positions: ['Trưởng Ban', 'Phó Trưởng Ban', 'Ủy viên chuyên trách'] },
+  { dept: 'Ban Văn hóa - Xã hội', positions: ['Trưởng Ban', 'Phó Trưởng Ban', 'Ủy viên chuyên trách'] },
+  { dept: 'Ban Pháp chế', positions: ['Trưởng Ban', 'Phó Trưởng Ban', 'Ủy viên chuyên trách'] },
+  { dept: 'Ban Dân tộc', positions: ['Trưởng Ban', 'Phó Trưởng Ban', 'Ủy viên chuyên trách'] },
+  { dept: 'Văn phòng', positions: ['Chánh Văn phòng', 'Phó Chánh Văn phòng'] },
+  { dept: 'Phòng Công tác Hội đồng', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
+  { dept: 'Phòng Công tác Quốc hội', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
+  { dept: 'Phòng Tổng hợp - Thông tin - Dân nguyện', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
+  { dept: 'Phòng Hành chính - Tổ chức - Quản trị', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
+];
+const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions) || [];
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
 const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
@@ -142,7 +157,8 @@ function task335Score(t) {
 }
 function agg335(tasks335) {
   const valid = (tasks335 || []).filter(t => t.catalogId);
-  if (valid.length === 0) return { a: 0, b: 0, c: 0, val: 0 };
+  // Chưa nhập nhiệm vụ nào -> mặc định đạt tối đa 100 (cán bộ mới khởi tạo 100/100, đánh giá trừ dần)
+  if (valid.length === 0) return { a: 100, b: 100, c: 100, val: 100 };
   let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0;
   valid.forEach(t => {
     const cat = CATALOG.find(c => c.id === t.catalogId);
@@ -159,7 +175,7 @@ function agg335(tasks335) {
     totalQualityScore += cp * w * Math.max(0, 1 - 0.25 * qI);
     totalDelayScore += cp * w * Math.max(0, 1 - 0.25 * dl);
   });
-  if (totalAssignedScore === 0) return { a: 0, b: 0, c: 0, val: 0 };
+  if (totalAssignedScore === 0) return { a: 100, b: 100, c: 100, val: 100 };
   const a = Math.min(100, (totalCompletedScore / totalAssignedScore) * 100);
   const b = totalCompletedScore > 0 ? (totalQualityScore / totalCompletedScore) * 100 : 100;
   const c = totalCompletedScore > 0 ? (totalDelayScore / totalCompletedScore) * 100 : 100;
@@ -203,7 +219,7 @@ function bumpIds(people) {
 
 // ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
 export {
-  CRITERIA, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
+  CRITERIA, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
   classify, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
 };
@@ -698,8 +714,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Field label="Họ và tên"><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
-                    <Field label="Chức vụ / Vị trí việc làm"><input value={cur.position} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} placeholder="VD: Chuyên viên" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
-                    <Field label="Phòng / Bộ phận"><input value={cur.department || ''} disabled={!(canManage || mgrEditable || selfEditable)} onChange={(e) => upCur({ department: e.target.value })} placeholder="VD: Phòng Tổng hợp" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
+                    <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
+                    <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
                     <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     {canManage && <Field label="Vai trò (quyền truy cập)"><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className="inp"><option value="canbo">Cán bộ — tự đánh giá phần mình</option><option value="truongphong">Trưởng phòng — duyệt trong phòng</option><option value="quantri">Quản trị — toàn quyền</option></select></Field>}
                   </div>

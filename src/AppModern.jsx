@@ -7,7 +7,7 @@ import SetPassword from './SetPassword.jsx';
 import {
   CRITERIA, classify, statusOf, clamp, task335Score, getND335Groups, computePerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
-  DIGITAL, LEVELS, MIN_DIGITAL,
+  DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions,
 } from './App.jsx';
 
 const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
@@ -364,8 +364,8 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                   <div className="space-y-3">
                     <div className="grid sm:grid-cols-2 gap-3">
                       <label className="block"><span className="text-xs font-semibold text-slate-400">Họ và tên</span><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
-                      <label className="block"><span className="text-xs font-semibold text-slate-400">Chức vụ</span><input value={cur.position} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
-                      <label className="block"><span className="text-xs font-semibold text-slate-400">Phòng / Bộ phận</span><input value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
+                      <label className="block"><span className="text-xs font-semibold text-slate-400">Phòng / Bộ phận</span><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-slate-900" value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option className="bg-slate-900" key={u.dept} value={u.dept}>{u.dept}</option>)}</select></label>
+                      <label className="block"><span className="text-xs font-semibold text-slate-400">Chức vụ</span><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-slate-900" value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option className="bg-slate-900" key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option className="bg-slate-900" value={cur.position}>{cur.position}</option>}</select></label>
                       {canManage ? (
                         <label className="block"><span className="text-xs font-semibold text-slate-400">Vai trò</span><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-slate-900" value="canbo">Cán bộ</option><option className="bg-slate-900" value="truongphong">Trưởng phòng</option><option className="bg-slate-900" value="quantri">Quản trị</option></select></label>
                       ) : (

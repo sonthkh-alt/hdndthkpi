@@ -6,7 +6,7 @@ import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
   CRITERIA, classify, statusOf, clamp, newPerson, newTracking, bumpIds, getWeekTitle,
-  ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL,
+  ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions,
 } from './App.jsx';
 import { computePro, newKpi, bumpKpiIds, kpiScore, isLeaderType, POSITION_CATALOG } from './lib/pro.js';
 
@@ -135,6 +135,13 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const upCur = (patch) => upPerson(curId, patch);
   const upKpi = (kpiId, patch) => upCur({ kpis: (cur.kpis || []).map((k) => (k.id === kpiId ? { ...k, ...patch } : k)) });
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } });
+  // Hệ thống chuẩn hóa tổng trọng số = 100% (phân bổ theo tỷ lệ hiện có)
+  const normalizeWeights = () => {
+    const list = cur.kpis || [];
+    const tw = list.reduce((s, k) => s + (Number(k.weight) || 0), 0);
+    if (!tw) return;
+    upCur({ kpis: list.map((k) => (Number(k.weight) > 0 ? { ...k, weight: Math.round((Number(k.weight) / tw) * 100) } : k)) });
+  };
   const upTracking = (tid, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === tid ? { ...t, ...patch } : t)) });
 
   const doExportTrackingPDF = async () => { const { exportTrackingPDF } = await import('./lib/exporters'); exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), UNIT, period); };
@@ -349,17 +356,20 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                   <div className="space-y-3">
                     <div className="grid sm:grid-cols-2 gap-3">
                       <label className="block"><span className="text-xs font-semibold text-neutral-500">Họ và tên</span><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
-                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Chức vụ</span><input value={cur.position} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
-                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Phòng / Bộ phận</span><input value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
+                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Phòng / Bộ phận</span><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></label>
+                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Chức vụ</span><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></label>
                       {canManage ? (
                         <label className="block"><span className="text-xs font-semibold text-neutral-500">Vai trò</span><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-white" value="canbo">Cán bộ</option><option className="bg-white" value="truongphong">Trưởng phòng</option><option className="bg-white" value="quantri">Quản trị</option></select></label>
                       ) : (
                         <label className="block"><span className="text-xs font-semibold text-neutral-500">Email</span><input value={cur.email || ''} disabled className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">{Object.entries(CRITERIA).map(([k, v]) => (
-                      <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-1.5 rounded-lg border text-xs disabled:opacity-60 ${cur.type === k ? 'border-neutral-400 bg-neutral-200 text-neutral-900 font-semibold' : 'border-neutral-200 text-neutral-500 hover:bg-neutral-100'}`}>{v.mau}</button>
-                    ))}</div>
+                    <div>
+                      <div className="flex flex-wrap gap-2">{Object.entries(CRITERIA).map(([k, v]) => (
+                        <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-2 rounded-lg border text-xs disabled:opacity-60 max-w-[170px] ${cur.type === k ? 'border-neutral-900 bg-neutral-900 text-white font-semibold' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'}`}><span className="block font-bold">{v.mau}</span><span className="block text-[10px] opacity-80 leading-tight">{v.label}</span></button>
+                      ))}</div>
+                      <p className="text-[11px] text-neutral-500 mt-2 leading-relaxed"><b className="text-neutral-800">{CRITERIA[cur.type].mau}</b> — {CRITERIA[cur.type].label}. Công thức điểm Nhóm II: <b className="text-neutral-800">{CRITERIA[cur.type].formula}</b> {isLeaderType(cur.type) ? '(lãnh đạo, quản lý: 6 thành phần)' : '(cán bộ: 3 thành phần số lượng/chất lượng/tiến độ)'}.</p>
+                    </div>
                   </div>
                   <div className="text-center">
                     <Gauge value={curC.totalMgr} />
@@ -385,7 +395,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                 <section className={`${card} overflow-hidden`}>
                   <div className="px-5 py-3 bg-neutral-100 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-2"><h3 className="font-bold text-neutral-900 text-sm">Nhóm II — KPI gia quyền (OKR/KPI)</h3><div className="flex items-center gap-2 text-xs"><span className={`px-2 py-0.5 rounded-full font-bold border ${Math.round(curC.weightSum) === 100 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>Σ trọng số: {curC.weightSum.toFixed(0)}%</span><span className="font-bold text-neutral-900">{curC.nhomII.toFixed(2)} / 70</span></div></div>
                   <div className="p-3 space-y-3">
-                    <p className="text-[11px] text-neutral-500">Mỗi KPI/Kết quả then chốt gắn <b className="text-neutral-900">trọng số (%)</b> theo mức quan trọng (tổng nên = 100%). Điểm = bình quân GIA QUYỀN của Số lượng/Chất lượng/Tiến độ{curC.leader ? ' + 3 thành phần lãnh đạo' : ''}, rồi × 70%.</p>
+                    <p className="text-[11px] text-neutral-500 leading-relaxed"><b className="text-neutral-800">Số lượng / Chất lượng / Tiến độ</b> nhập theo <b>% mức đạt</b> (ví dụ: 100% hồ sơ đúng hạn, 90% kiến nghị được tiếp thu) — nên có ký hiệu %. <b className="text-neutral-800">Trọng số (%)</b> do hệ thống đề xuất theo Quyết định (bấm "Thêm mẫu theo vị trí"); tổng nên = 100% (dùng nút "Chuẩn hóa Σ=100%"). Điểm = bình quân GIA QUYỀN theo trọng số{curC.leader ? ' + 3 thành phần lãnh đạo' : ''}, rồi × 70%.</p>
                     {(cur.kpis || []).map((k) => { const sc = kpiScore(k); return (
                       <div key={k.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
                         <div className="flex items-center gap-2 mb-2"><input value={k.name} disabled={!taskEditable} onChange={(e) => upKpi(k.id, { name: e.target.value })} placeholder="Tên KPI / Kết quả then chốt..." className={`flex-1 px-2 py-1.5 text-xs ${INP}`} /><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-600' : sc >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{sc.toFixed(0)}%</span>{taskEditable && <button onClick={() => upCur({ kpis: (cur.kpis || []).filter((x) => x.id !== k.id) })} className="text-rose-600 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
@@ -397,8 +407,9 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                     ); })}
                     {taskEditable && (
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <button onClick={() => upCur({ kpis: [...(cur.kpis || []), newKpi()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm KPI/KR</button>
-                        <button onClick={() => { const tpl = (POSITION_CATALOG[cur.type] || []).map((x) => ({ ...newKpi(), name: x.name, weight: x.weight })); upCur({ kpis: [...(cur.kpis || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neutral-100 border border-neutral-300 text-neutral-900 rounded-xl text-sm font-medium hover:bg-neutral-200"><Sparkles className="w-4 h-4" /> Thêm mẫu theo vị trí</button>
+                        <button onClick={() => upCur({ kpis: [...(cur.kpis || []), newKpi()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm KPI/KR (để trống)</button>
+                        <button onClick={() => { const tpl = (POSITION_CATALOG[cur.type] || []).map((x) => ({ ...newKpi(), name: x.name, weight: x.weight, quantity: 100, quality: 100, progress: 100 })); upCur({ kpis: [...(cur.kpis || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800"><Sparkles className="w-4 h-4" /> Thêm mẫu theo vị trí</button>
+                        {(cur.kpis || []).some((k) => Number(k.weight) > 0) && <button onClick={normalizeWeights} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-neutral-100 border border-neutral-300 text-neutral-900 rounded-xl text-sm font-medium hover:bg-neutral-200" title="Phân bổ lại để tổng trọng số = 100%"><RotateCcw className="w-4 h-4" /> Chuẩn hóa Σ=100%</button>}
                       </div>
                     )}
                     {curC.leader && (

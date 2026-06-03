@@ -11,7 +11,8 @@ import { CRITERIA } from '../App.jsx';
 const clampPro = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 
 let kid = 1;
-export const newKpi = () => ({ id: kid++, objId: '', name: '', weight: 0, quantity: 100, quality: 100, progress: 100 });
+// KPI/KR thêm thủ công: các tham số để TRỐNG (người dùng tự nhập)
+export const newKpi = () => ({ id: kid++, objId: '', name: '', weight: '', quantity: '', quality: '', progress: '' });
 export const bumpKpiIds = (people) => {
   const ids = (people || []).flatMap((p) => (p.kpis || []).map((k) => k.id || 0));
   kid = Math.max(kid, 0, ...ids) + 1;
@@ -32,10 +33,10 @@ export function computePro(p) {
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
 
-  // Nhóm II — KPI/KR gia quyền
+  // Nhóm II — KPI/KR gia quyền. Chưa thiết lập KPI nào -> mặc định đạt 100 (cán bộ mới 100/100).
   const kpis = (p.kpis || []).filter((k) => Number(k.weight) > 0);
   const tw = kpis.reduce((s, k) => s + Number(k.weight || 0), 0);
-  let a = 0, b = 0, c = 0;
+  let a = 100, b = 100, c = 100;
   if (tw > 0) {
     a = kpis.reduce((s, k) => s + Number(k.weight) * (Number(k.quantity) || 0), 0) / tw;
     b = kpis.reduce((s, k) => s + Number(k.weight) * (Number(k.quality) || 0), 0) / tw;
