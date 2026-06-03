@@ -146,9 +146,9 @@ export function exportTrackingExcel(people, weekTitle, unit) {
   XLSX.writeFile(wb, `KiemDem_${safeTitle}.xlsx`);
 }
 
-// PDF — Bảng kiểm đếm, theo dõi công việc (mở cửa sổ in; chọn "Lưu thành PDF" để xuất file).
-// Trình bày như văn bản hành chính: tiêu đề đơn vị, tên bảng, tuần, bảng có khung, đầu bảng lặp lại mỗi trang.
-export function exportTrackingPDF(people, weekTitle, unit, period) {
+// PDF — Bảng kiểm đếm, theo dõi công việc. TỰ ĐỘNG TẢI XUỐNG file .pdf về máy (dùng html2pdf).
+// Trình bày như văn bản hành chính: tiêu đề đơn vị, tên bảng, tuần, bảng có khung viền.
+export async function exportTrackingPDF(people, weekTitle, unit, period) {
   const esc = (s) => String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\r?\n/g, '<br>');
@@ -183,37 +183,34 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
     bodyRows.push('<tr><td colspan="13" class="empty">Chưa có dữ liệu công việc trong kỳ này.</td></tr>');
   }
 
-  const html = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
-<title>Bảng kiểm đếm, theo dõi công việc</title>
-<style>
-  @page { size: A4 landscape; margin: 12mm 10mm; }
-  * { box-sizing: border-box; }
-  body { font-family: 'Times New Roman', 'Be Vietnam Pro', Georgia, serif; color: #111; margin: 0; }
-  .doc-head { text-align: center; margin-bottom: 10px; }
-  .unit { font-weight: bold; text-transform: uppercase; font-size: 13px; letter-spacing: .3px; }
-  .rule { width: 120px; height: 2px; background: #111; margin: 5px auto 12px; }
-  .title { font-weight: bold; font-size: 19px; text-transform: uppercase; }
-  .week { font-style: italic; font-size: 13px; margin-top: 3px; }
-  table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
-  thead { display: table-header-group; }
-  th, td { border: 1px solid #555; padding: 4px 5px; vertical-align: top; text-align: left; word-wrap: break-word; }
-  th { background: #e8eef7; font-weight: bold; text-align: center; }
-  td.ctr { text-align: center; }
-  td.nowrap { white-space: nowrap; }
-  td.name { font-size: 11px; }
-  td.name .pos { font-weight: normal; font-style: italic; color: #444; font-size: 9px; margin-top: 2px; }
-  tbody tr { page-break-inside: avoid; }
-  tbody tr:nth-child(even) td { background: #fafafa; }
-  .empty { text-align: center; color: #888; font-style: italic; padding: 20px; }
-  .sign { margin-top: 18px; display: flex; justify-content: flex-end; }
-  .sign .box { text-align: center; min-width: 280px; }
-  .sign .date { font-style: italic; font-size: 12px; }
-  .sign .role { font-weight: bold; font-size: 12px; margin-top: 2px; }
-  .sign .gap { height: 64px; }
-  .sign .hint { font-style: italic; font-size: 10px; color: #555; }
-  .col-stt { width: 30px; } .col-time { width: 64px; }
-</style></head>
-<body>
+  const root = document.createElement('div');
+  root.id = 'trk-pdf-root';
+  root.style.cssText = 'position:fixed;left:-10000px;top:0;width:1123px;background:#fff;padding:10px;';
+  root.innerHTML = `
+  <style>
+    #trk-pdf-root, #trk-pdf-root * { box-sizing:border-box; }
+    #trk-pdf-root { font-family:'Times New Roman','Be Vietnam Pro',Georgia,serif; color:#111; }
+    #trk-pdf-root .doc-head { text-align:center; margin-bottom:10px; }
+    #trk-pdf-root .unit { font-weight:bold; text-transform:uppercase; font-size:15px; letter-spacing:.3px; }
+    #trk-pdf-root .rule { width:140px; height:2px; background:#111; margin:6px auto 12px; }
+    #trk-pdf-root .title { font-weight:bold; font-size:22px; text-transform:uppercase; }
+    #trk-pdf-root .week { font-style:italic; font-size:15px; margin-top:4px; }
+    #trk-pdf-root table { width:100%; border-collapse:collapse; font-size:12px; table-layout:fixed; }
+    #trk-pdf-root th, #trk-pdf-root td { border:1px solid #555; padding:5px 6px; vertical-align:top; text-align:left; word-wrap:break-word; }
+    #trk-pdf-root th { background:#e8eef7; font-weight:bold; text-align:center; }
+    #trk-pdf-root td.ctr { text-align:center; }
+    #trk-pdf-root td.nowrap { white-space:nowrap; }
+    #trk-pdf-root td.name { font-size:12px; }
+    #trk-pdf-root td.name .pos { font-weight:normal; font-style:italic; color:#444; font-size:10px; margin-top:2px; }
+    #trk-pdf-root tbody tr:nth-child(even) td { background:#fafafa; }
+    #trk-pdf-root .empty { text-align:center; color:#888; font-style:italic; padding:20px; }
+    #trk-pdf-root .sign { margin-top:18px; display:flex; justify-content:flex-end; }
+    #trk-pdf-root .sign .box { text-align:center; min-width:300px; }
+    #trk-pdf-root .sign .date { font-style:italic; font-size:13px; }
+    #trk-pdf-root .sign .role { font-weight:bold; font-size:13px; margin-top:2px; }
+    #trk-pdf-root .sign .hint { font-style:italic; font-size:11px; color:#555; }
+    #trk-pdf-root .sign .gap { height:64px; }
+  </style>
   <div class="doc-head">
     <div class="unit">${esc(unit)}</div>
     <div class="rule"></div>
@@ -222,8 +219,8 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
   </div>
   <table>
     <colgroup>
-      <col class="col-stt"><col style="width:120px"><col style="width:18%"><col style="width:12%">
-      <col style="width:14%"><col style="width:10%"><col class="col-time"><col class="col-time">
+      <col style="width:34px"><col style="width:130px"><col style="width:16%"><col style="width:12%">
+      <col style="width:13%"><col style="width:10%"><col style="width:60px"><col style="width:60px">
       <col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:8%">
     </colgroup>
     <thead>
@@ -257,13 +254,22 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
       <div class="hint">(Ký, ghi rõ họ tên)</div>
       <div class="gap"></div>
     </div>
-  </div>
-  <script>window.onload = function(){ setTimeout(function(){ window.focus(); window.print(); }, 350); };</script>
-</body></html>`;
+  </div>`;
 
-  const w = window.open('', '_blank');
-  if (!w) { alert('Trình duyệt đã chặn cửa sổ in. Vui lòng cho phép pop-up cho trang này rồi thử lại.'); return; }
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
+  document.body.appendChild(root);
+  try {
+    const mod = await import('html2pdf.js');
+    const html2pdf = mod.default || mod;
+    const safe = (weekTitle || 'Bang').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 40);
+    await html2pdf().set({
+      margin: [8, 8, 8, 8],
+      filename: `BangKiemDem_${safe}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: 1123 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
+      pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: 'tr' },
+    }).from(root).save();
+  } finally {
+    document.body.removeChild(root);
+  }
 }
