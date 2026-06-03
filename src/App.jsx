@@ -75,6 +75,37 @@ const CRITERIA = {
   ] },
 };
 
+// Nhóm đối tượng MỚI: Đại biểu HĐND hoạt động chuyên trách — GIỮ NGUYÊN Tiêu chí chung (dùng bộ của nhóm lãnh đạo).
+CRITERIA.hdnd = {
+  label: 'Đại biểu HĐND hoạt động chuyên trách',
+  mau: 'Mẫu số 05',
+  formula: '(a+b+c)/3',
+  groups: CRITERIA.leader.groups,
+};
+
+// Danh mục công việc (Nhóm II) cho nhóm Đại biểu HĐND chuyên trách — theo 3 vai trò trong tài liệu.
+const HDND_CATALOG = [
+  // A. Thường trực HĐND tỉnh (Lãnh đạo chủ chốt)
+  { id: 'HD.A.1', group: 'HĐND.A. THƯỜNG TRỰC HĐND TỈNH', name: 'Chỉ đạo, điều hành kỳ họp', output: 'Kết quả tổ chức kỳ họp thường lệ/chuyên đề; chất lượng nghị quyết ban hành', level: 'N4', maxScore: 400, hasFactor: true },
+  { id: 'HD.A.2', group: 'HĐND.A. THƯỜNG TRỰC HĐND TỈNH', name: 'Thực hiện nhiệm vụ theo luật định', output: 'Xử lý vấn đề phát sinh giữa hai kỳ họp; chỉ đạo thực hiện quy chế làm việc', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.A.3', group: 'HĐND.A. THƯỜNG TRỰC HĐND TỈNH', name: 'Công tác tiếp dân, khiếu nại, tố cáo', output: 'Kết quả tiếp công dân; đôn đốc, giám sát giải quyết đơn thư KNTC', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.A.4', group: 'HĐND.A. THƯỜNG TRỰC HĐND TỈNH', name: 'Công tác đối ngoại và phối hợp', output: 'Hiệu quả phối hợp với UBND tỉnh, MTTQ tỉnh và Đoàn ĐBQH', level: 'N2', maxScore: 200, hasFactor: true },
+  // B. Lãnh đạo các Ban của HĐND tỉnh
+  { id: 'HD.B.1', group: 'HĐND.B. LÃNH ĐẠO CÁC BAN HĐND TỈNH', name: 'Tham mưu và thực hiện nhiệm vụ được phân công', output: 'Tiến độ, chất lượng công việc do Chủ tịch/Thường trực HĐND phân công', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.B.2', group: 'HĐND.B. LÃNH ĐẠO CÁC BAN HĐND TỈNH', name: 'Tham gia các hoạt động chung', output: 'Tỷ lệ dự phiên họp Thường trực; góp ý chuẩn bị nội dung, chương trình kỳ họp', level: 'N2', maxScore: 200, hasFactor: true },
+  { id: 'HD.B.3', group: 'HĐND.B. LÃNH ĐẠO CÁC BAN HĐND TỈNH', name: 'Công tác thẩm tra (trọng tâm)', output: 'Số lượng, chất lượng, tiến độ báo cáo thẩm tra (nộp chậm nhất 15 ngày trước khai mạc)', level: 'N4', maxScore: 400, hasFactor: true },
+  { id: 'HD.B.4', group: 'HĐND.B. LÃNH ĐẠO CÁC BAN HĐND TỈNH', name: 'Công tác giám sát chuyên đề', output: 'Kế hoạch và kết quả giám sát chuyên đề thuộc lĩnh vực Ban phụ trách', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.B.5', group: 'HĐND.B. LÃNH ĐẠO CÁC BAN HĐND TỈNH', name: 'Điều hành nội bộ Ban', output: 'Phân công nhiệm vụ thành viên; tỷ lệ hoàn thành kế hoạch công tác năm của Ban', level: 'N2', maxScore: 200, hasFactor: true },
+  // C. Ủy viên chuyên trách các Ban HĐND
+  { id: 'HD.C.1', group: 'HĐND.C. ỦY VIÊN CHUYÊN TRÁCH CÁC BAN', name: 'Tham gia kỳ họp HĐND', output: 'Tỷ lệ tham dự kỳ họp, phiên họp toàn thể (không vắng mặt không lý do)', level: 'N2', maxScore: 200, hasFactor: true },
+  { id: 'HD.C.2', group: 'HĐND.C. ỦY VIÊN CHUYÊN TRÁCH CÁC BAN', name: 'Chất lượng tham gia ý kiến', output: 'Mức độ nghiên cứu tài liệu; chất lượng thảo luận, chất vấn tại kỳ họp', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.C.3', group: 'HĐND.C. ỦY VIÊN CHUYÊN TRÁCH CÁC BAN', name: 'Gắn bó với cử tri', output: 'Số lần TXCT trước/sau kỳ họp; tiếp nhận, phân loại, chuyển đơn thư KNTC', level: 'N3', maxScore: 300, hasFactor: true },
+  { id: 'HD.C.4', group: 'HĐND.C. ỦY VIÊN CHUYÊN TRÁCH CÁC BAN', name: 'Thực hiện nhiệm vụ tại Ban', output: 'Chủ trì/tham gia khảo sát, giám sát; xây dựng báo cáo chuyên đề, báo cáo thẩm tra', level: 'N3', maxScore: 300, hasFactor: true },
+];
+
+// Danh mục gộp: dùng để tra hệ số (agg335) và lọc theo nhóm đối tượng (getND335Groups)
+const CATALOG = [...ND335_CATALOG, ...HDND_CATALOG];
+
 const DIGITAL = [
   { id: 1, name: 'Nhận thức số và tư duy chuyển đổi số' },
   { id: 2, name: 'Khai thác dữ liệu và thông tin' },
@@ -86,7 +117,7 @@ const DIGITAL = [
   { id: 8, name: 'Lãnh đạo số và quản trị thay đổi' },
 ];
 const LEVELS = [{ v: 0, s: 'Chưa' }, { v: 1, s: 'Mức 1' }, { v: 2, s: 'Mức 2' }, { v: 3, s: 'Mức 3' }, { v: 4, s: 'Mức 4' }];
-const MIN_DIGITAL = { leader: 3, staff: 2, contract: 1 };
+const MIN_DIGITAL = { leader: 3, staff: 2, contract: 1, hdnd: 3 };
 
 function classify(t) {
   if (t >= 90) return { code: 'A', name: 'Hoàn thành xuất sắc nhiệm vụ', cls: 'bg-emerald-500', ring: 'text-emerald-600', soft: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500' };
@@ -114,7 +145,7 @@ function agg335(tasks335) {
   if (valid.length === 0) return { a: 0, b: 0, c: 0, val: 0 };
   let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0;
   valid.forEach(t => {
-    const cat = ND335_CATALOG.find(c => c.id === t.catalogId);
+    const cat = CATALOG.find(c => c.id === t.catalogId);
     if (!cat) return;
     // Hệ số làm trọng số; nhóm hỗ trợ (III.*) có hệ số 0 -> coi trọng số = 1 (đếm ngang nhau)
     const w = Number(cat.maxScore) || 1;
@@ -136,6 +167,7 @@ function agg335(tasks335) {
 }
 
 function getND335Groups(type) {
+  if (type === 'hdnd') return HDND_CATALOG;
   if (type === 'contract') return ND335_CATALOG.filter(c => c.id.startsWith('III'));
   if (type === 'staff') return ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
   return ND335_CATALOG.filter(c => c.id.startsWith('I.A') || c.id.startsWith('I.B') || c.id.startsWith('II.B'));
