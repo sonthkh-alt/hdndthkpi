@@ -1,5 +1,10 @@
 import { supabase } from './supabase';
 
+// Tài khoản KHÁCH (chỉ xem) — đăng nhập ngay phía client, không cần tài khoản Supabase.
+export const GUEST = { email: 'user@thanhhoa.gov.vn', password: 'password' };
+export const isGuestCredential = (email, password) =>
+  (email || '').trim().toLowerCase() === GUEST.email && password === GUEST.password;
+
 // Lấy phiên đăng nhập hiện tại (null nếu chưa đăng nhập / chưa cấu hình máy chủ)
 export async function getSession() {
   if (!supabase) return null;

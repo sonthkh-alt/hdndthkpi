@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound } from 'lucide-react';
-import { signInWithOtp, signInWithPassword } from './lib/auth';
+import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
+import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './lib/auth';
 
-export default function Login({ unit }) {
+export default function Login({ unit, onGuest }) {
   const [mode, setMode] = useState('password'); // password | link
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState(GUEST.email);
+  const [password, setPassword] = useState(GUEST.password);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
   const [msg, setMsg] = useState('');
 
   const submitPassword = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) return;
+    // Tài khoản khách (chỉ xem) -> vào thẳng phía client, không cần Supabase
+    if (isGuestCredential(email, password)) { if (onGuest) onGuest(); return; }
     setStatus('sending'); setMsg('');
     const { error } = await signInWithPassword(email.trim(), password);
     if (error) {
@@ -97,6 +99,13 @@ export default function Login({ unit }) {
               {status === 'error' && (
                 <p className="text-xs text-rose-600 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> {msg}</p>
               )}
+              <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3">
+                <p className="text-[12px] font-bold text-amber-800 flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Tài khoản khách (chỉ xem)</p>
+                <p className="text-[12px] text-amber-800/90 mt-1">Email: <b>{GUEST.email}</b> · Mật khẩu: <b>{GUEST.password}</b></p>
+                <button type="button" onClick={() => { setEmail(GUEST.email); setPassword(GUEST.password); if (onGuest) onGuest(); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[13px] font-semibold py-2 rounded-lg transition">
+                  <Eye className="w-3.5 h-3.5" /> Vào xem ngay (chỉ xem)
+                </button>
+              </div>
               <button type="submit" disabled={status === 'sending'} className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg shadow-red-900/20 transition">
                 <LogIn className="w-4 h-4" /> {status === 'sending' ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
