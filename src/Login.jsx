@@ -115,6 +115,7 @@ export default function Login({ unit, onGuest }) {
           )}
         </div>
         <p className="text-center text-red-100/70 text-[11px] mt-5">© Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
+        <p className="text-center text-red-100/70 text-[11px] mt-1">Chi tiết xin liên hệ đồng chí Hà Ngọc Sơn, Phó Chánh Văn phòng 0904818886</p>
       </div>
     </div>
   );
