@@ -56,9 +56,10 @@ export default function Login({ unit, onGuest, version = 'classic', onPickVersio
         </div>
 
         {onPickVersion && (
-          <div className="mb-4 bg-white/10 border border-white/20 rounded-xl p-1.5 flex gap-1.5">
-            <button type="button" onClick={() => onPickVersion('classic')} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${version !== 'modern' ? 'bg-white text-red-800 shadow' : 'text-red-100/80 hover:text-white'}`}>Giao diện cổ điển</button>
-            <button type="button" onClick={() => onPickVersion('modern')} className={`flex-1 py-2 rounded-lg text-xs font-semibold transition ${version === 'modern' ? 'bg-amber-400 text-red-900 shadow' : 'text-red-100/80 hover:text-white'}`}>Giao diện mới ✨</button>
+          <div className="mb-4 bg-white/10 border border-white/20 rounded-xl p-1.5 grid grid-cols-3 gap-1.5">
+            <button type="button" onClick={() => onPickVersion('classic')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'classic' ? 'bg-white text-red-800 shadow' : 'text-red-100/80 hover:text-white'}`}>Cổ điển</button>
+            <button type="button" onClick={() => onPickVersion('modern')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'modern' ? 'bg-violet-400 text-red-950 shadow' : 'text-red-100/80 hover:text-white'}`}>Giao diện mới ✨</button>
+            <button type="button" onClick={() => onPickVersion('pro')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'pro' ? 'bg-amber-400 text-red-900 shadow' : 'text-red-100/80 hover:text-white'}`}>Bản PRO 🏛️</button>
           </div>
         )}
 
