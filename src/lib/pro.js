@@ -108,8 +108,25 @@ export const bumpProIds = (people) => {
   tid = Math.max(tid, 0, ...ids) + 1;
 };
 
-// Lãnh đạo, quản lý -> 6 thành phần
-export const isLeaderType = (type) => type === 'leader' || type === 'hdnd';
+// Lãnh đạo, quản lý -> 6 thành phần. Với nhóm HĐND (hdnd) thì tùy CHỨC VỤ:
+// Thường trực HĐND, Trưởng/Phó các Ban, Chánh/Phó VP... = lãnh đạo (6 thành phần);
+// Ủy viên chuyên trách, Chuyên viên = không giữ chức vụ quản lý (3 thành phần).
+const LEADER_TITLES = ['Chủ tịch', 'Phó Chủ tịch', 'Trưởng Đoàn', 'Phó Trưởng Đoàn', 'Trưởng Ban', 'Phó Trưởng Ban', 'Chánh Văn phòng', 'Phó Chánh Văn phòng', 'Trưởng phòng', 'Phó Trưởng phòng'];
+export const isLeaderType = (type) => type === 'leader';
+export const isLeaderPerson = (p) => {
+  if (!p) return false;
+  if (p.type === 'leader') return true;
+  if (p.type === 'staff' || p.type === 'contract') return false;
+  const pos = p.position || ''; // hdnd: theo chức vụ
+  return LEADER_TITLES.some((t) => pos.includes(t));
+};
+
+// Lao động hợp đồng hỗ trợ, phục vụ — Sổ tay Chương III: 3 tiêu chí, Điểm = (cl+tt+hq)/3
+export const HD_CRITERIA = [
+  { key: 'cl', label: 'Chất lượng công việc', desc: 'Hoàn thành nhiệm vụ được giao đúng yêu cầu, đúng thời gian, địa điểm.' },
+  { key: 'tt', label: 'Tuân thủ quy định, quy trình công việc', desc: 'Chấp hành pháp luật chuyên ngành, quy trình an toàn, PCCC, nội quy cơ quan.' },
+  { key: 'hq', label: 'Hiệu quả công việc', desc: 'Bảo quản, sử dụng trang thiết bị, vật tư đúng mục đích, tiết kiệm, hiệu quả.' },
+];
 
 // Chỉ số "đạt" của 1 nhiệm vụ (để hiển thị màu): SL × CL × TĐ rút gọn
 export const proTaskPct = (t) => {
@@ -130,7 +147,23 @@ export function computePro(p) {
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
 
-  // Nhóm II — đếm khách quan theo hệ số quy đổi. Chưa nhập nhiệm vụ -> mặc định 100 (cán bộ mới 100/100)
+  const ded = Number(p.deduction || 0);
+  const isHd = p.type === 'contract';
+  const leader = isLeaderPerson(p);
+
+  // ===== Lao động hợp đồng hỗ trợ, phục vụ (Sổ tay Chương III): 3 tiêu chí, mặc định 100 =====
+  if (isHd) {
+    const hs = p.hdScores || {};
+    const cl = Number(hs.cl ?? 100), tt = Number(hs.tt ?? 100), hq = Number(hs.hq ?? 100);
+    const val = (cl + tt + hq) / 3;
+    const nhomII = (val / 100) * 70;
+    return {
+      nself, nmgr, isHd, leader: false, k: { a: cl, b: tt, c: hq, val }, nhomII,
+      totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded),
+    };
+  }
+
+  // ===== Công chức: đếm khách quan theo hệ số quy đổi (Điều 14/16). Chưa nhập -> mặc định 100 =====
   const dept = p.department || '';
   const tasks = (p.proTasks || []).filter((t) => t.catalogId);
   let TG = 0, TC = 0, TQ = 0, TD = 0;
@@ -151,15 +184,13 @@ export function computePro(p) {
     b = Math.min(100, (TQ / TG) * 100); // chia cho GIAO theo Điều 14 NĐ335
     c = Math.min(100, (TD / TG) * 100);
   }
-  const leader = isLeaderType(p.type);
   const ls = p.leadScores || {};
   const d = ls.d ?? 100, dd = ls.dd ?? 100, e = ls.e ?? 100; // mỗi thành phần 100% hoặc 50%
   const val = leader ? (a + b + c + Number(d) + Number(dd) + Number(e)) / 6 : (a + b + c) / 3;
   const nhomII = (val / 100) * 70;
-  const ded = Number(p.deduction || 0);
 
   return {
-    nself, nmgr, k: { a, b, c, val }, nhomII, leader,
+    nself, nmgr, isHd: false, leader, k: { a, b, c, val }, nhomII,
     totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded),
   };
 }
