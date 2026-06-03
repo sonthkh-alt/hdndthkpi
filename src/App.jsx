@@ -6,7 +6,7 @@ import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import { ND335_CATALOG } from './lib/nd335';
 
-const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Chỉ xem' };
+const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
 const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
@@ -334,13 +334,14 @@ export default function App() {
   // Hồ sơ của chính người đăng nhập = cán bộ có email khớp; vai trò lấy từ ô "Vai trò" do quản trị đặt.
   const myPerson = supabase ? people.find((p) => p.email && myEmail && p.email.toLowerCase() === myEmail.toLowerCase()) : null;
   const myDept = myPerson?.department || '';
-  const isGuest = session === 'guest';            // tài khoản khách: CHỈ XEM, không ghi/sửa
-  const readOnly = isGuest;
+  const isGuest = session === 'guest';            // tài khoản khách (dùng thử)
+  const readOnly = isGuest;                       // khóa quản trị, lưu trữ, Năng lực số & Theo dõi CV cho khách
   const role = isGuest ? 'khach' : (!supabase ? 'quantri' : (isBootstrapAdmin ? 'quantri' : (myPerson?.role || 'canbo')));
   const isAdmin = role === 'quantri';
-  const canManage = isAdmin && !readOnly; // thêm/xóa cán bộ, sửa mục tiêu OKR, đặt vai trò
-  const canEditMgrOf = (p) => !readOnly && (isAdmin || (role === 'truongphong' && !!myDept && p?.department === myDept));
-  const canEditSelfOf = (p) => !readOnly && (isAdmin || (!!myEmail && !!p?.email && p.email.toLowerCase() === myEmail.toLowerCase()));
+  const canManage = isAdmin && !readOnly; // thêm/xóa cán bộ, sửa mục tiêu OKR, đặt vai trò (khách KHÔNG có)
+  // Khách (dùng thử) ĐƯỢC chấm điểm Nhóm I/II để xem kết quả tính toán — chỉ lưu tạm trên trình duyệt, không lưu DB.
+  const canEditMgrOf = (p) => isGuest || isAdmin || (role === 'truongphong' && !!myDept && p?.department === myDept);
+  const canEditSelfOf = (p) => isGuest || isAdmin || (!!myEmail && !!p?.email && p.email.toLowerCase() === myEmail.toLowerCase());
   const selfEditable = cur ? canEditSelfOf(cur) : false;
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
@@ -389,9 +390,9 @@ export default function App() {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100'}`}>
-              {cloud.ready ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
-              {cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ'}
+            <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${isGuest ? 'bg-amber-500/20 text-amber-100' : (cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100')}`}>
+              {isGuest || !cloud.ready ? <CloudOff className="w-3.5 h-3.5" /> : <Cloud className="w-3.5 h-3.5" />}
+              {isGuest ? 'Dùng thử · không lưu' : (cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ')}
             </span>
             {!readOnly && (
               <button onClick={handleManualSave} disabled={cloud.saving} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors disabled:opacity-50 border border-blue-500/50">
@@ -427,10 +428,10 @@ export default function App() {
       )}
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {readOnly && (
+        {isGuest && (
           <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">Bạn đang đăng nhập bằng <b>tài khoản khách</b> — chế độ <b>chỉ xem</b>. Bạn có thể xem mọi số liệu, in và xuất báo cáo, nhưng <b>không thể chỉnh sửa hay lưu</b> dữ liệu. Để có quyền chỉnh sửa, hãy đăng nhập bằng tài khoản được cấp.</p>
+            <p className="text-sm text-amber-800">Bạn đang dùng <b>tài khoản khách (dùng thử)</b>. Bạn có thể nhập điểm <b>Nhóm I, Nhóm II</b> và xem kết quả hệ thống tự tính, in/xuất báo cáo. Tuy nhiên dữ liệu <b>chỉ lưu tạm trên trình duyệt</b>, <b>KHÔNG lưu vào hệ thống</b> và sẽ mất khi tải lại trang hoặc đóng trình duyệt. Để lưu chính thức, hãy đăng nhập bằng tài khoản được cấp.</p>
           </div>
         )}
         {supabase && session && session !== 'local' && isBootstrapAdmin && (
