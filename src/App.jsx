@@ -159,7 +159,7 @@ function computePerson(p) {
 }
 let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
-const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '' });
+const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
 
 function getWeekTitle(dateObj) {
@@ -326,6 +326,30 @@ export default function App() {
   const doExportTracking = async () => {
     const { exportTrackingPDF } = await import('./lib/exporters');
     exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), unit, period);
+  };
+
+  // Thu thập các dòng "Bảng theo dõi CV" (đã gắn Danh mục) thành nhiệm vụ Nhóm II của cán bộ hiện tại.
+  // Idempotent theo srcTrkId: bấm lại sẽ CẬP NHẬT, không nhân đôi; giữ nguyên nhiệm vụ nhập tay.
+  const doCollectTracking = () => {
+    if (!cur) return;
+    const trks = (cur.trackings || []).filter((t) => t.catalogId);
+    if (!trks.length) { alert('Chưa có dòng theo dõi nào gắn "Danh mục công việc" để thu thập. Hãy mở tab Theo dõi CV, chọn Danh mục cho từng công việc rồi thử lại.'); return; }
+    const prevGen = new Map((cur.tasks335 || []).filter((x) => x.srcTrkId != null).map((x) => [x.srcTrkId, x]));
+    const manual = (cur.tasks335 || []).filter((x) => x.srcTrkId == null);
+    const generated = trks.map((t) => ({
+      id: prevGen.get(t.id)?.id ?? t335Id++,
+      srcTrkId: t.id,
+      catalogId: t.catalogId,
+      objId: t.objId || '',
+      assigned: 1,
+      completed: Number(t.completed) ? 1 : 0,
+      qualityIssues: Number(t.qualityIssues) || 0,
+      delays: Number(t.delays) || 0,
+      note: t.content || '',
+    }));
+    upCur({ tasks335: [...manual, ...generated] });
+    alert(`Đã thu thập ${generated.length} công việc từ Bảng theo dõi vào Nhóm II. Đang mở tab Đánh giá để xem kết quả.`);
+    setTab('eval');
   };
 
   // ===== Phân quyền (thực thi ở tầng ứng dụng) =====
@@ -608,10 +632,11 @@ export default function App() {
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-4">
+                    {taskEditable && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
                     <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục (trọng số = hệ số cấp độ N1–N4; nhóm hỗ trợ tính ngang nhau) và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Điểm Nhóm II = trung bình (a+b+c) theo trọng số × 70%.</p>
                     <div className="space-y-3">{(cur.tasks335 || []).map((t, i) => { const sc = task335Score(t); const st = statusOf(sc);
                       return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
-                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name} (Hệ số: {c.maxScore})</option>))}</select><span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span>{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
+                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name} (Hệ số: {c.maxScore})</option>))}</select><span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span>{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
                         <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
                         <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
@@ -682,6 +707,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" />
+                  {taskEditable && <button onClick={doCollectTracking} title="Tạo nhiệm vụ Nhóm II từ các công việc đã gắn Danh mục" className="flex items-center gap-2 px-3 py-1.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập vào đánh giá KPI</button>}
                   <button onClick={doExportTracking} className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors border border-red-200"><FileText className="w-3.5 h-3.5" /> Xuất bảng (PDF)</button>
                 </div>
               </div>
@@ -726,6 +752,36 @@ export default function App() {
                       <div><label className="text-[11px] font-medium text-slate-500">Khó khăn, vướng mắc</label><textarea value={t.difficulties} onChange={(e) => upTracking(t.id, { difficulties: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
                       <div><label className="text-[11px] font-medium text-slate-500">Đề xuất, kiến nghị</label><textarea value={t.proposals} onChange={(e) => upTracking(t.id, { proposals: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
                       <div><label className="text-[11px] font-medium text-slate-500">Ghi chú</label><textarea value={t.note} onChange={(e) => upTracking(t.id, { note: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-amber-400 min-h-[40px]" /></div>
+                    </div>
+                    <div className="mt-3 rounded-lg border border-indigo-200 bg-indigo-50/60 p-3">
+                      <p className="text-[11px] font-bold text-indigo-700 flex items-center gap-1.5 mb-2"><Target className="w-3.5 h-3.5" /> Phục vụ chấm điểm KPI (Nhóm II) — chọn Danh mục để có thể "Thu thập vào đánh giá"</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                        <div>
+                          <label className="text-[11px] font-medium text-slate-500">Danh mục công việc (KPI)</label>
+                          <select value={t.catalogId || ''} onChange={(e) => upTracking(t.id, { catalogId: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 bg-white">
+                            <option value="">— Chọn danh mục —</option>
+                            {getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name} (Hệ số: {c.maxScore})</option>))}
+                          </select>
+                        </div>
+                        <div>
+                          <label className="text-[11px] font-medium text-slate-500">Liên kết mục tiêu (OKR)</label>
+                          <select value={t.objId || ''} onChange={(e) => upTracking(t.id, { objId: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 bg-white">
+                            <option value="">— Liên kết OKR —</option>
+                            {objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div>
+                          <label className="text-[11px] font-medium text-slate-500">Đã hoàn thành?</label>
+                          <select value={Number(t.completed) ? 1 : 0} onChange={(e) => upTracking(t.id, { completed: Number(e.target.value) })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 bg-white">
+                            <option value={0}>Chưa</option>
+                            <option value={1}>Hoàn thành</option>
+                          </select>
+                        </div>
+                        <MiniNum label="Lỗi chất lượng" value={t.qualityIssues || 0} min={0} onChange={(v) => upTracking(t.id, { qualityIssues: v })} />
+                        <MiniNum label="Chậm tiến độ" value={t.delays || 0} min={0} onChange={(v) => upTracking(t.id, { delays: v })} />
+                      </div>
                     </div>
                   </div>
                 ))}
