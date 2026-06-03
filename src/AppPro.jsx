@@ -8,7 +8,7 @@ import {
   CRITERIA, classify, statusOf, clamp, newPerson, newTracking, bumpIds, getWeekTitle,
   ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions,
 } from './App.jsx';
-import { computePro, newKpi, bumpKpiIds, kpiScore, isLeaderType, POSITION_CATALOG } from './lib/pro.js';
+import { computePro, newProTask, bumpProIds, proTaskPct, isLeaderType, getProCatalog, PRO_GROUPS } from './lib/pro.js';
 
 const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
@@ -87,7 +87,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
     serverTsRef.current = res.serverTs;
     if (res.state) {
       const ppl = res.state.people || [];
-      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); bumpIds(ppl); bumpKpiIds(ppl);
+      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); bumpIds(ppl); bumpProIds(ppl);
     } else {
       const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
@@ -120,7 +120,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month }); if (!res.state) return;
-    const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, kpis: [], leadScores: {}, selfNote: '', mgrNote: '', trackings: [] }));
+    const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, proTasks: [], leadScores: {}, selfNote: '', mgrNote: '', trackings: [] }));
     setObjectives(res.state.objectives || []); setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
   const handleSave = async () => {
@@ -133,15 +133,8 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const cur = people.find((p) => p.id === curId) || people[0] || null;
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
-  const upKpi = (kpiId, patch) => upCur({ kpis: (cur.kpis || []).map((k) => (k.id === kpiId ? { ...k, ...patch } : k)) });
+  const upTask = (taskId, patch) => upCur({ proTasks: (cur.proTasks || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } });
-  // Hệ thống chuẩn hóa tổng trọng số = 100% (phân bổ theo tỷ lệ hiện có)
-  const normalizeWeights = () => {
-    const list = cur.kpis || [];
-    const tw = list.reduce((s, k) => s + (Number(k.weight) || 0), 0);
-    if (!tw) return;
-    upCur({ kpis: list.map((k) => (Number(k.weight) > 0 ? { ...k, weight: Math.round((Number(k.weight) / tw) * 100) } : k)) });
-  };
   const upTracking = (tid, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === tid ? { ...t, ...patch } : t)) });
 
   const doExportTrackingPDF = async () => { const { exportTrackingPDF } = await import('./lib/exporters'); exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), UNIT, period); };
@@ -185,7 +178,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[classify(c.totalMgr).code]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
-  const objProgress = (oid) => { const ks = people.flatMap((p) => p.kpis || []).filter((k) => k.objId === oid); return ks.length ? ks.reduce((s, k) => s + kpiScore(k), 0) / ks.length : null; };
+  const objProgress = (oid) => { const ts = people.flatMap((p) => p.proTasks || []).filter((t) => t.objId === oid && t.catalogId); return ts.length ? ts.reduce((s, t) => s + proTaskPct(t), 0) / ts.length : null; };
 
   const myEmail = (session && session.user && session.user.email) || '';
   const isGuest = session === 'guest';
@@ -305,7 +298,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                 <section className={`lg:col-span-2 ${card} p-5`}>
                   <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-neutral-900" /> Mục tiêu cấp Văn phòng (OKR)</h2>
                   <div className="space-y-3">
-                    {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.kpis || []).filter((k) => k.objId === o.id).length; return (
+                    {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.proTasks || []).filter((t) => t.objId === o.id && t.catalogId).length; return (
                       <div key={o.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
                         <div className="flex items-center justify-between gap-2"><p className="font-semibold text-sm text-neutral-900">{o.title}</p><span className="text-[11px] text-neutral-500 flex items-center gap-1 shrink-0"><Link2 className="w-3 h-3" />{linked} NV</span></div>
                         <div className="mt-2 flex items-center gap-3"><div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden"><div className={`h-full ${pr === null ? 'bg-neutral-200' : statusOf(pr).dot}`} style={{ width: `${pr || 0}%` }} /></div><span className="text-xs font-bold text-neutral-600 w-14 text-right">{pr === null ? '—' : `${pr.toFixed(0)}%`}</span></div>
@@ -393,35 +386,35 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                 </section>
 
                 <section className={`${card} overflow-hidden`}>
-                  <div className="px-5 py-3 bg-neutral-100 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-2"><h3 className="font-bold text-neutral-900 text-sm">Nhóm II — KPI gia quyền (OKR/KPI)</h3><div className="flex items-center gap-2 text-xs"><span className={`px-2 py-0.5 rounded-full font-bold border ${Math.round(curC.weightSum) === 100 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-rose-50 text-rose-700 border-rose-200'}`}>Σ trọng số: {curC.weightSum.toFixed(0)}%</span><span className="font-bold text-neutral-900">{curC.nhomII.toFixed(2)} / 70</span></div></div>
+                  <div className="px-5 py-3 bg-neutral-100 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-2"><h3 className="font-bold text-neutral-900 text-sm">Nhóm II — Kết quả thực hiện nhiệm vụ</h3><span className="font-bold text-neutral-900 text-xs">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-3 space-y-3">
-                    <p className="text-[11px] text-neutral-500 leading-relaxed"><b className="text-neutral-800">Số lượng / Chất lượng / Tiến độ</b> nhập theo <b>% mức đạt</b> (ví dụ: 100% hồ sơ đúng hạn, 90% kiến nghị được tiếp thu) — nên có ký hiệu %. <b className="text-neutral-800">Trọng số (%)</b> do hệ thống đề xuất theo Quyết định (bấm "Thêm mẫu theo vị trí"); tổng nên = 100% (dùng nút "Chuẩn hóa Σ=100%"). Điểm = bình quân GIA QUYỀN theo trọng số{curC.leader ? ' + 3 thành phần lãnh đạo' : ''}, rồi × 70%.</p>
-                    {(cur.kpis || []).map((k) => { const sc = kpiScore(k); return (
-                      <div key={k.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
-                        <div className="flex items-center gap-2 mb-2"><input value={k.name} disabled={!taskEditable} onChange={(e) => upKpi(k.id, { name: e.target.value })} placeholder="Tên KPI / Kết quả then chốt..." className={`flex-1 px-2 py-1.5 text-xs ${INP}`} /><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-600' : sc >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{sc.toFixed(0)}%</span>{taskEditable && <button onClick={() => upCur({ kpis: (cur.kpis || []).filter((x) => x.id !== k.id) })} className="text-rose-600 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
-                        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-neutral-400 shrink-0" /><select value={k.objId || ''} disabled={!taskEditable} onChange={(e) => upKpi(k.id, { objId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-white" value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option className="bg-white" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{[['Trọng số %', 'weight'], ['Số lượng %', 'quantity'], ['Chất lượng %', 'quality'], ['Tiến độ %', 'progress']].map(([lb, key]) => (
-                          <label key={key} className="block"><span className={`text-[10px] font-semibold ${key === 'weight' ? 'text-neutral-900' : 'text-neutral-400'}`}>{lb}</span><input type="number" min="0" max="100" value={k[key]} disabled={!taskEditable} onChange={(e) => upKpi(k.id, { [key]: Math.max(0, Math.min(100, Number(e.target.value))) })} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
+                    <p className="text-[11px] text-neutral-500 leading-relaxed">Đếm khách quan theo NĐ335: chọn công việc từ danh mục <b className="text-neutral-800">theo Phòng/Vị trí</b>, nhập <b className="text-neutral-800">Số lượng giao / Hoàn thành</b>, số lần <b>Lỗi chất lượng</b> (−25%/lần), <b>Chậm tiến độ</b> (−25%/lần). Hệ số quy đổi do hệ thống áp theo cấp độ N1–N5 (xem tab Hướng dẫn). Điểm KQ = {curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'} × 70%.</p>
+                    {!cur.department && <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">Hãy chọn <b>Phòng / Bộ phận</b> ở phần thông tin để hiện danh mục công việc tương ứng.</p>}
+                    {(cur.proTasks || []).map((t) => { const sc = proTaskPct(t); const cat = getProCatalog(cur.department).find((x) => x.id === t.catalogId); return (
+                      <div key={t.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
+                        <div className="flex items-center gap-2 mb-2"><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask(t.id, { catalogId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-white" value="">— Chọn công việc theo vị trí —</option>{getProCatalog(cur.department).map((it) => <option className="bg-white" key={it.id} value={it.id}>[{it.nhom}] {it.name} ({it.sp})</option>)}</select><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-600' : sc >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{sc.toFixed(0)}%</span>{taskEditable && <button onClick={() => upCur({ proTasks: (cur.proTasks || []).filter((x) => x.id !== t.id) })} className="text-rose-600 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
+                        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-neutral-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask(t.id, { objId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-white" value="">— Liên kết mục tiêu (OKR), nếu có —</option>{objectives.map((o) => <option className="bg-white" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{[['Số lượng giao', 'assigned', 1], ['Số lượng HT', 'completed', 0], ['Lỗi chất lượng', 'qualityIssues', 0], ['Chậm tiến độ', 'delays', 0]].map(([lb, key, mn]) => (
+                          <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-500">{lb}</span><input type="number" min={mn} value={t[key]} disabled={!taskEditable} onChange={(e) => upTask(t.id, { [key]: Math.max(mn, Number(e.target.value)) })} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
                         ))}</div>
                       </div>
                     ); })}
                     {taskEditable && (
                       <div className="flex flex-col sm:flex-row gap-2">
-                        <button onClick={() => upCur({ kpis: [...(cur.kpis || []), newKpi()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm KPI/KR (để trống)</button>
-                        <button onClick={() => { const tpl = (POSITION_CATALOG[cur.type] || []).map((x) => ({ ...newKpi(), name: x.name, weight: x.weight, quantity: 100, quality: 100, progress: 100 })); upCur({ kpis: [...(cur.kpis || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800"><Sparkles className="w-4 h-4" /> Thêm mẫu theo vị trí</button>
-                        {(cur.kpis || []).some((k) => Number(k.weight) > 0) && <button onClick={normalizeWeights} className="flex items-center justify-center gap-2 px-3 py-2.5 bg-neutral-100 border border-neutral-300 text-neutral-900 rounded-xl text-sm font-medium hover:bg-neutral-200" title="Phân bổ lại để tổng trọng số = 100%"><RotateCcw className="w-4 h-4" /> Chuẩn hóa Σ=100%</button>}
+                        <button onClick={() => upCur({ proTasks: [...(cur.proTasks || []), newProTask()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
+                        <button onClick={() => { const tpl = getProCatalog(cur.department).map((it) => ({ ...newProTask(), catalogId: it.id })); upCur({ proTasks: [...(cur.proTasks || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800"><Sparkles className="w-4 h-4" /> Nạp danh mục theo vị trí</button>
                       </div>
                     )}
                     {curC.leader && (
                       <div className="border border-neutral-300 bg-neutral-100 rounded-xl p-3">
-                        <p className="text-[11px] font-bold text-neutral-900 mb-2">Thành phần lãnh đạo, quản lý (công thức 6 thành phần)</p>
-                        <div className="grid grid-cols-3 gap-2">{[['Kết quả lĩnh vực', 'd'], ['Tổ chức triển khai', 'dd'], ['Đoàn kết, tập hợp', 'e']].map(([lb, key]) => (
-                          <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-500">{lb} %</span><input type="number" min="0" max="100" value={(cur.leadScores || {})[key] ?? 100} disabled={!mgrEditable} onChange={(e) => upLead(key, Math.max(0, Math.min(100, Number(e.target.value))))} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
+                        <p className="text-[11px] font-bold text-neutral-900 mb-2">Thành phần lãnh đạo, quản lý (Điều 15 — mỗi mục 100% hoặc 50%)</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">{[['d — Kết quả lĩnh vực phụ trách', 'd'], ['đ — Tổ chức triển khai nhiệm vụ', 'dd'], ['e — Tập hợp, đoàn kết', 'e']].map(([lb, key]) => (
+                          <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-500">{lb}</span><select value={(cur.leadScores || {})[key] ?? 100} disabled={!mgrEditable} onChange={(e) => upLead(key, Number(e.target.value))} className={`mt-0.5 w-full px-2 py-1.5 text-sm ${INP}`}><option className="bg-white" value={100}>Đạt (100%)</option><option className="bg-white" value={50}>Hạn chế (50%)</option></select></label>
                         ))}</div>
                       </div>
                     )}
-                    <div className="grid grid-cols-4 gap-2 text-center">{[['Số lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ['Tổng hợp', curC.k.val]].map(([l, v], idx) => (
-                      <div key={l} className={`${idx === 3 ? 'bg-neutral-100 border-neutral-300 text-neutral-900' : 'bg-neutral-100 border-neutral-200 text-neutral-600'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
+                    <div className={`grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-4'} gap-2 text-center`}>{[['Số lượng a', curC.k.a], ['Chất lượng b', curC.k.b], ['Tiến độ c', curC.k.c], ...(curC.leader ? [['Lĩnh vực d', (cur.leadScores || {}).d ?? 100], ['Tổ chức đ', (cur.leadScores || {}).dd ?? 100], ['Đoàn kết e', (cur.leadScores || {}).e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => (
+                      <div key={l} className={`${idx === arr.length - 1 ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-100 border-neutral-200 text-neutral-600'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
                     ))}</div>
                   </div>
                 </section>
@@ -525,7 +518,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {nav === 'guide' && (
             <div className="max-w-3xl space-y-4">
               <GBdark icon={TrendingUp} title="Thang điểm tổng — 100 điểm">Tổng = Nhóm I (Tiêu chí chung, ≤30) + Nhóm II (Kết quả thực hiện nhiệm vụ, ≤70) − Điểm trừ. Chấm 2 cấp: Tự đánh giá và Cấp duyệt (điểm xếp loại lấy theo Cấp duyệt).</GBdark>
-              <GBdark icon={Target} title="Nhóm II — KPI gia quyền (đột phá của bản PRO)">Mỗi vị trí có bộ KPI/Kết quả then chốt gắn <b className="text-neutral-900">trọng số (%)</b> theo mức quan trọng, <b>tổng = 100%</b>. Mỗi KPI chấm theo Số lượng (a), Chất lượng (b), Tiến độ (c). Điểm = bình quân GIA QUYỀN theo trọng số. Cán bộ: (a+b+c)/3; lãnh đạo, quản lý: (a+b+c+d+đ+e)/6 — thêm 3 thành phần: kết quả lĩnh vực, tổ chức triển khai, đoàn kết. Nhóm II = điểm tổng hợp × 70%. KPI liên thông OKR cơ quan → phòng → cá nhân.</GBdark>
+              <GBdark icon={Target} title="Nhóm II — Kết quả thực hiện nhiệm vụ (đúng NĐ335 + Sổ tay)">Danh mục công việc lập <b className="text-neutral-900">theo Phòng/Vị trí</b>, mỗi việc phân 1 trong 5 nhóm cấp độ N1–N5 (khung điểm tối đa 100/200/300/400/500). Đơn vị sản phẩm chuẩn = 5 điểm (hệ số 1); <b>hệ số quy đổi = điểm việc ÷ điểm chuẩn</b> (hệ thống áp tự động, ẩn khi chấm). Chấm đếm khách quan, cả 3 thành phần chia cho SỐ GIAO (đã quy đổi): a (số lượng) = Σ(HT×hệ số)/Σ(Giao×hệ số); b (chất lượng) = a sau khi trừ 25%/lần lỗi; c (tiến độ) = a sau khi trừ 25%/lần chậm. Cán bộ: <b>(a+b+c)/3</b>; lãnh đạo, quản lý: <b>(a+b+c+d+đ+e)/6</b> — d/đ/e mỗi mục 100% hoặc 50% (kết quả lĩnh vực, tổ chức triển khai, đoàn kết). Nhóm II = Điểm KQ(%) × 70.</GBdark>
               <GBdark icon={Award} title="Xếp loại & trần tỷ lệ">A: ≥90 (Hoàn thành xuất sắc) · B: 70–&lt;90 (Tốt) · C: 50–&lt;70 (Hoàn thành) · D: &lt;50. Trần: số "Xuất sắc" ≤ 20% số "Tốt" (đặc biệt ≤ 25%).</GBdark>
               <GBdark icon={CalendarDays} title="Quy trình & mốc thời gian">Trước 25: cán bộ tự đánh giá · Trước 26: cấp thẩm quyền cho ý kiến · Trước 28: quyết định xếp loại · Trước 05 tháng sau: công khai, biểu dương. Tháng 12 hoàn thành trước 15/12.</GBdark>
               <GBdark icon={ShieldCheck} title="Đăng nhập & phân quyền">Đăng nhập bằng email (mật khẩu hoặc liên kết). Mặc định là Cán bộ; Quản trị đặt Email + Phòng + Vai trò cho từng người ở tab Đánh giá. Cán bộ tự chấm phần mình; Trưởng phòng duyệt trong phòng; Quản trị toàn quyền. Có tài khoản khách (chỉ xem) để dùng thử.</GBdark>
