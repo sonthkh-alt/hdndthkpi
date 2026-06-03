@@ -146,9 +146,9 @@ export function exportTrackingExcel(people, weekTitle, unit) {
   XLSX.writeFile(wb, `KiemDem_${safeTitle}.xlsx`);
 }
 
-// PDF — Bảng kiểm đếm, theo dõi công việc. TỰ ĐỘNG TẢI XUỐNG file .pdf về máy (dùng html2pdf).
-// Trình bày như văn bản hành chính: tiêu đề đơn vị, tên bảng, tuần, bảng có khung viền.
-export async function exportTrackingPDF(people, weekTitle, unit, period) {
+// PDF — Bảng kiểm đếm, theo dõi công việc. Mở cửa sổ in để "Lưu thành PDF" (render bằng trình duyệt, tiếng Việt chuẩn).
+// Trình bày như văn bản hành chính: tiêu đề đơn vị, tên bảng, tuần, bảng có khung viền, đầu bảng lặp mỗi trang.
+export function exportTrackingPDF(people, weekTitle, unit, period) {
   const esc = (s) => String(s ?? '')
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/\r?\n/g, '<br>');
@@ -256,29 +256,19 @@ export async function exportTrackingPDF(people, weekTitle, unit, period) {
     </div>
   </div>`;
 
-  // Lớp phủ che phần tử đang render (tránh nhấp nháy) + báo trạng thái cho người dùng
-  const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#7f1d1d;font-size:16px;font-weight:600;';
-  overlay.textContent = 'Đang tạo PDF, vui lòng đợi…';
-  document.body.appendChild(root);
-  document.body.appendChild(overlay);
-  try {
-    const mod = await import('html2pdf.js');
-    const html2pdf = mod.default || mod;
-    const safe = (weekTitle || 'Bang').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 40);
-    await new Promise((r) => setTimeout(r, 200)); // đợi layout/font ổn định
-    await html2pdf().set({
-      margin: [8, 8, 8, 8],
-      filename: `BangKiemDem_${safe}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1200 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
-      pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: 'tr' },
-    }).from(root).save();
-  } catch (e) {
-    alert('Không tạo được PDF: ' + (e && e.message ? e.message : e));
-  } finally {
-    document.body.removeChild(overlay);
-    document.body.removeChild(root);
-  }
+  // Mở cửa sổ in (trình duyệt tự render -> tiếng Việt chuẩn, không trắng trang). Chọn "Lưu thành PDF" để tải về.
+  const win = window.open('', '_blank');
+  if (!win) { alert('Trình duyệt đã chặn cửa sổ in/lưu PDF. Hãy cho phép pop-up cho trang này rồi thử lại.'); return; }
+  win.document.open();
+  win.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Bảng kiểm đếm, theo dõi công việc</title>
+<style>@page{size:A4 landscape;margin:12mm 10mm;} body{margin:0;background:#fff;} #trk-pdf-root{position:static!important;width:auto!important;padding:0!important;}
+.toolbar{position:fixed;top:10px;right:12px;display:flex;gap:8px;font-family:system-ui,sans-serif;z-index:9}
+.toolbar button{font-size:13px;padding:8px 16px;border:0;border-radius:8px;cursor:pointer}
+.toolbar .p{background:#b91c1c;color:#fff}.toolbar .c{background:#e5e7eb;color:#111}
+@media print{.toolbar{display:none}}</style></head>
+<body><div class="toolbar"><button class="p" onclick="window.print()">⬇ In / Lưu thành PDF</button><button class="c" onclick="window.close()">Đóng</button></div>
+<div id="trk-pdf-root">${root.innerHTML}</div>
+<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},400)}</script>
+</body></html>`);
+  win.document.close();
 }
