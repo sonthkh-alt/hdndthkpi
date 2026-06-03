@@ -997,6 +997,7 @@ export default function App() {
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">
         <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</p>
         <p className="text-amber-600 font-semibold">⚠ BẢN DEMO THỬ NGHIỆM — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
+        <p className="text-amber-600 font-semibold">Phiên bản demo sử dụng nội bộ.</p>
       </footer>
       <style>{`.inp{width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:.6rem;padding:.5rem .75rem;font-size:.875rem;outline:none}.inp:focus{border-color:#f87171;box-shadow:0 0 0 3px rgba(254,202,202,.5)}textarea.inp{resize:vertical}@media print{aside,header>div:last-child,button{display:none!important}}`}</style>
     </div>
