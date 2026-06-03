@@ -883,8 +883,8 @@ export default function App() {
                 <li><b>Tổng quan:</b> Mục tiêu OKR cấp Văn phòng, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A) và xu hướng theo kỳ.</li>
                 <li><b>Đánh giá:</b> Nơi chấm điểm từng cán bộ — Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ).</li>
                 <li><b>Năng lực số:</b> Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</li>
-                <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần, xuất Excel theo mẫu.</li>
-                <li><b>Hướng dẫn:</b> Trang này.</li>
+                <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần; <b>đồng bộ từ Google Sheet</b>, <b>thu thập</b> thành nhiệm vụ KPI và <b>xuất bảng PDF</b>.</li>
+                <li><b>Liên hệ & hướng dẫn:</b> Thông tin liên hệ, ô gửi ý kiến và trang hướng dẫn này.</li>
               </ul>
             </GB>
 
@@ -899,6 +899,7 @@ export default function App() {
                 <li><b>Mẫu 02</b> — Cán bộ lãnh đạo, quản lý.</li>
                 <li><b>Mẫu 03</b> — Công chức, viên chức không lãnh đạo.</li>
                 <li><b>Mẫu 04</b> — Lao động hợp đồng hỗ trợ, phục vụ.</li>
+                <li><b>Mẫu 05</b> — Đại biểu HĐND tỉnh hoạt động chuyên trách (Thường trực HĐND, lãnh đạo các Ban, ủy viên chuyên trách) — dùng chung Tiêu chí chung như nhóm lãnh đạo.</li>
               </ul>
               <p className="mt-2">Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí, <b>giới hạn không quá 30</b>. Nhập điểm ở 2 cột Tự ĐG và Cấp duyệt.</p>
             </GB>
@@ -952,12 +953,13 @@ export default function App() {
             </GB>
 
             <GB icon={ShieldCheck} title="10. Đăng nhập & phân quyền">
-              <p>Truy cập bằng <b>email</b> (đăng nhập qua liên kết gửi tới hộp thư — không cần mật khẩu). Khi mới đăng nhập, mọi người mặc định là <b>Cán bộ</b>; tài khoản <b>Quản trị</b> ban đầu là email người quản lý hệ thống.</p>
-              <p className="mt-2"><b>Quản trị phân quyền ngay trong trang</b> (không cần thao tác kỹ thuật): tab <b>Đánh giá</b> → chọn cán bộ → điền <b>Email đăng nhập</b>, <b>Phòng</b> và chọn <b>Vai trò</b>. Cán bộ đăng nhập sẽ tự nhận đúng quyền theo email.</p>
+              <p>Đăng nhập bằng <b>email + mật khẩu</b>. <b>Lần đầu</b>: bấm "Lần đầu đăng nhập / Quên mật khẩu" để nhận <b>liên kết kích hoạt</b> qua email, sau đó nhập <b>Họ tên, Chức vụ và tạo mật khẩu</b> (thông tin tự cập nhật vào danh sách cán bộ). Các lần sau đăng nhập trực tiếp bằng email + mật khẩu; có thể <b>đổi mật khẩu</b> bằng biểu tượng chìa khóa trên thanh tiêu đề.</p>
+              <p className="mt-2"><b>Quản trị phân quyền ngay trong trang</b>: tab <b>Đánh giá</b> → chọn cán bộ → điền <b>Email đăng nhập</b>, <b>Phòng</b> và chọn <b>Vai trò</b>. Cán bộ tự sửa được <b>Phòng/Bộ phận</b> và <b>Nhóm đối tượng</b> của chính mình.</p>
               <ul className="list-disc pl-5 space-y-1 mt-2">
                 <li><b>Cán bộ:</b> xem và tự đánh giá (cột Tự ĐG) phần của chính mình.</li>
                 <li><b>Trưởng phòng:</b> thêm quyền duyệt (cột Cấp duyệt) cho cán bộ cùng phòng.</li>
-                <li><b>Quản trị:</b> toàn quyền — thêm/xóa cán bộ, đặt vai trò, sửa mục tiêu, mọi kỳ.</li>
+                <li><b>Quản trị:</b> toàn quyền — thêm/xóa cán bộ, đặt vai trò, sửa mục tiêu, đồng bộ Google Sheet, mọi kỳ.</li>
+                <li><b>Khách (Dùng thử):</b> tài khoản <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">user@thanhhoa.gov.vn</code> — được nhập thử điểm để xem cách tính, nhưng <b>không lưu</b> (dữ liệu mất khi tải lại trang).</li>
               </ul>
             </GB>
 
@@ -972,10 +974,18 @@ export default function App() {
             <GB icon={Cpu} title="12. Kiến trúc & triển khai (cho Quản trị viên)">
               <p>SPA (React + Vite + Tailwind) chạy trên trình duyệt; dữ liệu lưu tại <b>Supabase (PostgreSQL)</b>; hosting <b>Vercel</b> tự build từ GitHub. Báo cáo Excel/Word kết xuất ngay trên máy người dùng.</p>
               <ol className="list-decimal pl-5 space-y-1 mt-2">
-                <li>Tạo project Supabase, chạy <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">supabase/schema.sql</code>; bật đăng nhập Email (magic link).</li>
+                <li>Tạo project Supabase, chạy <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">supabase/schema.sql</code>; bật đăng nhập <b>Email + mật khẩu</b>.</li>
                 <li>Khai báo biến môi trường <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_URL</code>, <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">VITE_SUPABASE_ANON_KEY</code> trên Vercel.</li>
-                <li>Tạo hồ sơ (profiles) gán vai trò + phòng cho từng tài khoản.</li>
+                <li>Phân quyền ngay trong app (tab Đánh giá). Đồng bộ kiểm đếm từ Google Sheet qua hàm máy chủ <code className="text-[11px] font-mono bg-slate-100 px-1 py-0.5 rounded border border-slate-200">/api/kiemdem</code> (Google Sheet để chế độ "ai có link đều xem được").</li>
               </ol>
+            </GB>
+
+            <GB icon={Cloud} title="13. Tab Theo dõi CV: đồng bộ Google Sheet, thu thập KPI, xuất PDF">
+              <ul className="list-disc pl-5 space-y-1">
+                <li><b>Đồng bộ từ Google Sheet</b> (Quản trị): nạp dữ liệu kiểm đếm mới nhất từ bảng tính Google thành các dòng theo dõi <b>có thể sửa</b>; khớp cán bộ theo tên, bấm lại sẽ cập nhật (không nhân đôi). Dòng nạp có nhãn "từ Google Sheet".</li>
+                <li><b>Thu thập vào đánh giá KPI</b>: ở mỗi công việc, chọn <b>Danh mục</b> + <b>OKR</b> + "Đã hoàn thành?", Lỗi chất lượng, Chậm tiến độ; bấm nút để tạo/cập nhật nhiệm vụ Nhóm II tương ứng (nhãn "từ Theo dõi CV").</li>
+                <li><b>Xuất bảng (PDF)</b>: mở cửa sổ bảng theo mẫu hành chính (A4 ngang); bấm "In / Lưu thành PDF" để lưu file hoặc in giấy.</li>
+              </ul>
             </GB>
           </div>
           </div>
