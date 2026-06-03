@@ -185,7 +185,7 @@ export async function exportTrackingPDF(people, weekTitle, unit, period) {
 
   const root = document.createElement('div');
   root.id = 'trk-pdf-root';
-  root.style.cssText = 'position:fixed;left:-10000px;top:0;width:1123px;background:#fff;padding:10px;';
+  root.style.cssText = 'position:fixed;left:0;top:0;width:1123px;background:#fff;padding:10px;z-index:1;';
   root.innerHTML = `
   <style>
     #trk-pdf-root, #trk-pdf-root * { box-sizing:border-box; }
@@ -256,20 +256,29 @@ export async function exportTrackingPDF(people, weekTitle, unit, period) {
     </div>
   </div>`;
 
+  // Lớp phủ che phần tử đang render (tránh nhấp nháy) + báo trạng thái cho người dùng
+  const overlay = document.createElement('div');
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:rgba(255,255,255,.96);display:flex;align-items:center;justify-content:center;font-family:system-ui,sans-serif;color:#7f1d1d;font-size:16px;font-weight:600;';
+  overlay.textContent = 'Đang tạo PDF, vui lòng đợi…';
   document.body.appendChild(root);
+  document.body.appendChild(overlay);
   try {
     const mod = await import('html2pdf.js');
     const html2pdf = mod.default || mod;
     const safe = (weekTitle || 'Bang').replace(/[^a-zA-Z0-9]/g, '_').substring(0, 40);
+    await new Promise((r) => setTimeout(r, 200)); // đợi layout/font ổn định
     await html2pdf().set({
       margin: [8, 8, 8, 8],
       filename: `BangKiemDem_${safe}.pdf`,
       image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, windowWidth: 1123 },
+      html2canvas: { scale: 2, backgroundColor: '#ffffff', useCORS: true, scrollX: 0, scrollY: 0, windowWidth: 1200 },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' },
       pagebreak: { mode: ['css', 'legacy', 'avoid-all'], avoid: 'tr' },
     }).from(root).save();
+  } catch (e) {
+    alert('Không tạo được PDF: ' + (e && e.message ? e.message : e));
   } finally {
+    document.body.removeChild(overlay);
     document.body.removeChild(root);
   }
 }
