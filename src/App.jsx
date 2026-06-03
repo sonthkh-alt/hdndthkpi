@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
@@ -304,7 +304,7 @@ export default function App() {
     { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
-    { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
+    { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
   ];
   const cfg = cur ? CRITERIA[cur.type] : null;
   const result = curC ? classify(curC.totalMgr) : classify(0);
@@ -738,7 +738,9 @@ export default function App() {
         )}
 
         {tab === 'guide' && (
-          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6 max-w-3xl mx-auto">
+          <div className="space-y-6 max-w-3xl mx-auto">
+          <ContactCard />
+          <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
             <div>
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
               <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Người mới đọc cũng hiểu cách hệ thống chấm điểm và sử dụng.</p>
@@ -844,6 +846,7 @@ export default function App() {
               </ol>
             </GB>
           </div>
+          </div>
         )}
       </main>
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400">Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</footer>
@@ -862,6 +865,50 @@ function MiniNum({ label, value, onChange, max, min = 0, step = 1, disabled = fa
   return (<label className="block"><span className="text-[10px] font-semibold text-slate-400 block mb-0.5">{label}</span><input type="number" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => { let v = Number(e.target.value); if (max !== undefined) v = Math.min(max, v); onChange(Math.max(min, v)); }} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center font-semibold text-slate-700 outline-none focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50" /></label>);
 }
 function GB({ icon: Icon, title, children }) { return (<div><h3 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon className="w-5 h-5 text-red-700" /> {title}</h3><div className="text-sm text-slate-600 space-y-2 leading-relaxed">{children}</div></div>); }
+
+const CONTACT_EMAIL = 'sonthkh@gmail.com';
+function ContactCard() {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [msg, setMsg] = useState('');
+  const send = () => {
+    if (!msg.trim()) { alert('Vui lòng nhập nội dung góp ý/liên hệ.'); return; }
+    const subject = 'Gop y / Lien he - He thong OKR/KPI';
+    const body = `Người gửi: ${name || '(không ghi tên)'}\nĐiện thoại: ${phone || '(không ghi)'}\n\nNội dung:\n${msg}`;
+    window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
+  return (
+    <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-6 py-4">
+        <h2 className="text-lg font-bold flex items-center gap-2"><Phone className="w-5 h-5 text-amber-300" /> Liên hệ</h2>
+        <p className="text-red-100/90 text-sm mt-0.5">Mọi góp ý, vướng mắc về hệ thống xin gửi tới đầu mối dưới đây.</p>
+      </div>
+      <div className="p-6 grid md:grid-cols-2 gap-6">
+        <div className="space-y-3">
+          <div className="rounded-xl border border-slate-200 bg-slate-50 p-4">
+            <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-1">Đầu mối liên hệ</p>
+            <p className="font-bold text-slate-800">Đồng chí Hà Ngọc Sơn</p>
+            <p className="text-sm text-slate-600">Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
+            <div className="mt-3 space-y-1.5 text-sm">
+              <a href="tel:0904818886" className="flex items-center gap-2 text-slate-700 hover:text-red-700"><Phone className="w-4 h-4 text-red-600" /> 0904 818 886</a>
+              <a href={`mailto:${CONTACT_EMAIL}`} className="flex items-center gap-2 text-slate-700 hover:text-red-700"><Mail className="w-4 h-4 text-red-600" /> {CONTACT_EMAIL}</a>
+            </div>
+          </div>
+        </div>
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-slate-700 flex items-center gap-2"><MessageSquare className="w-4 h-4 text-red-700" /> Gửi ý kiến cho chúng tôi</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+            <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Họ và tên (không bắt buộc)" className="inp" />
+            <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="Điện thoại (không bắt buộc)" className="inp" />
+          </div>
+          <textarea value={msg} onChange={(e) => setMsg(e.target.value)} rows={4} placeholder="Nhập nội dung góp ý, đề xuất, lỗi gặp phải..." className="inp" />
+          <button onClick={send} className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl"><Send className="w-4 h-4" /> Gửi ý kiến</button>
+          <p className="text-[11px] text-slate-400 leading-relaxed">Khi bấm "Gửi ý kiến", hệ thống mở ứng dụng email của bạn với nội dung đã điền sẵn, gửi tới <b>{CONTACT_EMAIL}</b>. Vui lòng bấm Gửi trong ứng dụng email để hoàn tất.</p>
+        </div>
+      </div>
+    </div>
+  );
+}
 function AddPerson({ onAdd }) {
   const [name, setName] = useState(''); const [type, setType] = useState('staff');
   return (<div className="flex flex-col sm:flex-row gap-2"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Họ tên cán bộ mới..." className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400" /><select value={type} onChange={(e) => setType(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 outline-none focus:border-red-400">{Object.entries(CRITERIA).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><button onClick={() => { onAdd(name.trim() || 'Cán bộ mới', type); setName(''); }} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2 rounded-lg text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button></div>);
