@@ -34,10 +34,14 @@ export async function signInWithPassword(email, password) {
   return supabase.auth.signInWithPassword({ email, password });
 }
 
-// Đặt / đổi mật khẩu cho người đang đăng nhập; đánh dấu pw_set=true trong user_metadata
-export async function setPassword(password) {
+// Đặt / đổi mật khẩu cho người đang đăng nhập; đánh dấu pw_set=true trong user_metadata.
+// profile (tùy chọn): { name, position } -> lưu kèm để định danh & đồng bộ danh sách cán bộ.
+export async function setPassword(password, profile) {
   if (!supabase) return { error: { message: 'Hệ thống chưa cấu hình máy chủ.' } };
-  return supabase.auth.updateUser({ password, data: { pw_set: true } });
+  const data = { pw_set: true };
+  if (profile?.name != null) data.full_name = profile.name;
+  if (profile?.position != null) data.position = profile.position;
+  return supabase.auth.updateUser({ password, data });
 }
 
 export async function signOut() {

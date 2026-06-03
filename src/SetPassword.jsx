@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { Lock, ShieldCheck, AlertTriangle, X } from 'lucide-react';
+import { Lock, ShieldCheck, AlertTriangle, X, User, Briefcase } from 'lucide-react';
 import { setPassword as savePassword, signOut } from './lib/auth';
 
 /**
  * Màn tạo / đổi mật khẩu.
  * - mode 'create' (mặc định): bắt buộc tạo mật khẩu lần đầu (toàn màn hình), không có nút đóng.
+ *   Lần đầu còn yêu cầu nhập Họ tên + Chức vụ -> gán/cập nhật vào danh sách cán bộ (onComplete).
  * - mode 'change': đổi mật khẩu, hiển thị dạng hộp thoại, có nút đóng (onClose).
  */
-export default function SetPassword({ unit, email, mode = 'create', onDone, onClose }) {
+export default function SetPassword({ unit, email, mode = 'create', onDone, onClose, onComplete }) {
   const isChange = mode === 'change';
+  const [name, setName] = useState('');
+  const [position, setPosition] = useState('');
   const [pw, setPw] = useState('');
   const [pw2, setPw2] = useState('');
   const [status, setStatus] = useState('idle'); // idle | saving | error | done
@@ -16,12 +19,15 @@ export default function SetPassword({ unit, email, mode = 'create', onDone, onCl
 
   const submit = async (e) => {
     e.preventDefault();
+    if (!isChange && (!name.trim() || !position.trim())) { setStatus('error'); setMsg('Vui lòng nhập đầy đủ Họ và tên và Chức vụ.'); return; }
     if (pw.length < 6) { setStatus('error'); setMsg('Mật khẩu phải có ít nhất 6 ký tự.'); return; }
     if (pw !== pw2) { setStatus('error'); setMsg('Hai lần nhập mật khẩu chưa khớp.'); return; }
     setStatus('saving'); setMsg('');
-    const { error } = await savePassword(pw);
+    const profile = isChange ? undefined : { name: name.trim(), position: position.trim() };
+    const { error } = await savePassword(pw, profile);
     if (error) { setStatus('error'); setMsg(error.message || 'Không lưu được mật khẩu.'); return; }
     setStatus('done');
+    if (!isChange && onComplete) onComplete({ name: name.trim(), position: position.trim() });
     if (onDone) onDone();
   };
 
@@ -44,10 +50,28 @@ export default function SetPassword({ unit, email, mode = 'create', onDone, onCl
           {isChange && onClose && <button onClick={onClose} className="text-slate-400 hover:text-slate-700"><X className="w-5 h-5" /></button>}
         </div>
         {!isChange && (
-          <p className="text-[13px] text-slate-600 mb-4">Đây là lần đầu bạn đăng nhập{email ? <> với email <b className="text-slate-800">{email}</b></> : ''}. Hãy tạo mật khẩu để sử dụng cho các lần đăng nhập tiếp theo.</p>
+          <p className="text-[13px] text-slate-600 mb-4">Đây là lần đầu bạn đăng nhập{email ? <> với email <b className="text-slate-800">{email}</b></> : ''}. Vui lòng nhập <b>Họ tên</b>, <b>Chức vụ</b> và <b>tạo mật khẩu</b>. Thông tin sẽ được cập nhật vào danh sách cán bộ và dùng cho các lần đăng nhập sau.</p>
         )}
 
         <form onSubmit={submit} className="space-y-4">
+          {!isChange && (
+            <>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Họ và tên</label>
+                <div className="flex items-center gap-2 bg-white/80 border border-slate-200 rounded-xl px-3 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-200 transition">
+                  <User className="w-4 h-4 text-slate-400 shrink-0" />
+                  <input type="text" required value={name} onChange={(e) => setName(e.target.value)} placeholder="VD: Nguyễn Văn A" className="flex-1 py-2.5 text-sm outline-none bg-transparent" />
+                </div>
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 mb-1 block">Chức vụ / Vị trí việc làm</label>
+                <div className="flex items-center gap-2 bg-white/80 border border-slate-200 rounded-xl px-3 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-200 transition">
+                  <Briefcase className="w-4 h-4 text-slate-400 shrink-0" />
+                  <input type="text" required value={position} onChange={(e) => setPosition(e.target.value)} placeholder="VD: Chuyên viên" className="flex-1 py-2.5 text-sm outline-none bg-transparent" />
+                </div>
+              </div>
+            </>
+          )}
           <div>
             <label className="text-xs font-semibold text-slate-500 mb-1 block">Mật khẩu mới</label>
             <div className="flex items-center gap-2 bg-white/80 border border-slate-200 rounded-xl px-3 focus-within:border-red-400 focus-within:ring-2 focus-within:ring-red-200 transition">

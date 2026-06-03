@@ -345,6 +345,20 @@ export default function App() {
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
 
+  // Lần đầu đăng nhập: gán Họ tên + Chức vụ vào danh sách cán bộ theo email (cập nhật nếu đã có, thêm mới nếu chưa).
+  const applyFirstLoginProfile = ({ name, position }) => {
+    if (!myEmail) return;
+    setPeople((ps) => {
+      const i = ps.findIndex((p) => p.email && p.email.toLowerCase() === myEmail.toLowerCase());
+      if (i >= 0) {
+        const next = [...ps];
+        next[i] = { ...next[i], name: name || next[i].name, position: position || next[i].position };
+        return next;
+      }
+      return [...ps, { ...newPerson(name || myEmail, 'staff'), email: myEmail, position: position || '' }];
+    });
+  };
+
   // ===== Cổng đăng nhập =====
   if (supabase && session === undefined) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500 text-sm">Đang kiểm tra đăng nhập...</div>;
@@ -354,7 +368,7 @@ export default function App() {
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
-    return <SetPassword unit={unit} email={myEmail} mode="create" />;
+    return <SetPassword unit={unit} email={myEmail} mode="create" onComplete={applyFirstLoginProfile} />;
   }
 
   return (
@@ -387,7 +401,7 @@ export default function App() {
             {supabase && session && session !== 'local' && (
               <div className="flex items-center gap-2 bg-red-950/40 rounded-lg px-2.5 py-1.5 border border-red-600/30">
                 <User className="w-3.5 h-3.5 text-amber-300" />
-                <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : myEmail}>{isGuest ? 'Khách' : (myPerson?.name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
+                <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : myEmail}>{isGuest ? 'Khách' : (myPerson?.name || session.user?.user_metadata?.full_name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
                 {!isGuest && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>}
                 <button onClick={isGuest ? () => setSession(null) : signOut} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
               </div>
