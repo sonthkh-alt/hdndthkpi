@@ -268,7 +268,6 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
 @media print{.toolbar{display:none}}</style></head>
 <body><div class="toolbar"><button class="p" onclick="window.print()">⬇ In / Lưu thành PDF</button><button class="c" onclick="window.close()">Đóng</button></div>
 <div id="trk-pdf-root">${root.innerHTML}</div>
-<script>window.onload=function(){setTimeout(function(){window.focus();window.print();},400)}</script>
 </body></html>`);
   win.document.close();
 }
