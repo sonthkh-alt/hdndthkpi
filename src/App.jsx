@@ -482,7 +482,10 @@ export default function App() {
               <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
             </div>
             <div>
-              <p className="text-amber-300 text-[11px] font-semibold tracking-[0.22em] uppercase">Hệ thống quản trị OKR / KPI</p>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-amber-300 text-[11px] font-semibold tracking-[0.22em] uppercase">Hệ thống quản trị OKR / KPI</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-red-900 px-2 py-0.5 rounded">Bản demo thử nghiệm</span>
+              </div>
               <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
               <p className="text-red-100/90 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
@@ -991,7 +994,10 @@ export default function App() {
           </div>
         )}
       </main>
-      <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400">Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</footer>
+      <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">
+        <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</p>
+        <p className="text-amber-600 font-semibold">⚠ BẢN DEMO THỬ NGHIỆM — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
+      </footer>
       <style>{`.inp{width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:.6rem;padding:.5rem .75rem;font-size:.875rem;outline:none}.inp:focus{border-color:#f87171;box-shadow:0 0 0 3px rgba(254,202,202,.5)}textarea.inp{resize:vertical}@media print{aside,header>div:last-child,button{display:none!important}}`}</style>
     </div>
   );

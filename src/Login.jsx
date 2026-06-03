@@ -50,7 +50,8 @@ export default function Login({ unit, onGuest }) {
             <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
           </div>
           <p className="text-amber-300 text-[11px] font-semibold tracking-[0.25em] uppercase">Hệ thống quản trị OKR / KPI</p>
-          <h1 className="text-xl font-extrabold leading-tight aurora-text mt-1">Đánh giá, xếp loại cán bộ, công chức</h1>
+          <div className="mt-1.5"><span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-red-900 px-2 py-0.5 rounded">Bản demo thử nghiệm</span></div>
+          <h1 className="text-xl font-extrabold leading-tight aurora-text mt-1.5">Đánh giá, xếp loại cán bộ, công chức</h1>
           <p className="text-red-100/90 text-sm mt-1.5">{unit || 'Đăng nhập để tiếp tục'}</p>
         </div>
 
@@ -114,7 +115,8 @@ export default function Login({ unit, onGuest }) {
             </form>
           )}
         </div>
-        <p className="text-center text-red-100/70 text-[11px] mt-5">© Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
+        <p className="text-center text-amber-200 text-[11px] mt-5 font-semibold">⚠ Bản demo thử nghiệm — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
+        <p className="text-center text-red-100/70 text-[11px] mt-2">© Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
         <p className="text-center text-red-100/70 text-[11px] mt-1">Chi tiết xin liên hệ đồng chí Hà Ngọc Sơn, Phó Chánh Văn phòng 0904818886</p>
       </div>
     </div>

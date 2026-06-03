@@ -19,10 +19,12 @@ npm run lint       # ESLint (nếu đã cài)
 ```
 Triển khai = **push lên `main`** → Vercel tự build & deploy (~1–2 phút).
 
-## 3. Làm việc trên nhiều máy (cơ quan ↔ ở nhà)
+## 3. Làm việc trên nhiều máy (cơ quan ↔ ở nhà) — DÙNG GITHUB LÀM CHUẨN
+**Nguồn đồng bộ duy nhất là GitHub.** KHÔNG đặt thư mục dự án trong OneDrive/Dropbox (gây hỏng `.git`, kẹt `node_modules`, xung đột bản sao). Đặt repo ở ổ thường, ví dụ `C:\Projects\HDNDKPI`.
+
 Máy mới (ở nhà) làm 1 lần:
 1. Cài: **VS Code**, **Claude Code**, **Node.js 18+**, **Git**; đăng nhập GitHub.
-2. `git clone https://github.com/sonthkh-alt/hdndthkpi`
+2. `git clone https://github.com/sonthkh-alt/hdndthkpi` (vào thư mục NGOÀI OneDrive).
 3. Tạo file `.env` ở thư mục gốc từ mẫu `.env.example`, điền `VITE_SUPABASE_URL` và `VITE_SUPABASE_ANON_KEY` (lấy ở Supabase → Settings → API). **`.env` KHÔNG nằm trong Git** (bảo mật) nên phải tạo lại trên mỗi máy.
 4. `npm install` → mở thư mục trong VS Code → Claude Code đọc `CLAUDE.md` này là hiểu ngay.
 
