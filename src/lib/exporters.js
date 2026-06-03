@@ -163,8 +163,8 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
         ? `<td class="name" rowspan="${trks.length}"><b>${esc(p.name) || '(Chưa tên)'}</b>${p.position ? `<div class="pos">${esc(p.position)}</div>` : ''}</td>`
         : '';
       bodyRows.push(`<tr>
-        ${nameCell}
         <td class="ctr">${stt++}</td>
+        ${nameCell}
         <td>${esc(t.content)}</td>
         <td>${esc(t.coordination)}</td>
         <td>${esc(t.directive)}</td>
@@ -222,14 +222,14 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
   </div>
   <table>
     <colgroup>
-      <col style="width:120px"><col class="col-stt"><col style="width:18%"><col style="width:12%">
+      <col class="col-stt"><col style="width:120px"><col style="width:18%"><col style="width:12%">
       <col style="width:14%"><col style="width:10%"><col class="col-time"><col class="col-time">
       <col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:8%">
     </colgroup>
     <thead>
       <tr>
-        <th rowspan="2">Họ và tên<br>cán bộ</th>
         <th rowspan="2">STT</th>
+        <th rowspan="2">Họ và tên<br>cán bộ</th>
         <th rowspan="2">Nội dung công việc</th>
         <th rowspan="2">Đơn vị, địa phương<br>chủ trì, phối hợp</th>
         <th rowspan="2">Ý kiến chỉ đạo cụ thể<br>của TT HĐND tỉnh</th>
