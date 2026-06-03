@@ -145,3 +145,125 @@ export function exportTrackingExcel(people, weekTitle, unit) {
   const safeTitle = weekTitle.replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
   XLSX.writeFile(wb, `KiemDem_${safeTitle}.xlsx`);
 }
+
+// PDF — Bảng kiểm đếm, theo dõi công việc (mở cửa sổ in; chọn "Lưu thành PDF" để xuất file).
+// Trình bày như văn bản hành chính: tiêu đề đơn vị, tên bảng, tuần, bảng có khung, đầu bảng lặp lại mỗi trang.
+export function exportTrackingPDF(people, weekTitle, unit, period) {
+  const esc = (s) => String(s ?? '')
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/\r?\n/g, '<br>');
+
+  let stt = 1;
+  const bodyRows = [];
+  (people || []).forEach((p) => {
+    const trks = (p.trackings || []);
+    if (!trks.length) return;
+    trks.forEach((t, i) => {
+      const nameCell = i === 0
+        ? `<td class="name" rowspan="${trks.length}"><b>${esc(p.name) || '(Chưa tên)'}</b>${p.position ? `<div class="pos">${esc(p.position)}</div>` : ''}</td>`
+        : '';
+      bodyRows.push(`<tr>
+        ${nameCell}
+        <td class="ctr">${stt++}</td>
+        <td>${esc(t.content)}</td>
+        <td>${esc(t.coordination)}</td>
+        <td>${esc(t.directive)}</td>
+        <td>${esc(t.finalProduct)}</td>
+        <td class="ctr nowrap">${esc(t.startDate)}</td>
+        <td class="ctr nowrap">${esc(t.endDate)}</td>
+        <td>${esc(t.doneWork)}</td>
+        <td>${esc(t.doingWork)}</td>
+        <td>${esc(t.difficulties)}</td>
+        <td>${esc(t.proposals)}</td>
+        <td>${esc(t.note)}</td>
+      </tr>`);
+    });
+  });
+  if (!bodyRows.length) {
+    bodyRows.push('<tr><td colspan="13" class="empty">Chưa có dữ liệu công việc trong kỳ này.</td></tr>');
+  }
+
+  const html = `<!doctype html><html lang="vi"><head><meta charset="utf-8">
+<title>Bảng kiểm đếm, theo dõi công việc</title>
+<style>
+  @page { size: A4 landscape; margin: 12mm 10mm; }
+  * { box-sizing: border-box; }
+  body { font-family: 'Times New Roman', 'Be Vietnam Pro', Georgia, serif; color: #111; margin: 0; }
+  .doc-head { text-align: center; margin-bottom: 10px; }
+  .unit { font-weight: bold; text-transform: uppercase; font-size: 13px; letter-spacing: .3px; }
+  .rule { width: 120px; height: 2px; background: #111; margin: 5px auto 12px; }
+  .title { font-weight: bold; font-size: 19px; text-transform: uppercase; }
+  .week { font-style: italic; font-size: 13px; margin-top: 3px; }
+  table { width: 100%; border-collapse: collapse; font-size: 10px; table-layout: fixed; }
+  thead { display: table-header-group; }
+  th, td { border: 1px solid #555; padding: 4px 5px; vertical-align: top; text-align: left; word-wrap: break-word; }
+  th { background: #e8eef7; font-weight: bold; text-align: center; }
+  td.ctr { text-align: center; }
+  td.nowrap { white-space: nowrap; }
+  td.name { font-size: 11px; }
+  td.name .pos { font-weight: normal; font-style: italic; color: #444; font-size: 9px; margin-top: 2px; }
+  tbody tr { page-break-inside: avoid; }
+  tbody tr:nth-child(even) td { background: #fafafa; }
+  .empty { text-align: center; color: #888; font-style: italic; padding: 20px; }
+  .sign { margin-top: 18px; display: flex; justify-content: flex-end; }
+  .sign .box { text-align: center; min-width: 280px; }
+  .sign .date { font-style: italic; font-size: 12px; }
+  .sign .role { font-weight: bold; font-size: 12px; margin-top: 2px; }
+  .sign .gap { height: 64px; }
+  .sign .hint { font-style: italic; font-size: 10px; color: #555; }
+  .col-stt { width: 30px; } .col-time { width: 64px; }
+</style></head>
+<body>
+  <div class="doc-head">
+    <div class="unit">${esc(unit)}</div>
+    <div class="rule"></div>
+    <div class="title">Bảng kiểm đếm, theo dõi công việc</div>
+    <div class="week">${esc(weekTitle)}</div>
+  </div>
+  <table>
+    <colgroup>
+      <col style="width:120px"><col class="col-stt"><col style="width:18%"><col style="width:12%">
+      <col style="width:14%"><col style="width:10%"><col class="col-time"><col class="col-time">
+      <col style="width:12%"><col style="width:12%"><col style="width:11%"><col style="width:11%"><col style="width:8%">
+    </colgroup>
+    <thead>
+      <tr>
+        <th rowspan="2">Họ và tên<br>cán bộ</th>
+        <th rowspan="2">STT</th>
+        <th rowspan="2">Nội dung công việc</th>
+        <th rowspan="2">Đơn vị, địa phương<br>chủ trì, phối hợp</th>
+        <th rowspan="2">Ý kiến chỉ đạo cụ thể<br>của TT HĐND tỉnh</th>
+        <th rowspan="2">Sản phẩm<br>cuối cùng</th>
+        <th colspan="4">Tiến độ thực hiện</th>
+        <th rowspan="2">Khó khăn, vướng mắc,<br>nội dung làm rõ</th>
+        <th rowspan="2">Đề xuất, kiến nghị<br>với TT HĐND tỉnh</th>
+        <th rowspan="2">Ghi chú</th>
+      </tr>
+      <tr>
+        <th>Triển khai</th>
+        <th>Hoàn thành</th>
+        <th>Công việc<br>đã thực hiện</th>
+        <th>Công việc<br>đang thực hiện</th>
+      </tr>
+    </thead>
+    <tbody>
+      ${bodyRows.join('\n')}
+    </tbody>
+  </table>
+  <div class="sign">
+    <div class="box">
+      <div class="date">........., ngày ...... tháng ...... năm ${esc(period?.year || '')}</div>
+      <div class="role">NGƯỜI LẬP BẢNG</div>
+      <div class="hint">(Ký, ghi rõ họ tên)</div>
+      <div class="gap"></div>
+    </div>
+  </div>
+  <script>window.onload = function(){ setTimeout(function(){ window.focus(); window.print(); }, 350); };</script>
+</body></html>`;
+
+  const w = window.open('', '_blank');
+  if (!w) { alert('Trình duyệt đã chặn cửa sổ in. Vui lòng cho phép pop-up cho trang này rồi thử lại.'); return; }
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}

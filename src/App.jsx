@@ -323,9 +323,9 @@ export default function App() {
     const { exportWordPhieu } = await import('./lib/exporters');
     exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
   };
-  const doExcelTracking = async () => {
-    const { exportTrackingExcel } = await import('./lib/exporters');
-    exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), unit);
+  const doExportTracking = async () => {
+    const { exportTrackingPDF } = await import('./lib/exporters');
+    exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), unit, period);
   };
 
   // ===== Phân quyền (thực thi ở tầng ứng dụng) =====
@@ -682,7 +682,7 @@ export default function App() {
                 </div>
                 <div className="flex items-center gap-2">
                   <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" />
-                  <button onClick={doExcelTracking} className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded-lg text-xs font-semibold transition-colors border border-emerald-200"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất Bảng</button>
+                  <button onClick={doExportTracking} className="flex items-center gap-2 px-3 py-1.5 bg-red-50 text-red-700 hover:bg-red-100 rounded-lg text-xs font-semibold transition-colors border border-red-200"><FileText className="w-3.5 h-3.5" /> Xuất bảng (PDF)</button>
                 </div>
               </div>
               <fieldset disabled={readOnly} className="contents">
