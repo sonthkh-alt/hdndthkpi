@@ -92,7 +92,7 @@ const CRITERIA = {
 
 // Nhóm đối tượng MỚI: Đại biểu HĐND hoạt động chuyên trách — GIỮ NGUYÊN Tiêu chí chung (dùng bộ của nhóm lãnh đạo).
 CRITERIA.hdnd = {
-  label: 'Đại biểu HĐND tỉnh hoạt động chuyên trách (Thường trực HĐND tỉnh, lãnh đạo các Ban của HĐND tỉnh, ủy viên chuyên trách các Ban của HĐND tỉnh)',
+  label: 'Đại biểu HĐND tỉnh hoạt động chuyên trách',
   mau: 'Mẫu số 05',
   formula: '(a+b+c)/3',
   groups: CRITERIA.leader.groups,
