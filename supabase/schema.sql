@@ -9,6 +9,13 @@
 --    - Quản trị vào tab "Đánh giá", đặt Email + Phòng + Vai trò cho từng cán bộ.
 --  Vì vậy file này chỉ còn 2 phần: bảng dữ liệu, và (tùy chọn) siết bảo mật.
 -- ---------------------------------------------------------------------
+--  ĐĂNG NHẬP BẰNG MẬT KHẨU: không cần bảng riêng. Mật khẩu do Supabase Auth
+--  quản lý trong auth.users; cờ "đã tạo mật khẩu" lưu ở user_metadata.pw_set.
+--    - Lần đầu: người dùng nhận liên kết qua email (magic link) -> đăng nhập
+--      -> ứng dụng bắt tạo mật khẩu (updateUser{ password, data:{ pw_set:true } }).
+--    - Các lần sau: đăng nhập bằng email + mật khẩu (signInWithPassword).
+--    - Provider Email/Password của Supabase bật sẵn theo mặc định (không cần SQL).
+-- ---------------------------------------------------------------------
 
 -- BƯỚC 1. Bảng lưu trạng thái theo kỳ (an toàn chạy lại nhiều lần)
 create table if not exists app_state (

@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
+import SetPassword from './SetPassword.jsx';
 import { ND335_CATALOG } from './lib/nd335';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị' };
@@ -197,6 +198,7 @@ export default function App() {
   const [conflict, setConflict] = useState(false);
   const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
   const [trends, setTrends] = useState([]);
+  const [showChangePw, setShowChangePw] = useState(false);
 
   const bumpCounters = (ppl) => {
     pid = Math.max(pid, 0, ...ppl.map((p) => p.id || 0)) + 1;
@@ -346,6 +348,10 @@ export default function App() {
   if (supabase && !session) {
     return <Login unit={unit} />;
   }
+  // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
+  if (supabase && session && session !== 'local' && !session.user?.user_metadata?.pw_set) {
+    return <SetPassword unit={unit} email={myEmail} mode="create" />;
+  }
 
   return (
     <div className="min-h-screen text-slate-800" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
@@ -376,6 +382,7 @@ export default function App() {
               <div className="flex items-center gap-2 bg-red-950/40 rounded-lg px-2.5 py-1.5 border border-red-600/30">
                 <User className="w-3.5 h-3.5 text-amber-300" />
                 <span className="text-xs text-red-100 max-w-[160px] truncate" title={myEmail}>{myPerson?.name || myEmail}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
+                <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>
                 <button onClick={signOut} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
               </div>
             )}
@@ -394,6 +401,10 @@ export default function App() {
           </div>
         </div>
       </header>
+
+      {showChangePw && (
+        <SetPassword mode="change" unit={unit} email={myEmail} onClose={() => setShowChangePw(false)} onDone={() => setTimeout(() => setShowChangePw(false), 1200)} />
+      )}
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
         {supabase && session && session !== 'local' && isBootstrapAdmin && (

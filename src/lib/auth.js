@@ -14,13 +14,25 @@ export function onAuthChange(cb) {
   return () => data.subscription.unsubscribe();
 }
 
-// Gửi liên kết/mã đăng nhập tới email (magic link / OTP)
+// Gửi liên kết/mã đăng nhập tới email (magic link / OTP) — dùng cho lần đầu kích hoạt / quên mật khẩu
 export async function signInWithOtp(email) {
   if (!supabase) return { error: { message: 'Hệ thống chưa cấu hình máy chủ.' } };
   return supabase.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: window.location.origin },
   });
+}
+
+// Đăng nhập bằng email + mật khẩu (các lần sau khi đã tạo mật khẩu)
+export async function signInWithPassword(email, password) {
+  if (!supabase) return { error: { message: 'Hệ thống chưa cấu hình máy chủ.' } };
+  return supabase.auth.signInWithPassword({ email, password });
+}
+
+// Đặt / đổi mật khẩu cho người đang đăng nhập; đánh dấu pw_set=true trong user_metadata
+export async function setPassword(password) {
+  if (!supabase) return { error: { message: 'Hệ thống chưa cấu hình máy chủ.' } };
+  return supabase.auth.updateUser({ password, data: { pw_set: true } });
 }
 
 export async function signOut() {
