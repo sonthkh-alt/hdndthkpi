@@ -1,13 +1,17 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
-import { LayoutDashboard, BarChart3, Target, Users, TrendingUp, Award, Plus, Trash2, Link2, FileText, RotateCcw, LogOut, CalendarDays, AlertTriangle, ChevronDown, Sparkles, Layers } from 'lucide-react';
+import { LayoutDashboard, BarChart3, Target, Users, TrendingUp, Award, Plus, Trash2, Link2, FileText, RotateCcw, LogOut, CalendarDays, AlertTriangle, ChevronDown, Sparkles, Layers, Cpu, ClipboardList, BookOpen, Phone, Mail, Send, CheckCircle2, Cloud, ShieldCheck } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
-  CRITERIA, classify, statusOf, clamp, task335Score, getND335Groups,
-  computePerson, newPerson, newTask335, bumpIds, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
+  CRITERIA, classify, statusOf, clamp, task335Score, getND335Groups, computePerson,
+  newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
+  DIGITAL, LEVELS, MIN_DIGITAL,
 } from './App.jsx';
+
+const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
+const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
 
 const UNIT = 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa';
 
@@ -44,18 +48,30 @@ function StatCard({ icon: Icon, label, value, grad }) {
 
 const INP = 'bg-white/5 border border-white/10 rounded-lg text-slate-100 placeholder-slate-500 outline-none focus:border-violet-400 disabled:opacity-50 disabled:bg-white/5';
 
-export default function AppModern({ version, onPickVersion }) {
+function GBdark({ icon: Icon, title, children }) {
+  return (
+    <div className="glass-violet rounded-2xl border border-white/10 shadow-xl shadow-black/20 p-5">
+      <h3 className="font-bold text-white flex items-center gap-2 mb-1.5"><Icon className="w-5 h-5 text-violet-300" /> {title}</h3>
+      <p className="text-sm text-slate-300 leading-relaxed">{children}</p>
+    </div>
+  );
+}
+
+export default function AppModern({ version, onPickVersion, initialNav }) {
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const [objectives, setObjectives] = useState([]);
   const [people, setPeople] = useState([{ ...newPerson('Nguyễn Văn A', 'leader'), position: 'Phó Chánh Văn phòng' }, { ...newPerson('Trần Thị B', 'staff'), position: 'Chuyên viên' }]);
   const [curId, setCurId] = useState(people[0].id);
-  const [nav, setNav] = useState('dash');
+  const [nav, setNav] = useState(initialNav || 'dash');
   const [session, setSession] = useState(undefined);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const [conflict, setConflict] = useState(false);
   const [seedFrom, setSeedFrom] = useState(null);
   const [trends, setTrends] = useState([]);
   const [open, setOpen] = useState(null);
+  const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
+  const [sheetSync, setSheetSync] = useState({ at: null, busy: false });
+  const [fb, setFb] = useState({ name: '', content: '' });
   const loaded = useRef(false), loadingRef = useRef(false), serverTsRef = useRef(null);
 
   const refreshTrends = async () => {
@@ -120,6 +136,55 @@ export default function AppModern({ version, onPickVersion }) {
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const upCur = (patch) => upPerson(curId, patch);
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
+  const upTracking = (tid, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === tid ? { ...t, ...patch } : t)) });
+
+  const doExportTrackingPDF = async () => { const { exportTrackingPDF } = await import('./lib/exporters'); exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), UNIT, period); };
+  const doExportTrackingExcel = async () => { const { exportTrackingExcel } = await import('./lib/exporters'); exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), UNIT); };
+
+  const syncFromSheet = async () => {
+    setSheetSync((s) => ({ ...s, busy: true }));
+    try {
+      const r = await fetch('/api/kiemdem', { cache: 'no-store' });
+      const data = await r.json();
+      if (!r.ok || data.error) { alert('Không đồng bộ được Google Sheet: ' + (data.error || `HTTP ${r.status}`)); return; }
+      const sps = data.persons || [];
+      if (!sps.length) { alert('Google Sheet chưa có dòng công việc nào để đồng bộ.'); return; }
+      const mkTrk = (t) => ({ ...newTracking(), fromSheet: true, content: t.content || '', coordination: t.coordination || '', directive: t.directive || '', finalProduct: t.finalProduct || '', startDate: t.startDate || '', endDate: t.endDate || '', doneWork: t.doneWork || '', doingWork: t.doingWork || '', difficulties: t.difficulties || '', proposals: t.proposals || '', note: t.note || '' });
+      let added = 0;
+      setPeople((ps) => {
+        const next = ps.map((p) => ({ ...p }));
+        sps.forEach((sp) => {
+          const nm = (sp.name || '').trim(); if (!nm) return;
+          const trks = (sp.trackings || []).map(mkTrk); added += trks.length;
+          const i = next.findIndex((p) => (p.name || '').trim().toLowerCase() === nm.toLowerCase());
+          if (i >= 0) { const keep = (next[i].trackings || []).filter((t) => !t.fromSheet); next[i] = { ...next[i], trackings: [...keep, ...trks] }; }
+          else { next.push({ ...newPerson(nm, 'staff'), trackings: trks }); }
+        });
+        return next;
+      });
+      setSheetSync({ at: data.fetchedAt || new Date().toISOString(), busy: false });
+      alert(`Đã đồng bộ ${added} công việc từ Google Sheet cho ${sps.length} cán bộ.`);
+    } catch (e) { alert('Lỗi đồng bộ Google Sheet: ' + (e && e.message ? e.message : e)); }
+    finally { setSheetSync((s) => ({ ...s, busy: false })); }
+  };
+
+  const doCollectTracking = () => {
+    if (!cur) return;
+    const trks = (cur.trackings || []).filter((t) => t.catalogId);
+    if (!trks.length) { alert('Chưa có dòng theo dõi nào gắn "Danh mục công việc" để thu thập.'); return; }
+    const prevGen = new Map((cur.tasks335 || []).filter((x) => x.srcTrkId != null).map((x) => [x.srcTrkId, x]));
+    const manual = (cur.tasks335 || []).filter((x) => x.srcTrkId == null);
+    const generated = trks.map((t) => ({ id: prevGen.get(t.id)?.id ?? newTask335().id, srcTrkId: t.id, catalogId: t.catalogId, objId: t.objId || '', assigned: 1, completed: Number(t.completed) ? 1 : 0, qualityIssues: Number(t.qualityIssues) || 0, delays: Number(t.delays) || 0, note: t.content || '' }));
+    upCur({ tasks335: [...manual, ...generated] });
+    alert(`Đã thu thập ${generated.length} công việc vào Nhóm II. Mở tab Đánh giá để xem.`);
+    setNav('eval');
+  };
+
+  const sendFeedback = () => {
+    const subject = `[Góp ý hệ thống OKR/KPI] ${fb.name || 'Người dùng'}`;
+    const body = `Người gửi: ${fb.name || '(chưa nhập)'}\n\nNội dung:\n${fb.content || ''}`;
+    window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  };
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
@@ -140,6 +205,9 @@ export default function AppModern({ version, onPickVersion }) {
   const selfEditable = !isGuest && cur ? canEditSelfOf(cur) : false;
   const mgrEditable = !isGuest && cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
+  const readOnly = isGuest;
+  const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
+  const digPassed = cur ? DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length : 0;
 
   const doWord = async () => {
     if (!cur) return;
@@ -156,7 +224,15 @@ export default function AppModern({ version, onPickVersion }) {
   }
 
   const result = curC ? classify(curC.totalMgr) : classify(0);
-  const navItems = [{ id: 'dash', label: 'Tổng quan', icon: LayoutDashboard }, { id: 'eval', label: 'Đánh giá', icon: BarChart3 }];
+  const navItems = [
+    { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
+    { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
+    { id: 'digital', label: 'Năng lực số', icon: Cpu },
+    { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
+    { id: 'guide', label: 'Hướng dẫn', icon: BookOpen },
+    { id: 'contact', label: 'Liên hệ', icon: Phone },
+  ];
+  const navTitle = { dash: 'Tổng quan điều hành', eval: 'Đánh giá & xếp loại', digital: 'Khung năng lực số', tracking: 'Theo dõi công việc', guide: 'Hướng dẫn sử dụng', contact: 'Liên hệ & góp ý' }[nav] || '';
   const card = 'glass-violet rounded-2xl border border-white/10 shadow-xl shadow-black/20';
 
   return (
@@ -191,7 +267,7 @@ export default function AppModern({ version, onPickVersion }) {
           <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
               <Sparkles className="w-5 h-5 text-violet-300" />
-              <h1 className="font-extrabold text-white">{nav === 'dash' ? 'Tổng quan điều hành' : 'Đánh giá & xếp loại'}</h1>
+              <h1 className="font-extrabold text-white">{navTitle}</h1>
               <span className="text-[10px] font-bold uppercase tracking-wider bg-violet-500/20 text-violet-200 border border-violet-400/30 px-2 py-0.5 rounded">Bản mới</span>
             </div>
             <div className="flex items-center gap-2">
@@ -211,7 +287,7 @@ export default function AppModern({ version, onPickVersion }) {
             <div className="bg-rose-500/15 border border-rose-400/30 rounded-xl p-4 flex items-start gap-3"><AlertTriangle className="w-5 h-5 text-rose-400 shrink-0 mt-0.5" /><div className="flex-1"><p className="text-sm text-rose-200 font-semibold">Dữ liệu kỳ này vừa được cập nhật nơi khác.</p><p className="text-xs text-rose-300/80">Hãy tải lại để tránh ghi đè.</p></div><button onClick={() => loadPeriod(period)} className="text-xs px-3 py-1.5 rounded-lg bg-rose-500 text-white font-semibold">Tải lại</button></div>
           )}
 
-          {people.length === 0 && (
+          {people.length === 0 && (nav === 'dash' || nav === 'eval') && (
             <div className={`${card} p-8 text-center max-w-lg mx-auto`}>
               <Users className="w-10 h-10 text-slate-500 mx-auto mb-3" />
               <h2 className="font-bold text-white text-lg">Kỳ {period.month}/{period.year} chưa có dữ liệu</h2>
@@ -350,6 +426,136 @@ export default function AppModern({ version, onPickVersion }) {
                   </div>
                 </section>
               </div>
+            </div>
+          )}
+
+          {/* ===== NĂNG LỰC SỐ ===== */}
+          {people.length > 0 && nav === 'digital' && cur && (
+            <div className="space-y-4 max-w-3xl">
+              <section className={`${card} p-5`}>
+                <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Cpu className="w-5 h-5 text-violet-300 shrink-0" />
+                    <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-3 py-2 text-sm ${INP}`}>{people.map((p) => <option className="bg-slate-900" key={p.id} value={p.id}>{p.name || '(Chưa tên)'} — {p.position || CRITERIA[p.type].label}</option>)}</select>
+                  </div>
+                  <div className="flex items-center gap-3 text-sm">
+                    <span className="text-slate-400">Chuẩn tối thiểu: <b className="text-violet-200">Mức {minLv}</b></span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${digPassed === DIGITAL.length ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/20' : 'bg-amber-500/15 text-amber-300 border-amber-400/20'}`}>{digPassed}/{DIGITAL.length} kỹ năng đạt</span>
+                  </div>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">Tự đánh giá Khung năng lực số — chỉ số phụ trợ, không cộng vào điểm tháng.</p>
+              </section>
+              {DIGITAL.map((d) => { const lv = cur.digital[d.id] || 0; const ok = lv >= minLv; return (
+                <div key={d.id} className={`${card} p-4`}>
+                  <div className="flex items-start gap-3">
+                    <span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${ok ? 'bg-emerald-500/20 text-emerald-300' : 'bg-white/10 text-slate-400'}`}>{d.id}</span>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-slate-100 text-sm">{d.name}</p>{d.mandatory && <span className="text-[10px] font-bold bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded">BẮT BUỘC</span>}{lv > 0 && (ok ? <CheckCircle2 className="w-4 h-4 text-emerald-400" /> : <AlertTriangle className="w-4 h-4 text-amber-400" />)}</div>
+                      <div className="flex flex-wrap gap-1.5 mt-2.5">{LEVELS.map((L) => (
+                        <button key={L.v} disabled={readOnly} onClick={() => upCur({ digital: { ...cur.digital, [d.id]: L.v } })} className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition disabled:opacity-60 ${lv === L.v ? (L.v >= minLv ? 'bg-emerald-500 text-white border-emerald-500' : L.v === 0 ? 'bg-slate-500 text-white border-slate-500' : 'bg-amber-500 text-white border-amber-500') : 'bg-white/5 text-slate-300 border-white/10 hover:border-violet-400/40'}`}>{L.s}</button>
+                      ))}</div>
+                    </div>
+                  </div>
+                </div>
+              ); })}
+            </div>
+          )}
+
+          {/* ===== THEO DÕI CV ===== */}
+          {people.length > 0 && nav === 'tracking' && cur && (
+            <div className={`${card} overflow-hidden`}>
+              <div className="p-5 border-b border-white/10 flex items-center justify-between flex-wrap gap-3">
+                <div>
+                  <h2 className="text-lg font-bold text-white flex items-center gap-2"><ClipboardList className="w-5 h-5 text-violet-300" /> Bảng kiểm đếm, theo dõi công việc</h2>
+                  <p className="text-sm text-slate-400 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
+                  {canManage && <p className="text-[11px] text-slate-500 mt-0.5">Nguồn: <a href={SHEET_URL} target="_blank" rel="noreferrer" className="text-emerald-300 hover:underline">Google Sheet</a>{sheetSync.at ? ` · Đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ''}</p>}
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-2.5 py-1.5 text-xs ${INP}`}>{people.map((p) => <option className="bg-slate-900" key={p.id} value={p.id}>{p.name || '(Chưa tên)'}</option>)}</select>
+                  <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className={`px-2 py-1.5 text-xs ${INP}`} />
+                  {canManage && <button onClick={syncFromSheet} disabled={sheetSync.busy} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-500/90 hover:bg-emerald-500 disabled:opacity-60 text-white rounded-lg text-xs font-semibold"><Cloud className="w-3.5 h-3.5" /> {sheetSync.busy ? 'Đang đồng bộ...' : 'Đồng bộ Sheet'}</button>}
+                  {taskEditable && <button onClick={doCollectTracking} className="flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white rounded-lg text-xs font-semibold glow-violet"><RotateCcw className="w-3.5 h-3.5" /> Thu thập vào KPI</button>}
+                  <button onClick={doExportTrackingPDF} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-slate-100 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> PDF</button>
+                  <button onClick={doExportTrackingExcel} className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 text-slate-100 hover:bg-white/20 border border-white/15 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> Excel</button>
+                </div>
+              </div>
+              <fieldset disabled={readOnly} className="p-5 space-y-4 border-0">
+                <datalist id="coord-list"><option value="Văn phòng Đoàn ĐBQH và HĐND tỉnh" /><option value="Ban Pháp chế HĐND tỉnh" /><option value="Ban Kinh tế - Ngân sách HĐND tỉnh" /><option value="Ban Văn hóa - Xã hội HĐND tỉnh" /><option value="Ban Dân tộc HĐND tỉnh" /></datalist>
+                {(cur.trackings || []).map((t, idx) => (
+                  <div key={t.id} className="p-4 border border-white/10 bg-white/5 rounded-xl relative">
+                    <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-slate-400 hover:text-rose-400 hover:bg-rose-500/10 rounded-md"><Trash2 className="w-4 h-4" /></button>
+                    <div className="mb-3 font-semibold text-slate-200 text-sm flex items-center gap-2">Công việc #{idx + 1}{t.fromSheet && <span className="text-[10px] font-bold text-emerald-300 bg-emerald-500/15 border border-emerald-400/20 rounded px-1.5 py-0.5">từ Google Sheet</span>}</div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-400">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Đơn vị chủ trì, phối hợp</label><input list="coord-list" value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className={`mt-1 w-full text-xs p-2 ${INP}`} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-400">Ý kiến chỉ đạo của TT HĐND</label><textarea value={t.directive} onChange={(e) => upTracking(t.id, { directive: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Sản phẩm cuối cùng</label><textarea value={t.finalProduct} onChange={(e) => upTracking(t.id, { finalProduct: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                    </div>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
+                      <div><label className="text-[11px] font-medium text-slate-400">Triển khai</label><input placeholder="01/06/2026" value={t.startDate} onChange={(e) => upTracking(t.id, { startDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Hoàn thành</label><input placeholder="07/06/2026" value={t.endDate} onChange={(e) => upTracking(t.id, { endDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Đã thực hiện</label><textarea value={t.doneWork} onChange={(e) => upTracking(t.id, { doneWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Đang thực hiện</label><textarea value={t.doingWork} onChange={(e) => upTracking(t.id, { doingWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                      <div><label className="text-[11px] font-medium text-slate-400">Khó khăn, vướng mắc</label><textarea value={t.difficulties} onChange={(e) => upTracking(t.id, { difficulties: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Đề xuất, kiến nghị</label><textarea value={t.proposals} onChange={(e) => upTracking(t.id, { proposals: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-slate-400">Ghi chú</label><textarea value={t.note} onChange={(e) => upTracking(t.id, { note: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                    </div>
+                    <div className="mt-3 rounded-lg border border-violet-400/30 bg-violet-500/10 p-3">
+                      <p className="text-[11px] font-bold text-violet-200 flex items-center gap-1.5 mb-2"><Target className="w-3.5 h-3.5" /> Phục vụ chấm KPI (Nhóm II) — chọn Danh mục để "Thu thập vào KPI"</p>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mb-2">
+                        <div><label className="text-[11px] font-medium text-slate-400">Danh mục công việc</label><select value={t.catalogId || ''} onChange={(e) => upTracking(t.id, { catalogId: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`}><option className="bg-slate-900" value="">— Chọn danh mục —</option>{getND335Groups(cur.type).map((c) => <option className="bg-slate-900" key={c.id} value={c.id}>[{c.id}] {c.name} (HS {c.maxScore})</option>)}</select></div>
+                        <div><label className="text-[11px] font-medium text-slate-400">Liên kết OKR</label><select value={t.objId || ''} onChange={(e) => upTracking(t.id, { objId: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`}><option className="bg-slate-900" value="">— Liên kết OKR —</option>{objectives.map((o) => <option className="bg-slate-900" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        <div><label className="text-[11px] font-medium text-slate-400">Đã hoàn thành?</label><select value={Number(t.completed) ? 1 : 0} onChange={(e) => upTracking(t.id, { completed: Number(e.target.value) })} className={`mt-1 w-full text-xs p-1.5 ${INP}`}><option className="bg-slate-900" value={0}>Chưa</option><option className="bg-slate-900" value={1}>Hoàn thành</option></select></div>
+                        <div><label className="text-[11px] font-medium text-slate-400">Lỗi chất lượng</label><input type="number" min="0" value={t.qualityIssues || 0} onChange={(e) => upTracking(t.id, { qualityIssues: Math.max(0, Number(e.target.value)) })} className={`mt-1 w-full text-xs p-1.5 text-center ${INP}`} /></div>
+                        <div><label className="text-[11px] font-medium text-slate-400">Chậm tiến độ</label><input type="number" min="0" value={t.delays || 0} onChange={(e) => upTracking(t.id, { delays: Math.max(0, Number(e.target.value)) })} className={`mt-1 w-full text-xs p-1.5 text-center ${INP}`} /></div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {!(cur.trackings?.length) && <div className="text-center py-10 text-slate-500 text-sm">Chưa có công việc nào. Hãy thêm mới!</div>}
+                <button onClick={() => upCur({ trackings: [...(cur.trackings || []), newTracking()] })} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-white/15 rounded-xl text-sm font-medium text-slate-400 hover:border-violet-400/50 hover:text-violet-300"><Plus className="w-4 h-4" /> Thêm công việc</button>
+              </fieldset>
+            </div>
+          )}
+
+          {/* ===== HƯỚNG DẪN ===== */}
+          {nav === 'guide' && (
+            <div className="max-w-3xl space-y-4">
+              <GBdark icon={TrendingUp} title="Thang điểm tổng — 100 điểm">Tổng = Nhóm I (Tiêu chí chung, ≤30) + Nhóm II (Kết quả thực hiện nhiệm vụ, ≤70) − Điểm trừ. Chấm 2 cấp: Tự đánh giá và Cấp duyệt (điểm xếp loại lấy theo Cấp duyệt).</GBdark>
+              <GBdark icon={Target} title="Nhóm II — Đếm khách quan">Mỗi nhiệm vụ chọn từ danh mục (trọng số = hệ số cấp độ N1–N4; nhóm hỗ trợ tính ngang nhau). a (Khối lượng)=Σ(HT×hệ số)/Σ(Giao×hệ số); b (Chất lượng)=bình quân[1−0,25×Lỗi]; c (Tiến độ)=bình quân[1−0,25×Chậm]. Điểm Nhóm II = (a+b+c)/3 × 70%.</GBdark>
+              <GBdark icon={Award} title="Xếp loại & trần tỷ lệ">A: ≥90 (Hoàn thành xuất sắc) · B: 70–&lt;90 (Tốt) · C: 50–&lt;70 (Hoàn thành) · D: &lt;50. Trần: số "Xuất sắc" ≤ 20% số "Tốt" (đặc biệt ≤ 25%).</GBdark>
+              <GBdark icon={CalendarDays} title="Quy trình & mốc thời gian">Trước 25: cán bộ tự đánh giá · Trước 26: cấp thẩm quyền cho ý kiến · Trước 28: quyết định xếp loại · Trước 05 tháng sau: công khai, biểu dương. Tháng 12 hoàn thành trước 15/12.</GBdark>
+              <GBdark icon={ShieldCheck} title="Đăng nhập & phân quyền">Đăng nhập bằng email (mật khẩu hoặc liên kết). Mặc định là Cán bộ; Quản trị đặt Email + Phòng + Vai trò cho từng người ở tab Đánh giá. Cán bộ tự chấm phần mình; Trưởng phòng duyệt trong phòng; Quản trị toàn quyền. Có tài khoản khách (chỉ xem) để dùng thử.</GBdark>
+              <GBdark icon={ClipboardList} title="Theo dõi CV & thu thập KPI">Ghi kiểm đếm công việc tuần; có thể đồng bộ từ Google Sheet. Ở mỗi công việc gắn Danh mục + OKR + "Đã hoàn thành?/Lỗi/Chậm" rồi bấm "Thu thập vào KPI" để tạo nhiệm vụ Nhóm II tương ứng. Xuất bảng PDF/Excel.</GBdark>
+              <GBdark icon={BarChart3} title="Cơ sở pháp lý">Quy định của Tỉnh ủy Thanh Hóa về đánh giá CBCCVC gắn OKR/KPI; Nghị định 335/2025/NĐ-CP; Sổ tay đánh giá của Bộ Nội vụ. Tinh thần "6 rõ": rõ người – rõ việc – rõ thời gian – rõ trách nhiệm – rõ sản phẩm – rõ thẩm quyền; đánh giá đa chiều, liên tục, lượng hóa bằng dữ liệu.</GBdark>
+            </div>
+          )}
+
+          {/* ===== LIÊN HỆ ===== */}
+          {nav === 'contact' && (
+            <div className="max-w-2xl grid md:grid-cols-2 gap-5">
+              <section className={`${card} p-5`}>
+                <h2 className="font-bold text-white flex items-center gap-2 mb-3"><Phone className="w-5 h-5 text-violet-300" /> Thông tin liên hệ</h2>
+                <p className="font-bold text-slate-100">{CONTACT.name}</p>
+                <p className="text-xs text-slate-400 mb-3">Phụ trách hệ thống đánh giá OKR/KPI</p>
+                <div className="space-y-2 text-sm">
+                  <a href={`tel:${CONTACT.phone}`} className="flex items-center gap-2 text-slate-200 hover:text-violet-300"><Phone className="w-4 h-4 text-violet-300" /> 0904 818 886</a>
+                  <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 text-slate-200 hover:text-violet-300"><Mail className="w-4 h-4 text-violet-300" /> {CONTACT.email}</a>
+                </div>
+              </section>
+              <section className={`${card} p-5`}>
+                <h2 className="font-bold text-white flex items-center gap-2 mb-3"><Send className="w-5 h-5 text-violet-300" /> Gửi ý kiến góp ý</h2>
+                <input value={fb.name} onChange={(e) => setFb({ ...fb, name: e.target.value })} placeholder="Họ tên của bạn" className={`w-full px-3 py-2 text-sm mb-2 ${INP}`} />
+                <textarea value={fb.content} onChange={(e) => setFb({ ...fb, content: e.target.value })} rows={4} placeholder="Nội dung góp ý..." className={`w-full px-3 py-2 text-sm resize-y ${INP}`} />
+                <button onClick={sendFeedback} className="mt-2 w-full flex items-center justify-center gap-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 text-white font-semibold py-2.5 rounded-xl text-sm glow-violet"><Send className="w-4 h-4" /> Gửi ý kiến</button>
+                <p className="text-[11px] text-slate-500 mt-2 leading-relaxed">Bấm "Gửi ý kiến" sẽ mở ứng dụng email với nội dung điền sẵn, gửi tới <b className="text-slate-300">{CONTACT.email}</b>.</p>
+              </section>
             </div>
           )}
         </div>
