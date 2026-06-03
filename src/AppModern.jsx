@@ -7,7 +7,7 @@ import SetPassword from './SetPassword.jsx';
 import {
   CRITERIA, classify, statusOf, clamp, task335Score, getND335Groups, computePerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
-  DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions,
+  DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
 
 const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
@@ -372,7 +372,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                         <label className="block"><span className="text-xs font-semibold text-slate-400">Email</span><input value={cur.email || ''} disabled className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
                       )}
                     </div>
-                    <div className="flex flex-wrap gap-2">{Object.entries(CRITERIA).map(([k, v]) => (
+                    <div className="flex flex-wrap gap-2">{CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (
                       <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-1.5 rounded-lg border text-xs disabled:opacity-60 ${cur.type === k ? 'border-violet-400/50 bg-violet-500/20 text-violet-100 font-semibold' : 'border-white/10 text-slate-400 hover:bg-white/5'}`}>{v.mau}</button>
                     ))}</div>
                   </div>

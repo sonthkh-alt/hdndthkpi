@@ -27,7 +27,7 @@ const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions)
 const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
 
 const CRITERIA = {
-  leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 02', formula: '(a+b+c+d+đ+e)/6', groups: [
+  leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c+d+đ+e)/6', groups: [
     { id: 'L1', title: '1. Về chính trị, tư tưởng', max: 5, items: [
       { id: '1.1', max: 1, text: 'Tuyệt đối trung thành với Đảng, Tổ quốc và Nhân dân; kiên định lý tưởng cách mạng, chủ nghĩa Mác - Lênin, tư tưởng Hồ Chí Minh.' },
       { id: '1.2', max: 1, text: 'Có lập trường, bản lĩnh chính trị vững vàng; kiên quyết bảo vệ nền tảng tư tưởng, đường lối của Đảng; giữ nghiêm kỷ luật phát ngôn.' },
@@ -55,7 +55,7 @@ const CRITERIA = {
       { id: '5.1', max: 1, text: 'Tinh thần tự phê bình, tự soi, tự sửa; chủ động nhận diện thiếu sót trong lãnh đạo, chỉ đạo.' },
       { id: '5.2', max: 1, text: 'Kết quả khắc phục hạn chế, khuyết điểm đã được chỉ ra của bản thân và trong phạm vi lãnh đạo.' } ] },
   ] },
-  staff: { label: 'Công chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c)/3', groups: [
+  staff: { label: 'Công chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
     { id: 'S1', title: '1. Về chính trị, phẩm chất đạo đức và ý thức tổ chức kỷ luật', max: 15, items: [
       { id: '1.1', max: 2, text: 'Có quan điểm, bản lĩnh chính trị vững vàng; kiên định lập trường; nghiên cứu, vận dụng chủ nghĩa Mác - Lênin, tư tưởng Hồ Chí Minh.' },
       { id: '1.2', max: 2, text: 'Thực hiện nghiêm nguyên tắc tổ chức của Đảng; chấp hành pháp luật; nghiêm kỷ luật phát ngôn, bảo vệ bí mật nhà nước.' },
@@ -73,7 +73,7 @@ const CRITERIA = {
     { id: 'S3', title: '3. Về tự phê bình và phê bình, khắc phục hạn chế', max: 5, items: [
       { id: '3.1', max: 5, text: 'Tinh thần tự phê bình, tự soi, tự sửa; tự giác nhận diện hạn chế và kết quả khắc phục hạn chế đã được chỉ ra.' } ] },
   ] },
-  contract: { label: 'Lao động hợp đồng hỗ trợ, phục vụ', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
+  contract: { label: 'Lao động hợp đồng hỗ trợ, phục vụ', mau: 'Mẫu số 05', formula: '(a+b+c)/3', groups: [
     { id: 'C1', title: '1. Về chính trị, phẩm chất đạo đức và ý thức tổ chức kỷ luật', max: 15, items: [
       { id: '1.1', max: 3, text: 'Chấp hành chủ trương, đường lối của Đảng, chính sách, pháp luật và nguyên tắc tổ chức kỷ luật.' },
       { id: '1.2', max: 3, text: 'Gương mẫu về đạo đức, lối sống; không tham ô, lãng phí; không suy thoái về đạo đức, lối sống.' },
@@ -90,13 +90,22 @@ const CRITERIA = {
   ] },
 };
 
-// Nhóm đối tượng MỚI: Đại biểu HĐND hoạt động chuyên trách — GIỮ NGUYÊN Tiêu chí chung (dùng bộ của nhóm lãnh đạo).
+// Nhóm Đại biểu HĐND chuyên trách (Mẫu 01) và Đại biểu Quốc hội chuyên trách (Mẫu 02)
+// — dùng chung bộ Tiêu chí chung của nhóm lãnh đạo. Công thức Nhóm II tính theo CHỨC VỤ.
 CRITERIA.hdnd = {
   label: 'Đại biểu HĐND tỉnh hoạt động chuyên trách',
-  mau: 'Mẫu số 05',
+  mau: 'Mẫu số 01',
   formula: '(a+b+c)/3',
   groups: CRITERIA.leader.groups,
 };
+CRITERIA.dbqh = {
+  label: 'Đại biểu Quốc hội hoạt động chuyên trách',
+  mau: 'Mẫu số 02',
+  formula: '(a+b+c)/3',
+  groups: CRITERIA.leader.groups,
+};
+// Thứ tự hiển thị nhóm đối tượng (Mẫu 01 → 05)
+const CRITERIA_ORDER = ['hdnd', 'dbqh', 'leader', 'staff', 'contract'];
 
 // Danh mục công việc (Nhóm II) cho nhóm Đại biểu HĐND chuyên trách — theo 3 vai trò trong tài liệu.
 const HDND_CATALOG = [
@@ -132,7 +141,7 @@ const DIGITAL = [
   { id: 8, name: 'Lãnh đạo số và quản trị thay đổi' },
 ];
 const LEVELS = [{ v: 0, s: 'Chưa' }, { v: 1, s: 'Mức 1' }, { v: 2, s: 'Mức 2' }, { v: 3, s: 'Mức 3' }, { v: 4, s: 'Mức 4' }];
-const MIN_DIGITAL = { leader: 3, staff: 2, contract: 1, hdnd: 3 };
+const MIN_DIGITAL = { leader: 3, staff: 2, contract: 1, hdnd: 3, dbqh: 3 };
 
 function classify(t) {
   if (t >= 90) return { code: 'A', name: 'Hoàn thành xuất sắc nhiệm vụ', cls: 'bg-emerald-500', ring: 'text-emerald-600', soft: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500' };
@@ -183,7 +192,7 @@ function agg335(tasks335) {
 }
 
 function getND335Groups(type) {
-  if (type === 'hdnd') return HDND_CATALOG;
+  if (type === 'hdnd' || type === 'dbqh') return HDND_CATALOG;
   if (type === 'contract') return ND335_CATALOG.filter(c => c.id.startsWith('III'));
   if (type === 'staff') return ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
   return ND335_CATALOG.filter(c => c.id.startsWith('I.A') || c.id.startsWith('I.B') || c.id.startsWith('II.B'));
@@ -219,7 +228,7 @@ function bumpIds(people) {
 
 // ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
 export {
-  CRITERIA, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
+  CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
   classify, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
 };
@@ -721,7 +730,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   </div>
                   <Field label="Nhóm đối tượng đánh giá" className="mt-3">
                     <div className="grid sm:grid-cols-3 gap-2">
-                      {Object.entries(CRITERIA).map(([k, v]) => (<button key={k} disabled={!(canManage || mgrEditable || selfEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`}><span className={`text-[11px] font-bold ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</span><p className="text-xs font-medium text-slate-700 leading-snug mt-0.5">{v.label}</p></button>))}
+                      {CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (<button key={k} disabled={!(canManage || mgrEditable || selfEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`}><span className={`text-[11px] font-bold ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</span><p className="text-xs font-medium text-slate-700 leading-snug mt-0.5">{v.label}</p></button>))}
                     </div>
                   </Field>
                 </section>
@@ -1090,7 +1099,7 @@ function ContactCard() {
 }
 function AddPerson({ onAdd }) {
   const [name, setName] = useState(''); const [type, setType] = useState('staff');
-  return (<div className="flex flex-col sm:flex-row gap-2"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Họ tên cán bộ mới..." className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400" /><select value={type} onChange={(e) => setType(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 outline-none focus:border-red-400">{Object.entries(CRITERIA).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><button onClick={() => { onAdd(name.trim() || 'Cán bộ mới', type); setName(''); }} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2 rounded-lg text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button></div>);
+  return (<div className="flex flex-col sm:flex-row gap-2"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Họ tên cán bộ mới..." className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400" /><select value={type} onChange={(e) => setType(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 outline-none focus:border-red-400">{CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><button onClick={() => { onAdd(name.trim() || 'Cán bộ mới', type); setName(''); }} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2 rounded-lg text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button></div>);
 }
 function PersonChips({ people, curId, setCurId, onDelete, onAdd, hideDelete }) {
   const [adding, setAdding] = useState(false);

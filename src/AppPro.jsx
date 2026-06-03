@@ -6,7 +6,7 @@ import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
   CRITERIA, classify, statusOf, clamp, newPerson, newTracking, bumpIds, getWeekTitle,
-  ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions,
+  ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
 import { computePro, newProTask, bumpProIds, proTaskPct, isLeaderPerson, getProCatalog, HD_CRITERIA } from './lib/pro.js';
 
@@ -359,7 +359,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                       )}
                     </div>
                     <div>
-                      <div className="flex flex-wrap gap-2">{Object.entries(CRITERIA).map(([k, v]) => (
+                      <div className="flex flex-wrap gap-2">{CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (
                         <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-2 rounded-lg border text-xs disabled:opacity-60 max-w-[170px] ${cur.type === k ? 'border-neutral-900 bg-neutral-900 text-white font-semibold' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'}`}><span className="block font-bold">{v.mau}</span><span className="block text-[10px] opacity-80 leading-tight">{v.label}</span></button>
                       ))}</div>
                       <p className="text-[11px] text-neutral-500 mt-2 leading-relaxed"><b className="text-neutral-800">{CRITERIA[cur.type].mau}</b> — {CRITERIA[cur.type].label}. Công thức Nhóm II: <b className="text-neutral-800">{curC.isHd ? '(Chất lượng + Tuân thủ + Hiệu quả)/3' : curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'}</b> {curC.isHd ? '(lao động hỗ trợ, phục vụ — Sổ tay Chương III)' : curC.leader ? '(giữ chức vụ lãnh đạo, quản lý — Điều 16.2 NĐ335)' : '(không giữ chức vụ lãnh đạo — Điều 16.1 NĐ335)'}.{cur.type === 'hdnd' ? ' Đại biểu HĐND chuyên trách: khung tham chiếu của tỉnh, công thức theo chức vụ.' : ''}</p>
