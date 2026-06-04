@@ -298,7 +298,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
               {overCap && <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-3 text-sm text-neutral-100 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
 
               <Suspense fallback={<div className="text-sm text-neutral-400 text-center py-8">Đang tải biểu đồ…</div>}>
-                <DashboardCharts dist={dist} trends={trends} computed={computed} />
+                <DashboardCharts dist={dist} trends={trends} computed={computed} theme="pro" />
               </Suspense>
 
               <div className="grid lg:grid-cols-3 gap-6">

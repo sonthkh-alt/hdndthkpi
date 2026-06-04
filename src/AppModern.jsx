@@ -312,7 +312,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
               {overCap && <div className="bg-amber-500/15 border border-amber-400/30 rounded-xl p-3 text-sm text-amber-200 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
 
               <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
-                <DashboardCharts dist={dist} trends={trends} computed={computed} dark />
+                <DashboardCharts dist={dist} trends={trends} computed={computed} theme="modern" />
               </Suspense>
 
               <div className="grid lg:grid-cols-3 gap-6">
