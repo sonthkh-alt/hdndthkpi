@@ -5,7 +5,7 @@ import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './l
 // Theme màn đăng nhập đổi theo phiên bản đang chọn (đồng bộ style với app sau khi vào).
 const THEMES = {
   classic: {
-    bg: 'bg-gradient-to-br from-[#5c0f0f] via-[#a51c1c] to-[#7f1d1d]', grid: true,
+    bg: 'bg-gradient-to-br from-[#5c0f0f] via-[#a51c1c] to-[#7f1d1d]', gridCls: 'tech-grid',
     blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/25',
     eyebrow: 'text-amber-300', title: 'aurora-text', unit: 'text-red-100/90',
     badge: 'bg-amber-400 text-red-900', ring: 'ring-amber-300/60',
@@ -17,7 +17,7 @@ const THEMES = {
     foot: 'text-red-100/70', footWarn: 'text-amber-200',
   },
   modern: {
-    bg: 'bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]', grid: true,
+    bg: 'bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]', gridCls: 'tech-grid',
     blob1: 'bg-violet-500/25', blob2: 'bg-fuchsia-500/20',
     eyebrow: 'text-violet-300', title: 'text-white', unit: 'text-violet-100/80',
     badge: 'bg-violet-400 text-violet-950', ring: 'ring-violet-300/50',
@@ -29,11 +29,11 @@ const THEMES = {
     foot: 'text-violet-200/70', footWarn: 'text-amber-300',
   },
   pro: {
-    bg: 'bg-gradient-to-br from-neutral-200 via-neutral-100 to-white', grid: false,
+    bg: 'bg-gradient-to-br from-neutral-200 via-neutral-100 to-white', gridCls: 'tech-grid-dark',
     blob1: 'bg-neutral-300/40', blob2: 'bg-neutral-400/20',
     eyebrow: 'text-neutral-500', title: 'text-neutral-900', unit: 'text-neutral-600',
     badge: 'bg-neutral-900 text-white', ring: 'ring-neutral-300',
-    card: 'bg-white border border-neutral-200', emblem: 'bg-white ring-1 ring-neutral-200',
+    card: 'glass border border-neutral-200', emblem: 'bg-white ring-1 ring-neutral-200',
     btn: 'bg-neutral-900 hover:bg-neutral-800 shadow-neutral-900/20',
     link: 'text-neutral-900 hover:text-black', accentIcon: 'text-neutral-900',
     inputFocus: 'focus-within:border-neutral-500 focus-within:ring-neutral-200',
@@ -81,7 +81,7 @@ export default function Login({ unit, onGuest, version = 'classic', onPickVersio
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center px-4" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
       <div className={`absolute inset-0 ${t.bg}`} />
-      {t.grid && <div className="absolute inset-0 tech-grid opacity-60" />}
+      {t.gridCls && <div className={`absolute inset-0 ${t.gridCls} opacity-60`} />}
       <div className={`absolute -top-24 right-0 w-96 h-96 rounded-full ${t.blob1} blur-3xl`} />
       <div className={`absolute -bottom-32 -left-16 w-96 h-96 rounded-full ${t.blob2} blur-3xl`} />
 
