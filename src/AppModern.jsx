@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { LayoutDashboard, BarChart3, Target, Users, TrendingUp, Award, Plus, Trash2, Link2, FileText, RotateCcw, LogOut, CalendarDays, AlertTriangle, ChevronDown, Sparkles, Layers, Cpu, ClipboardList, BookOpen, Phone, Mail, Send, CheckCircle2, Cloud, ShieldCheck } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
@@ -9,6 +9,8 @@ import {
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
   DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
+import { deptSummary } from './lib/dash';
+const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 
 const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
@@ -309,6 +311,10 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
               </div>
               {overCap && <div className="bg-amber-500/15 border border-amber-400/30 rounded-xl p-3 text-sm text-amber-200 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
 
+              <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
+                <DashboardCharts dist={dist} trends={trends} computed={computed} dark />
+              </Suspense>
+
               <div className="grid lg:grid-cols-3 gap-6">
                 <section className={`lg:col-span-2 ${card} p-5`}>
                   <h2 className="font-bold text-white flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-violet-300" /> Mục tiêu cấp Văn phòng (OKR)</h2>
@@ -336,6 +342,14 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                   <tbody className="divide-y divide-white/10">{computed.map(({ p, c }) => { const r = classify(c.totalMgr); return (
                     <tr key={p.id} className="hover:bg-white/5 cursor-pointer" onClick={() => { setCurId(p.id); setNav('eval'); }}><td className="px-4 py-3 font-semibold text-slate-100">{p.name || '(Chưa tên)'}</td><td className="px-3 py-3 text-slate-400 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-slate-400">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-white">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${r.cls} text-white text-[10px] font-bold`}>{r.code}</span></td></tr>
                   ); })}</tbody></table></div>
+              </section>
+
+              <section className={`${card} overflow-hidden`}>
+                <div className="px-5 py-3.5 border-b border-white/10"><h2 className="font-bold text-white flex items-center gap-2"><Users className="w-5 h-5 text-violet-300" /> Tổng hợp theo Phòng/Bộ phận</h2></div>
+                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-white/5 text-slate-400 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Phòng / Bộ phận</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">TB</th><th className="text-center px-3 py-2.5 text-emerald-400">A</th><th className="text-center px-3 py-2.5 text-sky-400">B</th><th className="text-center px-3 py-2.5 text-amber-400">C</th><th className="text-center px-3 py-2.5 text-rose-400">D</th></tr></thead>
+                  <tbody className="divide-y divide-white/10">{deptSummary(computed).map((g) => (
+                    <tr key={g.dept} className="hover:bg-white/5"><td className="px-4 py-2.5 font-semibold text-slate-100">{g.dept}</td><td className="px-3 py-2.5 text-center text-slate-400">{g.count}</td><td className="px-3 py-2.5 text-center font-bold text-white">{g.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-400 font-semibold">{g.A}</td><td className="px-3 py-2.5 text-center text-sky-400 font-semibold">{g.B}</td><td className="px-3 py-2.5 text-center text-amber-400 font-semibold">{g.C}</td><td className="px-3 py-2.5 text-center text-rose-400 font-semibold">{g.D}</td></tr>
+                  ))}</tbody></table></div>
               </section>
 
               {trends.length > 0 && (

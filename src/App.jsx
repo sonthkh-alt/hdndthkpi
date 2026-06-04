@@ -1,9 +1,11 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
+import { deptSummary } from './lib/dash';
+const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
@@ -617,6 +619,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <p className="text-sm text-rose-700">Cảnh báo trần tỷ lệ: đang có <b>{dist.A}</b> "Hoàn thành xuất sắc" trong khi tối đa cho phép là <b>{Math.floor(dist.B * 0.2)}</b> (không vượt quá 20% của {dist.B} người "Hoàn thành tốt").</p>
               </div>
             )}
+            <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
+              <DashboardCharts dist={dist} trends={trends} computed={computed} />
+            </Suspense>
             <div className="grid lg:grid-cols-3 gap-6">
               <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Mục tiêu cấp Văn phòng (OKR)</h2></div>
@@ -663,6 +668,20 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 </table>
               </div>
               {canManage && <div className="p-3 border-t border-slate-100"><AddPerson onAdd={(name, type) => setPeople((ps) => [...ps, newPerson(name, type)])} /></div>}
+            </section>
+
+            <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+              <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Users className="w-5 h-5 text-amber-300" /> Tổng hợp theo Phòng/Bộ phận</h2></div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5 font-semibold">Phòng / Bộ phận</th><th className="text-center px-3 py-2.5 font-semibold">Số CB</th><th className="text-center px-3 py-2.5 font-semibold">Điểm TB</th><th className="text-center px-3 py-2.5 font-semibold text-emerald-600">A</th><th className="text-center px-3 py-2.5 font-semibold text-sky-600">B</th><th className="text-center px-3 py-2.5 font-semibold text-amber-600">C</th><th className="text-center px-3 py-2.5 font-semibold text-rose-600">D</th></tr></thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {deptSummary(computed).map((g) => (
+                      <tr key={g.dept} className="hover:bg-slate-50"><td className="px-4 py-3 font-semibold text-slate-700">{g.dept}</td><td className="px-3 py-3 text-center text-slate-500">{g.count}</td><td className="px-3 py-3 text-center font-bold text-slate-800">{g.avg.toFixed(1)}</td><td className="px-3 py-3 text-center text-emerald-600 font-semibold">{g.A}</td><td className="px-3 py-3 text-center text-sky-600 font-semibold">{g.B}</td><td className="px-3 py-3 text-center text-amber-600 font-semibold">{g.C}</td><td className="px-3 py-3 text-center text-rose-600 font-semibold">{g.D}</td></tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </section>
 
             {trends.length > 0 && (

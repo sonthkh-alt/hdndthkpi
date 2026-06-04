@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
 import { LayoutDashboard, BarChart3, Target, Users, TrendingUp, Award, Plus, Trash2, Link2, FileText, RotateCcw, LogOut, CalendarDays, AlertTriangle, ChevronDown, Sparkles, Layers, Cpu, ClipboardList, BookOpen, Phone, Mail, Send, CheckCircle2, Cloud, ShieldCheck } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
@@ -9,6 +9,8 @@ import {
   ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
 import { computePro, newProTask, bumpProIds, proTaskPct, isLeaderPerson, getProCatalog, HD_CRITERIA } from './lib/pro.js';
+import { deptSummary } from './lib/dash';
+const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 
 const CONTACT = { name: 'Đồng chí Hà Ngọc Sơn', phone: '0904818886', email: 'sonthkh@gmail.com' };
 const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
@@ -295,6 +297,10 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
               </div>
               {overCap && <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-3 text-sm text-neutral-900 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
 
+              <Suspense fallback={<div className="text-sm text-neutral-400 text-center py-8">Đang tải biểu đồ…</div>}>
+                <DashboardCharts dist={dist} trends={trends} computed={computed} />
+              </Suspense>
+
               <div className="grid lg:grid-cols-3 gap-6">
                 <section className={`lg:col-span-2 ${card} p-5`}>
                   <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-neutral-900" /> Mục tiêu cấp Văn phòng (OKR)</h2>
@@ -322,6 +328,14 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                   <tbody className="divide-y divide-neutral-200">{computed.map(({ p, c }) => { const r = classify(c.totalMgr); return (
                     <tr key={p.id} className="hover:bg-neutral-100 cursor-pointer" onClick={() => { setCurId(p.id); setNav('eval'); }}><td className="px-4 py-3 font-semibold text-neutral-900">{p.name || '(Chưa tên)'}</td><td className="px-3 py-3 text-neutral-500 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-neutral-500">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-neutral-900">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${r.cls} text-neutral-900 text-[10px] font-bold`}>{r.code}</span></td></tr>
                   ); })}</tbody></table></div>
+              </section>
+
+              <section className={`${card} overflow-hidden`}>
+                <div className="px-5 py-3.5 border-b border-neutral-200"><h2 className="font-bold text-neutral-900 flex items-center gap-2"><Users className="w-5 h-5 text-neutral-900" /> Tổng hợp theo Phòng/Bộ phận</h2></div>
+                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-100 text-neutral-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Phòng / Bộ phận</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">Điểm TB</th><th className="text-center px-3 py-2.5 text-emerald-600">A</th><th className="text-center px-3 py-2.5 text-sky-600">B</th><th className="text-center px-3 py-2.5 text-amber-600">C</th><th className="text-center px-3 py-2.5 text-rose-600">D</th></tr></thead>
+                  <tbody className="divide-y divide-neutral-200">{deptSummary(computed).map((g) => (
+                    <tr key={g.dept} className="hover:bg-neutral-100"><td className="px-4 py-2.5 font-semibold text-neutral-900">{g.dept}</td><td className="px-3 py-2.5 text-center text-neutral-500">{g.count}</td><td className="px-3 py-2.5 text-center font-bold text-neutral-900">{g.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-600 font-semibold">{g.A}</td><td className="px-3 py-2.5 text-center text-sky-600 font-semibold">{g.B}</td><td className="px-3 py-2.5 text-center text-amber-600 font-semibold">{g.C}</td><td className="px-3 py-2.5 text-center text-rose-600 font-semibold">{g.D}</td></tr>
+                  ))}</tbody></table></div>
               </section>
 
               {trends.length > 0 && (

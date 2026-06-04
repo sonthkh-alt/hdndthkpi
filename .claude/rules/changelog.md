@@ -14,4 +14,5 @@
 - **Bản PRO tính ĐÚNG NĐ335 + Sổ tay**: đếm khách quan, hệ số quy đổi N1–N5, danh mục theo Phòng/Vị trí (`WORK_CATALOG_PRO`); lãnh đạo (a+b+c+d+đ+e)/6 theo chức vụ; hợp đồng theo Sổ tay Chương III (3 tiêu chí).
 - **5 nhóm đối tượng, đánh số Mẫu 01–05** (`CRITERIA_ORDER`): 01 ĐB HĐND chuyên trách · 02 ĐB Quốc hội chuyên trách · 03 Lãnh đạo, quản lý · 04 Công chức · 05 Lao động hợp đồng.
 - **Bản demo nội bộ**: nhãn "Bản demo thử nghiệm" + dòng miễn trừ trách nhiệm ở header/footer/login.
+- **Tổng quan trực quan (Recharts)**: thêm `src/lib/DashboardCharts.jsx` (lazy-load) — donut cơ cấu xếp loại, bar xếp hạng điểm cán bộ, biểu đồ xu hướng theo kỳ (cột chồng A/B/C/D + đường điểm TB); thêm bảng **Tổng hợp theo Phòng/Bộ phận** (`src/lib/dash.js` `deptSummary`). Gắn cho CẢ 3 phiên bản (App/Modern/Pro), theme sáng/tối qua prop `dark`.
 - **Tổ chức bộ nhớ dự án**: tách `CLAUDE.md` thành các file chủ đề trong `.claude/rules/` (theo Claude Code rule spec); mở ngoại lệ `.gitignore` để commit thư mục này.
