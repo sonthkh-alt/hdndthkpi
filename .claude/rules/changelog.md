@@ -15,4 +15,5 @@
 - **5 nhóm đối tượng, đánh số Mẫu 01–05** (`CRITERIA_ORDER`): 01 ĐB HĐND chuyên trách · 02 ĐB Quốc hội chuyên trách · 03 Lãnh đạo, quản lý · 04 Công chức · 05 Lao động hợp đồng.
 - **Bản demo nội bộ**: nhãn "Bản demo thử nghiệm" + dòng miễn trừ trách nhiệm ở header/footer/login.
 - **Tổng quan trực quan (Recharts)**: thêm `src/lib/DashboardCharts.jsx` (lazy-load) — donut cơ cấu xếp loại, bar xếp hạng điểm cán bộ, biểu đồ xu hướng theo kỳ (cột chồng A/B/C/D + đường điểm TB); thêm bảng **Tổng hợp theo Phòng/Bộ phận** (`src/lib/dash.js` `deptSummary`). Gắn cho CẢ 3 phiên bản (App/Modern/Pro), theme sáng/tối qua prop `dark`.
+- **So sánh Chất lượng & KPI theo Phòng/Ban**: `deptSummary` bổ sung `quality`(Nhóm I /30), `kpi`(Nhóm II /70), `qualityPct/kpiPct`; thêm biểu đồ cột nhóm so sánh % đạt giữa các đơn vị + 2 cột Chất lượng/KPI trong bảng theo Phòng (cả 3 bản).
 - **Tổ chức bộ nhớ dự án**: tách `CLAUDE.md` thành các file chủ đề trong `.claude/rules/` (theo Claude Code rule spec); mở ngoại lệ `.gitignore` để commit thư mục này.

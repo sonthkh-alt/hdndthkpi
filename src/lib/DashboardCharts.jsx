@@ -3,6 +3,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
   ComposedChart, Line,
 } from 'recharts';
+import { deptSummary } from './dash';
 
 // Bộ biểu đồ dùng chung cho tab Tổng quan của cả 3 phiên bản giao diện.
 // Lazy-load (recharts thành chunk riêng). Prop `dark` để hợp tông nền tối (bản Mới).
@@ -34,6 +35,14 @@ export default function DashboardCharts({ dist = {}, trends = [], computed = [],
     name: `T${t.month}/${String(t.year).slice(2)}`,
     A: t.dist.A, B: t.dist.B, C: t.dist.C, D: t.dist.D,
     avg: Number((t.avg || 0).toFixed(1)),
+  }));
+
+  const depts = deptSummary(computed).map((g) => ({
+    name: g.dept.replace(/^(Văn phòng|Phòng|Ban)\s+/i, '').slice(0, 22),
+    fullName: g.dept,
+    'Chất lượng': Number(g.qualityPct.toFixed(1)),
+    'KPI': Number(g.kpiPct.toFixed(1)),
+    'Tổng': Number(g.avg.toFixed(1)),
   }));
 
   return (
@@ -82,6 +91,31 @@ export default function DashboardCharts({ dist = {}, trends = [], computed = [],
           )}
         </section>
       </div>
+
+      {/* So sánh Chất lượng & KPI giữa các Phòng/Ban */}
+      {depts.length > 0 && (
+        <section className={cardCls}>
+          <h3 className={titleCls}>So sánh Chất lượng & KPI giữa các Phòng/Ban (% đạt)</h3>
+          <div style={{ width: '100%', height: Math.max(240, depts.length * 46 + 40) }}>
+            <ResponsiveContainer>
+              <BarChart data={depts} layout="vertical" margin={{ left: 8, right: 36, top: 4, bottom: 4 }} barGap={2}>
+                <CartesianGrid horizontal={false} stroke={grid} />
+                <XAxis type="number" domain={[0, 100]} unit="%" tick={{ fill: txt, fontSize: 11 }} stroke={grid} />
+                <YAxis type="category" dataKey="name" width={140} tick={{ fill: txt, fontSize: 11 }} stroke={grid} />
+                <Tooltip contentStyle={tip} formatter={(v, n) => [`${v}%`, n]} cursor={{ fill: dark ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.03)' }} />
+                <Legend wrapperStyle={{ fontSize: 12, color: txt }} />
+                <Bar dataKey="Chất lượng" name="Chất lượng (Nhóm I)" fill="#6366f1" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                  <LabelList dataKey="Chất lượng" position="right" formatter={(v) => `${v}%`} style={{ fill: txt, fontSize: 10 }} />
+                </Bar>
+                <Bar dataKey="KPI" name="KPI (Nhóm II)" fill="#f59e0b" radius={[0, 4, 4, 0]} isAnimationActive={false}>
+                  <LabelList dataKey="KPI" position="right" formatter={(v) => `${v}%`} style={{ fill: txt, fontSize: 10 }} />
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+          <p className={`text-[11px] mt-2 ${dark ? 'text-slate-500' : 'text-slate-400'}`}>Chất lượng = điểm Nhóm I quy về % (/30); KPI = điểm Nhóm II quy về % (/70). Quy về cùng thang 100% để so sánh công bằng giữa các đơn vị.</p>
+        </section>
+      )}
 
       {/* Xu hướng theo kỳ */}
       {trendData.length > 0 && (
