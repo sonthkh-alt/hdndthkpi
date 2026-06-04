@@ -29,16 +29,16 @@ const THEMES = {
     foot: 'text-violet-200/70', footWarn: 'text-amber-300',
   },
   pro: {
-    bg: 'bg-gradient-to-br from-neutral-200 via-neutral-100 to-white', gridCls: 'tech-grid-dark',
-    blob1: 'bg-neutral-300/40', blob2: 'bg-neutral-400/20',
-    eyebrow: 'text-neutral-500', title: 'text-neutral-900', unit: 'text-neutral-600',
-    badge: 'bg-neutral-900 text-white', ring: 'ring-neutral-300',
-    card: 'glass border border-neutral-200', emblem: 'bg-white ring-1 ring-neutral-200',
-    btn: 'bg-neutral-900 hover:bg-neutral-800 shadow-neutral-900/20',
-    link: 'text-neutral-900 hover:text-black', accentIcon: 'text-neutral-900',
-    inputFocus: 'focus-within:border-neutral-500 focus-within:ring-neutral-200',
-    pickerWrap: 'bg-neutral-900/5 border-neutral-300', pickerInactive: 'text-neutral-500 hover:text-neutral-900',
-    foot: 'text-neutral-500', footWarn: 'text-amber-700',
+    bg: 'bg-gradient-to-br from-black via-neutral-950 to-neutral-900', gridCls: 'tech-grid',
+    blob1: 'bg-emerald-500/20', blob2: 'bg-emerald-700/15',
+    eyebrow: 'text-emerald-400', title: 'text-white', unit: 'text-neutral-300',
+    badge: 'bg-emerald-500 text-black', ring: 'ring-emerald-400/50',
+    card: 'glass border border-emerald-500/30', emblem: 'bg-white',
+    btn: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30',
+    link: 'text-emerald-700 hover:text-emerald-900', accentIcon: 'text-emerald-600',
+    inputFocus: 'focus-within:border-emerald-400 focus-within:ring-emerald-200',
+    pickerWrap: 'bg-white/10 border-white/20', pickerInactive: 'text-neutral-400 hover:text-white',
+    foot: 'text-neutral-400', footWarn: 'text-emerald-400',
   },
 };
 
@@ -100,7 +100,7 @@ export default function Login({ unit, onGuest, version = 'classic', onPickVersio
           <div className={`mb-4 border rounded-xl p-1.5 grid grid-cols-3 gap-1.5 ${t.pickerWrap}`}>
             <button type="button" onClick={() => onPickVersion('classic')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'classic' ? 'bg-white text-red-800 shadow' : t.pickerInactive}`}>Cổ điển</button>
             <button type="button" onClick={() => onPickVersion('modern')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'modern' ? 'bg-violet-400 text-violet-950 shadow' : t.pickerInactive}`}>Giao diện mới ✨</button>
-            <button type="button" onClick={() => onPickVersion('pro')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'pro' ? 'bg-neutral-900 text-white shadow' : t.pickerInactive}`}>Bản PRO 🏛️</button>
+            <button type="button" onClick={() => onPickVersion('pro')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'pro' ? 'bg-emerald-500 text-black shadow' : t.pickerInactive}`}>Bản PRO 🖥️</button>
           </div>
         )}
 

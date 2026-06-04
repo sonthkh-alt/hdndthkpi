@@ -28,8 +28,8 @@ function Gauge({ value = 0, label }) {
         <circle cx="60" cy="60" r={r} fill="none" stroke="#171717" strokeWidth="10" strokeLinecap="round" strokeDasharray={c} strokeDashoffset={off} style={{ transition: 'stroke-dashoffset .6s ease' }} />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-3xl font-extrabold text-neutral-900">{v.toFixed(1)}</span>
-        <span className="text-[11px] text-neutral-500">{label || '/ 100'}</span>
+        <span className="text-3xl font-extrabold text-neutral-100">{v.toFixed(1)}</span>
+        <span className="text-[11px] text-neutral-400">{label || '/ 100'}</span>
       </div>
     </div>
   );
@@ -37,22 +37,22 @@ function Gauge({ value = 0, label }) {
 
 function StatCard({ icon: Icon, label, value }) {
   return (
-    <div className="rounded-2xl p-4 bg-neutral-900 text-white shadow-sm relative overflow-hidden">
-      <div className="absolute -right-5 -top-5 w-20 h-20 rounded-full bg-white/10 blur-xl" />
-      <Icon className="w-6 h-6 opacity-90" />
-      <p className="text-3xl font-extrabold mt-2 leading-none">{value}</p>
-      <p className="text-xs opacity-80 mt-1">{label}</p>
+    <div className="rounded-2xl p-4 bg-neutral-900 border border-emerald-700/40 text-neutral-100 shadow-sm relative overflow-hidden">
+      <div className="absolute -right-5 -top-5 w-20 h-20 rounded-full bg-emerald-500/15 blur-xl" />
+      <Icon className="w-6 h-6 text-emerald-400" />
+      <p className="text-3xl font-extrabold mt-2 leading-none text-emerald-400" style={{ fontFamily: "'Consolas','Courier New',monospace" }}>{value}</p>
+      <p className="text-xs text-neutral-400 mt-1">{label}</p>
     </div>
   );
 }
 
-const INP = 'bg-neutral-100 border border-neutral-200 rounded-lg text-neutral-900 placeholder-neutral-400 outline-none focus:border-neutral-900 disabled:opacity-50 disabled:bg-neutral-100';
+const INP = 'bg-neutral-800 border border-neutral-800 rounded-lg text-neutral-100 placeholder-neutral-400 outline-none focus:border-neutral-900 disabled:opacity-50 disabled:bg-neutral-800';
 
 function GBdark({ icon: Icon, title, children }) {
   return (
-    <div className="bg-white rounded-2xl border border-neutral-200 shadow-sm p-5">
-      <h3 className="font-bold text-neutral-900 flex items-center gap-2 mb-1.5"><Icon className="w-5 h-5 text-neutral-900" /> {title}</h3>
-      <p className="text-sm text-neutral-600 leading-relaxed">{children}</p>
+    <div className="bg-neutral-900 rounded-2xl border border-neutral-800 shadow-sm p-5">
+      <h3 className="font-bold text-neutral-100 flex items-center gap-2 mb-1.5"><Icon className="w-5 h-5 text-neutral-100" /> {title}</h3>
+      <p className="text-sm text-neutral-300 leading-relaxed">{children}</p>
     </div>
   );
 }
@@ -207,7 +207,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   };
 
   // ===== Cổng đăng nhập =====
-  if (supabase && session === undefined) return <div className="min-h-screen flex items-center justify-center bg-neutral-50 text-neutral-500 text-sm">Đang kiểm tra đăng nhập...</div>;
+  if (supabase && session === undefined) return <div className="min-h-screen flex items-center justify-center bg-neutral-950 text-neutral-400 text-sm">Đang kiểm tra đăng nhập...</div>;
   if (supabase && !session) return <Login unit={UNIT} version={version} onPickVersion={onPickVersion} onGuest={() => setSession('guest')} />;
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
     return <SetPassword unit={UNIT} email={myEmail} mode="create" onComplete={async () => setSession(await getSession())} />;
@@ -223,27 +223,27 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
     { id: 'contact', label: 'Liên hệ', icon: Phone },
   ];
   const navTitle = { dash: 'Tổng quan điều hành', eval: 'Đánh giá & xếp loại', digital: 'Khung năng lực số', tracking: 'Theo dõi công việc', guide: 'Hướng dẫn sử dụng', contact: 'Liên hệ & góp ý' }[nav] || '';
-  const card = 'bg-white rounded-2xl border border-neutral-200 shadow-sm';
+  const card = 'bg-neutral-900 rounded-2xl border border-neutral-800 shadow-sm';
 
   return (
-    <div className="min-h-screen lg:flex bg-neutral-50 text-neutral-700" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
+    <div className="min-h-screen lg:flex bg-neutral-950 text-neutral-200" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
       {/* SIDEBAR */}
-      <aside className="lg:w-64 shrink-0 lg:min-h-screen relative text-neutral-900 bg-white border-r border-neutral-200">
+      <aside className="lg:w-64 shrink-0 lg:min-h-screen relative text-neutral-100 bg-neutral-900 border-r border-neutral-800">
         <div className="relative p-4 lg:p-5 flex lg:flex-col gap-4 lg:gap-6 items-center lg:items-stretch">
           <div className="flex items-center gap-3">
-            <div className="w-11 h-11 rounded-full bg-white flex items-center justify-center ring-1 ring-neutral-300 shrink-0 p-1"><img src="/quoc-huy.svg" alt="Quốc huy" className="w-full h-full object-contain" /></div>
-            <div className="hidden lg:block"><p className="text-neutral-400 text-[10px] font-bold tracking-widest uppercase">OKR / KPI · Bản PRO</p><p className="text-sm font-bold leading-tight text-neutral-900">Đánh giá CBCCVC</p></div>
+            <div className="w-11 h-11 rounded-full bg-neutral-900 flex items-center justify-center ring-1 ring-neutral-300 shrink-0 p-1"><img src="/quoc-huy.svg" alt="Quốc huy" className="w-full h-full object-contain" /></div>
+            <div className="hidden lg:block"><p className="text-neutral-400 text-[10px] font-bold tracking-widest uppercase">OKR / KPI · Bản PRO</p><p className="text-sm font-bold leading-tight text-neutral-100">Đánh giá CBCCVC</p></div>
           </div>
           <nav className="flex lg:flex-col gap-1 lg:mt-2 flex-1">
             {navItems.map((n) => { const Ic = n.icon; const on = nav === n.id; return (
-              <button key={n.id} onClick={() => setNav(n.id)} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${on ? 'bg-neutral-900 hover:bg-neutral-800 text-white' : 'text-neutral-600 hover:bg-neutral-100 hover:text-white'}`}><Ic className="w-4 h-4" />{n.label}</button>
+              <button key={n.id} onClick={() => setNav(n.id)} className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-sm font-semibold transition ${on ? 'bg-emerald-600 hover:bg-emerald-700 text-white' : 'text-neutral-300 hover:bg-neutral-800 hover:text-white'}`}><Ic className="w-4 h-4" />{n.label}</button>
             ); })}
           </nav>
           <div className="hidden lg:block mt-auto space-y-2">
-            <button onClick={() => onPickVersion && onPickVersion('classic')} className="w-full flex items-center justify-center gap-2 text-[12px] px-3 py-2 rounded-lg bg-neutral-100 hover:bg-neutral-200 text-neutral-900 font-semibold border border-neutral-200 transition"><Layers className="w-3.5 h-3.5" /> Về giao diện cổ điển</button>
-            <div className="flex items-center justify-between bg-neutral-100 rounded-lg px-3 py-2 border border-neutral-200">
-              <div className="min-w-0"><p className="text-xs truncate text-neutral-700" title={myEmail}>{isGuest ? 'Khách (dùng thử)' : (myPerson?.name || myEmail || 'Cục bộ')}</p><p className="text-[10px] text-neutral-900">{ROLE_LABEL[role]}</p></div>
-              {supabase && session !== 'local' && <button onClick={signOut} title="Đăng xuất" className="text-neutral-600 hover:text-neutral-900 shrink-0"><LogOut className="w-4 h-4" /></button>}
+            <button onClick={() => onPickVersion && onPickVersion('classic')} className="w-full flex items-center justify-center gap-2 text-[12px] px-3 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-200 text-neutral-100 font-semibold border border-neutral-800 transition"><Layers className="w-3.5 h-3.5" /> Về giao diện cổ điển</button>
+            <div className="flex items-center justify-between bg-neutral-800 rounded-lg px-3 py-2 border border-neutral-800">
+              <div className="min-w-0"><p className="text-xs truncate text-neutral-200" title={myEmail}>{isGuest ? 'Khách (dùng thử)' : (myPerson?.name || myEmail || 'Cục bộ')}</p><p className="text-[10px] text-neutral-100">{ROLE_LABEL[role]}</p></div>
+              {supabase && session !== 'local' && <button onClick={signOut} title="Đăng xuất" className="text-neutral-300 hover:text-neutral-100 shrink-0"><LogOut className="w-4 h-4" /></button>}
             </div>
           </div>
         </div>
@@ -251,17 +251,17 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
 
       {/* MAIN */}
       <main className="flex-1 min-w-0">
-        <div className="bg-white border-b border-neutral-200 sticky top-0 z-10">
+        <div className="bg-neutral-900 border-b border-neutral-800 sticky top-0 z-10">
           <div className="px-4 sm:px-6 py-3 flex items-center justify-between gap-3 flex-wrap">
             <div className="flex items-center gap-2">
-              <Sparkles className="w-5 h-5 text-neutral-900" />
-              <h1 className="font-extrabold text-neutral-900">{navTitle}</h1>
-              <span className="text-[10px] font-bold uppercase tracking-wider bg-neutral-200 text-neutral-900 border border-neutral-300 px-2 py-0.5 rounded">PRO</span>
+              <Sparkles className="w-5 h-5 text-neutral-100" />
+              <h1 className="font-extrabold text-neutral-100">{navTitle}</h1>
+              <span className="text-[10px] font-bold uppercase tracking-wider bg-neutral-200 text-neutral-100 border border-neutral-700 px-2 py-0.5 rounded">PRO</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className={`text-xs px-2.5 py-1.5 rounded-lg border ${cloud.ready ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-neutral-100 text-neutral-500 border-neutral-200'}`}>{isGuest ? 'Khách · không lưu' : (cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối') : 'Cục bộ')}</span>
-              <div className="flex items-center gap-1.5 bg-neutral-100 border border-neutral-200 rounded-lg px-2.5 py-1.5">
-                <CalendarDays className="w-4 h-4 text-neutral-900" />
+              <span className={`text-xs px-2.5 py-1.5 rounded-lg border ${cloud.ready ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-neutral-800 text-neutral-400 border-neutral-800'}`}>{isGuest ? 'Khách · không lưu' : (cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối') : 'Cục bộ')}</span>
+              <div className="flex items-center gap-1.5 bg-neutral-800 border border-neutral-800 rounded-lg px-2.5 py-1.5">
+                <CalendarDays className="w-4 h-4 text-neutral-100" />
                 <input type="number" min="1" max="12" value={period.month} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, month: e.target.value }); }} onBlur={() => loadPeriod(period)} className={`w-9 px-1 py-0.5 text-sm text-center ${INP}`} />
                 <span className="text-neutral-400">/</span>
                 <input type="number" value={period.year} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, year: e.target.value }); }} onBlur={() => loadPeriod(period)} className={`w-14 px-1 py-0.5 text-sm text-center ${INP}`} />
@@ -272,16 +272,16 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
 
         <div className="p-4 sm:p-6 space-y-6">
           {conflict && (
-            <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3"><AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" /><div className="flex-1"><p className="text-sm text-rose-700 font-semibold">Dữ liệu kỳ này vừa được cập nhật nơi khác.</p><p className="text-xs text-rose-600">Hãy tải lại để tránh ghi đè.</p></div><button onClick={() => loadPeriod(period)} className="text-xs px-3 py-1.5 rounded-lg bg-neutral-900 text-white font-semibold">Tải lại</button></div>
+            <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3"><AlertTriangle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" /><div className="flex-1"><p className="text-sm text-rose-700 font-semibold">Dữ liệu kỳ này vừa được cập nhật nơi khác.</p><p className="text-xs text-rose-600">Hãy tải lại để tránh ghi đè.</p></div><button onClick={() => loadPeriod(period)} className="text-xs px-3 py-1.5 rounded-lg bg-emerald-600 text-white font-semibold">Tải lại</button></div>
           )}
 
           {people.length === 0 && (nav === 'dash' || nav === 'eval') && (
             <div className={`${card} p-8 text-center max-w-lg mx-auto`}>
               <Users className="w-10 h-10 text-neutral-400 mx-auto mb-3" />
-              <h2 className="font-bold text-neutral-900 text-lg">Kỳ {period.month}/{period.year} chưa có dữ liệu</h2>
+              <h2 className="font-bold text-neutral-100 text-lg">Kỳ {period.month}/{period.year} chưa có dữ liệu</h2>
               <div className="mt-4 flex flex-col sm:flex-row gap-2 justify-center">
-                {seedFrom && canManage && <button onClick={() => copyFromPeriod(seedFrom)} className="bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm">Sao chép cán bộ từ kỳ {seedFrom.month}/{seedFrom.year}</button>}
-                {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="bg-neutral-100 border border-neutral-200 text-neutral-900 font-semibold px-4 py-2.5 rounded-xl text-sm">Thêm cán bộ</button>}
+                {seedFrom && canManage && <button onClick={() => copyFromPeriod(seedFrom)} className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2.5 rounded-xl text-sm">Sao chép cán bộ từ kỳ {seedFrom.month}/{seedFrom.year}</button>}
+                {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="bg-neutral-800 border border-neutral-800 text-neutral-100 font-semibold px-4 py-2.5 rounded-xl text-sm">Thêm cán bộ</button>}
               </div>
             </div>
           )}
@@ -290,12 +290,12 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {people.length > 0 && nav === 'dash' && (
             <>
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-                <StatCard icon={Users} label="Tổng số cán bộ" value={people.length} grad="bg-neutral-900" />
-                <StatCard icon={TrendingUp} label="Điểm trung bình" value={avg.toFixed(1)} grad="bg-neutral-900" />
-                <StatCard icon={Award} label="Hoàn thành xuất sắc" value={dist.A} grad="bg-neutral-900" />
-                <StatCard icon={Target} label="Mục tiêu (OKR)" value={objectives.length} grad="bg-neutral-900" />
+                <StatCard icon={Users} label="Tổng số cán bộ" value={people.length} grad="bg-emerald-600" />
+                <StatCard icon={TrendingUp} label="Điểm trung bình" value={avg.toFixed(1)} grad="bg-emerald-600" />
+                <StatCard icon={Award} label="Hoàn thành xuất sắc" value={dist.A} grad="bg-emerald-600" />
+                <StatCard icon={Target} label="Mục tiêu (OKR)" value={objectives.length} grad="bg-emerald-600" />
               </div>
-              {overCap && <div className="bg-neutral-100 border border-neutral-300 rounded-xl p-3 text-sm text-neutral-900 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
+              {overCap && <div className="bg-neutral-800 border border-neutral-700 rounded-xl p-3 text-sm text-neutral-100 flex items-center gap-2"><AlertTriangle className="w-4 h-4" /> Vượt trần: {dist.A} "Xuất sắc" trong khi tối đa {Math.floor(dist.B * 0.2)} (20% của {dist.B} "Tốt").</div>}
 
               <Suspense fallback={<div className="text-sm text-neutral-400 text-center py-8">Đang tải biểu đồ…</div>}>
                 <DashboardCharts dist={dist} trends={trends} computed={computed} />
@@ -303,46 +303,46 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
 
               <div className="grid lg:grid-cols-3 gap-6">
                 <section className={`lg:col-span-2 ${card} p-5`}>
-                  <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-neutral-900" /> Mục tiêu cấp Văn phòng (OKR)</h2>
+                  <h2 className="font-bold text-neutral-100 flex items-center gap-2 mb-3"><Target className="w-5 h-5 text-neutral-100" /> Mục tiêu cấp Văn phòng (OKR)</h2>
                   <div className="space-y-3">
                     {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.proTasks || []).filter((t) => t.objId === o.id && t.catalogId).length; return (
-                      <div key={o.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
-                        <div className="flex items-center justify-between gap-2"><p className="font-semibold text-sm text-neutral-900">{o.title}</p><span className="text-[11px] text-neutral-500 flex items-center gap-1 shrink-0"><Link2 className="w-3 h-3" />{linked} NV</span></div>
-                        <div className="mt-2 flex items-center gap-3"><div className="flex-1 h-2.5 bg-neutral-100 rounded-full overflow-hidden"><div className={`h-full ${pr === null ? 'bg-neutral-200' : statusOf(pr).dot}`} style={{ width: `${pr || 0}%` }} /></div><span className="text-xs font-bold text-neutral-600 w-14 text-right">{pr === null ? '—' : `${pr.toFixed(0)}%`}</span></div>
+                      <div key={o.id} className="border border-neutral-800 bg-neutral-800 rounded-xl p-3">
+                        <div className="flex items-center justify-between gap-2"><p className="font-semibold text-sm text-neutral-100">{o.title}</p><span className="text-[11px] text-neutral-400 flex items-center gap-1 shrink-0"><Link2 className="w-3 h-3" />{linked} NV</span></div>
+                        <div className="mt-2 flex items-center gap-3"><div className="flex-1 h-2.5 bg-neutral-800 rounded-full overflow-hidden"><div className={`h-full ${pr === null ? 'bg-neutral-200' : statusOf(pr).dot}`} style={{ width: `${pr || 0}%` }} /></div><span className="text-xs font-bold text-neutral-300 w-14 text-right">{pr === null ? '—' : `${pr.toFixed(0)}%`}</span></div>
                       </div>
                     ); })}
                     {objectives.length === 0 && <p className="text-sm text-neutral-400 text-center py-4">Chưa có mục tiêu. Thêm ở giao diện cổ điển hoặc khi quản trị.</p>}
                   </div>
                 </section>
                 <section className={`${card} p-5`}>
-                  <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-neutral-900" /> Phân bố xếp loại</h2>
+                  <h2 className="font-bold text-neutral-100 flex items-center gap-2 mb-4"><BarChart3 className="w-5 h-5 text-neutral-100" /> Phân bố xếp loại</h2>
                   <div className="space-y-3">{['A', 'B', 'C', 'D'].map((code) => { const cl = classify(code === 'A' ? 95 : code === 'B' ? 80 : code === 'C' ? 60 : 40); const n = dist[code]; const pct = people.length ? (n / people.length) * 100 : 0; return (
-                    <div key={code}><div className="flex justify-between text-xs mb-1"><span className="font-semibold text-neutral-600">Loại {code} — {cl.name}</span><b className="text-neutral-900">{n}</b></div><div className="h-3 bg-neutral-100 rounded-full overflow-hidden"><div className={`h-full ${cl.bar}`} style={{ width: `${pct}%` }} /></div></div>
+                    <div key={code}><div className="flex justify-between text-xs mb-1"><span className="font-semibold text-neutral-300">Loại {code} — {cl.name}</span><b className="text-neutral-100">{n}</b></div><div className="h-3 bg-neutral-800 rounded-full overflow-hidden"><div className={`h-full ${cl.bar}`} style={{ width: `${pct}%` }} /></div></div>
                   ); })}</div>
                 </section>
               </div>
 
               <section className={`${card} overflow-hidden`}>
-                <div className="px-5 py-3.5 border-b border-neutral-200 flex items-center justify-between"><h2 className="font-bold text-neutral-900 flex items-center gap-2"><Users className="w-5 h-5 text-neutral-900" /> Bảng tổng hợp kết quả</h2></div>
-                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-100 text-neutral-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Họ và tên</th><th className="text-left px-3 py-2.5">Chức vụ</th><th className="text-center px-3 py-2.5">Tự ĐG</th><th className="text-center px-3 py-2.5">Cấp duyệt</th><th className="text-center px-3 py-2.5">Xếp loại</th></tr></thead>
-                  <tbody className="divide-y divide-neutral-200">{computed.map(({ p, c }) => { const r = classify(c.totalMgr); return (
-                    <tr key={p.id} className="hover:bg-neutral-100 cursor-pointer" onClick={() => { setCurId(p.id); setNav('eval'); }}><td className="px-4 py-3 font-semibold text-neutral-900">{p.name || '(Chưa tên)'}</td><td className="px-3 py-3 text-neutral-500 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-neutral-500">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-neutral-900">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${r.cls} text-neutral-900 text-[10px] font-bold`}>{r.code}</span></td></tr>
+                <div className="px-5 py-3.5 border-b border-neutral-800 flex items-center justify-between"><h2 className="font-bold text-neutral-100 flex items-center gap-2"><Users className="w-5 h-5 text-neutral-100" /> Bảng tổng hợp kết quả</h2></div>
+                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-800 text-neutral-400 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Họ và tên</th><th className="text-left px-3 py-2.5">Chức vụ</th><th className="text-center px-3 py-2.5">Tự ĐG</th><th className="text-center px-3 py-2.5">Cấp duyệt</th><th className="text-center px-3 py-2.5">Xếp loại</th></tr></thead>
+                  <tbody className="divide-y divide-neutral-800">{computed.map(({ p, c }) => { const r = classify(c.totalMgr); return (
+                    <tr key={p.id} className="hover:bg-neutral-800 cursor-pointer" onClick={() => { setCurId(p.id); setNav('eval'); }}><td className="px-4 py-3 font-semibold text-neutral-100">{p.name || '(Chưa tên)'}</td><td className="px-3 py-3 text-neutral-400 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-neutral-400">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-neutral-100">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${r.cls} text-neutral-100 text-[10px] font-bold`}>{r.code}</span></td></tr>
                   ); })}</tbody></table></div>
               </section>
 
               <section className={`${card} overflow-hidden`}>
-                <div className="px-5 py-3.5 border-b border-neutral-200"><h2 className="font-bold text-neutral-900 flex items-center gap-2"><Users className="w-5 h-5 text-neutral-900" /> Tổng hợp theo Phòng/Bộ phận</h2></div>
-                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-100 text-neutral-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Phòng / Bộ phận</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">Chất lượng<br/>(Nhóm I /30)</th><th className="text-center px-3 py-2.5">KPI<br/>(Nhóm II /70)</th><th className="text-center px-3 py-2.5">Tổng TB</th><th className="text-center px-3 py-2.5 text-emerald-600">A</th><th className="text-center px-3 py-2.5 text-sky-600">B</th><th className="text-center px-3 py-2.5 text-amber-600">C</th><th className="text-center px-3 py-2.5 text-rose-600">D</th></tr></thead>
-                  <tbody className="divide-y divide-neutral-200">{deptSummary(computed).map((g) => (
-                    <tr key={g.dept} className="hover:bg-neutral-100"><td className="px-4 py-2.5 font-semibold text-neutral-900">{g.dept}</td><td className="px-3 py-2.5 text-center text-neutral-500">{g.count}</td><td className="px-3 py-2.5 text-center font-semibold text-neutral-700">{g.quality.toFixed(1)}</td><td className="px-3 py-2.5 text-center font-semibold text-neutral-700">{g.kpi.toFixed(1)}</td><td className="px-3 py-2.5 text-center font-bold text-neutral-900">{g.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-600 font-semibold">{g.A}</td><td className="px-3 py-2.5 text-center text-sky-600 font-semibold">{g.B}</td><td className="px-3 py-2.5 text-center text-amber-600 font-semibold">{g.C}</td><td className="px-3 py-2.5 text-center text-rose-600 font-semibold">{g.D}</td></tr>
+                <div className="px-5 py-3.5 border-b border-neutral-800"><h2 className="font-bold text-neutral-100 flex items-center gap-2"><Users className="w-5 h-5 text-neutral-100" /> Tổng hợp theo Phòng/Bộ phận</h2></div>
+                <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-800 text-neutral-400 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Phòng / Bộ phận</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">Chất lượng<br/>(Nhóm I /30)</th><th className="text-center px-3 py-2.5">KPI<br/>(Nhóm II /70)</th><th className="text-center px-3 py-2.5">Tổng TB</th><th className="text-center px-3 py-2.5 text-emerald-600">A</th><th className="text-center px-3 py-2.5 text-sky-600">B</th><th className="text-center px-3 py-2.5 text-amber-600">C</th><th className="text-center px-3 py-2.5 text-rose-600">D</th></tr></thead>
+                  <tbody className="divide-y divide-neutral-800">{deptSummary(computed).map((g) => (
+                    <tr key={g.dept} className="hover:bg-neutral-800"><td className="px-4 py-2.5 font-semibold text-neutral-100">{g.dept}</td><td className="px-3 py-2.5 text-center text-neutral-400">{g.count}</td><td className="px-3 py-2.5 text-center font-semibold text-neutral-200">{g.quality.toFixed(1)}</td><td className="px-3 py-2.5 text-center font-semibold text-neutral-200">{g.kpi.toFixed(1)}</td><td className="px-3 py-2.5 text-center font-bold text-neutral-100">{g.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-600 font-semibold">{g.A}</td><td className="px-3 py-2.5 text-center text-sky-600 font-semibold">{g.B}</td><td className="px-3 py-2.5 text-center text-amber-600 font-semibold">{g.C}</td><td className="px-3 py-2.5 text-center text-rose-600 font-semibold">{g.D}</td></tr>
                   ))}</tbody></table></div>
               </section>
 
               {trends.length > 0 && (
                 <section className={`${card} overflow-hidden`}>
-                  <div className="px-5 py-3.5 border-b border-neutral-200 flex items-center justify-between"><h2 className="font-bold text-neutral-900 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-neutral-900" /> Xu hướng theo kỳ</h2><button onClick={refreshTrends} className="text-xs text-neutral-500 hover:text-neutral-900 flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Làm mới</button></div>
-                  <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-100 text-neutral-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Kỳ</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">TB</th><th className="text-center px-3 py-2.5 text-emerald-600">A</th><th className="text-center px-3 py-2.5 text-sky-600">B</th><th className="text-center px-3 py-2.5 text-amber-600">C</th><th className="text-center px-3 py-2.5 text-rose-600">D</th></tr></thead>
-                    <tbody className="divide-y divide-neutral-200">{trends.map((t) => (<tr key={`${t.year}-${t.month}`} className="hover:bg-neutral-100"><td className="px-4 py-2.5 font-semibold text-neutral-900">T{t.month}/{t.year}</td><td className="px-3 py-2.5 text-center text-neutral-500">{t.count}</td><td className="px-3 py-2.5 text-center font-bold text-neutral-900">{t.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-600 font-semibold">{t.dist.A}</td><td className="px-3 py-2.5 text-center text-sky-600 font-semibold">{t.dist.B}</td><td className="px-3 py-2.5 text-center text-amber-600 font-semibold">{t.dist.C}</td><td className="px-3 py-2.5 text-center text-rose-600 font-semibold">{t.dist.D}</td></tr>))}</tbody></table></div>
+                  <div className="px-5 py-3.5 border-b border-neutral-800 flex items-center justify-between"><h2 className="font-bold text-neutral-100 flex items-center gap-2"><TrendingUp className="w-5 h-5 text-neutral-100" /> Xu hướng theo kỳ</h2><button onClick={refreshTrends} className="text-xs text-neutral-400 hover:text-neutral-100 flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" /> Làm mới</button></div>
+                  <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-neutral-800 text-neutral-400 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Kỳ</th><th className="text-center px-3 py-2.5">Số CB</th><th className="text-center px-3 py-2.5">TB</th><th className="text-center px-3 py-2.5 text-emerald-600">A</th><th className="text-center px-3 py-2.5 text-sky-600">B</th><th className="text-center px-3 py-2.5 text-amber-600">C</th><th className="text-center px-3 py-2.5 text-rose-600">D</th></tr></thead>
+                    <tbody className="divide-y divide-neutral-800">{trends.map((t) => (<tr key={`${t.year}-${t.month}`} className="hover:bg-neutral-800"><td className="px-4 py-2.5 font-semibold text-neutral-100">T{t.month}/{t.year}</td><td className="px-3 py-2.5 text-center text-neutral-400">{t.count}</td><td className="px-3 py-2.5 text-center font-bold text-neutral-100">{t.avg.toFixed(1)}</td><td className="px-3 py-2.5 text-center text-emerald-600 font-semibold">{t.dist.A}</td><td className="px-3 py-2.5 text-center text-sky-600 font-semibold">{t.dist.B}</td><td className="px-3 py-2.5 text-center text-amber-600 font-semibold">{t.dist.C}</td><td className="px-3 py-2.5 text-center text-rose-600 font-semibold">{t.dist.D}</td></tr>))}</tbody></table></div>
                 </section>
               )}
             </>
@@ -352,48 +352,48 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {people.length > 0 && nav === 'eval' && cur && (
             <div className="grid lg:grid-cols-[260px_1fr] gap-6 items-start">
               <aside className={`${card} overflow-hidden lg:sticky lg:top-20`}>
-                <div className="p-3 bg-neutral-100 border-b border-neutral-200 text-sm font-semibold text-neutral-700 flex items-center gap-2"><Users className="w-4 h-4 text-neutral-900" /> Danh sách cán bộ</div>
-                <div className="divide-y divide-neutral-200 max-h-[420px] overflow-y-auto">{people.map((p) => { const r = classify(computePro(p).totalMgr); return (
-                  <button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-3 py-2.5 flex items-center gap-2.5 ${curId === p.id ? 'bg-neutral-100' : 'hover:bg-neutral-100'}`}><span className={`w-7 h-7 rounded-full ${r.cls} text-neutral-900 text-[10px] font-bold flex items-center justify-center shrink-0`}>{r.code}</span><div className="min-w-0"><p className={`text-sm font-medium truncate ${curId === p.id ? 'text-neutral-900' : 'text-neutral-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-neutral-400 truncate">{p.position || CRITERIA[p.type].label}</p></div></button>
+                <div className="p-3 bg-neutral-800 border-b border-neutral-800 text-sm font-semibold text-neutral-200 flex items-center gap-2"><Users className="w-4 h-4 text-neutral-100" /> Danh sách cán bộ</div>
+                <div className="divide-y divide-neutral-800 max-h-[420px] overflow-y-auto">{people.map((p) => { const r = classify(computePro(p).totalMgr); return (
+                  <button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-3 py-2.5 flex items-center gap-2.5 ${curId === p.id ? 'bg-neutral-800' : 'hover:bg-neutral-800'}`}><span className={`w-7 h-7 rounded-full ${r.cls} text-neutral-100 text-[10px] font-bold flex items-center justify-center shrink-0`}>{r.code}</span><div className="min-w-0"><p className={`text-sm font-medium truncate ${curId === p.id ? 'text-neutral-100' : 'text-neutral-200'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-neutral-400 truncate">{p.position || CRITERIA[p.type].label}</p></div></button>
                 ); })}</div>
-                {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople((ps) => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-2.5 bg-neutral-100 text-neutral-500 text-sm font-medium hover:bg-neutral-100 border-t border-neutral-200"><Plus className="w-4 h-4" /> Thêm cán bộ</button>}
+                {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople((ps) => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-2.5 bg-neutral-800 text-neutral-400 text-sm font-medium hover:bg-neutral-800 border-t border-neutral-800"><Plus className="w-4 h-4" /> Thêm cán bộ</button>}
               </aside>
 
               <div className="space-y-5">
                 <section className={`${card} p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center`}>
                   <div className="space-y-3">
                     <div className="grid sm:grid-cols-2 gap-3">
-                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Họ và tên</span><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
-                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Phòng / Bộ phận</span><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></label>
-                      <label className="block"><span className="text-xs font-semibold text-neutral-500">Chức vụ</span><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></label>
+                      <label className="block"><span className="text-xs font-semibold text-neutral-400">Họ và tên</span><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
+                      <label className="block"><span className="text-xs font-semibold text-neutral-400">Phòng / Bộ phận</span><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></label>
+                      <label className="block"><span className="text-xs font-semibold text-neutral-400">Chức vụ</span><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></label>
                       {canManage ? (
-                        <label className="block"><span className="text-xs font-semibold text-neutral-500">Vai trò</span><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-white" value="canbo">Cán bộ</option><option className="bg-white" value="truongphong">Trưởng phòng</option><option className="bg-white" value="quantri">Quản trị</option></select></label>
+                        <label className="block"><span className="text-xs font-semibold text-neutral-400">Vai trò</span><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className={`mt-1 w-full px-3 py-2 text-sm ${INP}`}><option className="bg-neutral-900" value="canbo">Cán bộ</option><option className="bg-neutral-900" value="truongphong">Trưởng phòng</option><option className="bg-neutral-900" value="quantri">Quản trị</option></select></label>
                       ) : (
-                        <label className="block"><span className="text-xs font-semibold text-neutral-500">Email</span><input value={cur.email || ''} disabled className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
+                        <label className="block"><span className="text-xs font-semibold text-neutral-400">Email</span><input value={cur.email || ''} disabled className={`mt-1 w-full px-3 py-2 text-sm ${INP}`} /></label>
                       )}
                     </div>
                     <div>
                       <div className="flex flex-wrap gap-2">{CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (
-                        <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-2 rounded-lg border text-xs disabled:opacity-60 max-w-[170px] ${cur.type === k ? 'border-neutral-900 bg-neutral-900 text-white font-semibold' : 'border-neutral-200 text-neutral-600 hover:bg-neutral-100'}`}><span className="block font-bold">{v.mau}</span><span className="block text-[10px] opacity-80 leading-tight">{v.label}</span></button>
+                        <button key={k} disabled={!(canManage || mgrEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left px-3 py-2 rounded-lg border text-xs disabled:opacity-60 max-w-[170px] ${cur.type === k ? 'border-neutral-900 bg-emerald-600 text-white font-semibold' : 'border-neutral-800 text-neutral-300 hover:bg-neutral-800'}`}><span className="block font-bold">{v.mau}</span><span className="block text-[10px] opacity-80 leading-tight">{v.label}</span></button>
                       ))}</div>
-                      <p className="text-[11px] text-neutral-500 mt-2 leading-relaxed"><b className="text-neutral-800">{CRITERIA[cur.type].mau}</b> — {CRITERIA[cur.type].label}. Công thức Nhóm II: <b className="text-neutral-800">{curC.isHd ? '(Chất lượng + Tuân thủ + Hiệu quả)/3' : curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'}</b> {curC.isHd ? '(lao động hỗ trợ, phục vụ — Sổ tay Chương III)' : curC.leader ? '(giữ chức vụ lãnh đạo, quản lý — Điều 16.2 NĐ335)' : '(không giữ chức vụ lãnh đạo — Điều 16.1 NĐ335)'}.{cur.type === 'hdnd' ? ' Đại biểu HĐND chuyên trách: khung tham chiếu của tỉnh, công thức theo chức vụ.' : ''}</p>
+                      <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed"><b className="text-neutral-800">{CRITERIA[cur.type].mau}</b> — {CRITERIA[cur.type].label}. Công thức Nhóm II: <b className="text-neutral-800">{curC.isHd ? '(Chất lượng + Tuân thủ + Hiệu quả)/3' : curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'}</b> {curC.isHd ? '(lao động hỗ trợ, phục vụ — Sổ tay Chương III)' : curC.leader ? '(giữ chức vụ lãnh đạo, quản lý — Điều 16.2 NĐ335)' : '(không giữ chức vụ lãnh đạo — Điều 16.1 NĐ335)'}.{cur.type === 'hdnd' ? ' Đại biểu HĐND chuyên trách: khung tham chiếu của tỉnh, công thức theo chức vụ.' : ''}</p>
                     </div>
                   </div>
                   <div className="text-center">
                     <Gauge value={curC.totalMgr} />
-                    <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold bg-neutral-100 border border-neutral-200 text-neutral-900"><span className={`w-2.5 h-2.5 rounded-full ${result.cls}`} />{result.name}</span>
+                    <span className="inline-flex items-center gap-1.5 mt-2 px-3 py-1 rounded-full text-xs font-bold bg-neutral-800 border border-neutral-800 text-neutral-100"><span className={`w-2.5 h-2.5 rounded-full ${result.cls}`} />{result.name}</span>
                     {!selfEditable && !mgrEditable && <p className="text-[11px] text-neutral-400 mt-2">Chế độ chỉ xem</p>}
                   </div>
                 </section>
 
                 <section className={`${card} overflow-hidden`}>
-                  <div className="px-5 py-3 bg-neutral-100 border-b border-neutral-200 flex items-center justify-between"><h3 className="font-bold text-neutral-900 text-sm">Nhóm I — Tiêu chí chung</h3><span className="text-xs font-bold text-neutral-900">{curC.nmgr.toFixed(1)} / 30</span></div>
+                  <div className="px-5 py-3 bg-neutral-800 border-b border-neutral-800 flex items-center justify-between"><h3 className="font-bold text-neutral-100 text-sm">Nhóm I — Tiêu chí chung</h3><span className="text-xs font-bold text-neutral-100">{curC.nmgr.toFixed(1)} / 30</span></div>
                   <div className="p-3 space-y-2">
                     {CRITERIA[cur.type].groups.map((g) => { const sub = g.items.reduce((s, it) => s + (cur.mgrScores[it.id] ?? cur.selfScores[it.id] ?? it.max), 0); const isO = open === g.id; return (
-                      <div key={g.id} className="border border-neutral-200 rounded-xl overflow-hidden">
-                        <button onClick={() => setOpen(isO ? null : g.id)} className="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-neutral-100 hover:bg-neutral-100 text-left"><span className="text-sm font-semibold text-neutral-700">{g.title}</span><span className="flex items-center gap-2 shrink-0"><span className="text-xs font-bold text-neutral-900">{sub.toFixed(1)}/{g.max}</span><ChevronDown className={`w-4 h-4 text-neutral-500 transition ${isO ? 'rotate-180' : ''}`} /></span></button>
-                        {isO && <div className="divide-y divide-neutral-200">{g.items.map((it) => { const sv = cur.selfScores[it.id] ?? it.max; const mv = cur.mgrScores[it.id] ?? sv; return (
-                          <div key={it.id} className="px-3 py-2 flex items-start gap-2"><span className="text-[11px] font-bold text-neutral-400 w-7 pt-1">{it.id}</span><p className="flex-1 text-xs text-neutral-600 pt-0.5">{it.text}</p><input type="number" min="0" max={it.max} step="0.25" value={sv} disabled={!selfEditable} onChange={(e) => upCur({ selfScores: { ...cur.selfScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className={`w-14 text-center py-1 text-xs ${INP}`} /><input type="number" min="0" max={it.max} step="0.25" value={mv} disabled={!mgrEditable} onChange={(e) => upCur({ mgrScores: { ...cur.mgrScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className="w-14 text-center font-bold text-neutral-900 bg-neutral-100 border border-neutral-300 rounded py-1 text-xs outline-none focus:border-neutral-900 disabled:opacity-50" /></div>
+                      <div key={g.id} className="border border-neutral-800 rounded-xl overflow-hidden">
+                        <button onClick={() => setOpen(isO ? null : g.id)} className="w-full flex items-center justify-between gap-2 px-3 py-2.5 bg-neutral-800 hover:bg-neutral-800 text-left"><span className="text-sm font-semibold text-neutral-200">{g.title}</span><span className="flex items-center gap-2 shrink-0"><span className="text-xs font-bold text-neutral-100">{sub.toFixed(1)}/{g.max}</span><ChevronDown className={`w-4 h-4 text-neutral-400 transition ${isO ? 'rotate-180' : ''}`} /></span></button>
+                        {isO && <div className="divide-y divide-neutral-800">{g.items.map((it) => { const sv = cur.selfScores[it.id] ?? it.max; const mv = cur.mgrScores[it.id] ?? sv; return (
+                          <div key={it.id} className="px-3 py-2 flex items-start gap-2"><span className="text-[11px] font-bold text-neutral-400 w-7 pt-1">{it.id}</span><p className="flex-1 text-xs text-neutral-300 pt-0.5">{it.text}</p><input type="number" min="0" max={it.max} step="0.25" value={sv} disabled={!selfEditable} onChange={(e) => upCur({ selfScores: { ...cur.selfScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className={`w-14 text-center py-1 text-xs ${INP}`} /><input type="number" min="0" max={it.max} step="0.25" value={mv} disabled={!mgrEditable} onChange={(e) => upCur({ mgrScores: { ...cur.mgrScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className="w-14 text-center font-bold text-neutral-100 bg-neutral-800 border border-neutral-700 rounded py-1 text-xs outline-none focus:border-neutral-900 disabled:opacity-50" /></div>
                         ); })}</div>}
                       </div>
                     ); })}
@@ -401,50 +401,50 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                 </section>
 
                 <section className={`${card} overflow-hidden`}>
-                  <div className="px-5 py-3 bg-neutral-100 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-2"><h3 className="font-bold text-neutral-900 text-sm">Nhóm II — Kết quả thực hiện nhiệm vụ</h3><span className="font-bold text-neutral-900 text-xs">{curC.nhomII.toFixed(2)} / 70</span></div>
+                  <div className="px-5 py-3 bg-neutral-800 border-b border-neutral-800 flex items-center justify-between flex-wrap gap-2"><h3 className="font-bold text-neutral-100 text-sm">Nhóm II — Kết quả thực hiện nhiệm vụ</h3><span className="font-bold text-neutral-100 text-xs">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-3 space-y-3">
                     {curC.isHd ? (
                       <>
-                        <p className="text-[11px] text-neutral-500 leading-relaxed">Lao động hỗ trợ, phục vụ (lái xe, bảo vệ, phục vụ, lễ tân, kỹ thuật, y tế...) chấm theo <b className="text-neutral-800">Sổ tay Chương III</b>: 3 tiêu chí, mỗi tiêu chí là <b>% mức đạt</b>. Điểm KQ = (Chất lượng + Tuân thủ + Hiệu quả)/3 × 70%.</p>
+                        <p className="text-[11px] text-neutral-400 leading-relaxed">Lao động hỗ trợ, phục vụ (lái xe, bảo vệ, phục vụ, lễ tân, kỹ thuật, y tế...) chấm theo <b className="text-neutral-800">Sổ tay Chương III</b>: 3 tiêu chí, mỗi tiêu chí là <b>% mức đạt</b>. Điểm KQ = (Chất lượng + Tuân thủ + Hiệu quả)/3 × 70%.</p>
                         <div className="space-y-2">{HD_CRITERIA.map((cr) => (
-                          <div key={cr.key} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
-                            <div className="flex items-center justify-between gap-2 mb-1"><span className="text-xs font-semibold text-neutral-800">{cr.label}</span><div className="flex items-center gap-1"><input type="number" min="0" max="100" value={(cur.hdScores || {})[cr.key] ?? 100} disabled={!taskEditable} onChange={(e) => upHd(cr.key, Math.max(0, Math.min(100, Number(e.target.value))))} className={`w-16 px-2 py-1 text-sm text-center font-semibold ${INP}`} /><span className="text-xs text-neutral-500">%</span></div></div>
+                          <div key={cr.key} className="border border-neutral-800 bg-neutral-800 rounded-xl p-3">
+                            <div className="flex items-center justify-between gap-2 mb-1"><span className="text-xs font-semibold text-neutral-800">{cr.label}</span><div className="flex items-center gap-1"><input type="number" min="0" max="100" value={(cur.hdScores || {})[cr.key] ?? 100} disabled={!taskEditable} onChange={(e) => upHd(cr.key, Math.max(0, Math.min(100, Number(e.target.value))))} className={`w-16 px-2 py-1 text-sm text-center font-semibold ${INP}`} /><span className="text-xs text-neutral-400">%</span></div></div>
                             <p className="text-[10px] text-neutral-400 leading-snug">{cr.desc}</p>
                           </div>
                         ))}</div>
                         <div className="grid grid-cols-4 gap-2 text-center">{[['Chất lượng', curC.k.a], ['Tuân thủ', curC.k.b], ['Hiệu quả', curC.k.c], ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => (
-                          <div key={l} className={`${idx === arr.length - 1 ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-100 border-neutral-200 text-neutral-600'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
+                          <div key={l} className={`${idx === arr.length - 1 ? 'bg-emerald-600 text-white border-neutral-900' : 'bg-neutral-800 border-neutral-800 text-neutral-300'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
                         ))}</div>
                       </>
                     ) : (
                       <>
-                        <p className="text-[11px] text-neutral-500 leading-relaxed">Đếm khách quan theo NĐ335: chọn công việc từ danh mục <b className="text-neutral-800">theo Phòng/Vị trí</b>, nhập <b className="text-neutral-800">Số lượng giao / Hoàn thành</b>, số lần <b>Lỗi chất lượng</b> (−25%/lần), <b>Chậm tiến độ</b> (−25%/lần). Hệ số quy đổi do hệ thống áp theo cấp độ N1–N5 (xem tab Hướng dẫn). Điểm KQ = {curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'} × 70%.</p>
+                        <p className="text-[11px] text-neutral-400 leading-relaxed">Đếm khách quan theo NĐ335: chọn công việc từ danh mục <b className="text-neutral-800">theo Phòng/Vị trí</b>, nhập <b className="text-neutral-800">Số lượng giao / Hoàn thành</b>, số lần <b>Lỗi chất lượng</b> (−25%/lần), <b>Chậm tiến độ</b> (−25%/lần). Hệ số quy đổi do hệ thống áp theo cấp độ N1–N5 (xem tab Hướng dẫn). Điểm KQ = {curC.leader ? '(a+b+c+d+đ+e)/6' : '(a+b+c)/3'} × 70%.</p>
                         {!cur.department && <p className="text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-2">Hãy chọn <b>Phòng / Bộ phận</b> ở phần thông tin để hiện danh mục công việc tương ứng.</p>}
                         {(cur.proTasks || []).map((t) => { const sc = proTaskPct(t); return (
-                          <div key={t.id} className="border border-neutral-200 bg-neutral-100 rounded-xl p-3">
-                            <div className="flex items-center gap-2 mb-2"><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask(t.id, { catalogId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-white" value="">— Chọn công việc theo vị trí —</option>{getProCatalog(cur.department).map((it) => <option className="bg-white" key={it.id} value={it.id}>[{it.nhom}] {it.name} ({it.sp})</option>)}</select><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-600' : sc >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{sc.toFixed(0)}%</span>{taskEditable && <button onClick={() => upCur({ proTasks: (cur.proTasks || []).filter((x) => x.id !== t.id) })} className="text-rose-600 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
-                            <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-neutral-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask(t.id, { objId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-white" value="">— Liên kết mục tiêu (OKR), nếu có —</option>{objectives.map((o) => <option className="bg-white" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+                          <div key={t.id} className="border border-neutral-800 bg-neutral-800 rounded-xl p-3">
+                            <div className="flex items-center gap-2 mb-2"><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask(t.id, { catalogId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-neutral-900" value="">— Chọn công việc theo vị trí —</option>{getProCatalog(cur.department).map((it) => <option className="bg-neutral-900" key={it.id} value={it.id}>[{it.nhom}] {it.name} ({it.sp})</option>)}</select><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-600' : sc >= 70 ? 'text-amber-600' : 'text-rose-600'}`}>{sc.toFixed(0)}%</span>{taskEditable && <button onClick={() => upCur({ proTasks: (cur.proTasks || []).filter((x) => x.id !== t.id) })} className="text-rose-600 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
+                            <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-neutral-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask(t.id, { objId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-neutral-900" value="">— Liên kết mục tiêu (OKR), nếu có —</option>{objectives.map((o) => <option className="bg-neutral-900" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
                             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{[['Số lượng giao', 'assigned', 1], ['Số lượng HT', 'completed', 0], ['Lỗi chất lượng', 'qualityIssues', 0], ['Chậm tiến độ', 'delays', 0]].map(([lb, key, mn]) => (
-                              <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-500">{lb}</span><input type="number" min={mn} value={t[key]} disabled={!taskEditable} onChange={(e) => upTask(t.id, { [key]: Math.max(mn, Number(e.target.value)) })} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
+                              <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-400">{lb}</span><input type="number" min={mn} value={t[key]} disabled={!taskEditable} onChange={(e) => upTask(t.id, { [key]: Math.max(mn, Number(e.target.value)) })} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
                             ))}</div>
                           </div>
                         ); })}
                         {taskEditable && (
                           <div className="flex flex-col sm:flex-row gap-2">
-                            <button onClick={() => upCur({ proTasks: [...(cur.proTasks || []), newProTask()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
-                            <button onClick={() => { const tpl = getProCatalog(cur.department).map((it) => ({ ...newProTask(), catalogId: it.id })); upCur({ proTasks: [...(cur.proTasks || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-neutral-900 text-white rounded-xl text-sm font-medium hover:bg-neutral-800"><Sparkles className="w-4 h-4" /> Nạp danh mục theo vị trí</button>
+                            <button onClick={() => upCur({ proTasks: [...(cur.proTasks || []), newProTask()] })} className="flex-1 flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-neutral-800 rounded-xl text-sm font-medium text-neutral-400 hover:border-neutral-400 hover:text-neutral-100"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>
+                            <button onClick={() => { const tpl = getProCatalog(cur.department).map((it) => ({ ...newProTask(), catalogId: it.id })); upCur({ proTasks: [...(cur.proTasks || []), ...tpl] }); }} className="flex-1 flex items-center justify-center gap-2 py-2.5 bg-emerald-600 text-white rounded-xl text-sm font-medium hover:bg-emerald-700"><Sparkles className="w-4 h-4" /> Nạp danh mục theo vị trí</button>
                           </div>
                         )}
                         {curC.leader && (
-                          <div className="border border-neutral-300 bg-neutral-100 rounded-xl p-3">
-                            <p className="text-[11px] font-bold text-neutral-900 mb-2">Thành phần lãnh đạo, quản lý (Điều 15 — mỗi mục 100% hoặc 50%)</p>
+                          <div className="border border-neutral-700 bg-neutral-800 rounded-xl p-3">
+                            <p className="text-[11px] font-bold text-neutral-100 mb-2">Thành phần lãnh đạo, quản lý (Điều 15 — mỗi mục 100% hoặc 50%)</p>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">{[['d — Kết quả lĩnh vực phụ trách', 'd'], ['đ — Tổ chức triển khai nhiệm vụ', 'dd'], ['e — Tập hợp, đoàn kết', 'e']].map(([lb, key]) => (
-                              <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-500">{lb}</span><select value={(cur.leadScores || {})[key] ?? 100} disabled={!mgrEditable} onChange={(e) => upLead(key, Number(e.target.value))} className={`mt-0.5 w-full px-2 py-1.5 text-sm ${INP}`}><option className="bg-white" value={100}>Đạt (100%)</option><option className="bg-white" value={50}>Hạn chế (50%)</option></select></label>
+                              <label key={key} className="block"><span className="text-[10px] font-semibold text-neutral-400">{lb}</span><select value={(cur.leadScores || {})[key] ?? 100} disabled={!mgrEditable} onChange={(e) => upLead(key, Number(e.target.value))} className={`mt-0.5 w-full px-2 py-1.5 text-sm ${INP}`}><option className="bg-neutral-900" value={100}>Đạt (100%)</option><option className="bg-neutral-900" value={50}>Hạn chế (50%)</option></select></label>
                             ))}</div>
                           </div>
                         )}
                         <div className={`grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-4'} gap-2 text-center`}>{[['Số lượng a', curC.k.a], ['Chất lượng b', curC.k.b], ['Tiến độ c', curC.k.c], ...(curC.leader ? [['Lĩnh vực d', (cur.leadScores || {}).d ?? 100], ['Tổ chức đ', (cur.leadScores || {}).dd ?? 100], ['Đoàn kết e', (cur.leadScores || {}).e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => (
-                          <div key={l} className={`${idx === arr.length - 1 ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-100 border-neutral-200 text-neutral-600'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
+                          <div key={l} className={`${idx === arr.length - 1 ? 'bg-emerald-600 text-white border-neutral-900' : 'bg-neutral-800 border-neutral-800 text-neutral-300'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
                         ))}</div>
                       </>
                     )}
@@ -452,12 +452,12 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
                 </section>
 
                 <section className={`${card} p-4 space-y-3`}>
-                  <label className="block"><span className="text-xs font-semibold text-neutral-500">Điểm trừ</span><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className={`mt-1 w-32 px-3 py-2 text-sm ${INP}`} /></label>
-                  <label className="block"><span className="text-xs font-semibold text-neutral-500">Ý kiến tự nhận xét</span><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
-                  <label className="block"><span className="text-xs font-semibold text-neutral-500">Nhận xét của cấp có thẩm quyền</span><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
+                  <label className="block"><span className="text-xs font-semibold text-neutral-400">Điểm trừ</span><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className={`mt-1 w-32 px-3 py-2 text-sm ${INP}`} /></label>
+                  <label className="block"><span className="text-xs font-semibold text-neutral-400">Ý kiến tự nhận xét</span><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
+                  <label className="block"><span className="text-xs font-semibold text-neutral-400">Nhận xét của cấp có thẩm quyền</span><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
                   <div className="flex gap-2">
-                    <button onClick={doWord} className="flex items-center gap-2 bg-neutral-700 hover:bg-neutral-800 text-neutral-900 font-semibold px-4 py-2 rounded-xl text-sm"><FileText className="w-4 h-4" /> Xuất phiếu Word</button>
-                    {!isGuest && <button onClick={handleSave} disabled={cloud.saving} className="flex items-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold px-4 py-2 rounded-xl text-sm disabled:opacity-60"><RotateCcw className="w-4 h-4" /> Lưu ngay</button>}
+                    <button onClick={doWord} className="flex items-center gap-2 bg-neutral-700 hover:bg-emerald-700 text-neutral-100 font-semibold px-4 py-2 rounded-xl text-sm"><FileText className="w-4 h-4" /> Xuất phiếu Word</button>
+                    {!isGuest && <button onClick={handleSave} disabled={cloud.saving} className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold px-4 py-2 rounded-xl text-sm disabled:opacity-60"><RotateCcw className="w-4 h-4" /> Lưu ngay</button>}
                   </div>
                 </section>
               </div>
@@ -470,24 +470,24 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
               <section className={`${card} p-5`}>
                 <div className="flex flex-col sm:flex-row sm:items-center gap-3 justify-between">
                   <div className="flex items-center gap-2 min-w-0">
-                    <Cpu className="w-5 h-5 text-neutral-900 shrink-0" />
-                    <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-3 py-2 text-sm ${INP}`}>{people.map((p) => <option className="bg-white" key={p.id} value={p.id}>{p.name || '(Chưa tên)'} — {p.position || CRITERIA[p.type].label}</option>)}</select>
+                    <Cpu className="w-5 h-5 text-neutral-100 shrink-0" />
+                    <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-3 py-2 text-sm ${INP}`}>{people.map((p) => <option className="bg-neutral-900" key={p.id} value={p.id}>{p.name || '(Chưa tên)'} — {p.position || CRITERIA[p.type].label}</option>)}</select>
                   </div>
                   <div className="flex items-center gap-3 text-sm">
-                    <span className="text-neutral-500">Chuẩn tối thiểu: <b className="text-neutral-900">Mức {minLv}</b></span>
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${digPassed === DIGITAL.length ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-neutral-100 text-neutral-900 border-neutral-300'}`}>{digPassed}/{DIGITAL.length} kỹ năng đạt</span>
+                    <span className="text-neutral-400">Chuẩn tối thiểu: <b className="text-neutral-100">Mức {minLv}</b></span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-bold border ${digPassed === DIGITAL.length ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-neutral-800 text-neutral-100 border-neutral-700'}`}>{digPassed}/{DIGITAL.length} kỹ năng đạt</span>
                   </div>
                 </div>
-                <p className="text-xs text-neutral-500 mt-2">Tự đánh giá Khung năng lực số — chỉ số phụ trợ, không cộng vào điểm tháng.</p>
+                <p className="text-xs text-neutral-400 mt-2">Tự đánh giá Khung năng lực số — chỉ số phụ trợ, không cộng vào điểm tháng.</p>
               </section>
               {DIGITAL.map((d) => { const lv = cur.digital[d.id] || 0; const ok = lv >= minLv; return (
                 <div key={d.id} className={`${card} p-4`}>
                   <div className="flex items-start gap-3">
-                    <span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${ok ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-100 text-neutral-500'}`}>{d.id}</span>
+                    <span className={`shrink-0 w-8 h-8 rounded-lg flex items-center justify-center font-bold text-sm ${ok ? 'bg-emerald-100 text-emerald-700' : 'bg-neutral-800 text-neutral-400'}`}>{d.id}</span>
                     <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-neutral-900 text-sm">{d.name}</p>{d.mandatory && <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded">BẮT BUỘC</span>}{lv > 0 && (ok ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertTriangle className="w-4 h-4 text-amber-600" />)}</div>
+                      <div className="flex items-center gap-2 flex-wrap"><p className="font-semibold text-neutral-100 text-sm">{d.name}</p>{d.mandatory && <span className="text-[10px] font-bold bg-rose-100 text-rose-700 px-1.5 py-0.5 rounded">BẮT BUỘC</span>}{lv > 0 && (ok ? <CheckCircle2 className="w-4 h-4 text-emerald-600" /> : <AlertTriangle className="w-4 h-4 text-amber-600" />)}</div>
                       <div className="flex flex-wrap gap-1.5 mt-2.5">{LEVELS.map((L) => (
-                        <button key={L.v} disabled={readOnly} onClick={() => upCur({ digital: { ...cur.digital, [d.id]: L.v } })} className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition disabled:opacity-60 ${lv === L.v ? 'bg-neutral-900 text-white border-neutral-900' : 'bg-neutral-100 text-neutral-600 border-neutral-200 hover:border-neutral-400'}`}>{L.s}</button>
+                        <button key={L.v} disabled={readOnly} onClick={() => upCur({ digital: { ...cur.digital, [d.id]: L.v } })} className={`px-2.5 py-1 rounded-lg text-xs font-medium border transition disabled:opacity-60 ${lv === L.v ? 'bg-emerald-600 text-white border-neutral-900' : 'bg-neutral-800 text-neutral-300 border-neutral-800 hover:border-neutral-400'}`}>{L.s}</button>
                       ))}</div>
                     </div>
                   </div>
@@ -499,49 +499,49 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {/* ===== THEO DÕI CV ===== */}
           {people.length > 0 && nav === 'tracking' && cur && (
             <div className={`${card} overflow-hidden`}>
-              <div className="p-5 border-b border-neutral-200 flex items-center justify-between flex-wrap gap-3">
+              <div className="p-5 border-b border-neutral-800 flex items-center justify-between flex-wrap gap-3">
                 <div>
-                  <h2 className="text-lg font-bold text-neutral-900 flex items-center gap-2"><ClipboardList className="w-5 h-5 text-neutral-900" /> Bảng kiểm đếm, theo dõi công việc</h2>
-                  <p className="text-sm text-neutral-500 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
-                  {canManage && <p className="text-[11px] text-neutral-400 mt-0.5">Nguồn: <a href={SHEET_URL} target="_blank" rel="noreferrer" className="text-neutral-900 underline">Google Sheet</a>{sheetSync.at ? ` · Đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ''}</p>}
+                  <h2 className="text-lg font-bold text-neutral-100 flex items-center gap-2"><ClipboardList className="w-5 h-5 text-neutral-100" /> Bảng kiểm đếm, theo dõi công việc</h2>
+                  <p className="text-sm text-neutral-400 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
+                  {canManage && <p className="text-[11px] text-neutral-400 mt-0.5">Nguồn: <a href={SHEET_URL} target="_blank" rel="noreferrer" className="text-neutral-100 underline">Google Sheet</a>{sheetSync.at ? ` · Đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ''}</p>}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-2.5 py-1.5 text-xs ${INP}`}>{people.map((p) => <option className="bg-white" key={p.id} value={p.id}>{p.name || '(Chưa tên)'}</option>)}</select>
+                  <select value={curId || ''} onChange={(e) => setCurId(Number(e.target.value))} className={`px-2.5 py-1.5 text-xs ${INP}`}>{people.map((p) => <option className="bg-neutral-900" key={p.id} value={p.id}>{p.name || '(Chưa tên)'}</option>)}</select>
                   <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className={`px-2 py-1.5 text-xs ${INP}`} />
-                  {canManage && <button onClick={syncFromSheet} disabled={sheetSync.busy} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-900 hover:bg-neutral-800 disabled:opacity-60 text-white rounded-lg text-xs font-semibold"><Cloud className="w-3.5 h-3.5" /> {sheetSync.busy ? 'Đang đồng bộ...' : 'Đồng bộ Sheet'}</button>}
-                  <button onClick={doExportTrackingPDF} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> PDF</button>
-                  <button onClick={doExportTrackingExcel} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-100 text-neutral-900 hover:bg-neutral-200 border border-neutral-200 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> Excel</button>
+                  {canManage && <button onClick={syncFromSheet} disabled={sheetSync.busy} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-lg text-xs font-semibold"><Cloud className="w-3.5 h-3.5" /> {sheetSync.busy ? 'Đang đồng bộ...' : 'Đồng bộ Sheet'}</button>}
+                  <button onClick={doExportTrackingPDF} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 text-neutral-100 hover:bg-neutral-200 border border-neutral-800 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> PDF</button>
+                  <button onClick={doExportTrackingExcel} className="flex items-center gap-1.5 px-3 py-1.5 bg-neutral-800 text-neutral-100 hover:bg-neutral-200 border border-neutral-800 rounded-lg text-xs font-semibold"><FileText className="w-3.5 h-3.5" /> Excel</button>
                 </div>
               </div>
               <fieldset disabled={readOnly} className="p-5 space-y-4 border-0">
                 <datalist id="coord-list"><option value="Văn phòng Đoàn ĐBQH và HĐND tỉnh" /><option value="Ban Pháp chế HĐND tỉnh" /><option value="Ban Kinh tế - Ngân sách HĐND tỉnh" /><option value="Ban Văn hóa - Xã hội HĐND tỉnh" /><option value="Ban Dân tộc HĐND tỉnh" /></datalist>
                 {(cur.trackings || []).map((t, idx) => (
-                  <div key={t.id} className="p-4 border border-neutral-200 bg-neutral-100 rounded-xl relative">
-                    <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-neutral-500 hover:text-rose-600 hover:bg-rose-500/10 rounded-md"><Trash2 className="w-4 h-4" /></button>
-                    <div className="mb-3 font-semibold text-neutral-700 text-sm flex items-center gap-2">Công việc #{idx + 1}{t.fromSheet && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">từ Google Sheet</span>}</div>
+                  <div key={t.id} className="p-4 border border-neutral-800 bg-neutral-800 rounded-xl relative">
+                    <button onClick={() => upCur({ trackings: (cur.trackings || []).filter((x) => x.id !== t.id) })} className="absolute top-3 right-3 p-1.5 text-neutral-400 hover:text-rose-600 hover:bg-rose-500/10 rounded-md"><Trash2 className="w-4 h-4" /></button>
+                    <div className="mb-3 font-semibold text-neutral-200 text-sm flex items-center gap-2">Công việc #{idx + 1}{t.fromSheet && <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 rounded px-1.5 py-0.5">từ Google Sheet</span>}</div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                      <div><label className="text-[11px] font-medium text-neutral-500">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Đơn vị chủ trì, phối hợp</label><input list="coord-list" value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className={`mt-1 w-full text-xs p-2 ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Nội dung công việc</label><textarea value={t.content} onChange={(e) => upTracking(t.id, { content: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Đơn vị chủ trì, phối hợp</label><input list="coord-list" value={t.coordination} onChange={(e) => upTracking(t.id, { coordination: e.target.value })} className={`mt-1 w-full text-xs p-2 ${INP}`} /></div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-3">
-                      <div><label className="text-[11px] font-medium text-neutral-500">Ý kiến chỉ đạo của TT HĐND</label><textarea value={t.directive} onChange={(e) => upTracking(t.id, { directive: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Sản phẩm cuối cùng</label><textarea value={t.finalProduct} onChange={(e) => upTracking(t.id, { finalProduct: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Ý kiến chỉ đạo của TT HĐND</label><textarea value={t.directive} onChange={(e) => upTracking(t.id, { directive: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Sản phẩm cuối cùng</label><textarea value={t.finalProduct} onChange={(e) => upTracking(t.id, { finalProduct: e.target.value })} className={`mt-1 w-full text-xs p-2 min-h-[60px] ${INP}`} /></div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-3">
-                      <div><label className="text-[11px] font-medium text-neutral-500">Triển khai</label><input placeholder="01/06/2026" value={t.startDate} onChange={(e) => upTracking(t.id, { startDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Hoàn thành</label><input placeholder="07/06/2026" value={t.endDate} onChange={(e) => upTracking(t.id, { endDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Đã thực hiện</label><textarea value={t.doneWork} onChange={(e) => upTracking(t.id, { doneWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Đang thực hiện</label><textarea value={t.doingWork} onChange={(e) => upTracking(t.id, { doingWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Triển khai</label><input placeholder="01/06/2026" value={t.startDate} onChange={(e) => upTracking(t.id, { startDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Hoàn thành</label><input placeholder="07/06/2026" value={t.endDate} onChange={(e) => upTracking(t.id, { endDate: e.target.value })} className={`mt-1 w-full text-xs p-1.5 ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Đã thực hiện</label><textarea value={t.doneWork} onChange={(e) => upTracking(t.id, { doneWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Đang thực hiện</label><textarea value={t.doingWork} onChange={(e) => upTracking(t.id, { doingWork: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                      <div><label className="text-[11px] font-medium text-neutral-500">Khó khăn, vướng mắc</label><textarea value={t.difficulties} onChange={(e) => upTracking(t.id, { difficulties: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Đề xuất, kiến nghị</label><textarea value={t.proposals} onChange={(e) => upTracking(t.id, { proposals: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
-                      <div><label className="text-[11px] font-medium text-neutral-500">Ghi chú</label><textarea value={t.note} onChange={(e) => upTracking(t.id, { note: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Khó khăn, vướng mắc</label><textarea value={t.difficulties} onChange={(e) => upTracking(t.id, { difficulties: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Đề xuất, kiến nghị</label><textarea value={t.proposals} onChange={(e) => upTracking(t.id, { proposals: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
+                      <div><label className="text-[11px] font-medium text-neutral-400">Ghi chú</label><textarea value={t.note} onChange={(e) => upTracking(t.id, { note: e.target.value })} className={`mt-1 w-full text-xs p-1.5 min-h-[40px] ${INP}`} /></div>
                     </div>
                   </div>
                 ))}
                 {!(cur.trackings?.length) && <div className="text-center py-10 text-neutral-400 text-sm">Chưa có công việc nào. Hãy thêm mới!</div>}
-                <button onClick={() => upCur({ trackings: [...(cur.trackings || []), newTracking()] })} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-neutral-200 rounded-xl text-sm font-medium text-neutral-500 hover:border-neutral-400 hover:text-neutral-900"><Plus className="w-4 h-4" /> Thêm công việc</button>
+                <button onClick={() => upCur({ trackings: [...(cur.trackings || []), newTracking()] })} className="w-full flex items-center justify-center gap-2 py-3 border-2 border-dashed border-neutral-800 rounded-xl text-sm font-medium text-neutral-400 hover:border-neutral-400 hover:text-neutral-100"><Plus className="w-4 h-4" /> Thêm công việc</button>
               </fieldset>
             </div>
           )}
@@ -550,7 +550,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {nav === 'guide' && (
             <div className="max-w-3xl space-y-4">
               <GBdark icon={TrendingUp} title="Thang điểm tổng — 100 điểm">Tổng = Nhóm I (Tiêu chí chung, ≤30) + Nhóm II (Kết quả thực hiện nhiệm vụ, ≤70) − Điểm trừ. Chấm 2 cấp: Tự đánh giá và Cấp duyệt (điểm xếp loại lấy theo Cấp duyệt).</GBdark>
-              <GBdark icon={Target} title="Nhóm II — Kết quả thực hiện nhiệm vụ (đúng NĐ335 + Sổ tay)">Danh mục công việc lập <b className="text-neutral-900">theo Phòng/Vị trí</b>, mỗi việc phân 1 trong 5 nhóm cấp độ N1–N5 (khung điểm tối đa 100/200/300/400/500). Đơn vị sản phẩm chuẩn = 5 điểm (hệ số 1); <b>hệ số quy đổi = điểm việc ÷ điểm chuẩn</b> (hệ thống áp tự động, ẩn khi chấm). Chấm đếm khách quan, cả 3 thành phần chia cho SỐ GIAO (đã quy đổi): a (số lượng) = Σ(HT×hệ số)/Σ(Giao×hệ số); b (chất lượng) = a sau khi trừ 25%/lần lỗi; c (tiến độ) = a sau khi trừ 25%/lần chậm. Cán bộ: <b>(a+b+c)/3</b>; lãnh đạo, quản lý: <b>(a+b+c+d+đ+e)/6</b> — d/đ/e mỗi mục 100% hoặc 50% (kết quả lĩnh vực, tổ chức triển khai, đoàn kết). <b>Lao động hỗ trợ, phục vụ</b> (Mẫu 04) chấm theo Sổ tay Chương III: 3 tiêu chí Chất lượng / Tuân thủ quy trình / Hiệu quả, Điểm = (a+b+c)/3. Đại biểu HĐND chuyên trách: công thức theo chức vụ (Thường trực, lãnh đạo Ban = 6 thành phần; ủy viên chuyên trách = 3). Nhóm II = Điểm KQ(%) × 70.</GBdark>
+              <GBdark icon={Target} title="Nhóm II — Kết quả thực hiện nhiệm vụ (đúng NĐ335 + Sổ tay)">Danh mục công việc lập <b className="text-neutral-100">theo Phòng/Vị trí</b>, mỗi việc phân 1 trong 5 nhóm cấp độ N1–N5 (khung điểm tối đa 100/200/300/400/500). Đơn vị sản phẩm chuẩn = 5 điểm (hệ số 1); <b>hệ số quy đổi = điểm việc ÷ điểm chuẩn</b> (hệ thống áp tự động, ẩn khi chấm). Chấm đếm khách quan, cả 3 thành phần chia cho SỐ GIAO (đã quy đổi): a (số lượng) = Σ(HT×hệ số)/Σ(Giao×hệ số); b (chất lượng) = a sau khi trừ 25%/lần lỗi; c (tiến độ) = a sau khi trừ 25%/lần chậm. Cán bộ: <b>(a+b+c)/3</b>; lãnh đạo, quản lý: <b>(a+b+c+d+đ+e)/6</b> — d/đ/e mỗi mục 100% hoặc 50% (kết quả lĩnh vực, tổ chức triển khai, đoàn kết). <b>Lao động hỗ trợ, phục vụ</b> (Mẫu 04) chấm theo Sổ tay Chương III: 3 tiêu chí Chất lượng / Tuân thủ quy trình / Hiệu quả, Điểm = (a+b+c)/3. Đại biểu HĐND chuyên trách: công thức theo chức vụ (Thường trực, lãnh đạo Ban = 6 thành phần; ủy viên chuyên trách = 3). Nhóm II = Điểm KQ(%) × 70.</GBdark>
               <GBdark icon={Award} title="Xếp loại & trần tỷ lệ">A: ≥90 (Hoàn thành xuất sắc) · B: 70–&lt;90 (Tốt) · C: 50–&lt;70 (Hoàn thành) · D: &lt;50. Trần: số "Xuất sắc" ≤ 20% số "Tốt" (đặc biệt ≤ 25%).</GBdark>
               <GBdark icon={CalendarDays} title="Quy trình & mốc thời gian">Trước 25: cán bộ tự đánh giá · Trước 26: cấp thẩm quyền cho ý kiến · Trước 28: quyết định xếp loại · Trước 05 tháng sau: công khai, biểu dương. Tháng 12 hoàn thành trước 15/12.</GBdark>
               <GBdark icon={ShieldCheck} title="Đăng nhập & phân quyền">Đăng nhập bằng email (mật khẩu hoặc liên kết). Mặc định là Cán bộ; Quản trị đặt Email + Phòng + Vai trò cho từng người ở tab Đánh giá. Cán bộ tự chấm phần mình; Trưởng phòng duyệt trong phòng; Quản trị toàn quyền. Có tài khoản khách (chỉ xem) để dùng thử.</GBdark>
@@ -563,20 +563,20 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
           {nav === 'contact' && (
             <div className="max-w-2xl grid md:grid-cols-2 gap-5">
               <section className={`${card} p-5`}>
-                <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-3"><Phone className="w-5 h-5 text-neutral-900" /> Thông tin liên hệ</h2>
-                <p className="font-bold text-neutral-900">{CONTACT.name}</p>
-                <p className="text-xs text-neutral-500 mb-3">Phụ trách hệ thống đánh giá OKR/KPI</p>
+                <h2 className="font-bold text-neutral-100 flex items-center gap-2 mb-3"><Phone className="w-5 h-5 text-neutral-100" /> Thông tin liên hệ</h2>
+                <p className="font-bold text-neutral-100">{CONTACT.name}</p>
+                <p className="text-xs text-neutral-400 mb-3">Phụ trách hệ thống đánh giá OKR/KPI</p>
                 <div className="space-y-2 text-sm">
-                  <a href={`tel:${CONTACT.phone}`} className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900"><Phone className="w-4 h-4 text-neutral-900" /> 0904 818 886</a>
-                  <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 text-neutral-700 hover:text-neutral-900"><Mail className="w-4 h-4 text-neutral-900" /> {CONTACT.email}</a>
+                  <a href={`tel:${CONTACT.phone}`} className="flex items-center gap-2 text-neutral-200 hover:text-neutral-100"><Phone className="w-4 h-4 text-neutral-100" /> 0904 818 886</a>
+                  <a href={`mailto:${CONTACT.email}`} className="flex items-center gap-2 text-neutral-200 hover:text-neutral-100"><Mail className="w-4 h-4 text-neutral-100" /> {CONTACT.email}</a>
                 </div>
               </section>
               <section className={`${card} p-5`}>
-                <h2 className="font-bold text-neutral-900 flex items-center gap-2 mb-3"><Send className="w-5 h-5 text-neutral-900" /> Gửi ý kiến góp ý</h2>
+                <h2 className="font-bold text-neutral-100 flex items-center gap-2 mb-3"><Send className="w-5 h-5 text-neutral-100" /> Gửi ý kiến góp ý</h2>
                 <input value={fb.name} onChange={(e) => setFb({ ...fb, name: e.target.value })} placeholder="Họ tên của bạn" className={`w-full px-3 py-2 text-sm mb-2 ${INP}`} />
                 <textarea value={fb.content} onChange={(e) => setFb({ ...fb, content: e.target.value })} rows={4} placeholder="Nội dung góp ý..." className={`w-full px-3 py-2 text-sm resize-y ${INP}`} />
-                <button onClick={sendFeedback} className="mt-2 w-full flex items-center justify-center gap-2 bg-neutral-900 hover:bg-neutral-800 text-white font-semibold py-2.5 rounded-xl text-sm"><Send className="w-4 h-4" /> Gửi ý kiến</button>
-                <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed">Bấm "Gửi ý kiến" sẽ mở ứng dụng email với nội dung điền sẵn, gửi tới <b className="text-neutral-600">{CONTACT.email}</b>.</p>
+                <button onClick={sendFeedback} className="mt-2 w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl text-sm"><Send className="w-4 h-4" /> Gửi ý kiến</button>
+                <p className="text-[11px] text-neutral-400 mt-2 leading-relaxed">Bấm "Gửi ý kiến" sẽ mở ứng dụng email với nội dung điền sẵn, gửi tới <b className="text-neutral-300">{CONTACT.email}</b>.</p>
               </section>
             </div>
           )}
