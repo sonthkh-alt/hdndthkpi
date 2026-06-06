@@ -73,6 +73,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const [sheetSync, setSheetSync] = useState({ at: null, busy: false });
   const [fb, setFb] = useState({ name: '', content: '' });
   const loaded = useRef(false), loadingRef = useRef(false), serverTsRef = useRef(null);
+  const catalogRef = useRef({ custom: [], hidden: [] }); // giữ danh mục tùy chỉnh để lưu kèm, tránh ghi đè mất (bản PRO không sửa)
 
   const refreshTrends = async () => {
     const all = await loadAllPeriods();
@@ -89,7 +90,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
     serverTsRef.current = res.serverTs;
     if (res.state) {
       const ppl = res.state.people || [];
-      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); bumpIds(ppl); bumpProIds(ppl);
+      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); catalogRef.current = res.state.catalog || { custom: [], hidden: [] }; bumpIds(ppl); bumpProIds(ppl);
     } else {
       const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
@@ -111,7 +112,7 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
     if (!loaded.current || loadingRef.current || session === 'guest') return;
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog: catalogRef.current, period }, serverTsRef.current);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
@@ -123,11 +124,11 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month }); if (!res.state) return;
     const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, proTasks: [], leadScores: {}, hdScores: {}, selfNote: '', mgrNote: '', trackings: [] }));
-    setObjectives(res.state.objectives || []); setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
+    setObjectives(res.state.objectives || []); catalogRef.current = res.state.catalog || { custom: [], hidden: [] }; setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
   const handleSave = async () => {
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog: catalogRef.current, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); } else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false })); refreshTrends();
   };

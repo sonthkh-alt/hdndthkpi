@@ -5,7 +5,7 @@ import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
-  CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson,
+  CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson, setCatalogRegistry,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
   DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
@@ -70,6 +70,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
   const [conflict, setConflict] = useState(false);
   const [seedFrom, setSeedFrom] = useState(null);
   const [trends, setTrends] = useState([]);
+  const [catalog, setCatalog] = useState({ custom: [], hidden: [] }); // danh mục công việc tùy chỉnh (quản trị sửa ở bản Cổ điển)
   const [open, setOpen] = useState(null);
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
   const [sheetSync, setSheetSync] = useState({ at: null, busy: false });
@@ -91,7 +92,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     serverTsRef.current = res.serverTs;
     if (res.state) {
       const ppl = res.state.people || [];
-      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); bumpIds(ppl);
+      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []); setCatalog(res.state.catalog || { custom: [], hidden: [] }); bumpIds(ppl);
     } else {
       const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
@@ -113,23 +114,23 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     if (!loaded.current || loadingRef.current || session === 'guest') return;
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
     }, 900);
     return () => clearTimeout(t);
-  }, [people, objectives, period, session]);
+  }, [people, objectives, catalog, period, session]);
 
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month }); if (!res.state) return;
     const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [] }));
-    setObjectives(res.state.objectives || []); setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
+    setObjectives(res.state.objectives || []); setCatalog(res.state.catalog || { custom: [], hidden: [] }); setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
   const handleSave = async () => {
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); } else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false })); refreshTrends();
   };
@@ -189,7 +190,8 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     window.location.href = `mailto:${CONTACT.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
   };
 
-  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
+  setCatalogRegistry(catalog); // đồng bộ danh mục tùy chỉnh trước khi tính điểm/đổ dropdown
+  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people, catalog]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;

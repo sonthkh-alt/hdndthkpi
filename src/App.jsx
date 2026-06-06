@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
@@ -147,6 +147,20 @@ const HDND_CATALOG = [
 // Danh mục gộp: dùng để tra hệ số (agg335) và lọc theo nhóm đối tượng (getND335Groups)
 const CATALOG = [...ND335_CATALOG, ...HDND_CATALOG];
 
+// ===== Danh mục công việc do QUẢN TRỊ tùy chỉnh (lưu theo kỳ trong state.catalog) =====
+// Đăng ký ở phạm vi module để getND335Groups/agg335 (hàm thuần) tra cứu được mà không phải
+// truyền tham số qua mọi nơi gọi. Mỗi phiên bản gọi setCatalogRegistry(catalog) khi render.
+// catalog = { custom: [{ id, name, group, output, level, maxScore, hasFactor, types[] }], hidden: [id,...] }
+const LEVEL_SCORE = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500, 'Hỗ trợ': 0 };
+let CUSTOM_CATALOG = [];   // công việc tùy chỉnh (gán theo Nhóm đối tượng qua trường types[])
+let HIDDEN_CATALOG = [];   // id công việc mặc định bị ẩn ("bớt" khỏi danh mục)
+function setCatalogRegistry(catalog) {
+  CUSTOM_CATALOG = (catalog && Array.isArray(catalog.custom)) ? catalog.custom : [];
+  HIDDEN_CATALOG = (catalog && Array.isArray(catalog.hidden)) ? catalog.hidden : [];
+}
+// Tra 1 mục danh mục theo id (gồm cả mặc định lẫn tùy chỉnh) — dùng cho hiển thị tên/hệ số.
+function findCatalogItem(id) { return CATALOG.find((c) => c.id === id) || CUSTOM_CATALOG.find((c) => c.id === id) || null; }
+
 const DIGITAL = [
   { id: 1, name: 'Nhận thức số và tư duy chuyển đổi số' },
   { id: 2, name: 'Khai thác dữ liệu và thông tin' },
@@ -238,7 +252,7 @@ function agg335(tasks335) {
   if (valid.length === 0) return { a: 100, b: 100, c: 100, val: 100 };
   let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0;
   valid.forEach(t => {
-    const cat = CATALOG.find(c => c.id === t.catalogId);
+    const cat = findCatalogItem(t.catalogId);
     if (!cat) return;
     // Hệ số làm trọng số; nhóm hỗ trợ (III.*) có hệ số 0 -> coi trọng số = 1 (đếm ngang nhau)
     const w = Number(cat.maxScore) || 1;
@@ -260,10 +274,15 @@ function agg335(tasks335) {
 }
 
 function getND335Groups(type) {
-  if (type === 'hdnd' || type === 'dbqh') return HDND_CATALOG;
-  if (type === 'contract') return ND335_CATALOG.filter(c => c.id.startsWith('III'));
-  if (type === 'staff') return ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
-  return ND335_CATALOG.filter(c => c.id.startsWith('I.A') || c.id.startsWith('I.B') || c.id.startsWith('II.B'));
+  let base;
+  if (type === 'hdnd' || type === 'dbqh') base = HDND_CATALOG;
+  else if (type === 'contract') base = ND335_CATALOG.filter(c => c.id.startsWith('III'));
+  else if (type === 'staff') base = ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
+  else base = ND335_CATALOG.filter(c => c.id.startsWith('I.A') || c.id.startsWith('I.B') || c.id.startsWith('II.B'));
+  // Bỏ các mục mặc định đã bị quản trị ẩn + thêm các mục tùy chỉnh được gán cho nhóm đối tượng này
+  base = base.filter(c => !HIDDEN_CATALOG.includes(c.id));
+  const custom = CUSTOM_CATALOG.filter(c => Array.isArray(c.types) && c.types.includes(type));
+  return [...base, ...custom];
 }
 
 function computePerson(p) {
@@ -312,6 +331,7 @@ export {
   CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
   classify, gradeClass, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson, isLeaderPerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
+  setCatalogRegistry, findCatalogItem, LEVEL_SCORE,
 };
 
 function getWeekTitle(dateObj) {
@@ -350,6 +370,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const [conflict, setConflict] = useState(false);
   const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
   const [trends, setTrends] = useState([]);
+  const [catalog, setCatalog] = useState({ custom: [], hidden: [] }); // danh mục công việc do quản trị tùy chỉnh (theo kỳ)
   const [showChangePw, setShowChangePw] = useState(false);
   const [sheetSync, setSheetSync] = useState({ at: null, busy: false }); // đồng bộ Google Sheet
 
@@ -377,6 +398,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (res.state) {
       const ppl = res.state.people || [];
       setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
+      setCatalog(res.state.catalog || { custom: [], hidden: [] });
       bumpCounters(ppl);
     } else {
       const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
@@ -407,13 +429,13 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (session === 'guest') return; // khách chỉ xem -> không tự lưu
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
     }, 900);
     return () => clearTimeout(t);
-  }, [people, objectives, period, session]);
+  }, [people, objectives, catalog, period, session]);
 
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
 
@@ -422,13 +444,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (!res.state) return;
     const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [] }));
     setObjectives(res.state.objectives || []);
+    setCatalog(res.state.catalog || { custom: [], hidden: [] }); // mang theo danh mục tùy chỉnh sang kỳ mới
     setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
 
   const handleManualSave = async () => {
     if (session === 'guest') return; // khách chỉ xem
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, period }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
     else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false }));
@@ -442,7 +465,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } }); // d/đ/e cho lãnh đạo
 
-  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
+  setCatalogRegistry(catalog); // đồng bộ registry danh mục trước khi tính điểm/đổ dropdown
+  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people, catalog]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
@@ -639,7 +663,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {tabs.map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50' : 'text-red-100/80 hover:text-white hover:bg-white/10'}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -673,7 +697,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
           </div>
         )}
 
-        {people.length === 0 && (
+        {people.length === 0 && tab !== 'catalog' && (
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center max-w-xl mx-auto">
             <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <h2 className="font-bold text-slate-800 text-lg">Kỳ tháng {period.month}/{period.year} chưa có dữ liệu</h2>
@@ -1182,6 +1206,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
           </div>
           </div>
         )}
+
+        {tab === 'catalog' && canManage && (
+          <CatalogManager catalog={catalog} onChange={setCatalog} />
+        )}
       </main>
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">
         <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</p>
@@ -1244,6 +1272,113 @@ function ContactCard() {
           <p className="text-[11px] text-slate-400 leading-relaxed">Khi bấm "Gửi ý kiến", hệ thống mở ứng dụng email của bạn với nội dung đã điền sẵn, gửi tới <b>{CONTACT_EMAIL}</b>. Vui lòng bấm Gửi trong ứng dụng email để hoàn tất.</p>
         </div>
       </div>
+    </div>
+  );
+}
+// ===== Quản trị: quản lý Danh mục công việc (Nhóm II) + gán Nhóm đối tượng đánh giá =====
+const LEVEL_OPTS = ['N1', 'N2', 'N3', 'N4', 'N5', 'Hỗ trợ'];
+function defaultTypesOfId(id) {
+  const ts = [];
+  if (id.startsWith('HD.')) ts.push('hdnd', 'dbqh');
+  if (id.startsWith('III')) ts.push('contract');
+  if (id.startsWith('II.A')) ts.push('staff');
+  if (id.startsWith('II.B')) ts.push('staff', 'leader');
+  if (id.startsWith('I.A') || id.startsWith('I.B')) ts.push('leader');
+  return ts;
+}
+function CatalogManager({ catalog, onChange }) {
+  const custom = catalog.custom || [];
+  const hidden = catalog.hidden || [];
+  const [form, setForm] = useState({ name: '', group: '', output: '', level: 'N2', types: [] });
+  const [showBuiltin, setShowBuiltin] = useState(false);
+  const typeOpts = CRITERIA_ORDER.map((k) => ({ k, mau: CRITERIA[k].mau.replace('Mẫu số ', 'Mẫu '), label: CRITERIA[k].label }));
+  const toggle = (arr, t) => (arr.includes(t) ? arr.filter((x) => x !== t) : [...arr, t]);
+
+  const addItem = () => {
+    if (!form.name.trim()) { alert('Vui lòng nhập tên công việc.'); return; }
+    if (!form.types.length) { alert('Vui lòng chọn ít nhất một Nhóm đối tượng để gán công việc.'); return; }
+    const id = 'CUS.' + Date.now().toString(36).toUpperCase();
+    const score = LEVEL_SCORE[form.level] ?? 200;
+    onChange({ ...catalog, custom: [...custom, { id, name: form.name.trim(), group: form.group.trim() || 'TÙY CHỈNH', output: form.output.trim(), level: form.level, maxScore: score, hasFactor: score > 0, types: [...form.types] }] });
+    setForm({ name: '', group: '', output: '', level: 'N2', types: [] });
+  };
+  const upItem = (id, patch) => onChange({ ...catalog, custom: custom.map((c) => (c.id === id ? { ...c, ...patch } : c)) });
+  const setItemLevel = (id, level) => { const score = LEVEL_SCORE[level] ?? 200; upItem(id, { level, maxScore: score, hasFactor: score > 0 }); };
+  const delItem = (id) => { if (window.confirm('Xóa công việc tùy chỉnh này khỏi danh mục?')) onChange({ ...catalog, custom: custom.filter((c) => c.id !== id) }); };
+  const toggleHidden = (id) => onChange({ ...catalog, hidden: hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id] });
+
+  const builtinGroups = useMemo(() => {
+    const m = new Map();
+    CATALOG.forEach((c) => { if (!m.has(c.group)) m.set(c.group, []); m.get(c.group).push(c); });
+    return [...m.entries()];
+  }, []);
+
+  const TypePills = ({ value, onToggle }) => (
+    <div className="flex flex-wrap gap-1.5">{typeOpts.map((o) => { const on = value.includes(o.k);
+      return (<button key={o.k} type="button" onClick={() => onToggle(o.k)} title={o.label} className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors ${on ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-500 border-slate-200 hover:border-red-300'}`}>{o.mau}</button>); })}</div>
+  );
+
+  return (
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><ListChecks className="w-6 h-6 text-red-700" /> Quản lý Danh mục công việc (Nhóm II)</h2>
+        <p className="text-sm text-slate-500 mt-1">Chỉ <b>Quản trị</b> được sửa. Thêm công việc mới và <b>gán cho Nhóm đối tượng đánh giá</b> (Mẫu 01–05); có thể <b>ẩn</b> công việc mặc định không dùng. Mỗi công việc gắn một <b>cấp độ</b> (N1–N5) quy ra hệ số đóng góp KPI. Danh mục lưu theo từng kỳ.</p>
+        <p className="text-xs text-slate-400 mt-2">Cấp độ → hệ số: N1=100 · N2=200 · N3=300 · N4=400 · N5=500 · Hỗ trợ=0. Áp dụng cho bản Cổ điển và bản Mới (bản PRO dùng danh mục theo Phòng riêng).</p>
+      </div>
+
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5"><h3 className="flex items-center gap-2 font-bold"><Plus className="w-5 h-5 text-amber-300" /> Thêm công việc mới</h3></div>
+        <div className="p-4 space-y-3">
+          <div className="grid sm:grid-cols-2 gap-3">
+            <Field label="Tên công việc *"><input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="VD: Tham mưu xây dựng đề án..." className="inp" /></Field>
+            <Field label="Nhóm/Phân loại (tùy chọn)"><input value={form.group} onChange={(e) => setForm({ ...form, group: e.target.value })} placeholder="VD: TÙY CHỈNH" className="inp" /></Field>
+            <Field label="Sản phẩm đầu ra (tùy chọn)"><input value={form.output} onChange={(e) => setForm({ ...form, output: e.target.value })} placeholder="VD: Đề án; Báo cáo..." className="inp" /></Field>
+            <Field label="Cấp độ phức tạp (hệ số)"><select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="inp">{LEVEL_OPTS.map((l) => <option key={l} value={l}>{l} (hệ số {LEVEL_SCORE[l]})</option>)}</select></Field>
+          </div>
+          <Field label="Gán cho Nhóm đối tượng đánh giá * (chọn 1 hoặc nhiều)"><TypePills value={form.types} onToggle={(t) => setForm({ ...form, types: toggle(form.types, t) })} /></Field>
+          <button onClick={addItem} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Plus className="w-4 h-4" /> Thêm vào danh mục</button>
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><h3 className="flex items-center gap-2 font-bold"><ListChecks className="w-5 h-5 text-amber-300" /> Công việc tùy chỉnh</h3><span className="text-xs text-slate-300">{custom.length} mục</span></div>
+        <div className="p-4 space-y-3">
+          {custom.length === 0 && <p className="text-sm text-slate-400 text-center py-4">Chưa có công việc tùy chỉnh nào. Thêm ở phần trên.</p>}
+          {custom.map((c) => (
+            <div key={c.id} className="border border-slate-200 rounded-xl p-3">
+              <div className="flex items-start gap-2">
+                <input value={c.name} onChange={(e) => upItem(c.id, { name: e.target.value })} className="flex-1 font-semibold text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400" />
+                <select value={c.level} onChange={(e) => setItemLevel(c.id, e.target.value)} className="shrink-0 text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400">{LEVEL_OPTS.map((l) => <option key={l} value={l}>{l} · {LEVEL_SCORE[l]}</option>)}</select>
+                <button onClick={() => delItem(c.id)} className="shrink-0 text-rose-400 hover:bg-rose-50 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+              </div>
+              <div className="mt-2"><span className="text-[11px] font-semibold text-slate-400 mr-2">Gán cho:</span><span className="inline-block align-middle"><TypePills value={c.types || []} onToggle={(t) => upItem(c.id, { types: toggle(c.types || [], t) })} /></span></div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <button onClick={() => setShowBuiltin((s) => !s)} className="w-full bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><span className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Công việc mặc định (ẩn/hiện)</span><span className="flex items-center gap-2 text-xs text-slate-300">{hidden.length > 0 && `${hidden.length} đang ẩn · `}{showBuiltin ? 'Thu gọn' : 'Mở rộng'}<ChevronDown className={`w-4 h-4 transition-transform ${showBuiltin ? 'rotate-180' : ''}`} /></span></button>
+        {showBuiltin && (
+          <div className="p-4 space-y-4">
+            <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Ẩn một công việc sẽ loại nó khỏi danh sách chọn khi chấm KPI (không xóa dữ liệu đã nhập trước đó). Thẻ màu là Nhóm đối tượng được áp dụng.</p>
+            {builtinGroups.map(([grp, items]) => (
+              <div key={grp} className="border border-slate-200 rounded-xl overflow-hidden">
+                <div className="bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">{grp}</div>
+                <div className="divide-y divide-slate-100">
+                  {items.map((c) => { const isHidden = hidden.includes(c.id); const ts = defaultTypesOfId(c.id);
+                    return (<div key={c.id} className={`px-3 py-2 flex items-center gap-2 ${isHidden ? 'opacity-50' : ''}`}>
+                      <span className="text-[10px] font-mono text-slate-400 shrink-0 w-14">[{c.id}]</span>
+                      <span className="flex-1 text-xs text-slate-700">{c.name}</span>
+                      <span className="hidden sm:flex gap-1 shrink-0">{ts.map((t) => <span key={t} className="text-[10px] font-semibold text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">{CRITERIA[t].mau.replace('Mẫu số ', 'M')}</span>)}</span>
+                      <button onClick={() => toggleHidden(c.id)} title={isHidden ? 'Hiện lại' : 'Ẩn'} className={`shrink-0 flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg border ${isHidden ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{isHidden ? <><Eye className="w-3.5 h-3.5" /> Hiện</> : <><EyeOff className="w-3.5 h-3.5" /> Ẩn</>}</button>
+                    </div>); })}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </section>
     </div>
   );
 }
