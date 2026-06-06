@@ -5,7 +5,7 @@ import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
-  CRITERIA, classify, statusOf, clamp, task335Score, getND335Groups, computePerson,
+  CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
   DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
@@ -80,7 +80,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     const all = await loadAllPeriods();
     setTrends(all.map(({ year, month, state }) => {
       const ppl = state?.people || []; const d = { A: 0, B: 0, C: 0, D: 0 }; let sum = 0;
-      ppl.forEach((p) => { const t = computePerson(p).totalMgr; d[classify(t).code]++; sum += t; });
+      ppl.forEach((p) => { const c = computePerson(p); d[c.grade]++; sum += c.totalMgr; });
       return { year, month, dist: d, avg: ppl.length ? sum / ppl.length : 0, count: ppl.length };
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
@@ -124,7 +124,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month }); if (!res.state) return;
-    const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], selfNote: '', mgrNote: '', trackings: [] }));
+    const ppl = (res.state.people || []).map((p) => ({ ...p, id: newPerson('', p.type).id, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [] }));
     setObjectives(res.state.objectives || []); setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
   const handleSave = async () => {
@@ -139,6 +139,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
   const upCur = (patch) => upPerson(curId, patch);
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (tid, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === tid ? { ...t, ...patch } : t)) });
+  const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } });
 
   const doExportTrackingPDF = async () => { const { exportTrackingPDF } = await import('./lib/exporters'); exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), UNIT, period); };
   const doExportTrackingExcel = async () => { const { exportTrackingExcel } = await import('./lib/exporters'); exportTrackingExcel(people, getWeekTitle(new Date(trackingDate)), UNIT); };
@@ -190,7 +191,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
-  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[classify(c.totalMgr).code]++); return d; }, [computed]);
+  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => { const ts = people.flatMap((p) => p.tasks335 || []).filter((t) => t.objId === oid && t.catalogId); return ts.length ? ts.reduce((s, t) => s + task335Score(t), 0) / ts.length : null; };
@@ -213,7 +214,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
 
   const doWord = async () => {
     if (!cur) return;
-    const r = classify(curC.totalMgr);
+    const r = gradeClass(curC.grade);
     const { exportWordPhieu } = await import('./lib/exporters');
     exportWordPhieu({ unit: UNIT, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: r.code, clsName: r.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
   };
@@ -225,7 +226,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     return <SetPassword unit={UNIT} email={myEmail} mode="create" onComplete={async () => setSession(await getSession())} />;
   }
 
-  const result = curC ? classify(curC.totalMgr) : classify(0);
+  const result = curC ? gradeClass(curC.grade) : classify(0);
   const navItems = [
     { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
     { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
@@ -339,7 +340,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
               <section className={`${card} overflow-hidden`}>
                 <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between"><h2 className="font-bold text-white flex items-center gap-2"><Users className="w-5 h-5 text-violet-300" /> Bảng tổng hợp kết quả</h2></div>
                 <div className="overflow-x-auto"><table className="w-full text-sm"><thead className="bg-white/5 text-slate-400 text-xs uppercase"><tr><th className="text-left px-4 py-2.5">Họ và tên</th><th className="text-left px-3 py-2.5">Chức vụ</th><th className="text-center px-3 py-2.5">Tự ĐG</th><th className="text-center px-3 py-2.5">Cấp duyệt</th><th className="text-center px-3 py-2.5">Xếp loại</th></tr></thead>
-                  <tbody className="divide-y divide-white/10">{computed.map(({ p, c }) => { const r = classify(c.totalMgr); return (
+                  <tbody className="divide-y divide-white/10">{computed.map(({ p, c }) => { const r = gradeClass(c.grade); return (
                     <tr key={p.id} className="hover:bg-white/5 cursor-pointer" onClick={() => { setCurId(p.id); setNav('eval'); }}><td className="px-4 py-3 font-semibold text-slate-100">{p.name || '(Chưa tên)'}</td><td className="px-3 py-3 text-slate-400 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-slate-400">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-white">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center justify-center w-6 h-6 rounded-full ${r.cls} text-white text-[10px] font-bold`}>{r.code}</span></td></tr>
                   ); })}</tbody></table></div>
               </section>
@@ -367,7 +368,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
             <div className="grid lg:grid-cols-[260px_1fr] gap-6 items-start">
               <aside className={`${card} overflow-hidden lg:sticky lg:top-20`}>
                 <div className="p-3 bg-white/5 border-b border-white/10 text-sm font-semibold text-slate-200 flex items-center gap-2"><Users className="w-4 h-4 text-violet-300" /> Danh sách cán bộ</div>
-                <div className="divide-y divide-white/10 max-h-[420px] overflow-y-auto">{people.map((p) => { const r = classify(computePerson(p).totalMgr); return (
+                <div className="divide-y divide-white/10 max-h-[420px] overflow-y-auto">{people.map((p) => { const r = gradeClass(computePerson(p).grade); return (
                   <button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-3 py-2.5 flex items-center gap-2.5 ${curId === p.id ? 'bg-violet-500/15' : 'hover:bg-white/5'}`}><span className={`w-7 h-7 rounded-full ${r.cls} text-white text-[10px] font-bold flex items-center justify-center shrink-0`}>{r.code}</span><div className="min-w-0"><p className={`text-sm font-medium truncate ${curId === p.id ? 'text-violet-200' : 'text-slate-200'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-500 truncate">{p.position || CRITERIA[p.type].label}</p></div></button>
                 ); })}</div>
                 {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople((ps) => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-2.5 bg-white/5 text-slate-400 text-sm font-medium hover:bg-white/10 border-t border-white/10"><Plus className="w-4 h-4" /> Thêm cán bộ</button>}
@@ -424,14 +425,29 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                       </div>
                     ); })}
                     {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-white/15 rounded-xl text-sm font-medium text-slate-400 hover:border-violet-400/50 hover:text-violet-300"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}
-                    <div className="grid grid-cols-4 gap-2 text-center">{[['Khối lượng', curC.k.a], ['Chất lượng', curC.k.b], ['Tiến độ', curC.k.c], ['Trung bình', curC.k.val]].map(([l, v], idx) => (
-                      <div key={l} className={`${idx === 3 ? 'bg-violet-500/15 border-violet-400/30 text-violet-200' : 'bg-white/5 border-white/10 text-slate-300'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
-                    ))}</div>
+                    {curC.leader && (
+                      <div className="rounded-xl border border-violet-400/30 bg-violet-500/10 p-3">
+                        <p className="text-[11px] font-bold text-violet-200 mb-2">Tiêu chí lãnh đạo, quản lý (Điều 7) — Điểm KQ = (a + b + c + d + đ + e) ÷ 6</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">{[['d', 'd — Lĩnh vực phụ trách'], ['dd', 'đ — Tổ chức triển khai'], ['e', 'e — Tập hợp, đoàn kết']].map(([key, lb]) => (
+                          <label key={key} className="block"><span className="text-[10px] font-semibold text-slate-400">{lb}</span><select value={(cur.leadScores || {})[key] ?? 100} disabled={!taskEditable} onChange={(e) => upLead(key, Number(e.target.value))} className={`mt-0.5 w-full px-2 py-1.5 text-sm ${INP}`}><option className="bg-slate-900" value={100}>Đạt (100%)</option><option className="bg-slate-900" value={50}>Hạn chế (50%)</option></select></label>
+                        ))}</div>
+                      </div>
+                    )}
+                    <div className={`grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-4'} gap-2 text-center`}>{[['Khối lượng', curC.k.a], ['Chất lượng', curC.k.b], ['Tiến độ', curC.k.c], ...(curC.leader ? [['Lĩnh vực', curC.k.d ?? 100], ['Tổ chức', curC.k.dd ?? 100], ['Đoàn kết', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (
+                      <div key={l} className={`${last ? 'bg-violet-500/15 border-violet-400/30 text-violet-200' : 'bg-white/5 border-white/10 text-slate-300'} rounded-lg py-2 border`}><p className="text-[10px]">{l}</p><p className="font-bold text-sm">{Number(v).toFixed(1)}%</p></div>
+                    ); })}</div>
                   </div>
                 </section>
 
                 <section className={`${card} p-4 space-y-3`}>
+                  {curC.gradeReasons && curC.gradeReasons.length > 0 && (
+                    <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-3">
+                      <p className="text-[11px] font-bold text-amber-200 mb-1.5">Điều kiện xếp loại (Điều 8)</p>
+                      <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-100/90 leading-relaxed">{curC.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                    </div>
+                  )}
                   <label className="block"><span className="text-xs font-semibold text-slate-400">Điểm trừ</span><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className={`mt-1 w-32 px-3 py-2 text-sm ${INP}`} /></label>
+                  <label className={`flex items-start gap-2.5 rounded-xl border p-3 ${cur.disciplined ? 'border-rose-400/40 bg-rose-500/10' : 'border-white/10 bg-white/5'}`}><input type="checkbox" checked={!!cur.disciplined} disabled={!mgrEditable} onChange={(e) => upCur({ disciplined: e.target.checked })} className="mt-0.5 w-4 h-4 accent-rose-500 disabled:opacity-50" /><span className="text-xs text-slate-300">Bị <b>kỷ luật đảng/hành chính</b> hoặc kết luận <b>suy thoái, vi phạm công vụ</b> trong kỳ → xếp loại "Không hoàn thành nhiệm vụ" (Điều 8.4).</span></label>
                   <label className="block"><span className="text-xs font-semibold text-slate-400">Ý kiến tự nhận xét</span><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
                   <label className="block"><span className="text-xs font-semibold text-slate-400">Nhận xét của cấp có thẩm quyền</span><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
                   <div className="flex gap-2">

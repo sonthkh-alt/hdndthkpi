@@ -44,12 +44,13 @@ const CRITERIA = {
       { id: '2.4', max: 1, text: 'Thực hiện nghiêm các nguyên tắc tổ chức của Đảng, nhất là tập trung dân chủ, tự phê bình và phê bình.' },
       { id: '2.5', max: 0.5, text: 'Thực hiện việc kê khai và công khai tài sản, thu nhập theo quy định.' },
       { id: '2.6', max: 0.5, text: 'Báo cáo đầy đủ, trung thực, cung cấp thông tin chính xác về thực hiện chức trách, nhiệm vụ với cấp trên.' } ] },
-    { id: 'L3', title: '3. Năng lực lãnh đạo, quản lý, chuyên môn; thái độ; đổi mới sáng tạo', max: 16, items: [
-      { id: '3.1', max: 4, text: 'Năng lực lãnh đạo, quản lý: tư duy hoạch định, tầm nhìn; tổng hợp, phân tích, dự báo; chỉ đạo, điều hành, giữ kỷ cương.' },
-      { id: '3.2', max: 3, text: 'Năng lực chuyên môn, nghiệp vụ theo vị trí việc làm: kiến thức chuyên sâu, phát hiện vấn đề mới, xử lý độc lập.' },
+    { id: 'L3', title: '3. Năng lực lãnh đạo, quản lý và chuyên môn, nghiệp vụ; khả năng thực thi; tác phong; đổi mới sáng tạo; cải cách hành chính, chuyển đổi số', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Năng lực lãnh đạo, quản lý: tư duy, khả năng hoạch định đường lối, chính sách; tầm nhìn, phương pháp làm việc khoa học; tổng hợp, phân tích, dự báo; chỉ đạo, điều hành, phân công khoa học, giám sát chặt chẽ, giữ kỷ cương, kỷ luật.' },
+      { id: '3.2', max: 3, text: 'Năng lực chuyên môn, nghiệp vụ theo vị trí việc làm: kiến thức chuyên sâu, am hiểu pháp luật, quy trình; phát hiện vấn đề mới, khó, đề xuất giải pháp khả thi; xử lý công việc độc lập, làm việc nhóm hiệu quả.' },
       { id: '3.3', max: 2, text: 'Khả năng đáp ứng yêu cầu thực thi nhiệm vụ được giao (thường xuyên và đột xuất).' },
-      { id: '3.4', max: 3, text: 'Thái độ công tác: trách nhiệm cao, đúng mực, lề lối hành chính chuyên nghiệp, phối hợp hiệu quả.' },
-      { id: '3.5', max: 4, text: 'Đổi mới sáng tạo, dám nghĩ, dám làm, dám chịu trách nhiệm; có sáng kiến, giải pháp đột phá, quyết đoán.' } ] },
+      { id: '3.4', max: 2, text: 'Tác phong, lề lối làm việc: trách nhiệm cao, cần cù; đúng mực, chuẩn mực; phối hợp hiệu quả; phương pháp làm việc khoa học, dân chủ, đúng nguyên tắc.' },
+      { id: '3.5', max: 3, text: 'Tinh thần đổi mới sáng tạo, dám nghĩ, dám làm, dám chịu trách nhiệm vì lợi ích chung; có sáng kiến, giải pháp đột phá; quyết đoán, tiên phong trong nhiệm vụ mới.' },
+      { id: '3.6', max: 3, text: 'Cải cách hành chính, chuyển đổi số và ứng dụng công nghệ thông tin của cơ quan, đơn vị; lập và giao nộp hồ sơ điện tử, hoàn thành đúng quy định.' } ] },
     { id: 'L4', title: '4. Về mức độ tín nhiệm, uy tín và khả năng quy tụ đoàn kết', max: 2, items: [
       { id: '4.1', max: 1, text: 'Có uy tín trong nội bộ, gương mẫu, gắn bó mật thiết với Nhân dân; được tín nhiệm cao.' },
       { id: '4.2', max: 1, text: 'Có khả năng quy tụ, đoàn kết nội bộ; xây dựng tập thể vững mạnh.' } ] },
@@ -57,23 +58,26 @@ const CRITERIA = {
       { id: '5.1', max: 1, text: 'Tinh thần tự phê bình, tự soi, tự sửa; chủ động nhận diện thiếu sót trong lãnh đạo, chỉ đạo.' },
       { id: '5.2', max: 1, text: 'Kết quả khắc phục hạn chế, khuyết điểm đã được chỉ ra của bản thân và trong phạm vi lãnh đạo.' } ] },
   ] },
-  staff: { label: 'Công chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
-    { id: 'S1', title: '1. Về chính trị, phẩm chất đạo đức và ý thức tổ chức kỷ luật', max: 15, items: [
-      { id: '1.1', max: 2, text: 'Có quan điểm, bản lĩnh chính trị vững vàng; kiên định lập trường; nghiên cứu, vận dụng chủ nghĩa Mác - Lênin, tư tưởng Hồ Chí Minh.' },
-      { id: '1.2', max: 2, text: 'Thực hiện nghiêm nguyên tắc tổ chức của Đảng; chấp hành pháp luật; nghiêm kỷ luật phát ngôn, bảo vệ bí mật nhà nước.' },
-      { id: '1.3', max: 2, text: 'Giữ gìn phẩm chất đạo đức, lối sống trong sáng; phòng, chống tham nhũng, tiêu cực; không suy thoái.' },
-      { id: '1.4', max: 2, text: 'Có ý thức tổ chức kỷ luật, tinh thần trách nhiệm; chấp hành phân công; thực hiện quy chế, nội quy.' },
-      { id: '1.5', max: 2, text: 'Thực hiện việc kê khai và công khai tài sản, thu nhập theo quy định.' },
-      { id: '1.6', max: 2, text: 'Báo cáo đầy đủ, trung thực, cung cấp thông tin chính xác về thực hiện nhiệm vụ với cấp trên.' },
-      { id: '1.7', max: 2, text: 'Giữ gìn đoàn kết nội bộ; quan hệ tốt với đồng nghiệp; tham gia xây dựng tổ chức đảng, đoàn thể.' },
-      { id: '1.8', max: 1, text: 'Gần gũi, sâu sát với cơ sở; giữ mối liên hệ với cấp ủy và Nhân dân nơi cư trú.' } ] },
-    { id: 'S2', title: '2. Năng lực chuyên môn; khả năng thực thi; thái độ; đổi mới sáng tạo', max: 10, items: [
-      { id: '2.1', max: 3, text: 'Năng lực chuyên môn theo vị trí việc làm: cập nhật kiến thức, xử lý độc lập, ứng dụng CNTT - chuyển đổi số.' },
-      { id: '2.2', max: 2, text: 'Khả năng đáp ứng yêu cầu thực thi nhiệm vụ được giao (thường xuyên và đột xuất).' },
-      { id: '2.3', max: 2, text: 'Thái độ công tác: trách nhiệm, tích cực; đúng mực, lề lối hành chính chuyên nghiệp.' },
-      { id: '2.4', max: 3, text: 'Đổi mới sáng tạo, dám nghĩ, dám làm, dám chịu trách nhiệm; có sản phẩm, giải pháp đột phá.' } ] },
-    { id: 'S3', title: '3. Về tự phê bình và phê bình, khắc phục hạn chế', max: 5, items: [
-      { id: '3.1', max: 5, text: 'Tinh thần tự phê bình, tự soi, tự sửa; tự giác nhận diện hạn chế và kết quả khắc phục hạn chế đã được chỉ ra.' } ] },
+  staff: { label: 'Công chức, viên chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
+    { id: 'S1', title: '1. Về chính trị, tư tưởng', max: 5, items: [
+      { id: '1.1', max: 2.5, text: 'Có quan điểm, bản lĩnh chính trị vững vàng; kiên định lập trường; không dao động trước mọi khó khăn, thách thức; có ý thức nghiên cứu, học tập, vận dụng chủ nghĩa Mác - Lênin, tư tưởng Hồ Chí Minh, nghị quyết, chỉ thị, quyết định và các văn bản của Đảng, Nhà nước.' },
+      { id: '1.2', max: 2.5, text: 'Thực hiện nghiêm các nguyên tắc tổ chức và hoạt động của Đảng, nhất là nguyên tắc tập trung dân chủ, tự phê bình và phê bình; chấp hành đường lối, chủ trương của Đảng, chính sách, pháp luật của Nhà nước; thực hiện nghiêm về kỷ luật phát ngôn, bảo vệ bí mật nhà nước.' } ] },
+    { id: 'S2', title: '2. Về phẩm chất đạo đức và ý thức tổ chức kỷ luật', max: 5, items: [
+      { id: '2.1', max: 1, text: 'Giữ gìn phẩm chất đạo đức, lối sống trong sáng, trung thực, khiêm tốn, chân thành, giản dị; tham gia phòng, chống tham nhũng, lãng phí, tiêu cực; không suy thoái về tư tưởng chính trị, đạo đức, lối sống, "tự diễn biến", "tự chuyển hoá"; không tham ô, vụ lợi.' },
+      { id: '2.2', max: 1, text: 'Có ý thức tổ chức kỷ luật, tinh thần trách nhiệm trong công tác; chấp hành sự phân công của tổ chức; thực hiện các quy định, quy chế, nội quy của tổ chức, cơ quan, đơn vị nơi công tác.' },
+      { id: '2.3', max: 0.5, text: 'Thực hiện việc kê khai và công khai tài sản, thu nhập theo quy định (đối với trường hợp thuộc diện phải kê khai).' },
+      { id: '2.4', max: 0.5, text: 'Báo cáo đầy đủ, trung thực, cung cấp thông tin chính xác, khách quan về việc thực hiện chức trách, nhiệm vụ được giao với cấp trên khi được yêu cầu.' },
+      { id: '2.5', max: 1, text: 'Giữ gìn đoàn kết nội bộ; có quan hệ tốt với đồng chí, đồng nghiệp; tích cực tham gia xây dựng tổ chức đảng, đoàn thể và các phong trào tập thể.' },
+      { id: '2.6', max: 1, text: 'Gần gũi, sâu sát với cơ sở; thực hiện tốt việc giữ mối liên hệ với cấp ủy và Nhân dân nơi cư trú.' } ] },
+    { id: 'S3', title: '3. Năng lực chuyên môn, nghiệp vụ; khả năng thực thi; tác phong; đổi mới sáng tạo; cải cách hành chính, chuyển đổi số', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Năng lực chuyên môn, nghiệp vụ theo yêu cầu của vị trí việc làm: hiểu biết đầy đủ lĩnh vực công tác, nắm vững pháp luật, quy trình nghiệp vụ; thường xuyên cập nhật kiến thức mới, nghiên cứu, phân tích, tổng hợp; xử lý công việc độc lập, làm việc nhóm hiệu quả.' },
+      { id: '3.2', max: 3, text: 'Khả năng đáp ứng yêu cầu thực thi nhiệm vụ được giao (nhiệm vụ thường xuyên và nhiệm vụ đột xuất).' },
+      { id: '3.3', max: 3, text: 'Tác phong, lề lối làm việc: tinh thần trách nhiệm cao, tích cực; thái độ đúng mực, chuẩn mực; phối hợp hiệu quả; phương pháp làm việc khoa học, dân chủ, đúng nguyên tắc.' },
+      { id: '3.4', max: 3, text: 'Tinh thần đổi mới sáng tạo, dám nghĩ, dám làm, dám chịu trách nhiệm vì lợi ích chung; có sản phẩm, giải pháp đột phá, tác động tích cực đến kết quả thực hiện nhiệm vụ của cơ quan, đơn vị.' },
+      { id: '3.5', max: 4, text: 'Cải cách hành chính, chuyển đổi số và ứng dụng công nghệ thông tin: sử dụng thành thạo công nghệ thông tin vào công việc chuyên môn; lập và giao nộp hồ sơ điện tử, hoàn thành đúng quy định.' } ] },
+    { id: 'S4', title: '4. Về tự phê bình và phê bình, khắc phục hạn chế, khuyết điểm', max: 4, items: [
+      { id: '4.1', max: 2, text: 'Tinh thần tự phê bình, tự soi, tự sửa của cá nhân; mức độ tự giác nhận diện hạn chế, khuyết điểm của bản thân.' },
+      { id: '4.2', max: 2, text: 'Kết quả khắc phục những hạn chế, khuyết điểm đã được chỉ ra.' } ] },
   ] },
   contract: { label: 'Lao động hợp đồng hỗ trợ, phục vụ', mau: 'Mẫu số 05', formula: '(a+b+c)/3', groups: [
     { id: 'C1', title: '1. Về chính trị, phẩm chất đạo đức và ý thức tổ chức kỷ luật', max: 15, items: [
@@ -108,6 +112,17 @@ CRITERIA.dbqh = {
 };
 // Thứ tự hiển thị nhóm đối tượng (Mẫu 01 → 05)
 const CRITERIA_ORDER = ['hdnd', 'dbqh', 'leader', 'staff', 'contract'];
+
+// Chức danh được coi là "giữ chức vụ lãnh đạo, quản lý" → áp công thức 6 thành phần (Điều 7 QĐ 1053).
+// Dùng chung cho cả 3 phiên bản (bản PRO import lại từ đây).
+const LEADER_TITLES = ['Chủ tịch', 'Phó Chủ tịch', 'Trưởng Đoàn', 'Phó Trưởng Đoàn', 'Trưởng Ban', 'Phó Trưởng Ban', 'Chánh Văn phòng', 'Phó Chánh Văn phòng', 'Trưởng phòng', 'Phó Trưởng phòng'];
+function isLeaderPerson(p) {
+  if (!p) return false;
+  if (p.type === 'leader') return true;            // Mẫu 03: luôn là lãnh đạo, quản lý
+  if (p.type === 'staff' || p.type === 'contract') return false; // Mẫu 04/05: không giữ chức vụ
+  const pos = p.position || '';                    // Đại biểu HĐND/QH (Mẫu 01/02): theo CHỨC VỤ
+  return LEADER_TITLES.some((t) => pos.includes(t));
+}
 
 // Danh mục công việc (Nhóm II) cho nhóm Đại biểu HĐND chuyên trách — theo 3 vai trò trong tài liệu.
 const HDND_CATALOG = [
@@ -145,11 +160,62 @@ const DIGITAL = [
 const LEVELS = [{ v: 0, s: 'Chưa' }, { v: 1, s: 'Mức 1' }, { v: 2, s: 'Mức 2' }, { v: 3, s: 'Mức 3' }, { v: 4, s: 'Mức 4' }];
 const MIN_DIGITAL = { leader: 3, staff: 2, contract: 1, hdnd: 3, dbqh: 3 };
 
-function classify(t) {
-  if (t >= 90) return { code: 'A', name: 'Hoàn thành xuất sắc nhiệm vụ', cls: 'bg-emerald-500', ring: 'text-emerald-600', soft: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500' };
-  if (t >= 70) return { code: 'B', name: 'Hoàn thành tốt nhiệm vụ', cls: 'bg-sky-500', ring: 'text-sky-600', soft: 'bg-sky-50 text-sky-700 border-sky-200', bar: 'bg-sky-500' };
-  if (t >= 50) return { code: 'C', name: 'Hoàn thành nhiệm vụ', cls: 'bg-amber-500', ring: 'text-amber-600', soft: 'bg-amber-50 text-amber-700 border-amber-200', bar: 'bg-amber-500' };
-  return { code: 'D', name: 'Không hoàn thành nhiệm vụ', cls: 'bg-rose-500', ring: 'text-rose-600', soft: 'bg-rose-50 text-rose-700 border-rose-200', bar: 'bg-rose-500' };
+const GRADES = {
+  A: { code: 'A', name: 'Hoàn thành xuất sắc nhiệm vụ', cls: 'bg-emerald-500', ring: 'text-emerald-600', soft: 'bg-emerald-50 text-emerald-700 border-emerald-200', bar: 'bg-emerald-500' },
+  B: { code: 'B', name: 'Hoàn thành tốt nhiệm vụ', cls: 'bg-sky-500', ring: 'text-sky-600', soft: 'bg-sky-50 text-sky-700 border-sky-200', bar: 'bg-sky-500' },
+  C: { code: 'C', name: 'Hoàn thành nhiệm vụ', cls: 'bg-amber-500', ring: 'text-amber-600', soft: 'bg-amber-50 text-amber-700 border-amber-200', bar: 'bg-amber-500' },
+  D: { code: 'D', name: 'Không hoàn thành nhiệm vụ', cls: 'bg-rose-500', ring: 'text-rose-600', soft: 'bg-rose-50 text-rose-700 border-rose-200', bar: 'bg-rose-500' },
+};
+const gradeFromScore = (t) => (t >= 90 ? 'A' : t >= 70 ? 'B' : t >= 50 ? 'C' : 'D');
+// Xếp loại theo NGƯỠNG ĐIỂM (dùng cho hiển thị màu/biểu đồ tổng hợp; KHÔNG áp điều kiện Điều 8).
+function classify(t) { return GRADES[gradeFromScore(t)]; }
+// Lấy bộ màu/nhãn theo mã xếp loại đã tính (A/B/C/D).
+const gradeClass = (code) => GRADES[code] || GRADES.D;
+
+// Thống kê khách quan các nhiệm vụ Nhóm II (để áp điều kiện xếp loại Điều 8).
+// hoàn thành = HT ≥ giao; vượt mức = HT > giao; chậm = có lần chậm tiến độ.
+function taskStats(tasks) {
+  const valid = (tasks || []).filter((t) => t.catalogId);
+  const n = valid.length;
+  if (!n) return { n: 0, completedRate: 100, exceedRate: 0, delayRate: 0, notDoneRate: 0 };
+  let done = 0, exceed = 0, delay = 0;
+  valid.forEach((t) => {
+    const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
+    if (as > 0 && cp >= as) done++;
+    if (as > 0 && cp > as) exceed++;
+    if ((Number(t.delays) || 0) > 0) delay++;
+  });
+  return { n, completedRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, notDoneRate: ((n - done) / n) * 100 };
+}
+
+// Xác định mức xếp loại theo Điều 8 QĐ 1053: ngưỡng điểm + điều kiện định lượng.
+// Trả { code, reasons[] } — reasons giải thích vì sao hạ/chốt mức (minh bạch khi chấm).
+function evalGradeCode(score, st, { disciplined = false, leader = false } = {}) {
+  const reasons = [];
+  // Khoản 4 — các trường hợp Không hoàn thành nhiệm vụ (chốt mức D)
+  if (disciplined) return { code: 'D', reasons: ['Bị xử lý kỷ luật đảng/hành chính hoặc bị kết luận suy thoái, vi phạm công vụ trong kỳ → Không hoàn thành nhiệm vụ (Điều 8 khoản 4).'] };
+  if (st.n > 0 && leader && st.completedRate < 70) return { code: 'D', reasons: [`Lĩnh vực/đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ (hiện ${st.completedRate.toFixed(0)}%) → Không hoàn thành nhiệm vụ (Điều 8.4.1).`] };
+  if (st.n > 0 && !leader && st.notDoneRate > 50) return { code: 'D', reasons: [`Trên 50% số nhiệm vụ không hoàn thành (hiện ${st.notDoneRate.toFixed(0)}%) → Không hoàn thành nhiệm vụ (Điều 8.4.2).`] };
+
+  let code = gradeFromScore(score);
+  // HTXS (A): ngoài ≥90 điểm, phải hoàn thành 100% nhiệm vụ và có ≥30% nhiệm vụ vượt mức
+  if (code === 'A') {
+    if (st.n === 0) { code = 'B'; reasons.push('Đạt ≥90 điểm nhưng chưa nhập nhiệm vụ để xác nhận hoàn thành 100% và ≥30% vượt mức → tạm xếp Hoàn thành tốt (Điều 8.1).'); }
+    else if (st.completedRate < 100 || st.exceedRate < 30) {
+      code = 'B';
+      reasons.push(`Đạt ≥90 điểm nhưng chưa đủ điều kiện Hoàn thành xuất sắc — cần hoàn thành 100% nhiệm vụ${st.completedRate < 100 ? ` (hiện ${st.completedRate.toFixed(0)}%)` : ''} và ≥30% nhiệm vụ vượt mức${st.exceedRate < 30 ? ` (hiện ${st.exceedRate.toFixed(0)}%)` : ''} → Hoàn thành tốt (Điều 8.1).`);
+    }
+  }
+  // HTT (B): phải hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng
+  if (code === 'B' && st.n > 0 && st.completedRate < 100) {
+    code = 'C';
+    reasons.push(`Chưa hoàn thành 100% nhiệm vụ (hiện ${st.completedRate.toFixed(0)}%) → Hoàn thành nhiệm vụ (Điều 8.2).`);
+  }
+  // HTNV (C): số nhiệm vụ chưa bảo đảm tiến độ không vượt quá 20% (chỉ cảnh báo)
+  if (code === 'C' && st.n > 0 && st.delayRate > 20) {
+    reasons.push(`Lưu ý: tỷ lệ nhiệm vụ chưa bảo đảm tiến độ là ${st.delayRate.toFixed(0)}%, vượt mức 20% (Điều 8.3).`);
+  }
+  return { code, reasons };
 }
 function statusOf(p) {
   if (p >= 90) return { label: 'Đúng tiến độ', dot: 'bg-emerald-500', txt: 'text-emerald-600', soft: 'bg-emerald-50' };
@@ -208,18 +274,31 @@ function computePerson(p) {
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
   const k = agg335(p.tasks335);
+  const leader = isLeaderPerson(p);
+  // Lãnh đạo, quản lý (Điều 7): Điểm KQ = (a+b+c+d+đ+e)/6. d/đ/e mỗi mục 100% hoặc 50%.
+  if (leader) {
+    const ls = p.leadScores || {};
+    const d = Number(ls.d ?? 100), dd = Number(ls.dd ?? 100), e = Number(ls.e ?? 100);
+    k.d = d; k.dd = dd; k.e = e;
+    k.val = (k.a + k.b + k.c + d + dd + e) / 6;
+  }
   const nhomII = (k.val / 100) * 70;
   const ded = Number(p.deduction || 0);
+  const totalSelf = clamp(nself + nhomII - ded);
+  const totalMgr = clamp(nmgr + nhomII - ded);
+  const st = taskStats(p.tasks335);
+  const g = evalGradeCode(totalMgr, st, { disciplined: !!p.disciplined, leader });
 
   return {
-    nself, nmgr, k, nhomII,
-    totalSelf: clamp(nself + nhomII - ded), totalMgr: clamp(nmgr + nhomII - ded),
+    nself, nmgr, k, leader, st, nhomII,
+    totalSelf, totalMgr,
+    grade: g.code, gradeReasons: g.reasons,
   };
 }
 let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [] });
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
 function bumpIds(people) {
   const ppl = people || [];
@@ -231,7 +310,7 @@ function bumpIds(people) {
 // ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
 export {
   CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
-  classify, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson,
+  classify, gradeClass, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson, isLeaderPerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
 };
 
@@ -285,7 +364,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     setTrends(all.map(({ year, month, state }) => {
       const ppl = state?.people || [];
       const d = { A: 0, B: 0, C: 0, D: 0 }; let sum = 0;
-      ppl.forEach((p) => { const t = computePerson(p).totalMgr; d[classify(t).code]++; sum += t; });
+      ppl.forEach((p) => { const c = computePerson(p); d[c.grade]++; sum += c.totalMgr; });
       return { year, month, dist: d, avg: ppl.length ? sum / ppl.length : 0, count: ppl.length };
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
@@ -341,7 +420,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month });
     if (!res.state) return;
-    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], selfNote: '', mgrNote: '', trackings: [] }));
+    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [] }));
     setObjectives(res.state.objectives || []);
     setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
@@ -361,10 +440,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const upCur = (patch) => upPerson(curId, patch);
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
+  const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } }); // d/đ/e cho lãnh đạo
 
   const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
-  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[classify(c.totalMgr).code]++); return d; }, [computed]);
+  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
@@ -381,7 +461,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
   ];
   const cfg = cur ? CRITERIA[cur.type] : null;
-  const result = curC ? classify(curC.totalMgr) : classify(0);
+  const result = curC ? gradeClass(curC.grade) : classify(0);
   const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
   const digPassed = cur ? DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length : 0;
 
@@ -389,7 +469,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const doExcel = async () => {
     const { exportExcel1A } = await import('./lib/exporters');
     exportExcel1A(
-      computed.map(({ p, c }) => ({ name: p.name || '(Chưa tên)', position: p.position || CRITERIA[p.type].label, self: c.totalSelf.toFixed(1), mgr: c.totalMgr.toFixed(1), cls: classify(c.totalMgr).code })),
+      computed.map(({ p, c }) => ({ name: p.name || '(Chưa tên)', position: p.position || CRITERIA[p.type].label, self: c.totalSelf.toFixed(1), mgr: c.totalMgr.toFixed(1), cls: c.grade })),
       period, unit
     );
   };
@@ -662,7 +742,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <table className="w-full text-sm">
                   <thead className="bg-slate-50 text-slate-500 text-xs uppercase"><tr><th className="text-left px-4 py-2.5 font-semibold">Họ và tên</th><th className="text-left px-3 py-2.5 font-semibold">Chức vụ</th><th className="text-center px-3 py-2.5 font-semibold">Tự ĐG</th><th className="text-center px-3 py-2.5 font-semibold">Cấp thẩm quyền</th><th className="text-center px-3 py-2.5 font-semibold">Xếp loại</th></tr></thead>
                   <tbody className="divide-y divide-slate-100">
-                    {computed.map(({ p, c }) => { const r = classify(c.totalMgr);
+                    {computed.map(({ p, c }) => { const r = gradeClass(c.grade);
                       return (<tr key={p.id} className="hover:bg-slate-50 cursor-pointer" onClick={() => { setCurId(p.id); setTab('eval'); }}><td className="px-4 py-3 font-semibold text-slate-700">{p.name || '(Chưa đặt tên)'}</td><td className="px-3 py-3 text-slate-500 text-xs">{p.position || CRITERIA[p.type].label}</td><td className="px-3 py-3 text-center text-slate-500">{c.totalSelf.toFixed(1)}</td><td className="px-3 py-3 text-center font-bold text-slate-800">{c.totalMgr.toFixed(1)}</td><td className="px-3 py-3 text-center"><span className={`inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-bold ${r.soft}`}><span className={`w-5 h-5 rounded-full ${r.cls} text-white flex items-center justify-center text-[10px]`}>{r.code}</span></span></td></tr>); })}
                   </tbody>
                 </table>
@@ -777,11 +857,31 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                         <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
                       </div>); })}</div>
                     {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}
-                    <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ['Trung bình', curC.k.val]].map(([l, v], idx) => (<div key={l} className={`${idx === 3 ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${idx === 3 ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>))}</div>
+                    {curC.leader && (
+                      <div className="mt-4 rounded-xl border border-red-200 bg-red-50/60 p-3">
+                        <p className="text-[11px] font-bold text-red-700 flex items-center gap-1.5 mb-2"><ShieldCheck className="w-3.5 h-3.5" /> Tiêu chí lãnh đạo, quản lý (Điều 7) — Điểm KQ = (a + b + c + d + đ + e) ÷ 6</p>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {[['d', 'd — Kết quả lĩnh vực/đơn vị phụ trách'], ['dd', 'đ — Khả năng tổ chức triển khai nhiệm vụ'], ['e', 'e — Năng lực tập hợp, đoàn kết nội bộ']].map(([key, lb]) => (
+                            <label key={key} className="block"><span className="text-[11px] font-medium text-slate-600">{lb}</span>
+                              <select value={(cur.leadScores || {})[key] ?? 100} disabled={!taskEditable} onChange={(e) => upLead(key, Number(e.target.value))} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed">
+                                <option value={100}>Đạt (100%)</option>
+                                <option value={50}>Hạn chế (50%)</option>
+                              </select>
+                            </label>
+                          ))}
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-1.5">d: 100% nếu 100% cán bộ thuộc quyền đạt "Hoàn thành nhiệm vụ" trở lên, 50% nếu có người không hoàn thành. đ/e: 100% nếu triển khai tốt/đoàn kết, 50% nếu chậm trễ kéo dài hoặc mất đoàn kết nội bộ (Điều 7 khoản 2).</p>
+                      </div>
+                    )}
+                    <div className={`mt-4 grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-center`}>{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ...(curC.leader ? [['Lĩnh vực (d)', curC.k.d ?? 100], ['Tổ chức (đ)', curC.k.dd ?? 100], ['Đoàn kết (e)', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (<div key={l} className={`${last ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${last ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>); })}</div>
                   </div>
                 </section>
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                   <div><h2 className="flex items-center gap-2 font-bold text-slate-800 mb-2"><AlertTriangle className="w-5 h-5 text-amber-600" /> Điểm trừ</h2><div className="flex items-center gap-3"><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className="inp w-32 disabled:bg-slate-50 disabled:text-slate-500" /><span className="text-sm text-slate-500">điểm — theo mức độ vi phạm (cấp duyệt nhập).</span></div></div>
+                  <label className={`flex items-start gap-2.5 rounded-xl border p-3 ${cur.disciplined ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-slate-50'}`}>
+                    <input type="checkbox" checked={!!cur.disciplined} disabled={!mgrEditable} onChange={(e) => upCur({ disciplined: e.target.checked })} className="mt-0.5 w-4 h-4 accent-rose-600 disabled:opacity-50" />
+                    <span className="text-sm text-slate-600">Bị <b>xử lý kỷ luật đảng/hành chính</b> hoặc bị kết luận <b>suy thoái, vi phạm liên quan công vụ</b> trong kỳ. <span className="text-rose-600 font-semibold">Khi tích, hệ thống xếp loại "Không hoàn thành nhiệm vụ"</span> theo Điều 8 khoản 4.</span>
+                  </label>
                   <Field label="Ý kiến tự nhận xét của cá nhân"><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                   <Field label="Nhận xét, kết luận của cấp có thẩm quyền"><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                 </section>
@@ -791,11 +891,19 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <div className={`${result.cls} text-white text-center py-5`}><p className="text-xs opacity-90 uppercase tracking-wider">Tổng điểm (cấp duyệt)</p><p className="text-5xl font-extrabold mt-1">{curC.totalMgr.toFixed(2)}</p><p className="text-sm opacity-90">Tự đánh giá: {curC.totalSelf.toFixed(2)} / 100</p></div>
                   <div className="p-4 text-center border-b border-slate-100"><span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm ${result.soft}`}><span className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center font-extrabold">{result.code}</span>{result.name}</span></div>
                   <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger /><div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
+                  {curC.gradeReasons && curC.gradeReasons.length > 0 && (
+                    <div className="px-4 pb-4">
+                      <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
+                        <p className="text-[11px] font-bold text-amber-800 flex items-center gap-1.5 mb-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Điều kiện xếp loại (Điều 8)</p>
+                        <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-800 leading-relaxed">{curC.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 space-y-2">
                   <button onClick={doWord} className="w-full flex items-center justify-center gap-2 bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2.5 rounded-xl"><FileText className="w-4 h-4" /> Xuất phiếu Word</button>
                   <button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl"><Printer className="w-4 h-4" /> In phiếu (PDF)</button>
-                  {(canManage || mgrEditable) && <button onClick={() => { if (!window.confirm('Đặt lại toàn bộ điểm và nhiệm vụ của cán bộ này về mặc định?')) return; upCur({ selfScores: {}, mgrScores: {}, deduction: 0, tasks335: [newTask335()], selfNote: '', mgrNote: '' }); }} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>}
+                  {(canManage || mgrEditable) && <button onClick={() => { if (!window.confirm('Đặt lại toàn bộ điểm và nhiệm vụ của cán bộ này về mặc định?')) return; upCur({ selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '' }); }} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>}
                 </div>
               </div></aside>
             </div>
@@ -955,14 +1063,15 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             </GB>
 
             <GB icon={ClipboardList} title="3. Nhóm I — Tiêu chí chung (tối đa 30 điểm)">
-              <p>Đánh giá phẩm chất chính trị, đạo đức, ý thức kỷ luật, năng lực, thái độ... theo bộ tiêu chí tương ứng nhóm đối tượng:</p>
+              <p>Đánh giá phẩm chất chính trị, tư tưởng, đạo đức, ý thức kỷ luật, năng lực, tác phong... theo bộ tiêu chí của từng nhóm đối tượng (theo QĐ số 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa):</p>
               <ul className="list-disc pl-5 space-y-1 mt-1">
-                <li><b>Mẫu 02</b> — Cán bộ lãnh đạo, quản lý.</li>
-                <li><b>Mẫu 03</b> — Công chức, viên chức không lãnh đạo.</li>
-                <li><b>Mẫu 04</b> — Lao động hợp đồng hỗ trợ, phục vụ.</li>
-                <li><b>Mẫu 05</b> — Đại biểu HĐND tỉnh hoạt động chuyên trách (Thường trực HĐND, lãnh đạo các Ban, ủy viên chuyên trách) — dùng chung Tiêu chí chung như nhóm lãnh đạo.</li>
+                <li><b>Mẫu 01</b> — Đại biểu HĐND tỉnh hoạt động chuyên trách. <span className="text-slate-500">Dùng chung tiêu chí với nhóm lãnh đạo; Nhóm II tính theo chức vụ.</span></li>
+                <li><b>Mẫu 02</b> — Đại biểu Quốc hội hoạt động chuyên trách. <span className="text-slate-500">Tương tự Mẫu 01.</span></li>
+                <li><b>Mẫu 03</b> — Cán bộ, công chức, viên chức <b>giữ chức vụ lãnh đạo, quản lý</b> (Phụ lục 03): chính trị tư tưởng (5) + phẩm chất đạo đức, kỷ luật (5) + năng lực lãnh đạo–chuyên môn–tác phong–đổi mới–chuyển đổi số (16) + tín nhiệm, đoàn kết (2) + tự phê bình (2).</li>
+                <li><b>Mẫu 04</b> — Công chức, viên chức <b>không giữ chức vụ lãnh đạo</b> (Phụ lục 01): chính trị tư tưởng (5) + phẩm chất đạo đức, kỷ luật (5) + năng lực chuyên môn–thực thi–tác phong–đổi mới–chuyển đổi số (16) + tự phê bình và phê bình (4).</li>
+                <li><b>Mẫu 05</b> — Lao động hợp đồng hỗ trợ, phục vụ (Phụ lục 02): chính trị, đạo đức, kỷ luật (15) + năng lực chuyên môn, thực thi (10) + tự phê bình (5).</li>
               </ul>
-              <p className="mt-2">Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí, <b>giới hạn không quá 30</b>. Nhập điểm ở 2 cột Tự ĐG và Cấp duyệt.</p>
+              <p className="mt-2">Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí, <b>giới hạn không quá 30</b>. Nhập điểm ở 2 cột Tự ĐG và Cấp duyệt; hệ thống lấy cột <b>Cấp duyệt</b> để xếp loại chính thức.</p>
             </GB>
 
             <GB icon={Target} title="4. Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)">
@@ -972,7 +1081,17 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <p><b>a — Khối lượng</b> = Σ(Hoàn thành × hệ số) ÷ Σ(Giao × hệ số) × 100%</p>
                 <p><b>b — Chất lượng</b> = bình quân [1 − 0,25 × số Lỗi] theo hệ số × 100% <span className="text-slate-500">(mỗi lỗi −25%)</span></p>
                 <p><b>c — Tiến độ</b> = bình quân [1 − 0,25 × số lần Chậm] theo hệ số × 100% <span className="text-slate-500">(mỗi lần chậm −25%)</span></p>
-                <p className="pt-1 border-t border-slate-200 font-bold text-red-700">Điểm Nhóm II = (a + b + c) ÷ 3 × 70%</p>
+                <p className="pt-1 border-t border-slate-200 font-bold text-red-700">Điểm Nhóm II = (a + b + c) ÷ 3 × 70% <span className="text-slate-500 font-normal">(công chức, viên chức, lao động hợp đồng)</span></p>
+              </div>
+              <div className="mt-2 bg-red-50 border border-red-200 rounded-lg p-3 text-[13px]">
+                <p className="font-bold text-red-800 mb-1">Với cán bộ giữ chức vụ lãnh đạo, quản lý (Điều 7)</p>
+                <p>Điểm KQ = <b>(a + b + c + d + đ + e) ÷ 6</b>, bổ sung 3 thành phần (mỗi mục 100% hoặc 50%):</p>
+                <ul className="list-disc pl-5 mt-1 space-y-0.5">
+                  <li><b>d</b> — Kết quả lĩnh vực/đơn vị phụ trách: 100% nếu 100% cán bộ dưới quyền đạt "Hoàn thành nhiệm vụ" trở lên; 50% nếu có người không hoàn thành.</li>
+                  <li><b>đ</b> — Khả năng tổ chức triển khai nhiệm vụ: 100% nếu hoàn thành đúng hạn, có sáng kiến; 50% nếu chậm trễ kéo dài.</li>
+                  <li><b>e</b> — Năng lực tập hợp, đoàn kết: 100% nếu đoàn kết; 50% nếu có mâu thuẫn, mất đoàn kết nội bộ kéo dài.</li>
+                </ul>
+                <p className="mt-1 text-slate-600">Hệ thống tự nhận biết lãnh đạo theo <b>chức vụ</b> và hiện ô nhập d/đ/e ngay trong tab Đánh giá.</p>
               </div>
               <div className="mt-3 bg-amber-50 border border-amber-200 rounded-lg p-3">
                 <p className="font-bold text-amber-800 mb-1">Ví dụ tính cụ thể</p>
@@ -998,15 +1117,27 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <GB icon={Award} title="7. Bốn mức xếp loại & trần tỷ lệ">
               <div className="grid sm:grid-cols-2 gap-2">{[['A', '≥ 90', 'Hoàn thành xuất sắc', 'emerald'], ['B', '70 → <90', 'Hoàn thành tốt', 'sky'], ['C', '50 → <70', 'Hoàn thành nhiệm vụ', 'amber'], ['D', '< 50', 'Không hoàn thành', 'rose']].map(([c, r, n, col]) => (<div key={c} className={`flex items-center gap-3 p-3 rounded-xl border bg-${col}-50 border-${col}-200`}><span className={`w-9 h-9 rounded-full bg-${col}-500 text-white font-extrabold flex items-center justify-center`}>{c}</span><div><p className={`font-bold text-${col}-700 text-sm`}>{n}</p><p className="text-xs text-slate-500">{r} điểm</p></div></div>))}</div>
               <p className="mt-2"><b>Trần xuất sắc:</b> số "Hoàn thành xuất sắc" (A) không vượt quá <b>20%</b> số "Hoàn thành tốt" (B). Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</p>
+              <div className="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p className="font-semibold text-slate-700 mb-1">Điều kiện định lượng (Điều 8) — hệ thống tự áp dụng ngoài ngưỡng điểm:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li><b>Hoàn thành xuất sắc (A):</b> ngoài ≥90 điểm, phải hoàn thành <b>100% nhiệm vụ</b> và có <b>≥30% nhiệm vụ vượt mức</b> (số hoàn thành &gt; số giao). Chưa đủ thì hạ xuống Hoàn thành tốt.</li>
+                  <li><b>Hoàn thành tốt (B):</b> hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng; nếu chưa đủ 100% thì xuống Hoàn thành nhiệm vụ.</li>
+                  <li><b>Hoàn thành nhiệm vụ (C):</b> số nhiệm vụ chưa bảo đảm tiến độ không quá 20% (hệ thống nhắc khi vượt).</li>
+                  <li><b>Không hoàn thành (D):</b> bị <b>kỷ luật/kết luận suy thoái</b> (tích ở mục Điểm trừ); hoặc lãnh đạo có đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ; hoặc trên 50% nhiệm vụ không hoàn thành.</li>
+                </ul>
+                <p className="mt-1 text-slate-500">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> ngay trong thẻ kết quả ở tab Đánh giá.</p>
+              </div>
             </GB>
 
             <GB icon={CalendarDays} title="8. Quy trình 2 cấp & mốc thời gian">
               <ol className="list-decimal pl-5 space-y-1">
-                <li>Trước ngày <b>25</b>: cán bộ tự đánh giá (cột Tự ĐG).</li>
-                <li>Trước ngày <b>26</b>: cấp có thẩm quyền cho ý kiến.</li>
+                <li>Đầu tháng: cơ quan xây dựng <b>kế hoạch công tác tháng</b>; cán bộ lập <b>lịch công tác tuần</b> làm cơ sở kiểm đếm.</li>
+                <li>Trước ngày <b>25</b>: cán bộ tự đánh giá, nhận mức xếp loại (cột Tự ĐG).</li>
+                <li>Trước ngày <b>26</b>: cấp trên trực tiếp cho ý kiến nhận xét.</li>
                 <li>Trước ngày <b>28</b>: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt).</li>
-                <li>Trước ngày <b>05 tháng sau</b>: công khai, biểu dương.</li>
+                <li>Trước ngày <b>05 tháng sau</b>: công khai kết quả, biểu dương, khen thưởng.</li>
               </ol>
+              <p className="mt-2">Đánh giá thực hiện <b>theo tháng</b>; riêng <b>tháng 12</b> hoàn thành trước <b>ngày 15/12</b> (trước khi xếp loại đảng viên và bình xét thi đua năm). Kết quả hằng tháng là căn cứ xếp loại quý/năm và đảng viên (Điều 10, 11 QĐ 1053).</p>
             </GB>
 
             <GB icon={Cloud} title="9. Lưu dữ liệu theo kỳ & lịch sử">
@@ -1122,7 +1253,7 @@ function AddPerson({ onAdd }) {
 }
 function PersonChips({ people, curId, setCurId, onDelete, onAdd, hideDelete }) {
   const [adding, setAdding] = useState(false);
-  return (<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3"><div className="flex items-center gap-2 overflow-x-auto pb-1">{people.map((p) => { const on = p.id === curId; const r = classify(computePerson(p).totalMgr);
+  return (<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3"><div className="flex items-center gap-2 overflow-x-auto pb-1">{people.map((p) => { const on = p.id === curId; const r = gradeClass(computePerson(p).grade);
     return (<div key={p.id} className={`shrink-0 flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border-2 cursor-pointer transition-all ${on ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`} onClick={() => setCurId(p.id)}><span className={`w-6 h-6 rounded-full ${r.cls} text-white text-[10px] font-bold flex items-center justify-center`}>{r.code}</span><div className="text-left"><p className="text-sm font-semibold text-slate-700 leading-none whitespace-nowrap">{p.name || '(Chưa tên)'}</p><p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">{CRITERIA[p.type].mau}</p></div>{!hideDelete && people.length > 1 && <button onClick={(e) => { e.stopPropagation(); onDelete(p.id); }} className="text-slate-300 hover:text-rose-500 p-0.5"><Trash2 className="w-3.5 h-3.5" /></button>}</div>); })}
     <button onClick={() => setAdding(!adding)} className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-red-400 hover:text-red-600 text-sm font-medium"><UserPlus className="w-4 h-4" /> Thêm</button>
   </div>{adding && <div className="mt-3 pt-3 border-t border-slate-100"><AddPerson onAdd={(n, t) => { onAdd(n, t); setAdding(false); }} /></div>}</div>);

@@ -12,7 +12,7 @@
 //      đ = khả năng tổ chức triển khai (100% / 50%)
 //      e = năng lực tập hợp, đoàn kết (100% / 50%)
 //  - Nhóm II = Điểm KQ(%) × 70 (trong thang 100). Tổng = Nhóm I (≤30) + Nhóm II − Điểm trừ.
-import { CRITERIA, clamp } from '../App.jsx';
+import { CRITERIA, clamp, isLeaderPerson } from '../App.jsx';
 
 // 5 nhóm cấp độ phức tạp + khung điểm tối đa (Sổ tay Chương II)
 export const PRO_GROUPS = [
@@ -108,18 +108,11 @@ export const bumpProIds = (people) => {
   tid = Math.max(tid, 0, ...ids) + 1;
 };
 
-// Lãnh đạo, quản lý -> 6 thành phần. Với nhóm HĐND (hdnd) thì tùy CHỨC VỤ:
-// Thường trực HĐND, Trưởng/Phó các Ban, Chánh/Phó VP... = lãnh đạo (6 thành phần);
-// Ủy viên chuyên trách, Chuyên viên = không giữ chức vụ quản lý (3 thành phần).
-const LEADER_TITLES = ['Chủ tịch', 'Phó Chủ tịch', 'Trưởng Đoàn', 'Phó Trưởng Đoàn', 'Trưởng Ban', 'Phó Trưởng Ban', 'Chánh Văn phòng', 'Phó Chánh Văn phòng', 'Trưởng phòng', 'Phó Trưởng phòng'];
+// Lãnh đạo, quản lý -> 6 thành phần (Điều 7). isLeaderPerson dùng chung từ App.jsx
+// (Thường trực HĐND, Trưởng/Phó các Ban, Chánh/Phó VP... = lãnh đạo; Ủy viên chuyên trách,
+// Chuyên viên = không giữ chức vụ quản lý). Re-export để AppPro.jsx tiếp tục import từ đây.
 export const isLeaderType = (type) => type === 'leader';
-export const isLeaderPerson = (p) => {
-  if (!p) return false;
-  if (p.type === 'leader') return true;
-  if (p.type === 'staff' || p.type === 'contract') return false;
-  const pos = p.position || ''; // hdnd: theo chức vụ
-  return LEADER_TITLES.some((t) => pos.includes(t));
-};
+export { isLeaderPerson };
 
 // Lao động hợp đồng hỗ trợ, phục vụ — Sổ tay Chương III: 3 tiêu chí, Điểm = (cl+tt+hq)/3
 export const HD_CRITERIA = [

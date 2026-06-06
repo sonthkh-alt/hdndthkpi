@@ -14,7 +14,7 @@ export function deptSummary(computed) {
     g.sum += c.totalMgr;
     g.sumQ += Number(c.nmgr) || 0;     // Nhóm I — tiêu chí chung (chất lượng), tối đa 30
     g.sumK += Number(c.nhomII) || 0;   // Nhóm II — kết quả nhiệm vụ (KPI), tối đa 70
-    g[ratingCode(c.totalMgr)]++;
+    g[c.grade || ratingCode(c.totalMgr)]++; // ưu tiên mã xếp loại đã tính (Điều 8); fallback ngưỡng điểm (bản PRO)
   });
   return [...map.values()]
     .map((g) => {
