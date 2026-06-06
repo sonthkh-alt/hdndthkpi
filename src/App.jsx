@@ -154,12 +154,36 @@ const CATALOG = [...ND335_CATALOG, ...HDND_CATALOG];
 const LEVEL_SCORE = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500, 'Hỗ trợ': 0 };
 let CUSTOM_CATALOG = [];   // công việc tùy chỉnh (gán theo Nhóm đối tượng qua trường types[])
 let HIDDEN_CATALOG = [];   // id công việc mặc định bị ẩn ("bớt" khỏi danh mục)
+let OVERRIDES = {};        // { [id]: { name?, group?, output?, level?, maxScore?, types? } } ghi đè thông số (cả mặc định lẫn tùy chỉnh)
 function setCatalogRegistry(catalog) {
   CUSTOM_CATALOG = (catalog && Array.isArray(catalog.custom)) ? catalog.custom : [];
   HIDDEN_CATALOG = (catalog && Array.isArray(catalog.hidden)) ? catalog.hidden : [];
+  OVERRIDES = (catalog && catalog.overrides && typeof catalog.overrides === 'object') ? catalog.overrides : {};
 }
-// Tra 1 mục danh mục theo id (gồm cả mặc định lẫn tùy chỉnh) — dùng cho hiển thị tên/hệ số.
-function findCatalogItem(id) { return CATALOG.find((c) => c.id === id) || CUSTOM_CATALOG.find((c) => c.id === id) || null; }
+// Nhóm đối tượng MẶC ĐỊNH của 1 công việc theo tiền tố id (khi chưa ghi đè types).
+function defaultTypesOfId(id) {
+  const ts = [];
+  if (id.startsWith('HD.')) ts.push('hdnd', 'dbqh');
+  if (id.startsWith('III')) ts.push('contract');
+  if (id.startsWith('II.A')) ts.push('staff');
+  if (id.startsWith('II.B')) ts.push('staff', 'leader');
+  if (id.startsWith('I.A') || id.startsWith('I.B')) ts.push('leader');
+  return ts;
+}
+// Áp ghi đè (nếu có) lên 1 mục danh mục gốc.
+function applyOverride(c) { const ov = OVERRIDES[c.id]; return ov ? { ...c, ...ov } : c; }
+// Nhóm đối tượng HIỆU LỰC của 1 mục (ưu tiên ghi đè → trường types của mục → mặc định theo id).
+function effectiveTypes(c) {
+  const ov = OVERRIDES[c.id];
+  if (ov && Array.isArray(ov.types)) return ov.types;
+  if (Array.isArray(c.types)) return c.types;
+  return defaultTypesOfId(c.id);
+}
+// Tra 1 mục danh mục theo id (gồm cả mặc định lẫn tùy chỉnh, đã áp ghi đè) — dùng cho tên/hệ số.
+function findCatalogItem(id) {
+  const base = CATALOG.find((c) => c.id === id) || CUSTOM_CATALOG.find((c) => c.id === id);
+  return base ? applyOverride(base) : null;
+}
 
 const DIGITAL = [
   { id: 1, name: 'Nhận thức số và tư duy chuyển đổi số' },
@@ -274,15 +298,11 @@ function agg335(tasks335) {
 }
 
 function getND335Groups(type) {
-  let base;
-  if (type === 'hdnd' || type === 'dbqh') base = HDND_CATALOG;
-  else if (type === 'contract') base = ND335_CATALOG.filter(c => c.id.startsWith('III'));
-  else if (type === 'staff') base = ND335_CATALOG.filter(c => c.id.startsWith('II.A') || c.id.startsWith('II.B'));
-  else base = ND335_CATALOG.filter(c => c.id.startsWith('I.A') || c.id.startsWith('I.B') || c.id.startsWith('II.B'));
-  // Bỏ các mục mặc định đã bị quản trị ẩn + thêm các mục tùy chỉnh được gán cho nhóm đối tượng này
-  base = base.filter(c => !HIDDEN_CATALOG.includes(c.id));
-  const custom = CUSTOM_CATALOG.filter(c => Array.isArray(c.types) && c.types.includes(type));
-  return [...base, ...custom];
+  // Gộp mặc định + tùy chỉnh, bỏ mục bị ẩn, lọc theo nhóm đối tượng HIỆU LỰC, áp ghi đè thông số.
+  return [...CATALOG, ...CUSTOM_CATALOG]
+    .filter((c) => !HIDDEN_CATALOG.includes(c.id))
+    .filter((c) => effectiveTypes(c).includes(type))
+    .map((c) => applyOverride(c));
 }
 
 function computePerson(p) {
@@ -1277,21 +1297,41 @@ function ContactCard() {
 }
 // ===== Quản trị: quản lý Danh mục công việc (Nhóm II) + gán Nhóm đối tượng đánh giá =====
 const LEVEL_OPTS = ['N1', 'N2', 'N3', 'N4', 'N5', 'Hỗ trợ'];
-function defaultTypesOfId(id) {
-  const ts = [];
-  if (id.startsWith('HD.')) ts.push('hdnd', 'dbqh');
-  if (id.startsWith('III')) ts.push('contract');
-  if (id.startsWith('II.A')) ts.push('staff');
-  if (id.startsWith('II.B')) ts.push('staff', 'leader');
-  if (id.startsWith('I.A') || id.startsWith('I.B')) ts.push('leader');
-  return ts;
+function CatTypePills({ value, onToggle }) {
+  return (<div className="flex flex-wrap gap-1.5">{CRITERIA_ORDER.map((k) => { const on = value.includes(k);
+    return (<button key={k} type="button" onClick={() => onToggle(k)} title={CRITERIA[k].label} className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors ${on ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-500 border-slate-200 hover:border-red-300'}`}>{CRITERIA[k].mau.replace('Mẫu số ', 'Mẫu ')}</button>); })}</div>);
+}
+// Một dòng công việc có thể sửa ĐẦY ĐỦ thông số (tên, nhóm, sản phẩm, cấp độ/hệ số, nhóm đối tượng).
+function CatalogRow({ item, types, isCustom, isHidden, isOverridden, onPatch, onDelete, onReset, onHide }) {
+  const setLevel = (level) => onPatch({ level, maxScore: LEVEL_SCORE[level] ?? 0, hasFactor: (LEVEL_SCORE[level] || 0) > 0 });
+  const toggleType = (t) => onPatch({ types: types.includes(t) ? types.filter((x) => x !== t) : [...types, t] });
+  return (
+    <div className={`border rounded-xl p-3 ${isHidden ? 'opacity-60 border-slate-200 bg-slate-50/60' : isOverridden ? 'border-amber-300 bg-amber-50/40' : 'border-slate-200'}`}>
+      <div className="flex items-start gap-2">
+        <span className="text-[10px] font-mono text-slate-400 shrink-0 pt-2 w-14 truncate" title={item.id}>[{item.id}]</span>
+        <input value={item.name} onChange={(e) => onPatch({ name: e.target.value })} className="flex-1 font-semibold text-sm text-slate-800 bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400" />
+        <select value={item.level} onChange={(e) => setLevel(e.target.value)} title="Cấp độ → hệ số KPI" className="shrink-0 text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400">{LEVEL_OPTS.map((l) => <option key={l} value={l}>{l} · {LEVEL_SCORE[l]}</option>)}</select>
+        {isCustom
+          ? <button onClick={onDelete} title="Xóa công việc" className="shrink-0 text-rose-400 hover:bg-rose-50 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+          : <button onClick={onHide} title={isHidden ? 'Hiện lại' : 'Ẩn khỏi danh mục'} className={`shrink-0 flex items-center gap-1 text-[11px] font-semibold px-2 py-1.5 rounded-lg border ${isHidden ? 'text-emerald-700 border-emerald-200 bg-emerald-50' : 'text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{isHidden ? <Eye className="w-3.5 h-3.5" /> : <EyeOff className="w-3.5 h-3.5" />}</button>}
+      </div>
+      <div className="grid sm:grid-cols-2 gap-2 mt-2">
+        <input value={item.group || ''} onChange={(e) => onPatch({ group: e.target.value })} placeholder="Nhóm / Phân loại" className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400" />
+        <input value={item.output || ''} onChange={(e) => onPatch({ output: e.target.value })} placeholder="Sản phẩm đầu ra" className="text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400" />
+      </div>
+      <div className="mt-2 flex items-end justify-between gap-2 flex-wrap">
+        <div><span className="text-[11px] font-semibold text-slate-400 block mb-1">Gán cho Nhóm đối tượng:</span><CatTypePills value={types} onToggle={toggleType} /></div>
+        {!isCustom && isOverridden && <button onClick={onReset} className="shrink-0 text-[11px] font-semibold text-amber-700 hover:underline">↺ Khôi phục mặc định</button>}
+      </div>
+    </div>
+  );
 }
 function CatalogManager({ catalog, onChange }) {
   const custom = catalog.custom || [];
   const hidden = catalog.hidden || [];
+  const overrides = catalog.overrides || {};
   const [form, setForm] = useState({ name: '', group: '', output: '', level: 'N2', types: [] });
   const [showBuiltin, setShowBuiltin] = useState(false);
-  const typeOpts = CRITERIA_ORDER.map((k) => ({ k, mau: CRITERIA[k].mau.replace('Mẫu số ', 'Mẫu '), label: CRITERIA[k].label }));
   const toggle = (arr, t) => (arr.includes(t) ? arr.filter((x) => x !== t) : [...arr, t]);
 
   const addItem = () => {
@@ -1303,27 +1343,28 @@ function CatalogManager({ catalog, onChange }) {
     setForm({ name: '', group: '', output: '', level: 'N2', types: [] });
   };
   const upItem = (id, patch) => onChange({ ...catalog, custom: custom.map((c) => (c.id === id ? { ...c, ...patch } : c)) });
-  const setItemLevel = (id, level) => { const score = LEVEL_SCORE[level] ?? 200; upItem(id, { level, maxScore: score, hasFactor: score > 0 }); };
   const delItem = (id) => { if (window.confirm('Xóa công việc tùy chỉnh này khỏi danh mục?')) onChange({ ...catalog, custom: custom.filter((c) => c.id !== id) }); };
   const toggleHidden = (id) => onChange({ ...catalog, hidden: hidden.includes(id) ? hidden.filter((x) => x !== id) : [...hidden, id] });
+  const setOverride = (id, patch) => onChange({ ...catalog, overrides: { ...overrides, [id]: { ...(overrides[id] || {}), ...patch } } });
+  const resetOverride = (id) => { const o = { ...overrides }; delete o[id]; onChange({ ...catalog, overrides: o }); };
+
+  // Thông số HIỆU LỰC của 1 mục mặc định (gốc + ghi đè) và nhóm đối tượng hiệu lực.
+  const effOf = (c) => (overrides[c.id] ? { ...c, ...overrides[c.id] } : c);
+  const effTypesOf = (c) => (overrides[c.id]?.types ? overrides[c.id].types : defaultTypesOfId(c.id));
 
   const builtinGroups = useMemo(() => {
     const m = new Map();
     CATALOG.forEach((c) => { if (!m.has(c.group)) m.set(c.group, []); m.get(c.group).push(c); });
     return [...m.entries()];
   }, []);
-
-  const TypePills = ({ value, onToggle }) => (
-    <div className="flex flex-wrap gap-1.5">{typeOpts.map((o) => { const on = value.includes(o.k);
-      return (<button key={o.k} type="button" onClick={() => onToggle(o.k)} title={o.label} className={`px-2 py-1 rounded-lg text-[11px] font-semibold border transition-colors ${on ? 'bg-red-600 text-white border-red-600' : 'bg-white text-slate-500 border-slate-200 hover:border-red-300'}`}>{o.mau}</button>); })}</div>
-  );
+  const editedCount = Object.keys(overrides).length;
 
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><ListChecks className="w-6 h-6 text-red-700" /> Quản lý Danh mục công việc (Nhóm II)</h2>
-        <p className="text-sm text-slate-500 mt-1">Chỉ <b>Quản trị</b> được sửa. Thêm công việc mới và <b>gán cho Nhóm đối tượng đánh giá</b> (Mẫu 01–05); có thể <b>ẩn</b> công việc mặc định không dùng. Mỗi công việc gắn một <b>cấp độ</b> (N1–N5) quy ra hệ số đóng góp KPI. Danh mục lưu theo từng kỳ.</p>
-        <p className="text-xs text-slate-400 mt-2">Cấp độ → hệ số: N1=100 · N2=200 · N3=300 · N4=400 · N5=500 · Hỗ trợ=0. Áp dụng cho bản Cổ điển và bản Mới (bản PRO dùng danh mục theo Phòng riêng).</p>
+        <p className="text-sm text-slate-500 mt-1">Chỉ <b>Quản trị</b> được sửa. Có thể <b>thêm/sửa/xóa</b> công việc tùy chỉnh và <b>sửa đầy đủ thông số</b> (tên, nhóm, sản phẩm đầu ra, cấp độ/hệ số, Nhóm đối tượng) của <b>cả công việc mặc định</b>; <b>ẩn</b> công việc không dùng. Danh mục lưu theo từng kỳ.</p>
+        <p className="text-xs text-slate-400 mt-2">Cấp độ → hệ số KPI: N1=100 · N2=200 · N3=300 · N4=400 · N5=500 · Hỗ trợ=0. Áp dụng cho bản Cổ điển và bản Mới (bản PRO dùng danh mục theo Phòng riêng).</p>
       </div>
 
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1335,7 +1376,7 @@ function CatalogManager({ catalog, onChange }) {
             <Field label="Sản phẩm đầu ra (tùy chọn)"><input value={form.output} onChange={(e) => setForm({ ...form, output: e.target.value })} placeholder="VD: Đề án; Báo cáo..." className="inp" /></Field>
             <Field label="Cấp độ phức tạp (hệ số)"><select value={form.level} onChange={(e) => setForm({ ...form, level: e.target.value })} className="inp">{LEVEL_OPTS.map((l) => <option key={l} value={l}>{l} (hệ số {LEVEL_SCORE[l]})</option>)}</select></Field>
           </div>
-          <Field label="Gán cho Nhóm đối tượng đánh giá * (chọn 1 hoặc nhiều)"><TypePills value={form.types} onToggle={(t) => setForm({ ...form, types: toggle(form.types, t) })} /></Field>
+          <Field label="Gán cho Nhóm đối tượng đánh giá * (chọn 1 hoặc nhiều)"><CatTypePills value={form.types} onToggle={(t) => setForm({ ...form, types: toggle(form.types, t) })} /></Field>
           <button onClick={addItem} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Plus className="w-4 h-4" /> Thêm vào danh mục</button>
         </div>
       </section>
@@ -1345,35 +1386,22 @@ function CatalogManager({ catalog, onChange }) {
         <div className="p-4 space-y-3">
           {custom.length === 0 && <p className="text-sm text-slate-400 text-center py-4">Chưa có công việc tùy chỉnh nào. Thêm ở phần trên.</p>}
           {custom.map((c) => (
-            <div key={c.id} className="border border-slate-200 rounded-xl p-3">
-              <div className="flex items-start gap-2">
-                <input value={c.name} onChange={(e) => upItem(c.id, { name: e.target.value })} className="flex-1 font-semibold text-sm text-slate-800 bg-slate-50 border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400" />
-                <select value={c.level} onChange={(e) => setItemLevel(c.id, e.target.value)} className="shrink-0 text-xs bg-white border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-red-400">{LEVEL_OPTS.map((l) => <option key={l} value={l}>{l} · {LEVEL_SCORE[l]}</option>)}</select>
-                <button onClick={() => delItem(c.id)} className="shrink-0 text-rose-400 hover:bg-rose-50 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-              </div>
-              <div className="mt-2"><span className="text-[11px] font-semibold text-slate-400 mr-2">Gán cho:</span><span className="inline-block align-middle"><TypePills value={c.types || []} onToggle={(t) => upItem(c.id, { types: toggle(c.types || [], t) })} /></span></div>
-            </div>
+            <CatalogRow key={c.id} item={c} types={c.types || []} isCustom onPatch={(patch) => upItem(c.id, patch)} onDelete={() => delItem(c.id)} />
           ))}
         </div>
       </section>
 
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <button onClick={() => setShowBuiltin((s) => !s)} className="w-full bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><span className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Công việc mặc định (ẩn/hiện)</span><span className="flex items-center gap-2 text-xs text-slate-300">{hidden.length > 0 && `${hidden.length} đang ẩn · `}{showBuiltin ? 'Thu gọn' : 'Mở rộng'}<ChevronDown className={`w-4 h-4 transition-transform ${showBuiltin ? 'rotate-180' : ''}`} /></span></button>
+        <button onClick={() => setShowBuiltin((s) => !s)} className="w-full bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><span className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Công việc mặc định (sửa / ẩn)</span><span className="flex items-center gap-2 text-xs text-slate-300">{editedCount > 0 && `${editedCount} đã sửa · `}{hidden.length > 0 && `${hidden.length} đang ẩn · `}{showBuiltin ? 'Thu gọn' : 'Mở rộng'}<ChevronDown className={`w-4 h-4 transition-transform ${showBuiltin ? 'rotate-180' : ''}`} /></span></button>
         {showBuiltin && (
           <div className="p-4 space-y-4">
-            <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Ẩn một công việc sẽ loại nó khỏi danh sách chọn khi chấm KPI (không xóa dữ liệu đã nhập trước đó). Thẻ màu là Nhóm đối tượng được áp dụng.</p>
+            <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Sửa trực tiếp thông số (tên, nhóm, sản phẩm, cấp độ/hệ số, Nhóm đối tượng) — mục đã sửa có viền vàng, bấm <b>↺ Khôi phục mặc định</b> để hoàn tác. <b>Ẩn</b> để loại khỏi danh sách chấm KPI (không xóa dữ liệu đã nhập).</p>
             {builtinGroups.map(([grp, items]) => (
-              <div key={grp} className="border border-slate-200 rounded-xl overflow-hidden">
-                <div className="bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">{grp}</div>
-                <div className="divide-y divide-slate-100">
-                  {items.map((c) => { const isHidden = hidden.includes(c.id); const ts = defaultTypesOfId(c.id);
-                    return (<div key={c.id} className={`px-3 py-2 flex items-center gap-2 ${isHidden ? 'opacity-50' : ''}`}>
-                      <span className="text-[10px] font-mono text-slate-400 shrink-0 w-14">[{c.id}]</span>
-                      <span className="flex-1 text-xs text-slate-700">{c.name}</span>
-                      <span className="hidden sm:flex gap-1 shrink-0">{ts.map((t) => <span key={t} className="text-[10px] font-semibold text-slate-400 bg-slate-100 rounded px-1.5 py-0.5">{CRITERIA[t].mau.replace('Mẫu số ', 'M')}</span>)}</span>
-                      <button onClick={() => toggleHidden(c.id)} title={isHidden ? 'Hiện lại' : 'Ẩn'} className={`shrink-0 flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-lg border ${isHidden ? 'text-emerald-700 border-emerald-200 bg-emerald-50 hover:bg-emerald-100' : 'text-slate-500 border-slate-200 hover:bg-slate-50'}`}>{isHidden ? <><Eye className="w-3.5 h-3.5" /> Hiện</> : <><EyeOff className="w-3.5 h-3.5" /> Ẩn</>}</button>
-                    </div>); })}
-                </div>
+              <div key={grp} className="space-y-2">
+                <div className="text-xs font-bold text-slate-600 px-1">{grp}</div>
+                {items.map((c) => (
+                  <CatalogRow key={c.id} item={effOf(c)} types={effTypesOf(c)} isHidden={hidden.includes(c.id)} isOverridden={!!overrides[c.id]} onPatch={(patch) => setOverride(c.id, patch)} onReset={() => resetOverride(c.id)} onHide={() => toggleHidden(c.id)} />
+                ))}
               </div>
             ))}
           </div>
