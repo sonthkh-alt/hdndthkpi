@@ -438,10 +438,23 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
 
 // PDF — SỔ TAY HƯỚNG DẪN SỬ DỤNG & CÁCH TÍNH ĐIỂM (tài liệu đầy đủ, chi tiết).
 // Mở cửa sổ in để người dùng "Lưu thành PDF" (trình duyệt render -> tiếng Việt chuẩn). Trình bày như văn bản hành chính A4 dọc.
-export function exportGuidePDF(unit) {
+export function exportGuidePDF(unit, catalogGroups = []) {
   const e = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const now = new Date();
   const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
+  // Bảng liệt kê đầy đủ danh mục công việc (theo nhóm) — dữ liệu truyền từ App (catalogForGuide()).
+  const catalogRows = (catalogGroups || []).map((g) => `
+    <tr><td colspan="6" class="cat-group">${e(g.group)}</td></tr>
+    ${(g.items || []).map((it) => `<tr>
+      <td class="mono nowrap">${e(it.id)}</td>
+      <td>${e(it.name)}</td>
+      <td class="muted">${e(it.output)}</td>
+      <td class="ctr nowrap">${e(it.level)}</td>
+      <td class="ctr">${e(it.maxScore)}</td>
+      <td class="ctr nowrap">${e(it.mau) || '—'}</td>
+    </tr>`).join('')}
+  `).join('');
+  const catalogCount = (catalogGroups || []).reduce((s, g) => s + (g.items || []).length, 0);
 
   const html = `
   <div class="doc">
@@ -477,6 +490,7 @@ export function exportGuidePDF(unit) {
         <li>Lưu dữ liệu theo kỳ</li>
         <li>Câu hỏi thường gặp (FAQ)</li>
       </ol>
+      <p style="margin-top:8px;font-size:13.5px;"><b>Phụ lục A.</b> Danh mục công việc Nhóm II (đầy đủ) &nbsp;·&nbsp; <b>Phụ lục B.</b> Ví dụ tính điểm xuyên suốt &nbsp;<span class="muted">(đặt giữa mục 6 và mục 7)</span></p>
     </section>
 
     <!-- NỘI DUNG -->
@@ -548,6 +562,13 @@ export function exportGuidePDF(unit) {
         </p>
       </div>
 
+      <div class="box gray">
+        <p class="bt">Ba điểm cần hiểu đúng về công thức</p>
+        <p>① <b>Hệ số được nhân với SỐ LƯỢNG.</b> Trọng số mỗi nhiệm vụ = hệ số × số lượng giao; do đó 10 đầu việc N1 (10×100=1000) có thể "nặng" hơn 1 việc N4 (1×400=400). Hãy nhập số lượng đúng thực tế.</p>
+        <p>② <b>Chất lượng (b) và Tiến độ (c) chỉ tính trên phần ĐÃ hoàn thành.</b> Một nhiệm vụ hoàn thành 0 sẽ không tham gia vào b, c (chưa có sản phẩm để soi); phần chưa làm đã bị phạt ở tỷ lệ Khối lượng (a). Đặc biệt, nếu TẤT CẢ nhiệm vụ đều hoàn thành 0 thì b, c mặc định 100%, nên điểm vẫn ra (0+100+100)/3 = 66,7% → ~46,7/70 — đây là lý do điểm số đôi khi cao nhưng vẫn bị xếp loại thấp theo Điều 8 (mục 7).</p>
+        <p>③ <b>"Vượt mức" = hoàn thành nhiều hơn số giao</b> (giao 4 làm 6). Tỷ lệ a bị chặn tối đa 100% nên vượt mức không cộng thêm điểm, nhưng là điều kiện bắt buộc để đạt loại A.</p>
+      </div>
+
       <h2>6. Hệ số công việc (cấp độ N1–N5)</h2>
       <p>Hệ số phản ánh độ phức tạp/cấp độ của công việc; việc khó hơn có hệ số cao hơn nên đóng góp nhiều hơn vào điểm — bảo đảm công bằng giữa việc khó và việc đơn giản.</p>
       <table class="tbl">
@@ -555,6 +576,63 @@ export function exportGuidePDF(unit) {
         <tr><td><b>Hệ số</b></td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td><td>0 (đếm ngang nhau)</td></tr>
       </table>
       <p class="muted">Quản trị có thể thêm/bớt/sửa danh mục công việc và gán theo Nhóm đối tượng tại tab <b>Danh mục</b>.</p>
+    </section>
+
+    <section class="page">
+      <h2>Phụ lục A. Danh mục công việc Nhóm II (đầy đủ — ${catalogCount} mục)</h2>
+      <p>Mỗi nhiệm vụ Nhóm II được chọn từ danh mục dưới đây (đã gán sẵn cấp độ → hệ số và nhóm đối tượng áp dụng theo Mẫu 01–05). Cột <b>Mẫu</b>: 01 = ĐB HĐND · 02 = ĐB Quốc hội · 03 = lãnh đạo · 04 = công chức · 05 = lao động hợp đồng.</p>
+      <table class="tbl cat">
+        <thead><tr><th style="width:10%">Mã</th><th style="width:30%">Tên công việc</th><th>Sản phẩm đầu ra (minh chứng)</th><th style="width:8%">Cấp độ</th><th style="width:7%">Hệ số</th><th style="width:9%">Mẫu</th></tr></thead>
+        <tbody>${catalogRows}</tbody>
+      </table>
+    </section>
+
+    <section class="page">
+      <h2>Phụ lục B. Ví dụ tính điểm xuyên suốt (từ nhiệm vụ đến xếp loại)</h2>
+      <p>Áp dụng đúng công thức tổng quát ở mục 5. Theo dõi từng bước để hiểu một con số cuối cùng được hình thành như thế nào.</p>
+
+      <div class="box" style="background:#eef6fb;border:1px solid #b9d9ee;">
+        <p class="bt">VÍ DỤ 1 — Công chức (Mẫu 04), công thức (a+b+c)/3</p>
+        <p>Ông A có 3 nhiệm vụ trong tháng:</p>
+        <table class="tbl">
+          <tr><th>Nhiệm vụ</th><th>Hệ số</th><th>Giao</th><th>Hoàn thành</th><th>Lỗi CL</th><th>Chậm</th></tr>
+          <tr><td>NV1 — Tham mưu xây dựng kỳ họp (II.B.11)</td><td class="ctr">400</td><td class="ctr">2</td><td class="ctr">2</td><td class="ctr">0</td><td class="ctr">1</td></tr>
+          <tr><td>NV2 — Soạn thảo văn bản (II.A.1)</td><td class="ctr">100</td><td class="ctr">10</td><td class="ctr">9</td><td class="ctr">1</td><td class="ctr">0</td></tr>
+          <tr><td>NV3 — Báo cáo dân nguyện (II.B.23)</td><td class="ctr">300</td><td class="ctr">1</td><td class="ctr">1</td><td class="ctr">0</td><td class="ctr">0</td></tr>
+        </table>
+        <p class="mono">
+          Trọng số giao = 2×400 + 10×100 + 1×300 = 800 + 1000 + 300 = <b>2.100</b><br>
+          Trọng số hoàn thành = 2×400 + 9×100 + 1×300 = 800 + 900 + 300 = <b>2.000</b><br>
+          a (Khối lượng) = 2.000 ÷ 2.100 × 100 = <b>95,2%</b><br>
+          b (Chất lượng) = [800×1 + 900×0,75 + 300×1] ÷ 2.000 = (800 + 675 + 300) ÷ 2.000 = 1.775 ÷ 2.000 = <b>88,8%</b><br>
+          c (Tiến độ) = [800×0,75 + 900×1 + 300×1] ÷ 2.000 = (600 + 900 + 300) ÷ 2.000 = 1.800 ÷ 2.000 = <b>90,0%</b><br>
+          Điểm KQ = (95,2 + 88,8 + 90,0) ÷ 3 = <b>91,3%</b><br>
+          Nhóm II = 91,3% × 70% = <b>63,9 / 70</b>
+        </p>
+        <p>Giả sử <b>Nhóm I = 27,5/30</b>, không có điểm trừ → <b>TỔNG = 27,5 + 63,9 = 91,4 điểm</b> (ngưỡng ≥90 = mức A).</p>
+        <p style="background:#fff;border:1px solid #f3d588;border-radius:6px;padding:8px 10px;"><b>Kiểm điều kiện Điều 8:</b> đạt ≥90 điểm, nhưng để xếp <b>A</b> cần 100% nhiệm vụ đạt đủ số lượng và ≥30% nhiệm vụ vượt mức. Ở đây NV2 mới đạt 9/10 (90%) và không nhiệm vụ nào vượt mức → hệ thống <b>hạ xuống loại B — Hoàn thành tốt</b>. (Điển hình "điểm cao nhưng chưa đủ điều kiện mức A".)</p>
+      </div>
+
+      <div class="box red">
+        <p class="bt">VÍ DỤ 2 — Lãnh đạo, quản lý (Mẫu 03), công thức (a+b+c+d+đ+e)/6</p>
+        <p>Giả sử phần nhiệm vụ cho ra <b>a = 96%, b = 95%, c = 94%</b>. Ba thành phần lãnh đạo: <b>d = 100%</b> (mọi cán bộ dưới quyền đều hoàn thành), <b>đ = 50%</b> (một số việc triển khai còn chậm), <b>e = 100%</b> (đoàn kết tốt).</p>
+        <p class="mono">
+          Điểm KQ = (96 + 95 + 94 + 100 + 50 + 100) ÷ 6 = 535 ÷ 6 = <b>89,2%</b><br>
+          Nhóm II = 89,2% × 70% = <b>62,4 / 70</b>. Nếu Nhóm I = 28/30 → TỔNG = <b>90,4 điểm</b>.
+        </p>
+        <p class="muted">Chỉ cần một thành phần lãnh đạo bị 50% cũng kéo điểm KQ xuống đáng kể (mỗi thành phần chiếm 1/6).</p>
+      </div>
+
+      <div class="box gray">
+        <p class="bt">Vài tình huống ngắn (cùng công thức)</p>
+        <ul>
+          <li><b>Vượt mức:</b> giao 4, hoàn thành 6 → a = 150% nhưng bị chặn còn 100%; đổi lại nhiệm vụ này được tính "vượt mức" phục vụ điều kiện loại A.</li>
+          <li><b>Một nhiệm vụ hoàn thành 0:</b> giao 5, hoàn thành 0 → a = 0%; nhiệm vụ này không tham gia b, c. Bị tính "không hoàn thành" (đạt &lt; 50%) trong điều kiện Điều 8.</li>
+          <li><b>Hoàn thành 50–99%:</b> giao 10, hoàn thành 7 (70%) → vẫn tính là đã hoàn thành; chỉ giảm điểm a và làm mất điều kiện mức A.</li>
+          <li><b>Chậm tiến độ 2 lần:</b> c của nhiệm vụ = 1 − 0,25×2 = 50% trên phần hoàn thành.</li>
+          <li><b>Bị kỷ luật:</b> tích ô "bị xử lý kỷ luật" → xếp thẳng loại D bất kể điểm, nhưng KHÔNG trừ điểm (tổng điểm giữ nguyên) → xuất hiện cảnh báo "chênh lệch điểm số và xếp loại".</li>
+        </ul>
+      </div>
     </section>
 
     <section class="page">
@@ -579,6 +657,7 @@ export function exportGuidePDF(unit) {
       </ul>
       <div class="box gray"><b>Trần xuất sắc:</b> số người loại A không vượt quá <b>20%</b> số người loại B. Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</div>
       <p class="muted">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> và bảng <b>"Điều kiện xếp loại (Điều 8)"</b> ngay trong tab Đánh giá để cán bộ tự đối chiếu.</p>
+      <div class="box" style="background:#fdecec;border:1px solid #f3b5b5;"><b>Cảnh báo chênh lệch điểm số và xếp loại:</b> nếu tổng điểm tương ứng một mức cao hơn nhưng điều kiện Điều 8 bắt hạ mức (ví dụ điểm ~70 nhưng bị xếp D do trên 50% nhiệm vụ không hoàn thành, hoặc bị kỷ luật), hệ thống hiện ô cảnh báo màu đỏ ngay dưới mức xếp loại để giải thích — tránh hiểu nhầm "điểm cao sao lại loại thấp". Điểm số phản ánh khối lượng/chất lượng; xếp loại phản ánh mức độ hoàn thành theo quy định.</div>
 
       <h2>8. Phân biệt "bị kỷ luật" và "điểm trừ"</h2>
       <table class="tbl">
@@ -673,6 +752,13 @@ export function exportGuidePDF(unit) {
   table.tbl{ width:100%; border-collapse:collapse; margin:10px 0; font-size:12.8px; }
   table.tbl th, table.tbl td{ border:1px solid #999; padding:6px 8px; vertical-align:top; text-align:left; }
   table.tbl th{ background:#e8eef7; font-weight:bold; }
+  table.tbl td.ctr, table.tbl th.ctr{ text-align:center; }
+  .mono.nowrap, .nowrap{ white-space:nowrap; }
+  /* Bảng danh mục (Phụ lục A) */
+  table.cat{ font-size:11px; } table.cat td, table.cat th{ padding:4px 6px; }
+  table.cat .mono{ font-family:'Consolas','Courier New',monospace; color:#555; }
+  table.cat td.muted{ color:#666; }
+  td.cat-group{ background:#f3f4f6; font-weight:bold; color:#b91c1c; }
   .q{ font-weight:bold; color:#1f2937; margin-top:10px; } .a{ margin-top:2px; }
   .toc{ font-size:14px; line-height:2; }
   /* Trang bìa */

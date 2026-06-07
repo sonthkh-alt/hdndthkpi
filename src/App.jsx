@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, lazy, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from 'react';
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
@@ -172,6 +172,18 @@ function defaultTypesOfId(id) {
 }
 // Áp ghi đè (nếu có) lên 1 mục danh mục gốc.
 function applyOverride(c) { const ov = OVERRIDES[c.id]; return ov ? { ...c, ...ov } : c; }
+// Nhãn Mẫu (01–05) theo nhóm đối tượng — phục vụ liệt kê danh mục trong Hướng dẫn.
+const MAU_OF_TYPE = { hdnd: '01', dbqh: '02', leader: '03', staff: '04', contract: '05' };
+// Gộp danh mục MẶC ĐỊNH theo nhóm (giữ thứ tự), kèm nhãn "áp dụng cho Mẫu nào" — dùng chung cho tab Hướng dẫn & sổ tay PDF.
+function catalogForGuide() {
+  const groups = []; const idx = {};
+  CATALOG.forEach((c) => {
+    const mau = [...new Set(defaultTypesOfId(c.id).map((t) => MAU_OF_TYPE[t]).filter(Boolean))].sort().join(', ');
+    if (!(c.group in idx)) { idx[c.group] = groups.length; groups.push({ group: c.group, items: [] }); }
+    groups[idx[c.group]].items.push({ id: c.id, name: c.name, output: c.output, level: c.level, maxScore: c.maxScore, mau });
+  });
+  return groups;
+}
 // Nhóm đối tượng HIỆU LỰC của 1 mục (ưu tiên ghi đè → trường types của mục → mặc định theo id).
 function effectiveTypes(c) {
   const ov = OVERRIDES[c.id];
@@ -586,7 +598,7 @@ export default function App() {
   };
   const doExportGuide = async () => {
     const { exportGuidePDF } = await import('./lib/exporters');
-    exportGuidePDF(unit);
+    exportGuidePDF(unit, catalogForGuide());
   };
 
   // Phê duyệt / bỏ phê duyệt kết quả đánh giá của cán bộ đang chọn (chỉ cấp có thẩm quyền).
@@ -1015,6 +1027,9 @@ export default function App() {
                 <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
                   <div className={`${result.cls} text-white text-center py-5`}><p className="text-xs opacity-90 uppercase tracking-wider">Tổng điểm (cấp duyệt)</p><p className="text-5xl font-extrabold mt-1">{curC.totalMgr.toFixed(2)}</p><p className="text-sm opacity-90">Tự đánh giá: {curC.totalSelf.toFixed(2)} / 100</p></div>
                   <div className="p-4 text-center border-b border-slate-100"><span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm ${result.soft}`}><span className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center font-extrabold">{result.code}</span>{result.name}</span></div>
+                  {(() => { const sc = gradeFromScore(curC.totalMgr); const rank = { A: 4, B: 3, C: 2, D: 1 }; if (rank[sc] <= rank[curC.grade]) return null; return (
+                    <div className="px-4 pt-3"><div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-800 leading-relaxed"><p className="font-bold flex items-center gap-1.5 mb-1"><AlertTriangle className="w-3.5 h-3.5" /> Chênh lệch điểm số và xếp loại</p>Tổng điểm <b>{curC.totalMgr.toFixed(2)}</b> tương ứng mức <b>{GRADES[sc].code} — {GRADES[sc].name}</b> theo ngưỡng điểm, nhưng theo <b>điều kiện định lượng Điều 8</b> chỉ được xếp <b>{result.code} — {result.name}</b>. Điểm số phản ánh khối lượng/chất lượng công việc; xếp loại phản ánh mức độ hoàn thành theo quy định — xem lý do bên dưới.</div></div>
+                  ); })()}
                   <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger /><div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
                   {curC.gradeReasons && curC.gradeReasons.length > 0 && (
                     <div className="px-4 pb-4">
@@ -1248,7 +1263,96 @@ export default function App() {
                   Trung bình = (90,9 + 90,0 + 85,0) ÷ 3 = <b>88,6%</b> → Nhóm II = 88,6% × 70% ≈ <b>62,0 / 70</b>
                 </p>
               </div>
-              <p className="mt-3"><b>Hệ số (N1–N4)</b> phản ánh độ phức tạp/cấp độ của công việc (N1 = 100 đến N4 = 400). Việc khó hơn có hệ số cao hơn nên đóng góp nhiều hơn vào điểm — đảm bảo công bằng giữa việc khó và việc đơn giản.</p>
+              <p className="mt-3"><b>Hệ số (N1–N5)</b> phản ánh độ phức tạp/cấp độ của công việc (N1 = 100 đến N5 = 500; nhóm hỗ trợ III.* hệ số 0 → coi như 1, đếm ngang nhau). Việc khó hơn có hệ số cao hơn nên đóng góp nhiều hơn vào điểm.</p>
+              <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[13px] space-y-1.5">
+                <p className="font-bold text-slate-700">Ba điểm cần hiểu đúng về công thức (để không hiểu nhầm kết quả):</p>
+                <p>① <b>Hệ số được nhân với SỐ LƯỢNG.</b> Trọng số mỗi nhiệm vụ = hệ số × số lượng giao. Vì vậy <b>10 đầu việc N1 (10×100=1000)</b> có thể "nặng" hơn <b>1 việc N4 (1×400=400)</b>. Hãy nhập số lượng đúng thực tế để phản ánh khối lượng.</p>
+                <p>② <b>Chất lượng (b) và Tiến độ (c) chỉ tính trên phần ĐÃ hoàn thành.</b> Một nhiệm vụ <b>hoàn thành 0</b> sẽ <b>không tham gia</b> vào b, c (chưa có sản phẩm để soi lỗi/tiến độ); phần chưa làm đã bị phạt ở tỷ lệ Khối lượng (a). Đặc biệt, nếu <b>TẤT CẢ nhiệm vụ đều hoàn thành 0</b> thì b, c <b>mặc định 100%</b>, nên điểm vẫn ra (0+100+100)/3 = <b>66,7% → ~46,7/70</b>: đây là lý do điểm số đôi khi <b>cao nhưng vẫn bị xếp loại thấp</b> do điều kiện Điều 8 (xem mục 7).</p>
+                <p>③ <b>"Vượt mức" nghĩa là hoàn thành NHIỀU HƠN số lượng giao</b> (ví dụ giao 4, làm 6). Tỷ lệ Khối lượng a bị chặn tối đa 100% nên vượt mức <b>không cộng thêm điểm</b>, nhưng <b>là điều kiện bắt buộc để đạt loại A</b> (xem mục 7).</p>
+              </div>
+            </GB>
+
+            <GB icon={ListChecks} title="4.1 Danh mục công việc Nhóm II (đầy đủ — 52 mục)">
+              <p>Mỗi nhiệm vụ Nhóm II được chọn từ danh mục dưới đây (đã gán sẵn <b>cấp độ → hệ số</b> và <b>nhóm đối tượng áp dụng</b> theo Mẫu 01–05). Quản trị có thể thêm/bớt/sửa và gán lại ở tab <b>Danh mục</b>.</p>
+              <div className="mt-2 overflow-x-auto rounded-lg border border-slate-200">
+                <table className="w-full text-[11.5px] border-collapse">
+                  <thead><tr className="bg-slate-100 text-slate-600">
+                    <th className="border border-slate-200 px-2 py-1.5 text-left whitespace-nowrap">Mã</th>
+                    <th className="border border-slate-200 px-2 py-1.5 text-left">Tên công việc</th>
+                    <th className="border border-slate-200 px-2 py-1.5 text-left">Sản phẩm đầu ra (minh chứng)</th>
+                    <th className="border border-slate-200 px-2 py-1.5 text-center">Cấp độ</th>
+                    <th className="border border-slate-200 px-2 py-1.5 text-center">Hệ số</th>
+                    <th className="border border-slate-200 px-2 py-1.5 text-center whitespace-nowrap">Mẫu</th>
+                  </tr></thead>
+                  <tbody>
+                    {catalogForGuide().flatMap((g) => [
+                      <tr key={g.group}><td colSpan={6} className="border border-slate-200 bg-slate-50 px-2 py-1.5 font-bold text-red-700">{g.group}</td></tr>,
+                      ...g.items.map((it) => (
+                        <tr key={it.id} className="align-top">
+                          <td className="border border-slate-200 px-2 py-1 font-mono text-slate-500 whitespace-nowrap">{it.id}</td>
+                          <td className="border border-slate-200 px-2 py-1 text-slate-700">{it.name}</td>
+                          <td className="border border-slate-200 px-2 py-1 text-slate-500">{it.output}</td>
+                          <td className="border border-slate-200 px-2 py-1 text-center font-semibold text-slate-600 whitespace-nowrap">{it.level}</td>
+                          <td className="border border-slate-200 px-2 py-1 text-center font-semibold text-slate-700">{it.maxScore}</td>
+                          <td className="border border-slate-200 px-2 py-1 text-center text-slate-600 whitespace-nowrap">{it.mau || '—'}</td>
+                        </tr>
+                      )),
+                    ])}
+                  </tbody>
+                </table>
+              </div>
+              <p className="mt-2 text-[12px] text-slate-500">Cột <b>Mẫu</b>: 01 = ĐB HĐND chuyên trách · 02 = ĐB Quốc hội chuyên trách · 03 = lãnh đạo, quản lý · 04 = công chức · 05 = lao động hợp đồng.</p>
+            </GB>
+
+            <GB icon={BarChart3} title="4.2 Ví dụ tính điểm XUYÊN SUỐT (từ nhiệm vụ đến xếp loại)">
+              <p className="text-slate-600">Áp dụng đúng công thức tổng quát ở mục 4. Theo dõi từng bước để hiểu cách một con số cuối cùng được hình thành.</p>
+
+              <div className="mt-3 rounded-lg border border-sky-200 bg-sky-50 p-3">
+                <p className="font-bold text-sky-800 mb-1">VÍ DỤ 1 — Công chức (Mẫu 04), công thức (a+b+c)/3</p>
+                <p className="text-[13px] text-slate-700">Ông A có 3 nhiệm vụ trong tháng:</p>
+                <div className="overflow-x-auto mt-1.5">
+                  <table className="w-full text-[12px] border-collapse">
+                    <thead><tr className="bg-white text-slate-500"><th className="border border-sky-200 px-2 py-1 text-left">Nhiệm vụ</th><th className="border border-sky-200 px-2 py-1">Hệ số</th><th className="border border-sky-200 px-2 py-1">Giao</th><th className="border border-sky-200 px-2 py-1">Hoàn thành</th><th className="border border-sky-200 px-2 py-1">Lỗi CL</th><th className="border border-sky-200 px-2 py-1">Chậm</th></tr></thead>
+                    <tbody className="text-center text-slate-700">
+                      <tr><td className="border border-sky-200 px-2 py-1 text-left">NV1 — Tham mưu xây dựng kỳ họp (II.B.11)</td><td className="border border-sky-200">400</td><td className="border border-sky-200">2</td><td className="border border-sky-200">2</td><td className="border border-sky-200">0</td><td className="border border-sky-200">1</td></tr>
+                      <tr><td className="border border-sky-200 px-2 py-1 text-left">NV2 — Soạn thảo văn bản (II.A.1)</td><td className="border border-sky-200">100</td><td className="border border-sky-200">10</td><td className="border border-sky-200">9</td><td className="border border-sky-200">1</td><td className="border border-sky-200">0</td></tr>
+                      <tr><td className="border border-sky-200 px-2 py-1 text-left">NV3 — Báo cáo dân nguyện (II.B.23)</td><td className="border border-sky-200">300</td><td className="border border-sky-200">1</td><td className="border border-sky-200">1</td><td className="border border-sky-200">0</td><td className="border border-sky-200">0</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p className="text-[12.5px] mt-2 text-slate-700 leading-relaxed">
+                  <b>Trọng số giao</b> = 2×400 + 10×100 + 1×300 = 800 + 1000 + 300 = <b>2.100</b><br/>
+                  <b>Trọng số hoàn thành</b> = 2×400 + 9×100 + 1×300 = 800 + 900 + 300 = <b>2.000</b><br/>
+                  <b>a (Khối lượng)</b> = 2.000 ÷ 2.100 × 100 = <b>95,2%</b><br/>
+                  <b>b (Chất lượng)</b> = [800×1 + 900×(1−0,25) + 300×1] ÷ 2.000 = (800 + 675 + 300) ÷ 2.000 = 1.775 ÷ 2.000 = <b>88,8%</b> <span className="text-slate-500">(chỉ NV2 có 1 lỗi → −25% trên phần hoàn thành của NV2)</span><br/>
+                  <b>c (Tiến độ)</b> = [800×(1−0,25) + 900×1 + 300×1] ÷ 2.000 = (600 + 900 + 300) ÷ 2.000 = 1.800 ÷ 2.000 = <b>90,0%</b> <span className="text-slate-500">(chỉ NV1 chậm 1 lần)</span><br/>
+                  <b>Điểm KQ</b> = (95,2 + 88,8 + 90,0) ÷ 3 = <b>91,3%</b><br/>
+                  <b>Nhóm II</b> = 91,3% × 70% = <b>63,9 / 70</b>
+                </p>
+                <p className="text-[12.5px] mt-2 text-slate-700">Giả sử <b>Nhóm I = 27,5/30</b>, không có điểm trừ → <b>TỔNG = 27,5 + 63,9 = 91,4 điểm</b> (ngưỡng ≥90 = mức A).</p>
+                <div className="mt-2 rounded-md bg-white border border-amber-200 p-2.5 text-[12.5px] text-amber-800">
+                  <b>Kiểm điều kiện Điều 8:</b> đạt ≥90 điểm, nhưng để xếp <b>A</b> cần <b>100% nhiệm vụ đạt đủ số lượng</b> và <b>≥30% nhiệm vụ vượt mức</b>. Ở đây NV2 mới đạt 9/10 (90% &lt; 100%) và <b>không nhiệm vụ nào vượt mức</b> → hệ thống <b>hạ xuống loại B — Hoàn thành tốt</b>. (Đây là ví dụ điển hình "điểm cao nhưng chưa đủ điều kiện mức A".)
+                </div>
+              </div>
+
+              <div className="mt-3 rounded-lg border border-red-200 bg-red-50 p-3">
+                <p className="font-bold text-red-800 mb-1">VÍ DỤ 2 — Lãnh đạo, quản lý (Mẫu 03), công thức (a+b+c+d+đ+e)/6</p>
+                <p className="text-[12.5px] text-slate-700 leading-relaxed">
+                  Giả sử phần nhiệm vụ cho ra <b>a = 96%, b = 95%, c = 94%</b>. Ba thành phần lãnh đạo: <b>d = 100%</b> (mọi cán bộ dưới quyền đều hoàn thành), <b>đ = 50%</b> (một số việc triển khai còn chậm), <b>e = 100%</b> (đoàn kết tốt).<br/>
+                  <b>Điểm KQ</b> = (96 + 95 + 94 + 100 + 50 + 100) ÷ 6 = 535 ÷ 6 = <b>89,2%</b><br/>
+                  <b>Nhóm II</b> = 89,2% × 70% = <b>62,4 / 70</b>. Nếu <b>Nhóm I = 28/30</b> → <b>TỔNG = 90,4 điểm</b>.
+                </p>
+                <p className="text-[12.5px] mt-1 text-slate-600">Lưu ý: chỉ cần một thành phần lãnh đạo bị 50% cũng kéo điểm KQ xuống đáng kể (mỗi thành phần chiếm 1/6).</p>
+              </div>
+
+              <div className="mt-3 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[12.5px] space-y-1.5">
+                <p className="font-bold text-slate-700">Vài tình huống ngắn (cùng công thức):</p>
+                <p>• <b>Vượt mức:</b> NV giao 4, hoàn thành 6 → a của NV = 6/4 = 150% nhưng <b>bị chặn còn 100%</b> (không cộng thêm); đổi lại NV này được tính là "vượt mức" phục vụ điều kiện loại A.</p>
+                <p>• <b>Một nhiệm vụ hoàn thành 0:</b> NV giao 5, hoàn thành 0 → a của NV = 0%; NV này <b>không tham gia</b> b, c. Nhiệm vụ này bị tính là <b>"không hoàn thành" (đạt &lt; 50%)</b> trong điều kiện Điều 8.</p>
+                <p>• <b>Hoàn thành 50–99%:</b> NV giao 10, hoàn thành 7 (70%) → <b>vẫn tính là đã hoàn thành</b>; chỉ giảm điểm a và làm mất điều kiện đạt mức A.</p>
+                <p>• <b>Chậm tiến độ 2 lần:</b> c của NV = 1 − 0,25×2 = 50% trên phần hoàn thành của NV đó.</p>
+                <p>• <b>Bị kỷ luật:</b> tích ô "bị xử lý kỷ luật" → <b>xếp thẳng loại D</b> bất kể điểm, <b>nhưng KHÔNG trừ điểm</b> (tổng điểm giữ nguyên). Đây là lúc xuất hiện cảnh báo "chênh lệch điểm số và xếp loại".</p>
+              </div>
             </GB>
 
             <GB icon={Link2} title="5. Liên kết mục tiêu (OKR)">
@@ -1272,6 +1376,7 @@ export default function App() {
                   <li><b>Không hoàn thành (D):</b> dưới 50 điểm; hoặc bị <b>kỷ luật/kết luận suy thoái</b> (tích ở mục Điểm trừ); hoặc <b>trên 50% số nhiệm vụ không hoàn thành</b> (mỗi nhiệm vụ đạt dưới 50% số lượng mới tính) — riêng <b>lãnh đạo</b> là trên 30% (đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ).</li>
                 </ul>
                 <p className="mt-1 text-slate-500">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> + bảng <b>"Điều kiện xếp loại (Điều 8)"</b> ngay trong tab Đánh giá (có các chỉ số % hoàn thành, % vượt mức, % chậm tiến độ để cán bộ tự đối chiếu).</p>
+                <p className="mt-1 text-rose-600"><b>Cảnh báo chênh lệch:</b> nếu <b>tổng điểm</b> tương ứng một mức cao hơn nhưng điều kiện Điều 8 bắt hạ mức (ví dụ điểm ~70 nhưng bị xếp D do trên 50% nhiệm vụ không hoàn thành, hoặc bị kỷ luật), hệ thống hiện <b>ô cảnh báo màu đỏ</b> ngay dưới mức xếp loại để giải thích sự chênh lệch — tránh hiểu nhầm "điểm cao sao lại loại thấp".</p>
                 <p className="mt-1 text-slate-500"><b>Lưu ý về "bị kỷ luật":</b> việc tích ô này <b>chỉ chốt mức xếp loại = Không hoàn thành nhiệm vụ</b> (điều kiện loại trừ theo Điều 8.4), <b>KHÔNG trừ vào tổng điểm</b> — tổng điểm vẫn phản ánh khối lượng, chất lượng công việc. Muốn trừ điểm theo mức độ vi phạm thì nhập ở ô <b>Điểm trừ</b> (trừ trực tiếp vào tổng).</p>
               </div>
             </GB>
