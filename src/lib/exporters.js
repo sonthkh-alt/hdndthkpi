@@ -435,3 +435,262 @@ export function exportTrackingPDF(people, weekTitle, unit, period) {
 </body></html>`);
   win.document.close();
 }
+
+// PDF — SỔ TAY HƯỚNG DẪN SỬ DỤNG & CÁCH TÍNH ĐIỂM (tài liệu đầy đủ, chi tiết).
+// Mở cửa sổ in để người dùng "Lưu thành PDF" (trình duyệt render -> tiếng Việt chuẩn). Trình bày như văn bản hành chính A4 dọc.
+export function exportGuidePDF(unit) {
+  const e = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const now = new Date();
+  const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
+
+  const html = `
+  <div class="doc">
+    <!-- TRANG BÌA -->
+    <section class="cover">
+      <div class="unit">${e(unit)}</div>
+      <div class="rule"></div>
+      <div class="cover-spacer"></div>
+      <div class="cover-kicker">TÀI LIỆU HƯỚNG DẪN SỬ DỤNG</div>
+      <h1 class="cover-title">SỔ TAY HƯỚNG DẪN<br>ĐÁNH GIÁ, XẾP LOẠI CÁN BỘ, CÔNG CHỨC<br>HẰNG THÁNG THEO OKR/KPI</h1>
+      <div class="cover-sub">Hệ thống đánh giá trực tuyến — áp dụng Quyết định số 1053-QĐ/TU<br>ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa</div>
+      <div class="cover-spacer"></div>
+      <div class="cover-meta">Tài liệu lập ${dateStr}</div>
+      <div class="cover-note">⚠ BẢN DEMO THỬ NGHIỆM — sử dụng nội bộ, không chịu trách nhiệm về tính pháp lý và dữ liệu.</div>
+    </section>
+
+    <!-- MỤC LỤC -->
+    <section class="page">
+      <h2>MỤC LỤC</h2>
+      <ol class="toc">
+        <li>Giới thiệu chung & phạm vi áp dụng</li>
+        <li>Năm khu vực (tab) của hệ thống</li>
+        <li>Thang điểm tổng — 100 điểm</li>
+        <li>Nhóm I — Tiêu chí chung (tối đa 30 điểm)</li>
+        <li>Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)</li>
+        <li>Hệ số công việc (cấp độ N1–N5)</li>
+        <li>Bốn mức xếp loại & điều kiện định lượng (Điều 8)</li>
+        <li>Phân biệt "bị kỷ luật" và "điểm trừ"</li>
+        <li>Quy trình hai cấp & mốc thời gian</li>
+        <li>Phê duyệt & xuất phiếu đánh giá (Word)</li>
+        <li>Tab Theo dõi công việc: đồng bộ, thu thập KPI, xuất bảng</li>
+        <li>Đăng nhập & phân quyền</li>
+        <li>Lưu dữ liệu theo kỳ</li>
+        <li>Câu hỏi thường gặp (FAQ)</li>
+      </ol>
+    </section>
+
+    <!-- NỘI DUNG -->
+    <section class="page">
+      <h2>1. Giới thiệu chung & phạm vi áp dụng</h2>
+      <p>Hệ thống hỗ trợ <b>đánh giá, xếp loại mức độ hoàn thành nhiệm vụ hằng tháng</b> của cán bộ, công chức, viên chức và người lao động theo phương pháp <b>OKR/KPI</b>, bảo đảm khách quan, định lượng và minh bạch. Toàn bộ bộ tiêu chí, công thức và điều kiện xếp loại được xây dựng theo <b>Quyết định số 1053-QĐ/TU ngày 05/6/2026</b> của Ban Thường vụ Tỉnh ủy Thanh Hóa.</p>
+      <p>Tài liệu này hướng dẫn người dùng ở mọi vai trò (cán bộ tự đánh giá, trưởng phòng/cấp duyệt, quản trị) cách nhập liệu, hiểu cách hệ thống tính điểm và xuất báo cáo.</p>
+      <div class="box gray"><b>Đối tượng đánh giá</b> chia thành 5 nhóm, đánh số theo Mẫu 01–05 (xem mục 4).</div>
+
+      <h2>2. Năm khu vực (tab) của hệ thống</h2>
+      <table class="tbl">
+        <tr><th style="width:24%">Khu vực</th><th>Chức năng chính</th></tr>
+        <tr><td><b>Tổng quan</b></td><td>Mục tiêu OKR cấp đơn vị, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A), so sánh theo phòng/ban và xu hướng theo kỳ.</td></tr>
+        <tr><td><b>Đánh giá</b></td><td>Chấm điểm từng cán bộ: Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ); phê duyệt và xuất phiếu.</td></tr>
+        <tr><td><b>Năng lực số</b></td><td>Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</td></tr>
+        <tr><td><b>Theo dõi CV</b></td><td>Bảng kiểm đếm công việc theo tuần; đồng bộ từ Google Sheet; thu thập thành nhiệm vụ KPI; xuất bảng PDF.</td></tr>
+        <tr><td><b>Liên hệ & hướng dẫn</b></td><td>Thông tin liên hệ, gửi ý kiến và tài liệu hướng dẫn này.</td></tr>
+      </table>
+
+      <h2>3. Thang điểm tổng — 100 điểm</h2>
+      <div class="formula">TỔNG ĐIỂM = Nhóm I (tối đa 30) + Nhóm II (tối đa 70) − Điểm trừ</div>
+      <p>Mỗi cán bộ được chấm ở <b>hai cấp</b>: <b>Tự đánh giá</b> (cá nhân tự chấm) và <b>Cấp có thẩm quyền</b> (cấp duyệt quyết định). <b>Điểm xếp loại chính thức lấy theo cột Cấp duyệt.</b> Cán bộ mới khởi tạo mặc định 100/100, việc đánh giá là trừ dần theo thực tế.</p>
+    </section>
+
+    <section class="page">
+      <h2>4. Nhóm I — Tiêu chí chung (tối đa 30 điểm)</h2>
+      <p>Đánh giá phẩm chất chính trị, tư tưởng, đạo đức, ý thức kỷ luật, năng lực, tác phong... theo bộ tiêu chí của từng nhóm đối tượng. Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí và <b>giới hạn không quá 30 điểm</b>.</p>
+      <table class="tbl">
+        <tr><th style="width:14%">Mẫu</th><th style="width:40%">Nhóm đối tượng</th><th>Cấu trúc điểm Nhóm I</th></tr>
+        <tr><td><b>Mẫu 01</b></td><td>Đại biểu HĐND tỉnh hoạt động chuyên trách</td><td>Dùng chung bộ tiêu chí nhóm lãnh đạo; Nhóm II tính theo chức vụ.</td></tr>
+        <tr><td><b>Mẫu 02</b></td><td>Đại biểu Quốc hội hoạt động chuyên trách</td><td>Tương tự Mẫu 01.</td></tr>
+        <tr><td><b>Mẫu 03</b></td><td>Cán bộ giữ chức vụ lãnh đạo, quản lý (Phụ lục 03)</td><td>Chính trị, tư tưởng (5) + đạo đức, kỷ luật (5) + năng lực lãnh đạo–chuyên môn–thực thi–tác phong–đổi mới–chuyển đổi số (16) + tín nhiệm, đoàn kết (2) + tự phê bình (2).</td></tr>
+        <tr><td><b>Mẫu 04</b></td><td>Công chức, viên chức không giữ chức vụ lãnh đạo (Phụ lục 01)</td><td>Chính trị, tư tưởng (5) + đạo đức, kỷ luật (5) + năng lực chuyên môn–thực thi–tác phong–đổi mới–chuyển đổi số (16) + tự phê bình và phê bình (4).</td></tr>
+        <tr><td><b>Mẫu 05</b></td><td>Lao động hợp đồng hỗ trợ, phục vụ (Phụ lục 02)</td><td>Chính trị, đạo đức, kỷ luật (15) + năng lực chuyên môn, thực thi (10) + tự phê bình (5).</td></tr>
+      </table>
+      <div class="box gray">Nhập điểm ở hai cột <b>Tự ĐG</b> và <b>Cấp duyệt</b>; mỗi ô không vượt quá điểm tối đa của tiêu chí. Hệ thống lấy cột <b>Cấp duyệt</b> để xếp loại chính thức.</div>
+
+      <h2>5. Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)</h2>
+      <p>Chấm bằng <b>đếm khách quan</b>, không cảm tính. Mỗi nhiệm vụ được chọn từ <b>danh mục công việc</b> (đã gán sẵn <b>hệ số</b> theo cấp độ), rồi nhập 4 con số: <b>Số lượng giao</b>, <b>Số lượng hoàn thành</b>, <b>Lỗi chất lượng</b>, <b>Số lần chậm tiến độ</b>.</p>
+      <p>Hệ thống tự tính 3 tỷ lệ (bình quân theo hệ số của tất cả nhiệm vụ):</p>
+      <table class="tbl">
+        <tr><th style="width:18%">Tỷ lệ</th><th>Công thức</th></tr>
+        <tr><td><b>a — Khối lượng</b></td><td>Σ(Hoàn thành × hệ số) ÷ Σ(Giao × hệ số) × 100%</td></tr>
+        <tr><td><b>b — Chất lượng</b></td><td>Bình quân [1 − 0,25 × số Lỗi chất lượng] theo hệ số × 100% &nbsp;<i>(mỗi lỗi −25%)</i></td></tr>
+        <tr><td><b>c — Tiến độ</b></td><td>Bình quân [1 − 0,25 × số lần Chậm] theo hệ số × 100% &nbsp;<i>(mỗi lần chậm −25%)</i></td></tr>
+      </table>
+      <div class="formula">Điểm Nhóm II = (a + b + c) ÷ 3 × 70% &nbsp;<span class="muted">(công chức, viên chức, lao động hợp đồng)</span></div>
+
+      <div class="box red">
+        <p class="bt">Với cán bộ giữ chức vụ lãnh đạo, quản lý (Điều 7)</p>
+        <p>Điểm kết quả = <b>(a + b + c + d + đ + e) ÷ 6</b>, bổ sung 3 thành phần (mỗi mục 100% hoặc 50%):</p>
+        <ul>
+          <li><b>d — Kết quả lĩnh vực/đơn vị phụ trách:</b> 100% nếu 100% cán bộ dưới quyền đạt "Hoàn thành nhiệm vụ" trở lên; 50% nếu có người không hoàn thành.</li>
+          <li><b>đ — Khả năng tổ chức triển khai nhiệm vụ:</b> 100% nếu hoàn thành đúng hạn, có sáng kiến; 50% nếu chậm trễ kéo dài.</li>
+          <li><b>e — Năng lực tập hợp, đoàn kết:</b> 100% nếu đoàn kết; 50% nếu có mâu thuẫn, mất đoàn kết nội bộ kéo dài.</li>
+        </ul>
+        <p class="muted">Hệ thống tự nhận biết lãnh đạo theo <b>chức vụ</b> và hiển thị ô nhập d/đ/e ngay trong tab Đánh giá.</p>
+      </div>
+
+      <div class="box amber">
+        <p class="bt">Ví dụ tính cụ thể</p>
+        <p>• Nhiệm vụ 1 (hệ số 300): Giao 4, Hoàn thành 4, Lỗi 0, Chậm 1.<br>• Nhiệm vụ 2 (hệ số 100): Giao 10, Hoàn thành 8, Lỗi 1, Chậm 0.</p>
+        <p class="mono">
+          a = (4×300 + 8×100) ÷ (4×300 + 10×100) × 100 = 2000 ÷ 2200 = <b>90,9%</b><br>
+          b = (1200×1 + 800×0,75) ÷ 2000 × 100 = 1800 ÷ 2000 = <b>90,0%</b><br>
+          c = (1200×0,75 + 800×1) ÷ 2000 × 100 = 1700 ÷ 2000 = <b>85,0%</b><br>
+          Trung bình = (90,9 + 90,0 + 85,0) ÷ 3 = <b>88,6%</b><br>
+          Nhóm II = 88,6% × 70% ≈ <b>62,0 / 70 điểm</b>
+        </p>
+      </div>
+
+      <h2>6. Hệ số công việc (cấp độ N1–N5)</h2>
+      <p>Hệ số phản ánh độ phức tạp/cấp độ của công việc; việc khó hơn có hệ số cao hơn nên đóng góp nhiều hơn vào điểm — bảo đảm công bằng giữa việc khó và việc đơn giản.</p>
+      <table class="tbl">
+        <tr><th>Cấp độ</th><th>N1</th><th>N2</th><th>N3</th><th>N4</th><th>N5</th><th>Hỗ trợ</th></tr>
+        <tr><td><b>Hệ số</b></td><td>100</td><td>200</td><td>300</td><td>400</td><td>500</td><td>0 (đếm ngang nhau)</td></tr>
+      </table>
+      <p class="muted">Quản trị có thể thêm/bớt/sửa danh mục công việc và gán theo Nhóm đối tượng tại tab <b>Danh mục</b>.</p>
+    </section>
+
+    <section class="page">
+      <h2>7. Bốn mức xếp loại & điều kiện định lượng (Điều 8)</h2>
+      <table class="tbl">
+        <tr><th style="width:10%">Mức</th><th style="width:30%">Xếp loại</th><th>Ngưỡng điểm (cột Cấp duyệt)</th></tr>
+        <tr><td><b>A</b></td><td>Hoàn thành xuất sắc nhiệm vụ</td><td>≥ 90 điểm</td></tr>
+        <tr><td><b>B</b></td><td>Hoàn thành tốt nhiệm vụ</td><td>70 → dưới 90 điểm</td></tr>
+        <tr><td><b>C</b></td><td>Hoàn thành nhiệm vụ</td><td>50 → dưới 70 điểm</td></tr>
+        <tr><td><b>D</b></td><td>Không hoàn thành nhiệm vụ</td><td>dưới 50 điểm</td></tr>
+      </table>
+      <div class="box gray">
+        <p class="bt">Cách tính "hoàn thành" — xét theo TỪNG nhiệm vụ</p>
+        <p>Mỗi nhiệm vụ có tỷ lệ = Số lượng hoàn thành ÷ Số lượng giao. Một nhiệm vụ chỉ bị coi là <b>"không hoàn thành" khi đạt dưới 50%</b> số lượng giao; đạt từ 50% đến dưới 100% vẫn tính là <b>đã hoàn thành</b> (chỉ phần thiếu làm giảm điểm và ảnh hưởng tới mức Xuất sắc).</p>
+      </div>
+      <p>Ngoài ngưỡng điểm, hệ thống tự áp dụng các điều kiện định lượng của Điều 8:</p>
+      <ul>
+        <li><b>Hoàn thành xuất sắc (A):</b> ngoài ≥ 90 điểm, mọi nhiệm vụ phải <b>đạt đủ 100% số lượng</b> và có <b>≥ 30% số nhiệm vụ vượt mức</b> (hoàn thành &gt; giao). Chưa đủ thì hạ xuống Hoàn thành tốt.</li>
+        <li><b>Hoàn thành tốt (B):</b> 70–89 điểm và <b>không có nhiệm vụ nào không hoàn thành</b> (mọi nhiệm vụ đạt ≥ 50% số lượng); nếu có nhiệm vụ đạt dưới 50% thì hạ xuống Hoàn thành nhiệm vụ.</li>
+        <li><b>Hoàn thành nhiệm vụ (C):</b> 50–69 điểm; số nhiệm vụ chậm tiến độ không quá 20% (hệ thống nhắc khi vượt).</li>
+        <li><b>Không hoàn thành (D):</b> dưới 50 điểm; hoặc bị <b>kỷ luật/kết luận suy thoái</b>; hoặc <b>trên 50% số nhiệm vụ không hoàn thành</b> (mỗi nhiệm vụ đạt dưới 50% số lượng) — riêng <b>lãnh đạo</b> là trên 30% (đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ).</li>
+      </ul>
+      <div class="box gray"><b>Trần xuất sắc:</b> số người loại A không vượt quá <b>20%</b> số người loại B. Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</div>
+      <p class="muted">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> và bảng <b>"Điều kiện xếp loại (Điều 8)"</b> ngay trong tab Đánh giá để cán bộ tự đối chiếu.</p>
+
+      <h2>8. Phân biệt "bị kỷ luật" và "điểm trừ"</h2>
+      <table class="tbl">
+        <tr><th style="width:26%">Cơ chế</th><th>Tác động</th></tr>
+        <tr><td><b>Tích "bị xử lý kỷ luật"</b></td><td><b>Chỉ chốt mức xếp loại = Không hoàn thành nhiệm vụ</b> (điều kiện loại trừ theo Điều 8.4). <b>KHÔNG trừ vào tổng điểm</b> — tổng điểm vẫn phản ánh khối lượng, chất lượng công việc đã làm.</td></tr>
+        <tr><td><b>Ô "Điểm trừ"</b></td><td>Trừ <b>trực tiếp vào tổng điểm</b> theo mức độ vi phạm (do cấp duyệt nhập).</td></tr>
+      </table>
+
+      <h2>9. Quy trình hai cấp & mốc thời gian</h2>
+      <ol>
+        <li>Đầu tháng: cơ quan xây dựng <b>kế hoạch công tác tháng</b>; cán bộ lập <b>lịch công tác tuần</b> làm cơ sở kiểm đếm.</li>
+        <li>Trước ngày <b>25</b>: cán bộ tự đánh giá, nhận mức xếp loại (cột Tự ĐG).</li>
+        <li>Trước ngày <b>26</b>: cấp trên trực tiếp cho ý kiến nhận xét.</li>
+        <li>Trước ngày <b>28</b>: cấp có thẩm quyền quyết định xếp loại (cột Cấp duyệt) và <b>phê duyệt</b>.</li>
+        <li>Trước ngày <b>05 tháng sau</b>: công khai kết quả, biểu dương, khen thưởng.</li>
+      </ol>
+      <p>Đánh giá thực hiện <b>theo tháng</b>; riêng <b>tháng 12</b> hoàn thành trước <b>ngày 15/12</b> (trước khi xếp loại đảng viên và bình xét thi đua năm). Kết quả hằng tháng là căn cứ xếp loại quý/năm và đảng viên (Điều 10, 11 QĐ 1053).</p>
+    </section>
+
+    <section class="page">
+      <h2>10. Phê duyệt & xuất phiếu đánh giá (Word)</h2>
+      <p>Sau khi hoàn tất chấm điểm, <b>cấp có thẩm quyền</b> (trưởng phòng/quản trị) bấm <b>"Phê duyệt & xuất phiếu"</b> trong tab Đánh giá. Hệ thống ghi nhận người phê duyệt và ngày phê duyệt, đồng thời tải về <b>phiếu Word đầy đủ</b> gồm:</p>
+      <ul>
+        <li>Thông tin cán bộ và nhóm đối tượng (Mẫu 01–05).</li>
+        <li><b>Bảng Nhóm I</b>: liệt kê từng tiêu chí kèm điểm tối đa, Tự ĐG và Cấp duyệt.</li>
+        <li><b>Bảng Nhóm II</b>: từng nhiệm vụ với số lượng giao/hoàn thành, lỗi chất lượng, trễ hạn, tỷ lệ và điểm %.</li>
+        <li>Thành phần lãnh đạo d/đ/e (nếu có), bảng tổng hợp điểm và xếp loại A–D, căn cứ Điều 8.</li>
+        <li>Nhận xét cá nhân/cấp duyệt, trạng thái phê duyệt và hai khối chữ ký.</li>
+      </ul>
+      <div class="box gray">Nếu sửa lại bất kỳ điểm nào sau khi phê duyệt, hệ thống <b>tự gỡ trạng thái phê duyệt</b> để tránh dấu "đã duyệt" trên dữ liệu đã thay đổi — cần phê duyệt lại.</div>
+
+      <h2>11. Tab Theo dõi công việc: đồng bộ, thu thập KPI, xuất bảng</h2>
+      <ul>
+        <li><b>Đồng bộ từ Google Sheet</b> (quản trị): nạp dữ liệu kiểm đếm mới nhất thành các dòng theo dõi có thể sửa; khớp cán bộ theo tên; bấm lại sẽ cập nhật, không nhân đôi.</li>
+        <li><b>Thu thập vào đánh giá KPI</b>: ở mỗi công việc chọn Danh mục + OKR + "Đã hoàn thành?", Lỗi chất lượng, Chậm tiến độ; bấm nút để tạo/cập nhật nhiệm vụ Nhóm II tương ứng.</li>
+        <li><b>Xuất bảng (PDF)</b>: mở bảng theo mẫu hành chính (A4 ngang); bấm "In / Lưu thành PDF" để lưu hoặc in giấy.</li>
+      </ul>
+
+      <h2>12. Đăng nhập & phân quyền</h2>
+      <p>Đăng nhập bằng <b>email + mật khẩu</b>. Lần đầu: nhận liên kết kích hoạt qua email, nhập Họ tên, Chức vụ và tạo mật khẩu.</p>
+      <table class="tbl">
+        <tr><th style="width:24%">Vai trò</th><th>Quyền</th></tr>
+        <tr><td><b>Cán bộ</b></td><td>Xem và tự đánh giá (cột Tự ĐG) phần của chính mình.</td></tr>
+        <tr><td><b>Trưởng phòng</b></td><td>Thêm quyền duyệt (cột Cấp duyệt) và phê duyệt cho cán bộ cùng phòng.</td></tr>
+        <tr><td><b>Quản trị</b></td><td>Toàn quyền: thêm/xóa cán bộ, đặt vai trò, sửa mục tiêu, quản lý danh mục, đồng bộ Google Sheet, mọi kỳ.</td></tr>
+        <tr><td><b>Khách (Dùng thử)</b></td><td>Nhập thử điểm để xem cách tính, nhưng <b>không lưu</b> (mất khi tải lại trang).</td></tr>
+      </table>
+
+      <h2>13. Lưu dữ liệu theo kỳ</h2>
+      <p>Dữ liệu được lưu <b>riêng theo từng tháng/năm</b>. Đổi tháng ở góc trên để xem lại kỳ trước hoặc nhập kỳ mới (có thể sao chép danh sách cán bộ từ kỳ gần nhất). Hệ thống lưu ngầm lên máy chủ và cảnh báo nếu phát hiện người khác vừa sửa cùng kỳ (tránh ghi đè mất dữ liệu).</p>
+
+      <h2>14. Câu hỏi thường gặp (FAQ)</h2>
+      <p class="q">Hỏi: Tôi hoàn thành 9/10 số lượng một nhiệm vụ, có bị xếp "không hoàn thành" không?</p>
+      <p class="a">Đáp: Không. Đạt 90% (≥ 50%) vẫn tính là đã hoàn thành; chỉ phần thiếu làm giảm điểm và ảnh hưởng điều kiện đạt mức Xuất sắc.</p>
+      <p class="q">Hỏi: Vì sao điểm một tiêu chí Nhóm I hiển thị thấp hơn số tôi từng nhập?</p>
+      <p class="a">Đáp: Mỗi ô điểm bị giới hạn theo điểm tối đa của tiêu chí. Nếu bộ tiêu chí được cập nhật và điểm tối đa giảm, hệ thống tự kẹp giá trị cũ về đúng trần mới.</p>
+      <p class="q">Hỏi: Tích "bị kỷ luật" có làm mất điểm đã chấm không?</p>
+      <p class="a">Đáp: Không. Nó chỉ chốt mức xếp loại Không hoàn thành nhiệm vụ; muốn trừ điểm cụ thể hãy dùng ô "Điểm trừ".</p>
+      <p class="q">Hỏi: Tôi là khách dùng thử, dữ liệu có được lưu không?</p>
+      <p class="a">Đáp: Không. Tài khoản khách chỉ để trải nghiệm cách tính; dữ liệu mất khi tải lại trang.</p>
+
+      <div class="signoff">
+        <p>Tài liệu hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số.</p>
+        <p>Mọi góp ý xin gửi về bộ phận quản trị hệ thống của đơn vị.</p>
+      </div>
+    </section>
+  </div>`;
+
+  const win = window.open('', '_blank');
+  if (!win) { alert('Trình duyệt đã chặn cửa sổ in/lưu PDF. Hãy cho phép pop-up cho trang này rồi thử lại.'); return; }
+  win.document.open();
+  win.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>Sổ tay hướng dẫn sử dụng</title>
+<style>
+  @page{ size:A4 portrait; margin:18mm 16mm; }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#fff; color:#1a1a1a; font-family:'Times New Roman','Be Vietnam Pro',Georgia,serif; font-size:13.5px; line-height:1.55; }
+  .doc{ max-width:780px; margin:0 auto; padding:16px; }
+  .toolbar{ position:fixed; top:10px; right:12px; display:flex; gap:8px; font-family:system-ui,sans-serif; z-index:9; }
+  .toolbar button{ font-size:13px; padding:8px 16px; border:0; border-radius:8px; cursor:pointer; }
+  .toolbar .p{ background:#b91c1c; color:#fff; } .toolbar .c{ background:#e5e7eb; color:#111; }
+  h2{ font-size:16px; color:#b91c1c; border-bottom:2px solid #f1d4d4; padding-bottom:4px; margin:20px 0 8px; }
+  p{ margin:6px 0; text-align:justify; }
+  ul,ol{ margin:6px 0; padding-left:22px; } li{ margin:3px 0; text-align:justify; }
+  .muted{ color:#555; font-size:12.5px; } .bt{ font-weight:bold; margin-bottom:4px; }
+  .mono{ font-family:'Consolas','Courier New',monospace; font-size:12.5px; line-height:1.7; }
+  .formula{ background:#fef3c7; border:1px solid #f6c945; border-radius:8px; padding:10px 12px; font-weight:bold; text-align:center; margin:10px 0; }
+  .box{ border-radius:8px; padding:10px 12px; margin:10px 0; }
+  .box.gray{ background:#f5f6f8; border:1px solid #d9dde3; }
+  .box.red{ background:#fdecec; border:1px solid #f3b5b5; }
+  .box.amber{ background:#fff7e6; border:1px solid #f3d588; }
+  .box ul{ margin:4px 0; }
+  table.tbl{ width:100%; border-collapse:collapse; margin:10px 0; font-size:12.8px; }
+  table.tbl th, table.tbl td{ border:1px solid #999; padding:6px 8px; vertical-align:top; text-align:left; }
+  table.tbl th{ background:#e8eef7; font-weight:bold; }
+  .q{ font-weight:bold; color:#1f2937; margin-top:10px; } .a{ margin-top:2px; }
+  .toc{ font-size:14px; line-height:2; }
+  /* Trang bìa */
+  .cover{ text-align:center; min-height:240mm; display:flex; flex-direction:column; align-items:center; }
+  .cover .unit{ font-weight:bold; text-transform:uppercase; font-size:15px; letter-spacing:.3px; margin-top:8mm; }
+  .cover .rule{ width:150px; height:2px; background:#111; margin:8px auto 0; }
+  .cover-spacer{ flex:1; } .cover-kicker{ letter-spacing:2px; color:#b91c1c; font-weight:bold; font-size:14px; }
+  .cover-title{ font-size:26px; line-height:1.4; margin:14px 0; }
+  .cover-sub{ font-style:italic; font-size:14px; color:#333; }
+  .cover-meta{ font-style:italic; font-size:13px; margin-bottom:10px; }
+  .cover-note{ color:#b45309; font-weight:bold; font-size:12.5px; border:1px dashed #d9a441; border-radius:8px; padding:8px 12px; background:#fffbeb; }
+  .signoff{ margin-top:22px; padding-top:10px; border-top:1px solid #ddd; text-align:center; font-style:italic; color:#444; font-size:12.5px; }
+  section.page{ page-break-before:always; }
+  @media print{ .toolbar{ display:none; } .doc{ padding:0; } }
+</style></head>
+<body>
+  <div class="toolbar"><button class="p" onclick="window.print()">⬇ In / Lưu thành PDF</button><button class="c" onclick="window.close()">Đóng</button></div>
+  ${html}
+</body></html>`);
+  win.document.close();
+}

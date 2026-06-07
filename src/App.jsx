@@ -584,6 +584,10 @@ export default function App() {
     const { exportTrackingPDF } = await import('./lib/exporters');
     exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), unit, period);
   };
+  const doExportGuide = async () => {
+    const { exportGuidePDF } = await import('./lib/exporters');
+    exportGuidePDF(unit);
+  };
 
   // Phê duyệt / bỏ phê duyệt kết quả đánh giá của cán bộ đang chọn (chỉ cấp có thẩm quyền).
   const toggleApprove = () => {
@@ -1180,9 +1184,12 @@ export default function App() {
           <div className="space-y-6 max-w-3xl mx-auto">
           <ContactCard />
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
-            <div>
-              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
-              <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Người mới đọc cũng hiểu cách hệ thống chấm điểm và sử dụng.</p>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
+                <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Người mới đọc cũng hiểu cách hệ thống chấm điểm và sử dụng.</p>
+              </div>
+              <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>
             </div>
 
             <GB icon={LayoutDashboard} title="1. Năm khu vực (tab) của hệ thống">
