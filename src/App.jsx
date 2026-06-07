@@ -232,7 +232,7 @@ function evalGradeCode(score, st, { disciplined = false, leader = false } = {}) 
   const reasons = [];
   // Khoản 4 — các trường hợp Không hoàn thành nhiệm vụ (chốt mức D)
   if (disciplined) return { code: 'D', reasons: ['Bị xử lý kỷ luật đảng/hành chính hoặc bị kết luận suy thoái, vi phạm công vụ trong kỳ → Không hoàn thành nhiệm vụ (Điều 8 khoản 4).'] };
-  if (st.n > 0 && leader && st.completedRate < 70) return { code: 'D', reasons: [`Lĩnh vực/đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ (hiện ${st.completedRate.toFixed(0)}%) → Không hoàn thành nhiệm vụ (Điều 8.4.1).`] };
+  if (st.n > 0 && leader && st.completedRate < 70) return { code: 'D', reasons: [`Nhiệm vụ được giao trực tiếp (lĩnh vực phụ trách) mới hoàn thành ${st.completedRate.toFixed(0)}% (< 70%) → Không hoàn thành nhiệm vụ (Điều 8.4.1).`] };
   if (st.n > 0 && !leader && st.notDoneRate > 50) return { code: 'D', reasons: [`Trên 50% số nhiệm vụ không hoàn thành (hiện ${st.notDoneRate.toFixed(0)}%) → Không hoàn thành nhiệm vụ (Điều 8.4.2).`] };
 
   let code = gradeFromScore(score);
@@ -921,7 +921,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   </div>
                 </section>
 
-                <GradeExplain c={curC} disciplined={cur.disciplined} />
+                <GradeExplain c={curC} disciplined={cur.disciplined} tasks={cur.tasks335} />
 
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
                   <div><h2 className="flex items-center gap-2 font-bold text-slate-800 mb-2"><AlertTriangle className="w-5 h-5 text-amber-600" /> Điểm trừ</h2><div className="flex items-center gap-3"><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className="inp w-32 disabled:bg-slate-50 disabled:text-slate-500" /><span className="text-sm text-slate-500">điểm — trừ trực tiếp vào tổng điểm theo mức độ vi phạm (cấp duyệt nhập).</span></div></div>
@@ -1300,11 +1300,17 @@ function ContactCard() {
   );
 }
 // ===== Giải thích điều kiện xếp loại (Điều 8) ngay trong tab Đánh giá — để CBCC nắm rõ =====
-function GradeExplain({ c, disciplined }) {
+function GradeExplain({ c, disciplined, tasks }) {
   if (!c) return null;
   const st = c.st || { n: 0, completedRate: 100, exceedRate: 0, delayRate: 0, notDoneRate: 0 };
   const g = gradeClass(c.grade);
   const pct = (v) => `${Number(v).toFixed(0)}%`;
+  // Liệt kê đích danh nhiệm vụ để cán bộ biết RÕ chậm/chưa hoàn thành công việc nào.
+  const tlist = (tasks || []).filter((t) => t.catalogId);
+  const nameOf = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; };
+  const isDone = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 && cp >= as; };
+  const notDone = tlist.filter((t) => !isDone(t));
+  const delayed = tlist.filter((t) => (Number(t.delays) || 0) > 0);
   const metrics = [
     { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
     { label: 'Đã hoàn thành', val: pct(st.completedRate), ok: st.n === 0 ? null : st.completedRate >= 100, hint: 'cần 100%' },
@@ -1332,6 +1338,18 @@ function GradeExplain({ c, disciplined }) {
           ))}
         </div>
         {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "100% hoàn thành" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
+        {notDone.length > 0 && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
+            <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ CHƯA hoàn thành ({notDone.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-rose-700/90 leading-relaxed">{notDone.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — đã làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+          </div>
+        )}
+        {delayed.length > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+            <p className="text-[11px] font-bold text-amber-800 mb-1">Nhiệm vụ CHẬM tiến độ ({delayed.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-amber-800/90 leading-relaxed">{delayed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — chậm {Number(t.delays) || 0} lần{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+          </div>
+        )}
         <div className="space-y-1.5">
           {levels.map(([code, desc]) => { const active = c.grade === code; const gc = gradeClass(code);
             return (<div key={code} className={`flex items-start gap-2 rounded-lg p-2 border ${active ? gc.soft : 'border-slate-100 bg-slate-50/40'}`}>

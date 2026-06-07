@@ -5,7 +5,7 @@ import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
-  CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson, setCatalogRegistry,
+  CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson, setCatalogRegistry, findCatalogItem,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
   DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
@@ -449,6 +449,10 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                         <div key={l} className={`rounded-lg border p-1.5 ${ok == null ? 'border-white/10 bg-white/5' : ok ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-rose-400/30 bg-rose-500/10'}`}><p className="text-[9px] text-slate-400">{l}</p><p className={`font-bold text-sm ${ok == null ? 'text-slate-200' : ok ? 'text-emerald-300' : 'text-rose-300'}`}>{v}</p><p className="text-[9px] text-slate-500">{h}</p></div>
                       ))}
                     </div>
+                    {(() => { const tl = (cur.tasks335 || []).filter((t) => t.catalogId); const nm = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; }; const nd = tl.filter((t) => !((Number(t.assigned) || 0) > 0 && (Number(t.completed) || 0) >= (Number(t.assigned) || 0))); const dl = tl.filter((t) => (Number(t.delays) || 0) > 0); return (<>
+                      {nd.length > 0 && <div className="text-[11px] text-rose-200/90"><b className="text-rose-300">Chưa hoàn thành ({nd.length}/{tl.length}):</b><ul className="list-disc pl-4 mt-0.5 space-y-0.5">{nd.map((t, i) => <li key={i}>{nm(t)} — {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul></div>}
+                      {dl.length > 0 && <div className="text-[11px] text-amber-200/90"><b className="text-amber-300">Chậm tiến độ ({dl.length}/{tl.length}):</b><ul className="list-disc pl-4 mt-0.5 space-y-0.5">{dl.map((t, i) => <li key={i}>{nm(t)} — chậm {Number(t.delays) || 0} lần{t.note ? ` · ${t.note}` : ''}</li>)}</ul></div>}
+                    </>); })()}
                     {curC.gradeReasons && curC.gradeReasons.length > 0 ? (
                       <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-200/90 leading-relaxed">{curC.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
                     ) : (
