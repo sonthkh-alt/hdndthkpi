@@ -334,8 +334,9 @@ function computePerson(p) {
   const selfScores = p.selfScores || {}, mgrScores = p.mgrScores || {};
   let nself = 0, nmgr = 0;
   CRITERIA[p.type].groups.forEach((g) => g.items.forEach((it) => {
-    const sv = selfScores[it.id] ?? it.max;
-    nself += sv; nmgr += mgrScores[it.id] ?? sv;
+    // Kẹp theo điểm tối đa của tiêu chí khi ĐỌC: dữ liệu cũ (lưu trước khi đổi bộ tiêu chí) có thể vượt trần mới.
+    const sv = clamp(selfScores[it.id] ?? it.max, 0, it.max);
+    nself += sv; nmgr += clamp(mgrScores[it.id] ?? sv, 0, it.max);
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
   const k = agg335(p.tasks335);
@@ -559,7 +560,7 @@ export default function App() {
     const nhomICriteria = (cfgW?.groups || []).map((g) => ({
       groupTitle: g.title,
       groupMax: g.max,
-      items: g.items.map((it) => { const self = sS[it.id] ?? it.max; return { id: it.id, text: it.text, max: it.max, self, mgr: mS[it.id] ?? self }; }),
+      items: g.items.map((it) => { const self = clamp(sS[it.id] ?? it.max, 0, it.max); return { id: it.id, text: it.text, max: it.max, self, mgr: clamp(mS[it.id] ?? self, 0, it.max) }; }),
     }));
     // Chi tiết Nhóm II: từng nhiệm vụ kèm tên danh mục, tỷ lệ hoàn thành, điểm %.
     const tasks = (cur.tasks335 || []).map((t) => {
@@ -954,9 +955,9 @@ export default function App() {
                   <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Nhóm I — Tiêu chí chung</h2><div className="flex items-center gap-3 text-sm"><span className="text-slate-300">Tự: <b className="text-white">{curC.nself.toFixed(1)}</b></span><span className="text-amber-300 font-bold">Duyệt: {curC.nmgr.toFixed(1)}/30</span></div></div>
                   <div className="px-4 pt-3 flex justify-end gap-2 text-[11px] font-bold text-slate-400 pr-2"><span className="w-16 text-center">TỰ ĐG</span><span className="w-16 text-center text-red-600">CẤP DUYỆT</span></div>
                   <div className="p-4 pt-2 space-y-4">
-                    {cfg.groups.map((g) => { const sub = g.items.reduce((s, it) => s + (cur.mgrScores[it.id] ?? cur.selfScores[it.id] ?? it.max), 0);
+                    {cfg.groups.map((g) => { const sub = g.items.reduce((s, it) => s + clamp(cur.mgrScores[it.id] ?? cur.selfScores[it.id] ?? it.max, 0, it.max), 0);
                       return (<div key={g.id} className="border border-slate-200 rounded-xl overflow-hidden"><div className="bg-slate-50 px-4 py-2.5 flex items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-700">{g.title}</p><span className="shrink-0 text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{sub.toFixed(1)}/{g.max}</span></div>
-                        <div className="divide-y divide-slate-100">{g.items.map((it) => { const sv = cur.selfScores[it.id] ?? it.max; const mv = cur.mgrScores[it.id] ?? sv;
+                        <div className="divide-y divide-slate-100">{g.items.map((it) => { const sv = clamp(cur.selfScores[it.id] ?? it.max, 0, it.max); const mv = clamp(cur.mgrScores[it.id] ?? sv, 0, it.max);
                           return (<div key={it.id} className="px-4 py-3"><div className="flex items-start gap-3"><span className="shrink-0 text-xs font-bold text-slate-400 w-7 pt-1.5">{it.id}</span><button onClick={() => setOpen(open === it.id ? null : it.id)} className="flex-1 text-left text-sm text-slate-600 hover:text-slate-900 flex items-start gap-1 pt-1"><span className={open === it.id ? '' : 'line-clamp-1'}>{it.text}</span><ChevronDown className={`w-4 h-4 shrink-0 text-slate-300 mt-0.5 transition-transform ${open === it.id ? 'rotate-180' : ''}`} /></button><div className="shrink-0 flex gap-2"><input type="number" min="0" max={it.max} step="0.25" value={sv} disabled={!selfEditable} onChange={(e) => upCur({ selfScores: { ...cur.selfScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className="w-16 text-center text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 text-sm outline-none focus:border-slate-400 disabled:opacity-50 disabled:cursor-not-allowed" /><input type="number" min="0" max={it.max} step="0.25" value={mv} disabled={!mgrEditable} onChange={(e) => upCur({ mgrScores: { ...cur.mgrScores, [it.id]: clamp(Number(e.target.value), 0, it.max) } })} className="w-16 text-center font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg py-1 text-sm outline-none focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed" /></div></div>{open === it.id && <p className="mt-2 ml-10 text-xs text-slate-500 bg-slate-50 rounded-lg p-2.5 leading-relaxed">Điểm tối đa: {it.max}. {it.text}</p>}</div>); })}</div>
                       </div>); })}
                   </div>
