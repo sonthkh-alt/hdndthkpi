@@ -231,6 +231,19 @@ function taskStats(tasks) {
   return { n, doneRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, failRate: (fail / n) * 100 };
 }
 
+// Phân loại nhiệm vụ để liệt kê đích danh (dùng chung cho GradeExplain bản Cổ điển & hộp điều kiện bản Mới).
+//  failed: đạt <50% số lượng (không hoàn thành) · partial: 50–99% (chưa đủ) · delayed: có lần chậm · uncounted: chưa chọn danh mục
+function taskBreakdown(tasks) {
+  const list = (tasks || []).filter((t) => t.catalogId);
+  const ratio = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 ? cp / as : 0; };
+  return {
+    failed: list.filter((t) => ratio(t) < 0.5),
+    partial: list.filter((t) => { const r = ratio(t); return r >= 0.5 && r < 1; }),
+    delayed: list.filter((t) => (Number(t.delays) || 0) > 0),
+    uncounted: (tasks || []).filter((t) => !t.catalogId).length,
+  };
+}
+
 // Xác định mức xếp loại theo Điều 8 QĐ 1053: ngưỡng điểm + điều kiện định lượng (xét theo từng nhiệm vụ).
 // Trả { code, reasons[] } — reasons giải thích vì sao hạ/chốt mức (minh bạch khi chấm).
 function evalGradeCode(score, st, { disciplined = false, leader = false } = {}) {
@@ -369,7 +382,7 @@ function clampPeriod(p) {
 
 export {
   CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
-  classify, gradeClass, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson, isLeaderPerson,
+  classify, gradeClass, statusOf, clamp, task335Score, agg335, taskBreakdown, getND335Groups, computePerson, isLeaderPerson,
   newPerson, newTask335, newTracking, bumpIds, getWeekTitle, clampPeriod,
   setCatalogRegistry, findCatalogItem, LEVEL_SCORE,
 };
@@ -1330,13 +1343,8 @@ function GradeExplain({ c, disciplined, tasks }) {
   const g = gradeClass(c.grade);
   const pct = (v) => `${Number(v).toFixed(0)}%`;
   // Liệt kê đích danh nhiệm vụ để cán bộ biết RÕ chậm/chưa hoàn thành công việc nào.
-  const tlist = (tasks || []).filter((t) => t.catalogId);
-  const uncounted = (tasks || []).filter((t) => !t.catalogId).length; // nhiệm vụ chưa chọn danh mục → không tính điểm
+  const { failed, partial, delayed, uncounted } = taskBreakdown(tasks);
   const nameOf = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; };
-  const ratioOf = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 ? cp / as : 0; };
-  const failed = tlist.filter((t) => ratioOf(t) < 0.5);          // không hoàn thành (đạt dưới 50% số lượng)
-  const partial = tlist.filter((t) => { const r = ratioOf(t); return r >= 0.5 && r < 1; }); // chưa đạt đủ số lượng
-  const delayed = tlist.filter((t) => (Number(t.delays) || 0) > 0);
   const metrics = [
     { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
     { label: 'Đạt đủ số lượng', val: pct(st.doneRate), ok: st.n === 0 ? null : st.doneRate >= 100, hint: 'HTXS cần 100%' },
@@ -1521,12 +1529,5 @@ function CatalogManager({ catalog, onChange }) {
 function AddPerson({ onAdd }) {
   const [name, setName] = useState(''); const [type, setType] = useState('staff');
   return (<div className="flex flex-col sm:flex-row gap-2"><input value={name} onChange={(e) => setName(e.target.value)} placeholder="Họ tên cán bộ mới..." className="flex-1 bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm outline-none focus:border-red-400" /><select value={type} onChange={(e) => setType(e.target.value)} className="bg-white border border-slate-200 rounded-lg px-3 py-2 text-sm text-slate-600 outline-none focus:border-red-400">{CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}</select><button onClick={() => { onAdd(name.trim() || 'Cán bộ mới', type); setName(''); }} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2 rounded-lg text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button></div>);
-}
-function PersonChips({ people, curId, setCurId, onDelete, onAdd, hideDelete }) {
-  const [adding, setAdding] = useState(false);
-  return (<div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3"><div className="flex items-center gap-2 overflow-x-auto pb-1">{people.map((p) => { const on = p.id === curId; const r = gradeClass(computePerson(p).grade);
-    return (<div key={p.id} className={`shrink-0 flex items-center gap-2 pl-3 pr-2 py-2 rounded-xl border-2 cursor-pointer transition-all ${on ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`} onClick={() => setCurId(p.id)}><span className={`w-6 h-6 rounded-full ${r.cls} text-white text-[10px] font-bold flex items-center justify-center`}>{r.code}</span><div className="text-left"><p className="text-sm font-semibold text-slate-700 leading-none whitespace-nowrap">{p.name || '(Chưa tên)'}</p><p className="text-[10px] text-slate-400 mt-0.5 whitespace-nowrap">{CRITERIA[p.type].mau}</p></div>{!hideDelete && people.length > 1 && <button onClick={(e) => { e.stopPropagation(); onDelete(p.id); }} className="text-slate-300 hover:text-rose-500 p-0.5"><Trash2 className="w-3.5 h-3.5" /></button>}</div>); })}
-    <button onClick={() => setAdding(!adding)} className="shrink-0 flex items-center gap-1.5 px-3 py-2 rounded-xl border-2 border-dashed border-slate-300 text-slate-500 hover:border-red-400 hover:text-red-600 text-sm font-medium"><UserPlus className="w-4 h-4" /> Thêm</button>
-  </div>{adding && <div className="mt-3 pt-3 border-t border-slate-100"><AddPerson onAdd={(n, t) => { onAdd(n, t); setAdding(false); }} /></div>}</div>);
 }
 
