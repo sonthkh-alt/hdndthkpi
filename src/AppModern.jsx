@@ -132,7 +132,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     setCloud((c) => ({ ...c, saving: true }));
     const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); } else if (res.conflict) setConflict(true);
-    setCloud((c) => ({ ...c, saving: false })); refreshTrends();
+    setCloud((c) => ({ ...c, saving: false })); // không tự loadAllPeriods sau mỗi lần lưu — dùng nút "Làm mới" ở Tổng quan
   };
 
   const cur = people.find((p) => p.id === curId) || people[0] || null;

@@ -483,7 +483,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
     else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false }));
-    refreshTrends();
+    // Không tự nạp lại toàn bộ kỳ (loadAllPeriods rất nặng) sau mỗi lần lưu;
+    // người dùng bấm "Làm mới" ở tab Tổng quan khi cần cập nhật biểu đồ xu hướng.
   };
 
   const cur = people.find((p) => p.id === curId) || people[0] || null;
