@@ -372,20 +372,12 @@ function bumpIds(people) {
   trkId = Math.max(trkId, 0, ...ppl.flatMap((p) => (p.trackings || []).map((t) => t.id || 0))) + 1;
 }
 
-// ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
 // Chuẩn hóa kỳ: tháng 1–12, năm 2020–2100 (tránh nạp kỳ rác khi gõ nhầm).
 function clampPeriod(p) {
   const m = Math.max(1, Math.min(12, Math.round(Number(p?.month) || 1)));
   const y = Math.max(2020, Math.min(2100, Math.round(Number(p?.year) || new Date().getFullYear())));
   return { month: String(m), year: String(y) };
 }
-
-export {
-  CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
-  classify, gradeClass, statusOf, clamp, task335Score, agg335, taskBreakdown, getND335Groups, computePerson, isLeaderPerson,
-  newPerson, newTask335, newTracking, bumpIds, getWeekTitle, clampPeriod,
-  setCatalogRegistry, findCatalogItem, LEVEL_SCORE,
-};
 
 function getWeekTitle(dateObj) {
   const d = new Date(Date.UTC(dateObj.getFullYear(), dateObj.getMonth(), dateObj.getDate()));
@@ -399,7 +391,7 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App({ version = 'classic', onPickVersion } = {}) {
+export default function App() {
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -664,7 +656,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500 text-sm">Đang kiểm tra đăng nhập...</div>;
   }
   if (supabase && !session) {
-    return <Login unit={unit} version={version} onPickVersion={onPickVersion} onGuest={() => setSession('guest')} />;
+    return <Login unit={unit} onGuest={() => setSession('guest')} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {

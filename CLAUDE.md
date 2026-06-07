@@ -10,8 +10,8 @@ Nội dung được tách theo chủ đề, đặt trong thư mục `.claude/rul
 - **`project-overview.md`** — dự án là gì, công nghệ, URL, ghi chú bản demo.
 - **`commands-and-deploy.md`** — lệnh `npm` build/dev/lint, triển khai qua Vercel.
 - **`multi-machine-workflow.md`** — quy trình cơ quan ↔ nhà qua GitHub, tạo `.env`.
-- **`architecture.md`** — 3 phiên bản giao diện, danh sách file & nơi sửa *(nạp khi đụng `src/`, `api/`, `supabase/`)*.
-- **`data-model.md`** — 5 nhóm đối tượng (Mẫu 01–05), cấu trúc `person`, công thức điểm 3 bản *(nạp khi đụng `src/`)*.
+- **`architecture.md`** — kiến trúc (1 phiên bản giao diện), danh sách file & nơi sửa *(nạp khi đụng `src/`, `api/`, `supabase/`)*.
+- **`data-model.md`** — 5 nhóm đối tượng (Mẫu 01–05), cấu trúc `person`, công thức điểm *(nạp khi đụng `src/`)*.
 - **`conventions.md`** — tiếng Việt UTF-8, commit trailer, không commit secret.
 - **`changelog.md`** — nhật ký các bước đã làm.
 

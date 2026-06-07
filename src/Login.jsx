@@ -2,53 +2,25 @@ import { useState } from 'react';
 import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
 import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './lib/auth';
 
-// Theme màn đăng nhập đổi theo phiên bản đang chọn (đồng bộ style với app sau khi vào).
-const THEMES = {
-  classic: {
-    bg: 'bg-gradient-to-br from-[#5c0f0f] via-[#a51c1c] to-[#7f1d1d]', gridCls: 'tech-grid',
-    blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/25',
-    eyebrow: 'text-amber-300', title: 'aurora-text', unit: 'text-red-100/90',
-    badge: 'bg-amber-400 text-red-900', ring: 'ring-amber-300/60',
-    card: 'glass border border-white/40', emblem: 'bg-white/95',
-    btn: 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 shadow-red-900/20',
-    link: 'text-red-700 hover:text-red-800', accentIcon: 'text-red-700',
-    inputFocus: 'focus-within:border-red-400 focus-within:ring-red-200',
-    pickerWrap: 'bg-white/10 border-white/20', pickerInactive: 'text-red-100/80 hover:text-white',
-    foot: 'text-red-100/70', footWarn: 'text-amber-200',
-  },
-  modern: {
-    bg: 'bg-gradient-to-br from-[#0f0c29] via-[#302b63] to-[#24243e]', gridCls: 'tech-grid',
-    blob1: 'bg-violet-500/25', blob2: 'bg-fuchsia-500/20',
-    eyebrow: 'text-violet-300', title: 'text-white', unit: 'text-violet-100/80',
-    badge: 'bg-violet-400 text-violet-950', ring: 'ring-violet-300/50',
-    card: 'glass border border-white/40', emblem: 'bg-white/95',
-    btn: 'bg-gradient-to-r from-violet-600 to-fuchsia-600 hover:from-violet-500 hover:to-fuchsia-500 shadow-violet-900/30',
-    link: 'text-violet-700 hover:text-violet-900', accentIcon: 'text-violet-600',
-    inputFocus: 'focus-within:border-violet-400 focus-within:ring-violet-200',
-    pickerWrap: 'bg-white/10 border-white/20', pickerInactive: 'text-violet-100/80 hover:text-white',
-    foot: 'text-violet-200/70', footWarn: 'text-amber-300',
-  },
-  pro: {
-    bg: 'bg-gradient-to-br from-black via-neutral-950 to-neutral-900', gridCls: 'tech-grid',
-    blob1: 'bg-emerald-500/20', blob2: 'bg-emerald-700/15',
-    eyebrow: 'text-emerald-400', title: 'text-white', unit: 'text-neutral-300',
-    badge: 'bg-emerald-500 text-black', ring: 'ring-emerald-400/50',
-    card: 'glass border border-emerald-500/30', emblem: 'bg-white',
-    btn: 'bg-emerald-600 hover:bg-emerald-500 shadow-emerald-900/30',
-    link: 'text-emerald-700 hover:text-emerald-900', accentIcon: 'text-emerald-600',
-    inputFocus: 'focus-within:border-emerald-400 focus-within:ring-emerald-200',
-    pickerWrap: 'bg-white/10 border-white/20', pickerInactive: 'text-neutral-400 hover:text-white',
-    foot: 'text-neutral-400', footWarn: 'text-emerald-400',
-  },
+// Theme màn đăng nhập (tông cổ điển — đỏ/vàng).
+const t = {
+  bg: 'bg-gradient-to-br from-[#5c0f0f] via-[#a51c1c] to-[#7f1d1d]', gridCls: 'tech-grid',
+  blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/25',
+  eyebrow: 'text-amber-300', title: 'aurora-text', unit: 'text-red-100/90',
+  badge: 'bg-amber-400 text-red-900', ring: 'ring-amber-300/60',
+  card: 'glass border border-white/40', emblem: 'bg-white/95',
+  btn: 'bg-gradient-to-r from-red-700 to-red-600 hover:from-red-800 hover:to-red-700 shadow-red-900/20',
+  link: 'text-red-700 hover:text-red-800', accentIcon: 'text-red-700',
+  inputFocus: 'focus-within:border-red-400 focus-within:ring-red-200',
+  foot: 'text-red-100/70', footWarn: 'text-amber-200',
 };
 
-export default function Login({ unit, onGuest, version = 'classic', onPickVersion }) {
+export default function Login({ unit, onGuest }) {
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
   const [status, setStatus] = useState('idle'); // idle | sending | sent | error
   const [msg, setMsg] = useState('');
-  const t = THEMES[version] || THEMES.classic;
 
   const submitPassword = async (e) => {
     e.preventDefault();
@@ -95,14 +67,6 @@ export default function Login({ unit, onGuest, version = 'classic', onPickVersio
           <h1 className={`text-xl font-extrabold leading-tight mt-1.5 ${t.title}`}>Đánh giá, xếp loại cán bộ, công chức</h1>
           <p className={`text-sm mt-1.5 ${t.unit}`}>{unit || 'Đăng nhập để tiếp tục'}</p>
         </div>
-
-        {onPickVersion && (
-          <div className={`mb-4 border rounded-xl p-1.5 grid grid-cols-3 gap-1.5 ${t.pickerWrap}`}>
-            <button type="button" onClick={() => onPickVersion('classic')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'classic' ? 'bg-white text-red-800 shadow' : t.pickerInactive}`}>Cổ điển</button>
-            <button type="button" onClick={() => onPickVersion('modern')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'modern' ? 'bg-violet-400 text-violet-950 shadow' : t.pickerInactive}`}>Giao diện mới ✨</button>
-            <button type="button" onClick={() => onPickVersion('pro')} className={`py-2 rounded-lg text-[11px] font-semibold transition ${version === 'pro' ? 'bg-emerald-500 text-black shadow' : t.pickerInactive}`}>Bản PRO 🖥️</button>
-          </div>
-        )}
 
         <div className={`rounded-2xl shadow-2xl p-6 text-slate-800 ${t.card}`}>
           {mode === 'link' && status === 'sent' ? (

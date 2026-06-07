@@ -17,15 +17,14 @@ Mỗi nhóm có `groups` (Tiêu chí chung Nhóm I, ≤30). `hdnd`/`dbqh` dùng 
 
 ## Cấu trúc dữ liệu
 - `ORG_UNITS` (App.jsx) = danh mục **Phòng/Bộ phận → Chức vụ** (HĐND tỉnh, Đoàn ĐBQH, 4 Ban, Văn phòng, 4 phòng). Ô Phòng + Chức vụ ở màn Đánh giá là **dropdown** (`posOptions(dept)`).
-- Danh mục Nhóm II (Cổ điển/Mới): `ND335_CATALOG` + `HDND_CATALOG` → gộp `CATALOG`; `getND335Groups(type)`; `agg335()` tra hệ số.
-- `person`: `{ id, name, position, department, email, role, type, selfScores, mgrScores, deduction, tasks335[], proTasks[], leadScores{d,dd,e}, hdScores{cl,tt,hq}, digital, selfNote, mgrNote, trackings[] }`. Mỗi bản đọc field riêng → KHÔNG đụng nhau: Cổ điển/Mới dùng `tasks335[]`; **PRO dùng `proTasks[]`** (`{catalogId,objId,assigned,completed,qualityIssues,delays}`), `leadScores` (lãnh đạo 100/50), `hdScores` (hợp đồng).
+- Danh mục Nhóm II: `ND335_CATALOG` + `HDND_CATALOG` → gộp `CATALOG`; cộng danh mục Quản trị tùy chỉnh `state.catalog = {custom[],hidden[],overrides{}}` qua registry (`setCatalogRegistry`/`findCatalogItem`); `getND335Groups(type)` lọc theo Nhóm đối tượng hiệu lực; `agg335()` tra hệ số qua `findCatalogItem`.
+- `person`: `{ id, name, position, department, email, role, type, selfScores, mgrScores, deduction, disciplined, tasks335[], leadScores{d,dd,e}, digital, selfNote, mgrNote, trackings[] }`. `tasks335[]` = `{catalogId,objId,assigned,completed,qualityIssues,delays,note}`; `leadScores` = d/đ/e của lãnh đạo (100/50). *(Dữ liệu cũ có thể còn `proTasks`/`hdScores` từ bản PRO — đã gỡ, nay bỏ qua.)*
 - `trackings[]` (Theo dõi CV) thêm trường KPI `{catalogId,objId,completed,qualityIssues,delays}` + cờ `fromSheet`/`srcTrkId`.
 
-## Công thức điểm
-- **Chung:** Tổng = Nhóm I (≤30) + Nhóm II (≤70) − Điểm trừ; xếp loại A≥90 / B≥70 / C≥50 / D<50; trần HTXS ≤20% (đặc biệt 25%) số HTT. **Cán bộ mới mặc định 100/100** (Nhóm I tối đa; Nhóm II mặc định 100 khi chưa nhập).
-- **Cổ điển/Mới** (`agg335`): (a+b+c)/3 × 70%, trọng số = hệ số danh mục; b,c chia cho SỐ HOÀN THÀNH. KHÔNG có 6 thành phần lãnh đạo.
-- **PRO** (`computePro`, đúng NĐ335 Điều 14/16): đếm khách quan, hệ số quy đổi N1–N5 (đơn vị chuẩn 5đ); a/b/c đều chia cho **SỐ GIAO**, b −25%/lần lỗi, c −25%/lần chậm. Cán bộ (a+b+c)/3; **lãnh đạo (a+b+c+d+đ+e)/6** (d/đ/e mỗi mục 100%/50%, theo CHỨC VỤ qua `isLeaderPerson`). **Hợp đồng** (`contract`) theo **Sổ tay Chương III**: 3 tiêu chí Chất lượng/Tuân thủ/Hiệu quả → (cl+tt+hq)/3.
-- **Hệ số/trọng số ẩn khi chấm** (cả 3 bản) — chỉ giải thích ở tab Hướng dẫn.
+## Công thức điểm (`computePerson` + `agg335` + `evalGradeCode` trong App.jsx)
+- **Chung:** Tổng = Nhóm I (≤30) + Nhóm II (≤70) − Điểm trừ. **Cán bộ mới mặc định 100/100** (Nhóm I tối đa; Nhóm II mặc định 100 khi chưa nhập).
+- **Nhóm II** (`agg335`): (a+b+c)/3 × 70%, trọng số = hệ số danh mục. **Lãnh đạo, quản lý** (theo `isLeaderPerson`, Điều 7): **(a+b+c+d+đ+e)/6**, d/đ/e mỗi mục 100%/50% từ `leadScores`. Hệ số/trọng số **ẩn khi chấm** — chỉ giải thích ở tab Hướng dẫn.
+- **Xếp loại theo Điều 8** (`taskStats` + `evalGradeCode`): xét THEO TỪNG nhiệm vụ (r=HT/Giao). Ngưỡng điểm A≥90/B≥70/C≥50/D<50 **kèm điều kiện**: A cần đạt đủ 100% số lượng mọi nhiệm vụ + ≥30% vượt mức; D khi >50% nhiệm vụ không hoàn thành (r<50%; lãnh đạo >30%) hoặc tích "bị kỷ luật". Trần HTXS ≤20% số HTT.
 
 ## Phân quyền
 Theo email khớp `person.email`: `canbo` / `truongphong` / `quantri` (+ bootstrap admin `sonthkh@gmail.com`); `khach` (`user@thanhhoa.gov.vn`) = dùng thử, **KHÔNG lưu**.
