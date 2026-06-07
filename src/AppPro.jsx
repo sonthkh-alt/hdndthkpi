@@ -5,7 +5,7 @@ import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
-  CRITERIA, classify, statusOf, clamp, newPerson, newTracking, bumpIds, getWeekTitle,
+  CRITERIA, classify, statusOf, clamp, newPerson, newTracking, bumpIds, getWeekTitle, clampPeriod,
   ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
 import { computePro, newProTask, bumpProIds, proTaskPct, isLeaderPerson, getProCatalog, HD_CRITERIA } from './lib/pro.js';
@@ -84,7 +84,9 @@ export default function AppPro({ version, onPickVersion, initialNav }) {
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
 
-  const loadPeriod = async (p) => {
+  const loadPeriod = async (rawP) => {
+    const p = clampPeriod(rawP);
+    if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p);
     loadingRef.current = true; setConflict(false); setSeedFrom(null);
     const res = await loadState(p);
     serverTsRef.current = res.serverTs;

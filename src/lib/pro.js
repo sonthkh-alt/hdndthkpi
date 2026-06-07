@@ -132,11 +132,16 @@ export const proTaskPct = (t) => {
 };
 
 export function computePro(p) {
+  // Phòng vệ: bản ghi hỏng/thiếu Nhóm đối tượng không làm crash cả app.
+  if (!p || !CRITERIA[p.type]) {
+    return { nself: 0, nmgr: 0, isHd: false, leader: false, k: { a: 0, b: 0, c: 0, val: 0 }, nhomII: 0, totalSelf: 0, totalMgr: 0 };
+  }
   // Nhóm I — Tiêu chí chung (≤30), DÙNG CHUNG (selfScores/mgrScores theo CRITERIA)
+  const selfScores = p.selfScores || {}, mgrScores = p.mgrScores || {};
   let nself = 0, nmgr = 0;
   CRITERIA[p.type].groups.forEach((g) => g.items.forEach((it) => {
-    const sv = p.selfScores[it.id] ?? it.max;
-    nself += sv; nmgr += (p.mgrScores[it.id] ?? sv);
+    const sv = selfScores[it.id] ?? it.max;
+    nself += sv; nmgr += (mgrScores[it.id] ?? sv);
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
 

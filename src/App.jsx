@@ -314,10 +314,15 @@ function getND335Groups(type) {
 }
 
 function computePerson(p) {
+  // Phòng vệ: bản ghi hỏng/thiếu Nhóm đối tượng không làm crash cả app (ErrorBoundary).
+  if (!p || !CRITERIA[p.type]) {
+    return { nself: 0, nmgr: 0, k: { a: 0, b: 0, c: 0, val: 0 }, leader: false, st: { n: 0, doneRate: 0, exceedRate: 0, delayRate: 0, failRate: 0 }, nhomII: 0, totalSelf: 0, totalMgr: 0, grade: 'D', gradeReasons: ['Thiếu hoặc sai "Nhóm đối tượng đánh giá" — vui lòng chọn lại nhóm cho cán bộ này.'] };
+  }
+  const selfScores = p.selfScores || {}, mgrScores = p.mgrScores || {};
   let nself = 0, nmgr = 0;
   CRITERIA[p.type].groups.forEach((g) => g.items.forEach((it) => {
-    const sv = p.selfScores[it.id] ?? it.max;
-    nself += sv; nmgr += p.mgrScores[it.id] ?? sv;
+    const sv = selfScores[it.id] ?? it.max;
+    nself += sv; nmgr += mgrScores[it.id] ?? sv;
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
   const k = agg335(p.tasks335);
@@ -355,10 +360,17 @@ function bumpIds(people) {
 }
 
 // ===== Chia sẻ model cho phiên bản giao diện khác (AppModern) — KHÔNG đổi logic =====
+// Chuẩn hóa kỳ: tháng 1–12, năm 2020–2100 (tránh nạp kỳ rác khi gõ nhầm).
+function clampPeriod(p) {
+  const m = Math.max(1, Math.min(12, Math.round(Number(p?.month) || 1)));
+  const y = Math.max(2020, Math.min(2100, Math.round(Number(p?.year) || new Date().getFullYear())));
+  return { month: String(m), year: String(y) };
+}
+
 export {
   CRITERIA, CRITERIA_ORDER, CATALOG, DIGITAL, LEVELS, MIN_DIGITAL, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS, ORG_UNITS, posOptions,
   classify, gradeClass, statusOf, clamp, task335Score, agg335, getND335Groups, computePerson, isLeaderPerson,
-  newPerson, newTask335, newTracking, bumpIds, getWeekTitle,
+  newPerson, newTask335, newTracking, bumpIds, getWeekTitle, clampPeriod,
   setCatalogRegistry, findCatalogItem, LEVEL_SCORE,
 };
 
@@ -418,7 +430,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
 
-  const loadPeriod = async (p) => {
+  const loadPeriod = async (rawP) => {
+    const p = clampPeriod(rawP);
+    if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p); // sửa lại ô nhập nếu gõ sai
     loadingRef.current = true;
     setConflict(false); setSeedFrom(null);
     const res = await loadState(p);
@@ -904,7 +918,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
                     <div className="space-y-3">{(cur.tasks335 || []).map((t, i) => { const sc = task335Score(t); const st = statusOf(sc);
                       return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
-                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select><span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span>{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
+                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
                         <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
                         <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
@@ -1317,6 +1331,7 @@ function GradeExplain({ c, disciplined, tasks }) {
   const pct = (v) => `${Number(v).toFixed(0)}%`;
   // Liệt kê đích danh nhiệm vụ để cán bộ biết RÕ chậm/chưa hoàn thành công việc nào.
   const tlist = (tasks || []).filter((t) => t.catalogId);
+  const uncounted = (tasks || []).filter((t) => !t.catalogId).length; // nhiệm vụ chưa chọn danh mục → không tính điểm
   const nameOf = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; };
   const ratioOf = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 ? cp / as : 0; };
   const failed = tlist.filter((t) => ratioOf(t) < 0.5);          // không hoàn thành (đạt dưới 50% số lượng)
@@ -1349,6 +1364,7 @@ function GradeExplain({ c, disciplined, tasks }) {
           ))}
         </div>
         {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "đạt đủ 100% số lượng" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
+        {uncounted > 0 && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5"><b>{uncounted}</b> nhiệm vụ <b>chưa chọn danh mục công việc</b> nên KHÔNG được tính vào điểm KPI. Hãy chọn danh mục cho các dòng đang đánh dấu "chưa tính điểm" ở mục Nhóm II.</p>}
         {failed.length > 0 && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
             <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ KHÔNG hoàn thành — đạt dưới 50% số lượng ({failed.length}/{st.n}):</p>

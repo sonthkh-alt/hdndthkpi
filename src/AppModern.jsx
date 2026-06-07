@@ -6,7 +6,7 @@ import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import {
   CRITERIA, classify, gradeClass, statusOf, clamp, task335Score, getND335Groups, computePerson, setCatalogRegistry, findCatalogItem,
-  newPerson, newTask335, newTracking, bumpIds, getWeekTitle, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
+  newPerson, newTask335, newTracking, bumpIds, getWeekTitle, clampPeriod, ROLE_LABEL, BOOTSTRAP_ADMIN_EMAILS,
   DIGITAL, LEVELS, MIN_DIGITAL, ORG_UNITS, posOptions, CRITERIA_ORDER,
 } from './App.jsx';
 import { deptSummary } from './lib/dash';
@@ -86,7 +86,9 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
 
-  const loadPeriod = async (p) => {
+  const loadPeriod = async (rawP) => {
+    const p = clampPeriod(rawP);
+    if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p);
     loadingRef.current = true; setConflict(false); setSeedFrom(null);
     const res = await loadState(p);
     serverTsRef.current = res.serverTs;
@@ -419,7 +421,7 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                   <div className="p-3 space-y-3">
                     {(cur.tasks335 || []).map((t) => { const sc = task335Score(t); const st = statusOf(sc); return (
                       <div key={t.id} className="border border-white/10 bg-white/5 rounded-xl p-3">
-                        <div className="flex items-center gap-2 mb-2"><span className={`w-2.5 h-2.5 rounded-full ${st.dot} shrink-0`} /><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-slate-900" value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => <option className="bg-slate-900" key={c.id} value={c.id}>[{c.id}] {c.name}</option>)}</select><span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-400' : sc >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>{sc.toFixed(0)}%</span>{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="text-rose-400 hover:bg-rose-500/20 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
+                        <div className="flex items-center gap-2 mb-2"><span className={`w-2.5 h-2.5 rounded-full ${st.dot} shrink-0`} /><select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP} ${t.catalogId ? '' : 'border-amber-400/60'}`}><option className="bg-slate-900" value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => <option className="bg-slate-900" key={c.id} value={c.id}>[{c.id}] {c.name}</option>)}</select>{t.catalogId ? <span className={`text-[11px] font-bold ${sc >= 90 ? 'text-emerald-400' : sc >= 70 ? 'text-amber-400' : 'text-rose-400'}`}>{sc.toFixed(0)}%</span> : <span className="text-[10px] font-bold text-amber-300 bg-amber-500/15 border border-amber-400/30 rounded px-1.5 py-0.5" title="Chưa chọn danh mục → không tính điểm">chưa tính</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="text-rose-400 hover:bg-rose-500/20 p-1 rounded"><Trash2 className="w-4 h-4" /></button>}</div>
                         <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-500 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className={`flex-1 px-2 py-1.5 text-xs ${INP}`}><option className="bg-slate-900" value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option className="bg-slate-900" key={o.id} value={o.id}>{o.title}</option>)}</select></div>
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">{[['Số lượng giao', 'assigned', 1], ['Số lượng HT', 'completed', 0], ['Lỗi chất lượng', 'qualityIssues', 0], ['Chậm tiến độ', 'delays', 0]].map(([lb, key, mn]) => (
                           <label key={key} className="block"><span className="text-[10px] font-semibold text-slate-500">{lb}</span><input type="number" min={mn} value={t[key]} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { [key]: Math.max(mn, Number(e.target.value)) })} className={`mt-0.5 w-full px-2 py-1.5 text-sm text-center font-semibold ${INP}`} /></label>
