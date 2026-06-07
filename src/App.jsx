@@ -363,7 +363,7 @@ function computePerson(p) {
 let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [] });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
 function bumpIds(people) {
   const ppl = people || [];
@@ -489,7 +489,7 @@ export default function App() {
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month });
     if (!res.state) return;
-    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [] }));
+    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }));
     setObjectives(res.state.objectives || []);
     setCatalog(res.state.catalog || { custom: [], hidden: [] }); // mang theo danh mục tùy chỉnh sang kỳ mới
     setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
@@ -508,7 +508,13 @@ export default function App() {
 
   const cur = people.find((p) => p.id === curId) || people[0] || null;
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const upCur = (patch) => upPerson(curId, patch);
+  // Các trường ảnh hưởng kết quả chấm điểm — khi đổi thì tự GỠ phê duyệt cũ (tránh "đã duyệt" trên dữ liệu đã sửa).
+  const SCORING_KEYS = ['selfScores', 'mgrScores', 'tasks335', 'leadScores', 'deduction', 'disciplined'];
+  const upCur = (patch) => {
+    const touchesScore = Object.keys(patch).some((k) => SCORING_KEYS.includes(k));
+    const p2 = (touchesScore && cur?.approved && !('approved' in patch)) ? { ...patch, approved: false, approvedBy: '', approvedRole: '', approvedAt: '' } : patch;
+    upPerson(curId, p2);
+  };
   const upTask335 = (taskId, patch) => upCur({ tasks335: (cur.tasks335 || []).map((t) => (t.id === taskId ? { ...t, ...patch } : t)) });
   const upTracking = (trkId, patch) => upCur({ trackings: (cur.trackings || []).map((t) => (t.id === trkId ? { ...t, ...patch } : t)) });
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } }); // d/đ/e cho lãnh đạo
@@ -547,11 +553,50 @@ export default function App() {
   };
   const doWord = async () => {
     const { exportWordPhieu } = await import('./lib/exporters');
-    exportWordPhieu({ unit, name: cur.name, position: cur.position, typeLabel: CRITERIA[cur.type].label, month: period.month, year: period.year, nhomI: curC.nmgr.toFixed(2), nhomII: curC.nhomII.toFixed(2), kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1), deduction: Number(cur.deduction || 0).toFixed(2), total: curC.totalMgr.toFixed(2), cls: result.code, clsName: result.name, selfNote: cur.selfNote, mgrNote: cur.mgrNote });
+    const cfgW = CRITERIA[cur.type];
+    const sS = cur.selfScores || {}, mS = cur.mgrScores || {};
+    // Chi tiết Nhóm I: từng nhóm tiêu chí + từng mục (điểm Tự ĐG / Cấp duyệt). Mặc định chưa nhập = điểm tối đa.
+    const nhomICriteria = (cfgW?.groups || []).map((g) => ({
+      groupTitle: g.title,
+      groupMax: g.max,
+      items: g.items.map((it) => { const self = sS[it.id] ?? it.max; return { id: it.id, text: it.text, max: it.max, self, mgr: mS[it.id] ?? self }; }),
+    }));
+    // Chi tiết Nhóm II: từng nhiệm vụ kèm tên danh mục, tỷ lệ hoàn thành, điểm %.
+    const tasks = (cur.tasks335 || []).map((t) => {
+      const cat = t.catalogId ? findCatalogItem(t.catalogId) : null;
+      const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
+      return { catalogName: cat ? cat.name : '', note: t.note || '', assigned: t.assigned, completed: t.completed, qualityIssues: t.qualityIssues || 0, delays: t.delays || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
+    });
+    exportWordPhieu({
+      unit, mau: cfgW?.mau, name: cur.name, position: cur.position, department: cur.department,
+      typeLabel: cfgW?.label, month: period.month, year: period.year,
+      nhomICriteria, nhomI: curC.nmgr, nhomISelf: curC.nself,
+      tasks, leader: curC.leader, leadScores: curC.leader ? { d: curC.k.d ?? 100, dd: curC.k.dd ?? 100, e: curC.k.e ?? 100 } : null,
+      kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1),
+      nhomII: curC.nhomII.toFixed(2), deduction: Number(cur.deduction || 0), disciplined: !!cur.disciplined,
+      total: curC.totalMgr, totalSelf: curC.totalSelf, cls: result.code, clsName: result.name, gradeReasons: curC.gradeReasons || [],
+      selfNote: cur.selfNote, mgrNote: cur.mgrNote,
+      approved: !!cur.approved, approvedBy: cur.approvedBy, approvedRole: cur.approvedRole, approvedAt: cur.approvedAt,
+    });
   };
   const doExportTracking = async () => {
     const { exportTrackingPDF } = await import('./lib/exporters');
     exportTrackingPDF(people, getWeekTitle(new Date(trackingDate)), unit, period);
+  };
+
+  // Phê duyệt / bỏ phê duyệt kết quả đánh giá của cán bộ đang chọn (chỉ cấp có thẩm quyền).
+  const toggleApprove = () => {
+    if (!cur) return;
+    if (cur.approved) { upCur({ approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }); return; }
+    const d = new Date();
+    const at = `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`;
+    const by = (myPerson?.name) || (session?.user?.user_metadata?.full_name) || myEmail || 'Cấp có thẩm quyền';
+    upCur({ approved: true, approvedBy: by, approvedRole: ROLE_LABEL[role] || '', approvedAt: at });
+  };
+  // Phê duyệt (nếu chưa) rồi xuất phiếu Word đầy đủ trong một thao tác.
+  const doApproveAndWord = async () => {
+    if (cur && !cur.approved) toggleApprove();
+    await doWord();
   };
 
   // Đồng bộ "Bảng kiểm đếm" từ Google Sheet (qua proxy /api/kiemdem) -> nạp thành dòng theo dõi có thể sửa.
@@ -976,9 +1021,26 @@ export default function App() {
                   )}
                 </div>
                 <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-3 space-y-2">
-                  <button onClick={doWord} className="w-full flex items-center justify-center gap-2 bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2.5 rounded-xl"><FileText className="w-4 h-4" /> Xuất phiếu Word</button>
+                  {/* Trạng thái phê duyệt của cấp có thẩm quyền */}
+                  {cur.approved ? (
+                    <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-[12px] text-emerald-800">
+                      <p className="flex items-center gap-1.5 font-semibold"><CheckCircle2 className="w-4 h-4" /> Đã phê duyệt</p>
+                      <p className="mt-0.5 leading-snug">Bởi <b>{cur.approvedBy || '—'}</b>{cur.approvedRole ? ` (${cur.approvedRole})` : ''}{cur.approvedAt ? `, ngày ${cur.approvedAt}` : ''}.</p>
+                    </div>
+                  ) : (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[12px] text-amber-800">
+                      <p className="flex items-center gap-1.5 font-semibold"><AlertTriangle className="w-4 h-4" /> Chưa phê duyệt</p>
+                      <p className="mt-0.5 leading-snug">Phiếu chính thức cần cấp có thẩm quyền phê duyệt.</p>
+                    </div>
+                  )}
+                  {mgrEditable && (
+                    cur.approved
+                      ? <button onClick={toggleApprove} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Bỏ phê duyệt</button>
+                      : <button onClick={doApproveAndWord} className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl"><CheckCircle2 className="w-4 h-4" /> Phê duyệt & xuất phiếu</button>
+                  )}
+                  <button onClick={doWord} className="w-full flex items-center justify-center gap-2 bg-sky-700 hover:bg-sky-800 text-white font-semibold py-2.5 rounded-xl"><FileText className="w-4 h-4" /> Xuất phiếu Word (đầy đủ)</button>
                   <button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl"><Printer className="w-4 h-4" /> In phiếu (PDF)</button>
-                  {(canManage || mgrEditable) && <button onClick={() => { if (!window.confirm('Đặt lại toàn bộ điểm và nhiệm vụ của cán bộ này về mặc định?')) return; upCur({ selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '' }); }} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>}
+                  {(canManage || mgrEditable) && <button onClick={() => { if (!window.confirm('Đặt lại toàn bộ điểm và nhiệm vụ của cán bộ này về mặc định?')) return; upCur({ selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }); }} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>}
                 </div>
               </div></aside>
             </div>

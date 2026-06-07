@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, TextRun, AlignmentType } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel } from 'docx';
 import { saveAs } from 'file-saver';
 
 // EXCEL — Mẫu 1A tổng hợp
@@ -18,37 +18,201 @@ export function exportExcel1A(rows, period, unit) {
   XLSX.writeFile(wb, `Mau1A_${period.month}_${period.year}.xlsx`);
 }
 
-// WORD — Phiếu đánh giá, xếp loại cá nhân (gộp Tiêu chí chung + Kết quả thực hiện nhiệm vụ)
-export async function exportWordPhieu(ev) {
-  const doc = new Document({
-    sections: [{
-      children: [
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: ev.unit.toUpperCase(), bold: true, size: 24 })] }),
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', bold: true, size: 24 })] }),
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'Độc lập - Tự do - Hạnh phúc', bold: true, size: 24 })] }),
-        new Paragraph(''),
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: 'PHIẾU ĐÁNH GIÁ, XẾP LOẠI HẰNG THÁNG', bold: true, size: 30 })] }),
-        new Paragraph({ alignment: AlignmentType.CENTER, children: [new TextRun({ text: `(Kỳ đánh giá: Tháng ${ev.month}/${ev.year})`, italics: true, size: 22 })] }),
-        new Paragraph(''),
-        new Paragraph(`Họ và tên: ${ev.name}`),
-        new Paragraph(`Chức vụ / Vị trí việc làm: ${ev.position}`),
-        new Paragraph(`Nhóm đối tượng: ${ev.typeLabel}`),
-        new Paragraph(''),
-        new Paragraph({ children: [new TextRun({ text: 'I. NHÓM TIÊU CHÍ CHUNG (Tối đa 30 điểm)', bold: true })] }),
-        new Paragraph(`Điểm cấp có thẩm quyền đánh giá: ${ev.nhomI}`),
-        new Paragraph(''),
-        new Paragraph({ children: [new TextRun({ text: 'II. KẾT QUẢ THỰC HIỆN NHIỆM VỤ (Tối đa 70 điểm)', bold: true })] }),
-        new Paragraph(`Điểm quy đổi: ${ev.kpi}% × 70% = ${ev.nhomII}`),
-        new Paragraph(`(Trong đó: Tỷ lệ Khối lượng a = ${ev.a}%; Tỷ lệ Chất lượng b = ${ev.b}%; Tỷ lệ Tiến độ c = ${ev.c}%)`),
-        new Paragraph(''),
-        new Paragraph(`Điểm trừ: ${ev.deduction}`),
-        new Paragraph({ children: [new TextRun({ text: `TỔNG ĐIỂM: ${ev.total} — XẾP LOẠI: ${ev.cls} (${ev.clsName})`, bold: true })] }),
-        new Paragraph(''),
-        new Paragraph(`Ý kiến tự nhận xét của cá nhân: ${ev.selfNote || '...'}`),
-        new Paragraph(`Nhận xét, kết luận của cấp có thẩm quyền: ${ev.mgrNote || '...'}`),
-      ],
-    }],
+// WORD — Phiếu đánh giá, xếp loại cá nhân ĐẦY ĐỦ, CHI TIẾT.
+// Liệt kê: thông tin cán bộ · bảng Nhóm I từng tiêu chí (Tự ĐG/Cấp duyệt) · bảng Nhóm II từng nhiệm vụ
+// · thành phần lãnh đạo (d/đ/e) · tổng hợp điểm & xếp loại · điều kiện Điều 8 · nhận xét · phê duyệt + chữ ký.
+const FONT = 'Times New Roman';
+const SINGLE = { style: BorderStyle.SINGLE, size: 4, color: '888888' };
+const CELL_BORDERS = { top: SINGLE, bottom: SINGLE, left: SINGLE, right: SINGLE };
+
+// Đoạn văn thường (Times New Roman, cỡ ~13pt)
+function P(text, opts = {}) {
+  const { bold = false, italics = false, align = AlignmentType.LEFT, size = 26, spacingAfter = 0, color } = opts;
+  const runs = Array.isArray(text) ? text : [{ text, bold, italics, color }];
+  return new Paragraph({
+    alignment: align,
+    spacing: { after: spacingAfter },
+    children: runs.map((r) => new TextRun({ text: String(r.text ?? ''), bold: r.bold ?? bold, italics: r.italics ?? italics, color: r.color ?? color, size, font: FONT })),
   });
+}
+// Ô bảng
+function TC(text, opts = {}) {
+  const { bold = false, align = AlignmentType.LEFT, span, width, size = 22, shade, italics = false, color } = opts;
+  return new TableCell({
+    columnSpan: span,
+    width: width ? { size: width, type: WidthType.PERCENTAGE } : undefined,
+    shading: shade ? { fill: shade } : undefined,
+    borders: CELL_BORDERS,
+    margins: { top: 30, bottom: 30, left: 70, right: 70 },
+    verticalAlign: 'center',
+    children: [new Paragraph({ alignment: align, children: [new TextRun({ text: String(text ?? ''), bold, italics, color, size, font: FONT })] })],
+  });
+}
+const fmt = (v, d = 2) => (v == null || v === '' || isNaN(Number(v)) ? '' : Number(v).toFixed(d));
+
+export async function exportWordPhieu(ev) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
+  const children = [];
+
+  // ===== Đầu phiếu =====
+  children.push(P(ev.unit.toUpperCase(), { bold: true, size: 24, align: C }));
+  children.push(P('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { bold: true, size: 24, align: C }));
+  children.push(P('Độc lập - Tự do - Hạnh phúc', { bold: true, size: 24, align: C, spacingAfter: 200 }));
+  children.push(P('PHIẾU ĐÁNH GIÁ, XẾP LOẠI CÁN BỘ, CÔNG CHỨC HẰNG THÁNG', { bold: true, size: 30, align: C }));
+  if (ev.mau) children.push(P(`(${ev.mau})`, { italics: true, size: 22, align: C }));
+  children.push(P(`Kỳ đánh giá: Tháng ${ev.month}/${ev.year}`, { italics: true, size: 24, align: C, spacingAfter: 200 }));
+
+  // ===== Thông tin cán bộ =====
+  children.push(P([{ text: 'Họ và tên: ', bold: true }, { text: ev.name || '...' }]));
+  children.push(P([{ text: 'Chức vụ / Vị trí việc làm: ', bold: true }, { text: ev.position || '...' }]));
+  if (ev.department) children.push(P([{ text: 'Phòng / Bộ phận: ', bold: true }, { text: ev.department }]));
+  children.push(P([{ text: 'Nhóm đối tượng đánh giá: ', bold: true }, { text: ev.typeLabel || '' }], { spacingAfter: 160 }));
+
+  // ===== I. NHÓM TIÊU CHÍ CHUNG =====
+  children.push(P('I. NHÓM TIÊU CHÍ CHUNG (tối đa 30 điểm)', { bold: true, size: 26, spacingAfter: 80 }));
+  const nIrows = [new TableRow({ tableHeader: true, children: [
+    TC('Tiêu chí đánh giá', { bold: true, align: C, shade: 'E8EEF7', width: 64 }),
+    TC('Điểm tối đa', { bold: true, align: C, shade: 'E8EEF7', width: 12 }),
+    TC('Tự ĐG', { bold: true, align: C, shade: 'E8EEF7', width: 12 }),
+    TC('Cấp duyệt', { bold: true, align: C, shade: 'E8EEF7', width: 12 }),
+  ] })];
+  (ev.nhomICriteria || []).forEach((g) => {
+    nIrows.push(new TableRow({ children: [
+      TC(g.groupTitle, { bold: true, span: 3, shade: 'F3F4F6' }),
+      TC(fmt(g.groupMax, 1), { bold: true, align: C, shade: 'F3F4F6' }),
+    ] }));
+    (g.items || []).forEach((it) => {
+      nIrows.push(new TableRow({ children: [
+        TC(`${it.id}. ${it.text}`, { size: 20 }),
+        TC(fmt(it.max, 1), { align: C }),
+        TC(fmt(it.self, 1), { align: C }),
+        TC(fmt(it.mgr, 1), { align: C }),
+      ] }));
+    });
+  });
+  nIrows.push(new TableRow({ children: [
+    TC('CỘNG NHÓM I (giới hạn ≤ 30)', { bold: true, span: 2, align: R, shade: 'FEF3C7' }),
+    TC(fmt(ev.nhomISelf, 2), { bold: true, align: C, shade: 'FEF3C7' }),
+    TC(fmt(ev.nhomI, 2), { bold: true, align: C, shade: 'FEF3C7' }),
+  ] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: nIrows }));
+  children.push(P('', { spacingAfter: 80 }));
+
+  // ===== II. KẾT QUẢ THỰC HIỆN NHIỆM VỤ =====
+  children.push(P('II. KẾT QUẢ THỰC HIỆN NHIỆM VỤ (Nhóm II, tối đa 70 điểm)', { bold: true, size: 26, spacingAfter: 80 }));
+  const tasks = ev.tasks || [];
+  if (tasks.length) {
+    const tRows = [new TableRow({ tableHeader: true, children: [
+      TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
+      TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 43 }),
+      TC('SL giao', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+      TC('Hoàn thành', { bold: true, align: C, shade: 'E8EEF7', width: 10 }),
+      TC('Lỗi CL', { bold: true, align: C, shade: 'E8EEF7', width: 8 }),
+      TC('Trễ hạn', { bold: true, align: C, shade: 'E8EEF7', width: 8 }),
+      TC('Tỷ lệ %', { bold: true, align: C, shade: 'E8EEF7', width: 8 }),
+      TC('Điểm %', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+    ] })];
+    tasks.forEach((t, i) => {
+      const noCat = !t.catalogName;
+      tRows.push(new TableRow({ children: [
+        TC(i + 1, { align: C, size: 20 }),
+        TC(noCat ? '(Chưa chọn danh mục — không được tính điểm)' : (t.note ? `${t.catalogName} — ${t.note}` : t.catalogName), { size: 20, italics: noCat, color: noCat ? '9A3412' : undefined }),
+        TC(t.assigned, { align: C, size: 20 }),
+        TC(t.completed, { align: C, size: 20 }),
+        TC(t.qualityIssues, { align: C, size: 20 }),
+        TC(t.delays, { align: C, size: 20 }),
+        TC(noCat ? '—' : fmt(t.ratioPct, 0) + '%', { align: C, size: 20 }),
+        TC(noCat ? '—' : fmt(t.scorePct, 1), { align: C, size: 20 }),
+      ] }));
+    });
+    children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: tRows }));
+  } else {
+    children.push(P('(Chưa nhập nhiệm vụ Nhóm II — mặc định đạt tối đa.)', { italics: true, size: 22 }));
+  }
+  children.push(P('', { spacingAfter: 60 }));
+  // Tỷ lệ a/b/c và (lãnh đạo) d/đ/e
+  children.push(P([
+    { text: 'Tỷ lệ Khối lượng (a) = ', bold: true }, { text: `${ev.a}%; ` },
+    { text: 'Chất lượng (b) = ', bold: true }, { text: `${ev.b}%; ` },
+    { text: 'Tiến độ (c) = ', bold: true }, { text: `${ev.c}%.` },
+  ], { size: 22 }));
+  if (ev.leader && ev.leadScores) {
+    children.push(P([
+      { text: 'Lãnh đạo, quản lý (Điều 7) — Lĩnh vực phụ trách (d) = ', bold: true }, { text: `${fmt(ev.leadScores.d, 0)}%; ` },
+      { text: 'Tổ chức thực hiện (đ) = ', bold: true }, { text: `${fmt(ev.leadScores.dd, 0)}%; ` },
+      { text: 'Đoàn kết, kỷ luật (e) = ', bold: true }, { text: `${fmt(ev.leadScores.e, 0)}%.` },
+    ], { size: 22 }));
+    children.push(P(`Điểm kết quả = (a+b+c+d+đ+e)/6 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+  } else {
+    children.push(P(`Điểm kết quả = (a+b+c)/3 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+  }
+  children.push(P(`Điểm Nhóm II quy đổi = ${ev.kpi}% × 70% = ${ev.nhomII} điểm.`, { italics: true, size: 22, spacingAfter: 160 }));
+
+  // ===== III. TỔNG HỢP & XẾP LOẠI =====
+  children.push(P('III. TỔNG HỢP ĐIỂM & XẾP LOẠI', { bold: true, size: 26, spacingAfter: 80 }));
+  const sumRow = (label, self, mgr, shade) => new TableRow({ children: [
+    TC(label, { width: 64, shade }),
+    TC(self, { align: C, width: 18, shade }),
+    TC(mgr, { align: C, width: 18, shade, bold: !!shade }),
+  ] });
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: [
+    new TableRow({ tableHeader: true, children: [
+      TC('Thành phần điểm', { bold: true, shade: 'E8EEF7' }),
+      TC('Tự đánh giá', { bold: true, align: C, shade: 'E8EEF7' }),
+      TC('Cấp có thẩm quyền', { bold: true, align: C, shade: 'E8EEF7' }),
+    ] }),
+    sumRow('Nhóm I — Tiêu chí chung (≤ 30)', fmt(ev.nhomISelf), fmt(ev.nhomI)),
+    sumRow('Nhóm II — Kết quả nhiệm vụ (≤ 70)', fmt(ev.nhomII), fmt(ev.nhomII)),
+    sumRow('Điểm trừ', `− ${fmt(ev.deduction)}`, `− ${fmt(ev.deduction)}`),
+    sumRow('TỔNG ĐIỂM', fmt(ev.totalSelf), fmt(ev.total), 'FEF3C7'),
+  ] }));
+  children.push(P('', { spacingAfter: 40 }));
+  children.push(P([
+    { text: 'XẾP LOẠI (theo điểm Cấp có thẩm quyền): ', bold: true, size: 26 },
+    { text: `${ev.cls} — ${ev.clsName}`, bold: true, size: 28, color: 'B91C1C' },
+  ]));
+  if (ev.disciplined) children.push(P('Ghi chú: Bị xử lý kỷ luật / kết luận vi phạm trong kỳ → xếp loại "Không hoàn thành nhiệm vụ" theo Điều 8 khoản 4 (không trừ vào tổng điểm).', { italics: true, size: 22, color: 'B91C1C' }));
+  if (ev.gradeReasons && ev.gradeReasons.length) {
+    children.push(P('Căn cứ điều kiện xếp loại (Điều 8 QĐ 1053-QĐ/TU):', { bold: true, size: 22, spacingAfter: 40 }));
+    ev.gradeReasons.forEach((r) => children.push(new Paragraph({ bullet: { level: 0 }, children: [new TextRun({ text: r, size: 20, font: FONT })] })));
+  }
+  children.push(P('', { spacingAfter: 120 }));
+
+  // ===== IV. NHẬN XÉT =====
+  children.push(P('IV. NHẬN XÉT, KẾT LUẬN', { bold: true, size: 26, spacingAfter: 60 }));
+  children.push(P([{ text: 'Ý kiến tự nhận xét của cá nhân: ', bold: true }, { text: ev.selfNote || '...........................................................................' }], { size: 24 }));
+  children.push(P([{ text: 'Nhận xét, kết luận của cấp có thẩm quyền: ', bold: true }, { text: ev.mgrNote || '...........................................................................' }], { size: 24, spacingAfter: 160 }));
+
+  // ===== Trạng thái phê duyệt + chữ ký =====
+  if (ev.approved) {
+    children.push(P([
+      { text: '✔ ĐÃ PHÊ DUYỆT', bold: true, color: '047857' },
+      { text: ` bởi ${ev.approvedBy || ''}${ev.approvedRole ? ` (${ev.approvedRole})` : ''}${ev.approvedAt ? `, ngày ${ev.approvedAt}` : ''}.` },
+    ], { size: 22, spacingAfter: 200 }));
+  } else {
+    children.push(P('(Phiếu chưa được cấp có thẩm quyền phê duyệt chính thức.)', { italics: true, size: 22, color: '92400E', spacingAfter: 200 }));
+  }
+
+  // Hai khối chữ ký
+  const signCol = (role, hint, name) => [
+    P(role, { bold: true, align: C, size: 24 }),
+    P(hint, { italics: true, align: C, size: 20 }),
+    P('', { spacingAfter: 600 }),
+    P(name || '', { bold: true, align: C, size: 24 }),
+  ];
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+    rows: [new TableRow({ children: [
+      new TableCell({ borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('NGƯỜI TỰ ĐÁNH GIÁ', '(Ký, ghi rõ họ tên)', ev.name) }),
+      new TableCell({ borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }, width: { size: 50, type: WidthType.PERCENTAGE }, children: [
+        P(`........., ngày ${ev.approvedAt ? ev.approvedAt.split('/')[0] : '......'} tháng ${ev.approvedAt ? ev.approvedAt.split('/')[1] : '......'} năm ${ev.year}`, { italics: true, align: C, size: 22 }),
+        ...signCol('CẤP CÓ THẨM QUYỀN', '(Ký, ghi rõ họ tên)', ev.approved ? (ev.approvedBy || '') : ''),
+      ] }),
+    ] })],
+  }));
+
+  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1000 } } }, children }] });
   const blob = await Packer.toBlob(doc);
   saveAs(blob, `Phieu_DanhGia_${(ev.name || 'canbo').replace(/\s+/g, '_')}_${ev.month}_${ev.year}.docx`);
 }
