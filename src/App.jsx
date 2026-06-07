@@ -920,11 +920,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     <div className={`mt-4 grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-center`}>{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ...(curC.leader ? [['Lĩnh vực (d)', curC.k.d ?? 100], ['Tổ chức (đ)', curC.k.dd ?? 100], ['Đoàn kết (e)', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (<div key={l} className={`${last ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${last ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>); })}</div>
                   </div>
                 </section>
+
+                <GradeExplain c={curC} disciplined={cur.disciplined} />
+
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-4">
-                  <div><h2 className="flex items-center gap-2 font-bold text-slate-800 mb-2"><AlertTriangle className="w-5 h-5 text-amber-600" /> Điểm trừ</h2><div className="flex items-center gap-3"><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className="inp w-32 disabled:bg-slate-50 disabled:text-slate-500" /><span className="text-sm text-slate-500">điểm — theo mức độ vi phạm (cấp duyệt nhập).</span></div></div>
+                  <div><h2 className="flex items-center gap-2 font-bold text-slate-800 mb-2"><AlertTriangle className="w-5 h-5 text-amber-600" /> Điểm trừ</h2><div className="flex items-center gap-3"><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className="inp w-32 disabled:bg-slate-50 disabled:text-slate-500" /><span className="text-sm text-slate-500">điểm — trừ trực tiếp vào tổng điểm theo mức độ vi phạm (cấp duyệt nhập).</span></div></div>
                   <label className={`flex items-start gap-2.5 rounded-xl border p-3 ${cur.disciplined ? 'border-rose-300 bg-rose-50' : 'border-slate-200 bg-slate-50'}`}>
                     <input type="checkbox" checked={!!cur.disciplined} disabled={!mgrEditable} onChange={(e) => upCur({ disciplined: e.target.checked })} className="mt-0.5 w-4 h-4 accent-rose-600 disabled:opacity-50" />
-                    <span className="text-sm text-slate-600">Bị <b>xử lý kỷ luật đảng/hành chính</b> hoặc bị kết luận <b>suy thoái, vi phạm liên quan công vụ</b> trong kỳ. <span className="text-rose-600 font-semibold">Khi tích, hệ thống xếp loại "Không hoàn thành nhiệm vụ"</span> theo Điều 8 khoản 4.</span>
+                    <span className="text-sm text-slate-600">Bị <b>xử lý kỷ luật đảng/hành chính</b> hoặc bị kết luận <b>suy thoái, vi phạm liên quan công vụ</b> trong kỳ. <span className="text-rose-600 font-semibold">Khi tích, hệ thống xếp loại thẳng "Không hoàn thành nhiệm vụ"</span> theo Điều 8 khoản 4 — đây là <b>điều kiện chốt mức loại, KHÔNG trừ vào tổng điểm</b> (tổng điểm vẫn phản ánh khối lượng, chất lượng công việc đã làm). Muốn trừ điểm cụ thể, dùng ô <b>Điểm trừ</b> ở trên.</span>
                   </label>
                   <Field label="Ý kiến tự nhận xét của cá nhân"><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                   <Field label="Nhận xét, kết luận của cấp có thẩm quyền"><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
@@ -1169,7 +1172,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <li><b>Hoàn thành nhiệm vụ (C):</b> số nhiệm vụ chưa bảo đảm tiến độ không quá 20% (hệ thống nhắc khi vượt).</li>
                   <li><b>Không hoàn thành (D):</b> bị <b>kỷ luật/kết luận suy thoái</b> (tích ở mục Điểm trừ); hoặc lãnh đạo có đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ; hoặc trên 50% nhiệm vụ không hoàn thành.</li>
                 </ul>
-                <p className="mt-1 text-slate-500">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> ngay trong thẻ kết quả ở tab Đánh giá.</p>
+                <p className="mt-1 text-slate-500">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> + bảng <b>"Điều kiện xếp loại (Điều 8)"</b> ngay trong tab Đánh giá (có các chỉ số % hoàn thành, % vượt mức, % chậm tiến độ để cán bộ tự đối chiếu).</p>
+                <p className="mt-1 text-slate-500"><b>Lưu ý về "bị kỷ luật":</b> việc tích ô này <b>chỉ chốt mức xếp loại = Không hoàn thành nhiệm vụ</b> (điều kiện loại trừ theo Điều 8.4), <b>KHÔNG trừ vào tổng điểm</b> — tổng điểm vẫn phản ánh khối lượng, chất lượng công việc. Muốn trừ điểm theo mức độ vi phạm thì nhập ở ô <b>Điểm trừ</b> (trừ trực tiếp vào tổng).</p>
               </div>
             </GB>
 
@@ -1295,6 +1299,59 @@ function ContactCard() {
     </div>
   );
 }
+// ===== Giải thích điều kiện xếp loại (Điều 8) ngay trong tab Đánh giá — để CBCC nắm rõ =====
+function GradeExplain({ c, disciplined }) {
+  if (!c) return null;
+  const st = c.st || { n: 0, completedRate: 100, exceedRate: 0, delayRate: 0, notDoneRate: 0 };
+  const g = gradeClass(c.grade);
+  const pct = (v) => `${Number(v).toFixed(0)}%`;
+  const metrics = [
+    { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
+    { label: 'Đã hoàn thành', val: pct(st.completedRate), ok: st.n === 0 ? null : st.completedRate >= 100, hint: 'cần 100%' },
+    { label: 'Vượt mức', val: pct(st.exceedRate), ok: st.n === 0 ? null : st.exceedRate >= 30, hint: 'HTXS ≥ 30%' },
+    { label: 'Chậm tiến độ', val: pct(st.delayRate), ok: st.n === 0 ? null : st.delayRate <= 20, hint: 'HTNV ≤ 20%' },
+  ];
+  const levels = [
+    ['A', '≥ 90 điểm + hoàn thành 100% nhiệm vụ + ≥ 30% nhiệm vụ vượt mức + đã khắc phục xong hạn chế đã chỉ ra (nếu có).'],
+    ['B', '70–89 điểm + hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng.'],
+    ['C', '50–69 điểm + hoàn thành 100% nhiệm vụ; số nhiệm vụ chậm tiến độ không quá 20%.'],
+    ['D', 'Dưới 50 điểm; hoặc bị kỷ luật/kết luận suy thoái; hoặc trên 50% nhiệm vụ không hoàn thành (lãnh đạo: đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ).'],
+  ];
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Award className="w-5 h-5 text-amber-300" /> Điều kiện xếp loại chất lượng (Điều 8)</h2></div>
+      <div className="p-4 space-y-3">
+        <p className="text-sm text-slate-600">Mức xếp loại được tính <b>tự động</b> theo <b>tổng điểm</b> và <b>điều kiện định lượng</b> dưới đây. Mức hiện tại: <span className={`inline-flex items-center gap-1 font-bold align-middle ${g.ring}`}><span className={`w-5 h-5 rounded-full ${g.cls} text-white text-[10px] flex items-center justify-center`}>{g.code}</span>{g.name}</span> — {c.totalMgr.toFixed(1)} điểm.</p>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+          {metrics.map((m) => (
+            <div key={m.label} className={`rounded-lg border p-2 text-center ${m.ok == null ? 'bg-slate-50 border-slate-100' : m.ok ? 'bg-emerald-50 border-emerald-200' : 'bg-rose-50 border-rose-200'}`}>
+              <p className="text-[10px] text-slate-500">{m.label}</p>
+              <p className={`font-bold text-base ${m.ok == null ? 'text-slate-700' : m.ok ? 'text-emerald-700' : 'text-rose-600'}`}>{m.val}</p>
+              <p className="text-[10px] text-slate-400">{m.hint}</p>
+            </div>
+          ))}
+        </div>
+        {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "100% hoàn thành" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
+        <div className="space-y-1.5">
+          {levels.map(([code, desc]) => { const active = c.grade === code; const gc = gradeClass(code);
+            return (<div key={code} className={`flex items-start gap-2 rounded-lg p-2 border ${active ? gc.soft : 'border-slate-100 bg-slate-50/40'}`}>
+              <span className={`shrink-0 w-6 h-6 rounded-full ${gc.cls} text-white text-[11px] font-bold flex items-center justify-center`}>{code}</span>
+              <div className="flex-1"><p className={`text-xs font-bold ${active ? gc.ring : 'text-slate-600'}`}>{gc.name}{active && <span className="ml-1 font-extrabold">← mức hiện tại</span>}</p><p className="text-[11px] text-slate-500 leading-relaxed">{desc}</p></div>
+            </div>); })}
+        </div>
+        {disciplined && (
+          <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 leading-relaxed"><b>Đang đánh dấu bị kỷ luật:</b> xếp loại bị chốt ở mức <b>Không hoàn thành nhiệm vụ</b> theo Điều 8.4 — đây là điều kiện loại trừ, <b>không phụ thuộc và không trừ vào</b> tổng điểm ({c.totalMgr.toFixed(1)}đ). Bỏ tích nếu nhập nhầm.</div>
+        )}
+        {c.gradeReasons && c.gradeReasons.length > 0 ? (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-3"><p className="text-[11px] font-bold text-amber-800 mb-1 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> Vì sao ở mức này</p><ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-800 leading-relaxed">{c.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul></div>
+        ) : (
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-2.5 text-[11px] text-emerald-700 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4 shrink-0" /> Đã đáp ứng đủ điều kiện của mức xếp loại theo tổng điểm.</div>
+        )}
+      </div>
+    </section>
+  );
+}
+
 // ===== Quản trị: quản lý Danh mục công việc (Nhóm II) + gán Nhóm đối tượng đánh giá =====
 const LEVEL_OPTS = ['N1', 'N2', 'N3', 'N4', 'N5', 'Hỗ trợ'];
 function CatTypePills({ value, onToggle }) {

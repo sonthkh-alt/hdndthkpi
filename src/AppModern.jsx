@@ -442,14 +442,21 @@ export default function AppModern({ version, onPickVersion, initialNav }) {
                 </section>
 
                 <section className={`${card} p-4 space-y-3`}>
-                  {curC.gradeReasons && curC.gradeReasons.length > 0 && (
-                    <div className="rounded-xl border border-amber-400/30 bg-amber-500/10 p-3">
-                      <p className="text-[11px] font-bold text-amber-200 mb-1.5">Điều kiện xếp loại (Điều 8)</p>
-                      <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-100/90 leading-relaxed">{curC.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                  <div className="rounded-xl border border-white/10 bg-white/5 p-3 space-y-2">
+                    <p className="text-[11px] font-bold text-slate-200">Điều kiện xếp loại (Điều 8) — tự động theo điểm + định lượng</p>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      {[['Hoàn thành', `${(curC.st?.completedRate ?? 100).toFixed(0)}%`, 'cần 100%', (curC.st?.n ? curC.st.completedRate >= 100 : null)], ['Vượt mức', `${(curC.st?.exceedRate ?? 0).toFixed(0)}%`, 'HTXS ≥30%', (curC.st?.n ? curC.st.exceedRate >= 30 : null)], ['Chậm tiến độ', `${(curC.st?.delayRate ?? 0).toFixed(0)}%`, 'HTNV ≤20%', (curC.st?.n ? curC.st.delayRate <= 20 : null)]].map(([l, v, h, ok]) => (
+                        <div key={l} className={`rounded-lg border p-1.5 ${ok == null ? 'border-white/10 bg-white/5' : ok ? 'border-emerald-400/30 bg-emerald-500/10' : 'border-rose-400/30 bg-rose-500/10'}`}><p className="text-[9px] text-slate-400">{l}</p><p className={`font-bold text-sm ${ok == null ? 'text-slate-200' : ok ? 'text-emerald-300' : 'text-rose-300'}`}>{v}</p><p className="text-[9px] text-slate-500">{h}</p></div>
+                      ))}
                     </div>
-                  )}
-                  <label className="block"><span className="text-xs font-semibold text-slate-400">Điểm trừ</span><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className={`mt-1 w-32 px-3 py-2 text-sm ${INP}`} /></label>
-                  <label className={`flex items-start gap-2.5 rounded-xl border p-3 ${cur.disciplined ? 'border-rose-400/40 bg-rose-500/10' : 'border-white/10 bg-white/5'}`}><input type="checkbox" checked={!!cur.disciplined} disabled={!mgrEditable} onChange={(e) => upCur({ disciplined: e.target.checked })} className="mt-0.5 w-4 h-4 accent-rose-500 disabled:opacity-50" /><span className="text-xs text-slate-300">Bị <b>kỷ luật đảng/hành chính</b> hoặc kết luận <b>suy thoái, vi phạm công vụ</b> trong kỳ → xếp loại "Không hoàn thành nhiệm vụ" (Điều 8.4).</span></label>
+                    {curC.gradeReasons && curC.gradeReasons.length > 0 ? (
+                      <ul className="list-disc pl-4 space-y-1 text-[11px] text-amber-200/90 leading-relaxed">{curC.gradeReasons.map((r, i) => <li key={i}>{r}</li>)}</ul>
+                    ) : (
+                      <p className="text-[11px] text-emerald-300">✓ Đã đáp ứng đủ điều kiện của mức xếp loại theo điểm.</p>
+                    )}
+                  </div>
+                  <label className="block"><span className="text-xs font-semibold text-slate-400">Điểm trừ <span className="font-normal text-slate-500">(trừ thẳng vào tổng điểm)</span></span><input type="number" min="0" value={cur.deduction} disabled={!mgrEditable} onChange={(e) => upCur({ deduction: e.target.value })} className={`mt-1 w-32 px-3 py-2 text-sm ${INP}`} /></label>
+                  <label className={`flex items-start gap-2.5 rounded-xl border p-3 ${cur.disciplined ? 'border-rose-400/40 bg-rose-500/10' : 'border-white/10 bg-white/5'}`}><input type="checkbox" checked={!!cur.disciplined} disabled={!mgrEditable} onChange={(e) => upCur({ disciplined: e.target.checked })} className="mt-0.5 w-4 h-4 accent-rose-500 disabled:opacity-50" /><span className="text-xs text-slate-300">Bị <b>kỷ luật đảng/hành chính</b> hoặc kết luận <b>suy thoái, vi phạm công vụ</b> trong kỳ → chốt xếp loại "Không hoàn thành nhiệm vụ" (Điều 8.4). <b className="text-rose-300">Không trừ vào tổng điểm</b> — muốn trừ điểm dùng ô Điểm trừ ở trên.</span></label>
                   <label className="block"><span className="text-xs font-semibold text-slate-400">Ý kiến tự nhận xét</span><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
                   <label className="block"><span className="text-xs font-semibold text-slate-400">Nhận xét của cấp có thẩm quyền</span><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className={`mt-1 w-full px-3 py-2 text-sm resize-y ${INP}`} /></label>
                   <div className="flex gap-2">
