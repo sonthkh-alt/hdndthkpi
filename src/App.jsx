@@ -210,48 +210,56 @@ function classify(t) { return GRADES[gradeFromScore(t)]; }
 // Lấy bộ màu/nhãn theo mã xếp loại đã tính (A/B/C/D).
 const gradeClass = (code) => GRADES[code] || GRADES.D;
 
-// Thống kê khách quan các nhiệm vụ Nhóm II (để áp điều kiện xếp loại Điều 8).
-// hoàn thành = HT ≥ giao; vượt mức = HT > giao; chậm = có lần chậm tiến độ.
+// Thống kê khách quan các nhiệm vụ Nhóm II — XÉT THEO TỪNG NHIỆM VỤ (mỗi nhiệm vụ tỷ lệ r = HT/Giao).
+//  - đạt đủ số lượng: r ≥ 100%  · vượt mức: r > 100%
+//  - KHÔNG hoàn thành: r < 50% (đạt dưới một nửa số lượng giao) — chỉ khi đó nhiệm vụ mới bị coi là không hoàn thành.
+//  - chậm tiến độ: có ≥ 1 lần chậm.
+const FAIL_RATIO = 0.5; // ngưỡng "không hoàn thành" của MỖI nhiệm vụ
 function taskStats(tasks) {
   const valid = (tasks || []).filter((t) => t.catalogId);
   const n = valid.length;
-  if (!n) return { n: 0, completedRate: 100, exceedRate: 0, delayRate: 0, notDoneRate: 0 };
-  let done = 0, exceed = 0, delay = 0;
+  if (!n) return { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
+  let done = 0, exceed = 0, delay = 0, fail = 0;
   valid.forEach((t) => {
     const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
-    if (as > 0 && cp >= as) done++;
-    if (as > 0 && cp > as) exceed++;
+    const r = as > 0 ? cp / as : 0;
+    if (r >= 1) done++;
+    if (r > 1) exceed++;
+    if (r < FAIL_RATIO) fail++;
     if ((Number(t.delays) || 0) > 0) delay++;
   });
-  return { n, completedRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, notDoneRate: ((n - done) / n) * 100 };
+  return { n, doneRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, failRate: (fail / n) * 100 };
 }
 
-// Xác định mức xếp loại theo Điều 8 QĐ 1053: ngưỡng điểm + điều kiện định lượng.
+// Xác định mức xếp loại theo Điều 8 QĐ 1053: ngưỡng điểm + điều kiện định lượng (xét theo từng nhiệm vụ).
 // Trả { code, reasons[] } — reasons giải thích vì sao hạ/chốt mức (minh bạch khi chấm).
 function evalGradeCode(score, st, { disciplined = false, leader = false } = {}) {
   const reasons = [];
-  // Khoản 4 — các trường hợp Không hoàn thành nhiệm vụ (chốt mức D)
+  // Khoản 4 — Không hoàn thành nhiệm vụ (chốt mức D). "Không hoàn thành" 1 nhiệm vụ = đạt dưới 50% số lượng giao.
   if (disciplined) return { code: 'D', reasons: ['Bị xử lý kỷ luật đảng/hành chính hoặc bị kết luận suy thoái, vi phạm công vụ trong kỳ → Không hoàn thành nhiệm vụ (Điều 8 khoản 4).'] };
-  if (st.n > 0 && leader && st.completedRate < 70) return { code: 'D', reasons: [`Nhiệm vụ được giao trực tiếp (lĩnh vực phụ trách) mới hoàn thành ${st.completedRate.toFixed(0)}% (< 70%) → Không hoàn thành nhiệm vụ (Điều 8.4.1).`] };
-  if (st.n > 0 && !leader && st.notDoneRate > 50) return { code: 'D', reasons: [`Trên 50% số nhiệm vụ không hoàn thành (hiện ${st.notDoneRate.toFixed(0)}%) → Không hoàn thành nhiệm vụ (Điều 8.4.2).`] };
+  // Lãnh đạo: đơn vị phụ trách hoàn thành dưới 70% số nhiệm vụ (tức trên 30% nhiệm vụ không hoàn thành). CBCC: trên 50%.
+  const failCap = leader ? 30 : 50;
+  if (st.n > 0 && st.failRate > failCap) return { code: 'D', reasons: [leader
+    ? `Lĩnh vực phụ trách chỉ hoàn thành ${(100 - st.failRate).toFixed(0)}% số nhiệm vụ (dưới 70%) — có ${st.failRate.toFixed(0)}% nhiệm vụ đạt dưới 50% số lượng → Không hoàn thành nhiệm vụ (Điều 8.4.1).`
+    : `Trên 50% số nhiệm vụ không hoàn thành (hiện ${st.failRate.toFixed(0)}% nhiệm vụ đạt dưới 50% số lượng giao) → Không hoàn thành nhiệm vụ (Điều 8.4.2).`] };
 
   let code = gradeFromScore(score);
-  // HTXS (A): ngoài ≥90 điểm, phải hoàn thành 100% nhiệm vụ và có ≥30% nhiệm vụ vượt mức
+  // HTXS (A): ngoài ≥90 điểm, phải hoàn thành ĐỦ 100% số lượng ở MỌI nhiệm vụ và có ≥30% nhiệm vụ vượt mức.
   if (code === 'A') {
-    if (st.n === 0) { code = 'B'; reasons.push('Đạt ≥90 điểm nhưng chưa nhập nhiệm vụ để xác nhận hoàn thành 100% và ≥30% vượt mức → tạm xếp Hoàn thành tốt (Điều 8.1).'); }
-    else if (st.completedRate < 100 || st.exceedRate < 30) {
+    if (st.n === 0) { code = 'B'; reasons.push('Đạt ≥90 điểm nhưng chưa nhập nhiệm vụ để xác nhận hoàn thành đủ số lượng và ≥30% vượt mức → tạm xếp Hoàn thành tốt (Điều 8.1).'); }
+    else if (st.doneRate < 100 || st.exceedRate < 30) {
       code = 'B';
-      reasons.push(`Đạt ≥90 điểm nhưng chưa đủ điều kiện Hoàn thành xuất sắc — cần hoàn thành 100% nhiệm vụ${st.completedRate < 100 ? ` (hiện ${st.completedRate.toFixed(0)}%)` : ''} và ≥30% nhiệm vụ vượt mức${st.exceedRate < 30 ? ` (hiện ${st.exceedRate.toFixed(0)}%)` : ''} → Hoàn thành tốt (Điều 8.1).`);
+      reasons.push(`Đạt ≥90 điểm nhưng chưa đủ điều kiện Hoàn thành xuất sắc — cần đạt đủ 100% số lượng ở mọi nhiệm vụ${st.doneRate < 100 ? ` (mới ${st.doneRate.toFixed(0)}% số nhiệm vụ đạt đủ)` : ''} và có ≥30% nhiệm vụ vượt mức${st.exceedRate < 30 ? ` (hiện ${st.exceedRate.toFixed(0)}%)` : ''} → Hoàn thành tốt (Điều 8.1).`);
     }
   }
-  // HTT (B): phải hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng
-  if (code === 'B' && st.n > 0 && st.completedRate < 100) {
+  // HTT (B): không được có nhiệm vụ không hoàn thành (đạt dưới 50%). Có thì hạ xuống Hoàn thành nhiệm vụ.
+  if (code === 'B' && st.n > 0 && st.failRate > 0) {
     code = 'C';
-    reasons.push(`Chưa hoàn thành 100% nhiệm vụ (hiện ${st.completedRate.toFixed(0)}%) → Hoàn thành nhiệm vụ (Điều 8.2).`);
+    reasons.push(`Có nhiệm vụ đạt dưới 50% số lượng giao (${st.failRate.toFixed(0)}% số nhiệm vụ) → Hoàn thành nhiệm vụ (Điều 8.2/8.3).`);
   }
-  // HTNV (C): số nhiệm vụ chưa bảo đảm tiến độ không vượt quá 20% (chỉ cảnh báo)
+  // HTNV (C): số nhiệm vụ chậm tiến độ không quá 20% (chỉ cảnh báo, không tự hạ mức).
   if (code === 'C' && st.n > 0 && st.delayRate > 20) {
-    reasons.push(`Lưu ý: tỷ lệ nhiệm vụ chưa bảo đảm tiến độ là ${st.delayRate.toFixed(0)}%, vượt mức 20% (Điều 8.3).`);
+    reasons.push(`Lưu ý: tỷ lệ nhiệm vụ chậm tiến độ ${st.delayRate.toFixed(0)}% vượt mức 20% (Điều 8.3).`);
   }
   return { code, reasons };
 }
@@ -1166,11 +1174,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-2"><b>Trần xuất sắc:</b> số "Hoàn thành xuất sắc" (A) không vượt quá <b>20%</b> số "Hoàn thành tốt" (B). Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</p>
               <div className="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
                 <p className="font-semibold text-slate-700 mb-1">Điều kiện định lượng (Điều 8) — hệ thống tự áp dụng ngoài ngưỡng điểm:</p>
+                <p className="text-[13px] text-slate-600 mb-1">Cách tính <b>theo từng nhiệm vụ</b>: mỗi nhiệm vụ có tỷ lệ = Số lượng HT ÷ Số lượng giao. Một nhiệm vụ chỉ bị coi là <b>"không hoàn thành" khi đạt dưới 50%</b> số lượng giao; đạt từ 50% đến dưới 100% vẫn là <b>đã hoàn thành</b> (chỉ phần thiếu làm giảm điểm và ảnh hưởng mức Xuất sắc).</p>
                 <ul className="list-disc pl-5 space-y-1">
-                  <li><b>Hoàn thành xuất sắc (A):</b> ngoài ≥90 điểm, phải hoàn thành <b>100% nhiệm vụ</b> và có <b>≥30% nhiệm vụ vượt mức</b> (số hoàn thành &gt; số giao). Chưa đủ thì hạ xuống Hoàn thành tốt.</li>
-                  <li><b>Hoàn thành tốt (B):</b> hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng; nếu chưa đủ 100% thì xuống Hoàn thành nhiệm vụ.</li>
-                  <li><b>Hoàn thành nhiệm vụ (C):</b> số nhiệm vụ chưa bảo đảm tiến độ không quá 20% (hệ thống nhắc khi vượt).</li>
-                  <li><b>Không hoàn thành (D):</b> bị <b>kỷ luật/kết luận suy thoái</b> (tích ở mục Điểm trừ); hoặc lãnh đạo có đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ; hoặc trên 50% nhiệm vụ không hoàn thành.</li>
+                  <li><b>Hoàn thành xuất sắc (A):</b> ngoài ≥90 điểm, mọi nhiệm vụ phải <b>đạt đủ 100% số lượng</b> và có <b>≥30% nhiệm vụ vượt mức</b> (HT &gt; giao). Chưa đủ thì hạ xuống Hoàn thành tốt.</li>
+                  <li><b>Hoàn thành tốt (B):</b> 70–89 điểm và <b>không có nhiệm vụ nào không hoàn thành</b> (mọi nhiệm vụ đạt ≥ 50% số lượng); nếu có nhiệm vụ đạt dưới 50% thì xuống Hoàn thành nhiệm vụ.</li>
+                  <li><b>Hoàn thành nhiệm vụ (C):</b> 50–69 điểm; số nhiệm vụ chậm tiến độ không quá 20% (hệ thống nhắc khi vượt).</li>
+                  <li><b>Không hoàn thành (D):</b> dưới 50 điểm; hoặc bị <b>kỷ luật/kết luận suy thoái</b> (tích ở mục Điểm trừ); hoặc <b>trên 50% số nhiệm vụ không hoàn thành</b> (mỗi nhiệm vụ đạt dưới 50% số lượng mới tính) — riêng <b>lãnh đạo</b> là trên 30% (đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ).</li>
                 </ul>
                 <p className="mt-1 text-slate-500">Khi mức xếp loại bị điều chỉnh, hệ thống hiển thị <b>lý do</b> + bảng <b>"Điều kiện xếp loại (Điều 8)"</b> ngay trong tab Đánh giá (có các chỉ số % hoàn thành, % vượt mức, % chậm tiến độ để cán bộ tự đối chiếu).</p>
                 <p className="mt-1 text-slate-500"><b>Lưu ý về "bị kỷ luật":</b> việc tích ô này <b>chỉ chốt mức xếp loại = Không hoàn thành nhiệm vụ</b> (điều kiện loại trừ theo Điều 8.4), <b>KHÔNG trừ vào tổng điểm</b> — tổng điểm vẫn phản ánh khối lượng, chất lượng công việc. Muốn trừ điểm theo mức độ vi phạm thì nhập ở ô <b>Điểm trừ</b> (trừ trực tiếp vào tổng).</p>
@@ -1302,26 +1311,27 @@ function ContactCard() {
 // ===== Giải thích điều kiện xếp loại (Điều 8) ngay trong tab Đánh giá — để CBCC nắm rõ =====
 function GradeExplain({ c, disciplined, tasks }) {
   if (!c) return null;
-  const st = c.st || { n: 0, completedRate: 100, exceedRate: 0, delayRate: 0, notDoneRate: 0 };
+  const st = c.st || { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
   const g = gradeClass(c.grade);
   const pct = (v) => `${Number(v).toFixed(0)}%`;
   // Liệt kê đích danh nhiệm vụ để cán bộ biết RÕ chậm/chưa hoàn thành công việc nào.
   const tlist = (tasks || []).filter((t) => t.catalogId);
   const nameOf = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; };
-  const isDone = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 && cp >= as; };
-  const notDone = tlist.filter((t) => !isDone(t));
+  const ratioOf = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 ? cp / as : 0; };
+  const failed = tlist.filter((t) => ratioOf(t) < 0.5);          // không hoàn thành (đạt dưới 50% số lượng)
+  const partial = tlist.filter((t) => { const r = ratioOf(t); return r >= 0.5 && r < 1; }); // chưa đạt đủ số lượng
   const delayed = tlist.filter((t) => (Number(t.delays) || 0) > 0);
   const metrics = [
     { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
-    { label: 'Đã hoàn thành', val: pct(st.completedRate), ok: st.n === 0 ? null : st.completedRate >= 100, hint: 'cần 100%' },
+    { label: 'Đạt đủ số lượng', val: pct(st.doneRate), ok: st.n === 0 ? null : st.doneRate >= 100, hint: 'HTXS cần 100%' },
     { label: 'Vượt mức', val: pct(st.exceedRate), ok: st.n === 0 ? null : st.exceedRate >= 30, hint: 'HTXS ≥ 30%' },
-    { label: 'Chậm tiến độ', val: pct(st.delayRate), ok: st.n === 0 ? null : st.delayRate <= 20, hint: 'HTNV ≤ 20%' },
+    { label: 'Không hoàn thành', val: pct(st.failRate), ok: st.n === 0 ? null : st.failRate <= (c.leader ? 30 : 50), hint: c.leader ? 'lãnh đạo ≤ 30%' : '≤ 50%' },
   ];
   const levels = [
-    ['A', '≥ 90 điểm + hoàn thành 100% nhiệm vụ + ≥ 30% nhiệm vụ vượt mức + đã khắc phục xong hạn chế đã chỉ ra (nếu có).'],
-    ['B', '70–89 điểm + hoàn thành 100% nhiệm vụ đúng hạn, bảo đảm chất lượng.'],
-    ['C', '50–69 điểm + hoàn thành 100% nhiệm vụ; số nhiệm vụ chậm tiến độ không quá 20%.'],
-    ['D', 'Dưới 50 điểm; hoặc bị kỷ luật/kết luận suy thoái; hoặc trên 50% nhiệm vụ không hoàn thành (lãnh đạo: đơn vị phụ trách hoàn thành dưới 70% nhiệm vụ).'],
+    ['A', '≥ 90 điểm + đạt đủ 100% số lượng ở mọi nhiệm vụ + ≥ 30% nhiệm vụ vượt mức + đã khắc phục xong hạn chế đã chỉ ra (nếu có).'],
+    ['B', '70–89 điểm + không có nhiệm vụ nào không hoàn thành (mọi nhiệm vụ đạt từ 50% số lượng trở lên), đúng hạn, bảo đảm chất lượng.'],
+    ['C', '50–69 điểm + không quá ngưỡng nhiệm vụ không hoàn thành; số nhiệm vụ chậm tiến độ không quá 20%.'],
+    ['D', 'Dưới 50 điểm; hoặc bị kỷ luật/kết luận suy thoái; hoặc trên 50% nhiệm vụ không hoàn thành — mỗi nhiệm vụ đạt dưới 50% số lượng giao mới tính là không hoàn thành (lãnh đạo: trên 30%).'],
   ];
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1337,17 +1347,23 @@ function GradeExplain({ c, disciplined, tasks }) {
             </div>
           ))}
         </div>
-        {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "100% hoàn thành" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
-        {notDone.length > 0 && (
+        {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "đạt đủ 100% số lượng" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
+        {failed.length > 0 && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
-            <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ CHƯA hoàn thành ({notDone.length}/{st.n}):</p>
-            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-rose-700/90 leading-relaxed">{notDone.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — đã làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+            <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ KHÔNG hoàn thành — đạt dưới 50% số lượng ({failed.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-rose-700/90 leading-relaxed">{failed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — mới làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+          </div>
+        )}
+        {partial.length > 0 && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
+            <p className="text-[11px] font-bold text-amber-800 mb-1">Nhiệm vụ chưa đạt đủ số lượng — vẫn tính là hoàn thành, chỉ ảnh hưởng mức Hoàn thành xuất sắc ({partial.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-amber-800/90 leading-relaxed">{partial.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — đã làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
           </div>
         )}
         {delayed.length > 0 && (
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
-            <p className="text-[11px] font-bold text-amber-800 mb-1">Nhiệm vụ CHẬM tiến độ ({delayed.length}/{st.n}):</p>
-            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-amber-800/90 leading-relaxed">{delayed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — chậm {Number(t.delays) || 0} lần{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+          <div className="rounded-lg border border-orange-200 bg-orange-50 p-2.5">
+            <p className="text-[11px] font-bold text-orange-700 mb-1">Nhiệm vụ CHẬM tiến độ ({delayed.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-orange-700/90 leading-relaxed">{delayed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — chậm {Number(t.delays) || 0} lần{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
           </div>
         )}
         <div className="space-y-1.5">
