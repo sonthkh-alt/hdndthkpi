@@ -435,7 +435,7 @@ function seedDemoPeople() {
       selfNote: 'Tham gia đầy đủ kỳ họp, tích cực thảo luận, chất vấn.', mgrNote: 'Hoàn thành tốt; cần cải thiện tiến độ một số việc.',
     }),
     mk('leader', 'Lê Văn Cường', 'Ban Pháp chế HĐND tỉnh', 'Trưởng ban Pháp chế', 'cuong.demo@thanhhoa.gov.vn', 'A', {
-      leadScores: { d: 100, dd: 50, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+      leadScores: { d: 100, dd: 100, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
       selfNote: 'Chỉ đạo, điều hành tốt công tác thẩm tra, giám sát của Ban.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo.',
     }),
     mk('staff', 'Phạm Thị Dung', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Chuyên viên Phòng Tổng hợp', 'dung.demo@thanhhoa.gov.vn', 'C', {
