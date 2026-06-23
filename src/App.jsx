@@ -511,6 +511,14 @@ export default function App() {
     loadingRef.current = false;
   };
 
+  // Nạp 5 cán bộ mẫu (demo) vào màn hình hiện tại. Khách: chỉ in-memory; quản trị: sẽ tự lưu kỳ này.
+  const loadDemoPeople = () => {
+    const demo = seedDemoPeople();
+    setSeedFrom(null);
+    setPeople(demo); setCurId(demo[0]?.id ?? null);
+    bumpCounters(demo);
+  };
+
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadPeriod(period); refreshTrends(); }, []);
 
@@ -832,7 +840,10 @@ export default function App() {
         {isGuest && (
           <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <p className="text-sm text-amber-800">Bạn đang dùng <b>tài khoản khách (dùng thử)</b>. Bạn có thể nhập điểm <b>Nhóm I, Nhóm II</b> và xem kết quả hệ thống tự tính, in/xuất báo cáo. Tuy nhiên dữ liệu <b>chỉ lưu tạm trên trình duyệt</b>, <b>KHÔNG lưu vào hệ thống</b> và sẽ mất khi tải lại trang hoặc đóng trình duyệt. Để lưu chính thức, hãy đăng nhập bằng tài khoản được cấp.</p>
+            <div className="flex-1">
+              <p className="text-sm text-amber-800">Bạn đang dùng <b>tài khoản khách (dùng thử)</b>. Bạn có thể nhập điểm <b>Nhóm I, Nhóm II</b> và xem kết quả hệ thống tự tính, in/xuất báo cáo. Tuy nhiên dữ liệu <b>chỉ lưu tạm trên trình duyệt</b>, <b>KHÔNG lưu vào hệ thống</b> và sẽ mất khi tải lại trang hoặc đóng trình duyệt. Để lưu chính thức, hãy đăng nhập bằng tài khoản được cấp.</p>
+              <button onClick={loadDemoPeople} className="mt-2.5 inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-3.5 py-2 rounded-lg text-xs"><Users className="w-3.5 h-3.5" /> Nạp 5 cán bộ mẫu (demo) để xem thử</button>
+            </div>
           </div>
         )}
         {supabase && session && session !== 'local' && isBootstrapAdmin && (
@@ -859,6 +870,7 @@ export default function App() {
             <p className="text-sm text-slate-500 mt-1 mb-5">Bắt đầu bằng cách sao chép danh sách cán bộ từ kỳ gần nhất (giữ người, đặt lại điểm) hoặc thêm cán bộ mới.</p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               {!readOnly && seedFrom && <button onClick={() => copyFromPeriod(seedFrom)} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Users className="w-4 h-4" /> Sao chép cán bộ từ kỳ {seedFrom.month}/{seedFrom.year}</button>}
+              <button onClick={loadDemoPeople} className="flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Users className="w-4 h-4" /> Nạp 5 cán bộ mẫu (demo)</button>
               {!readOnly && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ mới</button>}
             </div>
           </div>
