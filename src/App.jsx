@@ -379,43 +379,71 @@ const newTracking = () => ({ id: trkId++, content: '', coordination: '', directi
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
 
 // Dữ liệu MẪU: 5 cán bộ tượng trưng cho 5 nhóm đối tượng (Mẫu 01–05) — đủ điểm số, xếp loại (A→D) và liên kết OKR.
+// Sinh nhiệm vụ Nhóm II PHỦ TOÀN BỘ danh mục áp dụng cho nhóm đối tượng, theo "hồ sơ" giữ đúng xếp loại:
+//  A = đạt đủ 100% + ≥30% vượt mức · B = đa số đạt, vài việc 70%, không việc nào <50%
+//  C = ~1/3 việc <50% (Điều 8 hạ xuống HTNV) · D = >50% việc <50% (Không hoàn thành nhiệm vụ)
+function genTasksFull(type, profile, OKR) {
+  const cat = getND335Groups(type);
+  if (!cat.length) return [newTask335()];
+  return cat.map((c, i) => {
+    let a = 3, comp = 3, q = 0, d = 0;
+    if (profile === 'A') {
+      a = 3 + (i % 4);                                  // 3..6
+      comp = (i % 5 < 2) ? a + 1 + (i % 2) : a;         // ~40% vượt mức, còn lại đạt đủ
+    } else if (profile === 'B') {
+      a = 4 + (i % 4);                                  // 4..7
+      if (i % 4 === 0) comp = Math.max(Math.ceil(a * 0.7), 1); // ~25% đạt ~70% (chưa đủ -> không lên A, không <50%)
+      else if (i % 5 === 0) comp = a + 1;               // lác đác vượt mức (<30%)
+      else comp = a;
+      q = (i % 6 === 0) ? 1 : 0;
+      d = (i % 4 === 1) ? 1 : 0;
+    } else if (profile === 'C') {
+      a = 5 + (i % 4);                                  // 5..8
+      const m = i % 3;
+      comp = m === 0 ? Math.floor(a * 0.4)              // ~1/3 việc <50% (không hoàn thành)
+        : m === 1 ? a                                   // đạt đủ
+          : Math.ceil(a * 0.7);                         // 70% (chưa đủ)
+      q = (i % 3 === 0) ? 1 : 0;
+      d = (i % 2 === 0) ? 1 : 0;
+    } else { // D
+      a = 6 + (i % 4);                                  // 6..9
+      comp = (i % 4 === 0) ? Math.ceil(a * 0.6) : Math.floor(a * 0.3); // ~75% việc <50%
+      q = (i % 2 === 0) ? 1 : 0;
+      d = 1 + (i % 2);
+    }
+    return { ...newTask335(), catalogId: c.id, objId: OKR[i % OKR.length], assigned: a, completed: comp, qualityIssues: q, delays: d, note: '' };
+  });
+}
+
 function seedDemoPeople() {
   const OKR = ['o1', 'o2', 'o3'];
-  const mk = (type, name, department, position, email, cfg) => {
-    const cat = getND335Groups(type);
-    const cid = (i) => ((cat[i] || cat[0] || {}).id) || '';
-    const tasks = (cfg.tasks || []).map((t, i) => ({
-      ...newTask335(), catalogId: cid(i), objId: OKR[i % OKR.length],
-      assigned: t.a, completed: t.c, qualityIssues: t.q || 0, delays: t.d || 0, note: t.note || '',
-    }));
-    return {
-      ...newPerson(name, type), position, department, email, role: 'canbo',
-      deduction: cfg.deduction || 0,
-      leadScores: cfg.leadScores || { d: 100, dd: 100, e: 100 },
-      digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
-      selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '',
-      tasks335: tasks.length ? tasks : [newTask335()],
-    };
-  };
+  const mk = (type, name, department, position, email, profile, cfg = {}) => ({
+    ...newPerson(name, type), position, department, email, role: 'canbo',
+    deduction: cfg.deduction || 0,
+    leadScores: cfg.leadScores || { d: 100, dd: 100, e: 100 },
+    digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
+    selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '',
+    tasks335: genTasksFull(type, profile, OKR),
+  });
   return [
-    mk('hdnd', 'Nguyễn Văn An', 'Thường trực HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'an.demo@thanhhoa.gov.vn', {
-      tasks: [{ a: 5, c: 6 }, { a: 4, c: 5 }], digital: { 1: 4, 2: 4, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+    mk('hdnd', 'Nguyễn Văn An', 'Thường trực HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'an.demo@thanhhoa.gov.vn', 'A', {
+      digital: { 1: 4, 2: 4, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
       selfNote: 'Chủ động, hoàn thành vượt mức các nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc; gương mẫu, nhiều sáng kiến.',
     }),
-    mk('dbqh', 'Trần Thị Bình', 'Đoàn ĐBQH tỉnh', 'Đại biểu Quốc hội hoạt động chuyên trách', 'binh.demo@thanhhoa.gov.vn', {
-      tasks: [{ a: 10, c: 8, q: 1, d: 1 }, { a: 6, c: 6 }], deduction: 2, digital: { 1: 3, 2: 3, 3: 3, 4: 2, 5: 3, 6: 2, 7: 2, 8: 3 },
+    mk('dbqh', 'Trần Thị Bình', 'Đoàn ĐBQH tỉnh', 'Đại biểu Quốc hội hoạt động chuyên trách', 'binh.demo@thanhhoa.gov.vn', 'B', {
+      deduction: 2, digital: { 1: 3, 2: 3, 3: 3, 4: 2, 5: 3, 6: 2, 7: 2, 8: 3 },
       selfNote: 'Tham gia đầy đủ kỳ họp, tích cực thảo luận, chất vấn.', mgrNote: 'Hoàn thành tốt; cần cải thiện tiến độ một số việc.',
     }),
-    mk('leader', 'Lê Văn Cường', 'Ban Pháp chế HĐND tỉnh', 'Trưởng ban Pháp chế', 'cuong.demo@thanhhoa.gov.vn', {
-      tasks: [{ a: 4, c: 4 }, { a: 3, c: 3 }], leadScores: { d: 100, dd: 50, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+    mk('leader', 'Lê Văn Cường', 'Ban Pháp chế HĐND tỉnh', 'Trưởng ban Pháp chế', 'cuong.demo@thanhhoa.gov.vn', 'A', {
+      leadScores: { d: 100, dd: 50, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
       selfNote: 'Chỉ đạo, điều hành tốt công tác thẩm tra, giám sát của Ban.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo.',
     }),
-    mk('staff', 'Phạm Thị Dung', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Chuyên viên Phòng Tổng hợp', 'dung.demo@thanhhoa.gov.vn', {
-      tasks: [{ a: 10, c: 4, q: 2, d: 2 }, { a: 5, c: 3, q: 1, d: 1 }], digital: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 2, 6: 1, 7: 2, 8: 1 },
+    mk('staff', 'Phạm Thị Dung', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Chuyên viên Phòng Tổng hợp', 'dung.demo@thanhhoa.gov.vn', 'C', {
+      digital: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 2, 6: 1, 7: 2, 8: 1 },
       selfNote: 'Đã cố gắng nhưng còn một số việc chậm tiến độ.', mgrNote: 'Hoàn thành nhiệm vụ mức trung bình; cần nâng chất lượng.',
     }),
-    mk('contract', 'Đỗ Văn Em', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Lái xe', 'em.demo@thanhhoa.gov.vn', {
-      tasks: [{ a: 10, c: 3, q: 2, d: 3 }, { a: 6, c: 2, q: 1, d: 2 }], deduction: 10, digital: { 1: 1, 2: 1, 3: 1, 4: 0, 5: 1, 6: 0, 7: 1, 8: 0 },
+    mk('contract', 'Đỗ Văn Em', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Lái xe', 'em.demo@thanhhoa.gov.vn', 'D', {
+      deduction: 10, digital: { 1: 1, 2: 1, 3: 1, 4: 0, 5: 1, 6: 0, 7: 1, 8: 0 },
       selfNote: 'Phục vụ hậu cần; còn hạn chế về tiến độ.', mgrNote: 'Chưa hoàn thành; cần chấn chỉnh kỷ luật, tiến độ.',
     }),
   ];
