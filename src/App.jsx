@@ -377,6 +377,49 @@ let pid = 3, trkId = 1, t335Id = 100;
 const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
+
+// Dữ liệu MẪU: 5 cán bộ tượng trưng cho 5 nhóm đối tượng (Mẫu 01–05) — đủ điểm số, xếp loại (A→D) và liên kết OKR.
+function seedDemoPeople() {
+  const OKR = ['o1', 'o2', 'o3'];
+  const mk = (type, name, department, position, email, cfg) => {
+    const cat = getND335Groups(type);
+    const cid = (i) => ((cat[i] || cat[0] || {}).id) || '';
+    const tasks = (cfg.tasks || []).map((t, i) => ({
+      ...newTask335(), catalogId: cid(i), objId: OKR[i % OKR.length],
+      assigned: t.a, completed: t.c, qualityIssues: t.q || 0, delays: t.d || 0, note: t.note || '',
+    }));
+    return {
+      ...newPerson(name, type), position, department, email, role: 'canbo',
+      deduction: cfg.deduction || 0,
+      leadScores: cfg.leadScores || { d: 100, dd: 100, e: 100 },
+      digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
+      selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '',
+      tasks335: tasks.length ? tasks : [newTask335()],
+    };
+  };
+  return [
+    mk('hdnd', 'Nguyễn Văn An', 'Thường trực HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'an.demo@thanhhoa.gov.vn', {
+      tasks: [{ a: 5, c: 6 }, { a: 4, c: 5 }], digital: { 1: 4, 2: 4, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+      selfNote: 'Chủ động, hoàn thành vượt mức các nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc; gương mẫu, nhiều sáng kiến.',
+    }),
+    mk('dbqh', 'Trần Thị Bình', 'Đoàn ĐBQH tỉnh', 'Đại biểu Quốc hội hoạt động chuyên trách', 'binh.demo@thanhhoa.gov.vn', {
+      tasks: [{ a: 10, c: 8, q: 1, d: 1 }, { a: 6, c: 6 }], deduction: 2, digital: { 1: 3, 2: 3, 3: 3, 4: 2, 5: 3, 6: 2, 7: 2, 8: 3 },
+      selfNote: 'Tham gia đầy đủ kỳ họp, tích cực thảo luận, chất vấn.', mgrNote: 'Hoàn thành tốt; cần cải thiện tiến độ một số việc.',
+    }),
+    mk('leader', 'Lê Văn Cường', 'Ban Pháp chế HĐND tỉnh', 'Trưởng ban Pháp chế', 'cuong.demo@thanhhoa.gov.vn', {
+      tasks: [{ a: 4, c: 4 }, { a: 3, c: 3 }], leadScores: { d: 100, dd: 50, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+      selfNote: 'Chỉ đạo, điều hành tốt công tác thẩm tra, giám sát của Ban.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo.',
+    }),
+    mk('staff', 'Phạm Thị Dung', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Chuyên viên Phòng Tổng hợp', 'dung.demo@thanhhoa.gov.vn', {
+      tasks: [{ a: 10, c: 4, q: 2, d: 2 }, { a: 5, c: 3, q: 1, d: 1 }], digital: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 2, 6: 1, 7: 2, 8: 1 },
+      selfNote: 'Đã cố gắng nhưng còn một số việc chậm tiến độ.', mgrNote: 'Hoàn thành nhiệm vụ mức trung bình; cần nâng chất lượng.',
+    }),
+    mk('contract', 'Đỗ Văn Em', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Lái xe', 'em.demo@thanhhoa.gov.vn', {
+      tasks: [{ a: 10, c: 3, q: 2, d: 3 }, { a: 6, c: 2, q: 1, d: 2 }], deduction: 10, digital: { 1: 1, 2: 1, 3: 1, 4: 0, 5: 1, 6: 0, 7: 1, 8: 0 },
+      selfNote: 'Phục vụ hậu cần; còn hạn chế về tiến độ.', mgrNote: 'Chưa hoàn thành; cần chấn chỉnh kỷ luật, tiến độ.',
+    }),
+  ];
+}
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
 function bumpIds(people) {
   const ppl = people || [];
@@ -414,10 +457,7 @@ export default function App() {
     { id: 'o2', title: 'Đẩy mạnh chuyển đổi số, ứng dụng AI trong công tác Văn phòng', source: 'NQ 57-NQ/TW' },
     { id: 'o3', title: 'Phục vụ hiệu quả kỳ họp và hoạt động giám sát của HĐND tỉnh', source: 'Chương trình công tác' },
   ]);
-  const [people, setPeople] = useState([
-    { ...newPerson('Nguyễn Văn A', 'leader'), position: 'Phó Chánh Văn phòng' },
-    { ...newPerson('Trần Thị B', 'staff'), position: 'Chuyên viên' },
-  ]);
+  const [people, setPeople] = useState(() => seedDemoPeople());
   const [curId, setCurId] = useState(people[0].id);
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
