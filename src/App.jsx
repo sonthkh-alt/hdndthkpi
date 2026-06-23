@@ -435,8 +435,9 @@ function seedDemoPeople() {
       selfNote: 'Tham gia đầy đủ kỳ họp, tích cực thảo luận, chất vấn.', mgrNote: 'Hoàn thành tốt; cần cải thiện tiến độ một số việc.',
     }),
     mk('leader', 'Lê Văn Cường', 'Ban Pháp chế HĐND tỉnh', 'Trưởng ban Pháp chế', 'cuong.demo@thanhhoa.gov.vn', 'A', {
-      leadScores: { d: 100, dd: 100, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
-      selfNote: 'Chỉ đạo, điều hành tốt công tác thẩm tra, giám sát của Ban.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo.',
+      deduction: 5, leadScores: { d: 100, dd: 100, e: 100 }, digital: { 1: 4, 2: 3, 3: 4, 4: 3, 5: 4, 6: 3, 7: 3, 8: 4 },
+      selfNote: 'Chỉ đạo, điều hành tốt công tác thẩm tra, giám sát của Ban; nghiêm túc nhận khuyết điểm về vi phạm giao thông cá nhân.',
+      mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo. Tuy nhiên trong kỳ vi phạm nồng độ cồn khi lái xe, bị Công an xử phạt (giấy phạt gửi về cơ quan) → trừ 5 điểm theo mức độ vi phạm.',
     }),
     mk('staff', 'Phạm Thị Dung', 'Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'Chuyên viên Phòng Tổng hợp', 'dung.demo@thanhhoa.gov.vn', 'C', {
       digital: { 1: 2, 2: 2, 3: 2, 4: 1, 5: 2, 6: 1, 7: 2, 8: 1 },
