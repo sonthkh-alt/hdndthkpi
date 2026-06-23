@@ -531,6 +531,11 @@ export default function App() {
       setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
     }
     const res = await loadState(p);
+    // Trong lúc await, phiên có thể vừa được xác định là KHÁCH -> ưu tiên hiển thị dữ liệu mẫu, bỏ qua dữ liệu máy chủ.
+    if (sessionRef.current === 'guest') {
+      loadDemoPeople(); guestSeededRef.current = true;
+      setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
+    }
     serverTsRef.current = res.serverTs;
     if (res.state) {
       const ppl = res.state.people || [];
