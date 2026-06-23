@@ -15,7 +15,7 @@ const t = {
   foot: 'text-red-100/70', footWarn: 'text-amber-200',
 };
 
-export default function Login({ unit, onGuest }) {
+export default function Login({ unit, onGuest, onClose }) {
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
@@ -128,6 +128,7 @@ export default function Login({ unit, onGuest }) {
             </form>
           )}
         </div>
+        {onClose && <button type="button" onClick={onClose} className="w-full text-center text-[12px] mt-3 text-white/90 hover:text-white font-medium">← Quay lại xem demo (không cần đăng nhập)</button>}
         <p className={`text-center text-[11px] mt-5 font-semibold ${t.footWarn}`}>⚠ Bản demo thử nghiệm — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
         <p className={`text-center text-[11px] mt-1 font-semibold ${t.footWarn}`}>Phiên bản demo sử dụng nội bộ.</p>
         <p className={`text-center text-[11px] mt-2 ${t.foot}`}>© Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>

@@ -2,6 +2,8 @@
 
 > Khi hoàn thành việc lớn, thêm 1 dòng vào đây rồi `git push` để máy khác nắm được.
 
+- **Vào thẳng bằng tài khoản khách (bỏ cổng đăng nhập)**: mặc định `session='guest'` khi chưa đăng nhập thật (`getSession() || 'guest'`, `onAuthChange(ns||'guest')`) → không hiện màn Login khi truy cập. Khách XEM/DEMO mọi nội dung, thử chấm điểm Nhóm I/II (in-memory) nhưng **không ghi DB** (autosave/Lưu ngay đã chặn cho guest). Thêm state `wantLogin` + nút "Đăng nhập" (góc phải) để quản trị chủ động đăng nhập; Login nhận `onClose` ("← Quay lại xem demo"). Đăng xuất quay về khách.
+
 - **Tổng quan thêm đồ thị**: `DashboardCharts.jsx` bổ sung **đồng hồ (radial gauge) Điểm TB cơ quan** + xếp loại, và **radar Khung năng lực số** (TB cơ quan, 8 trục N1–N8, thang Mức 0–4). App.jsx truyền `digital={DIGITAL}`. Charts dùng gradient + theme (hiện chỉ 1 bản Cổ điển).
 
 - Hợp nhất đánh giá NĐ335 vào tab Đánh giá (Nhóm II theo danh mục + hệ số).

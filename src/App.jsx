@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
@@ -421,7 +421,8 @@ export default function App() {
   const [curId, setCurId] = useState(people[0].id);
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
-  const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; null = chưa đăng nhập
+  const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; 'guest' = khách mặc định
+  const [wantLogin, setWantLogin] = useState(false);  // true khi người dùng chủ động bấm Đăng nhập (quản trị)
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -478,8 +479,9 @@ export default function App() {
     if (!supabase) { setSession('local'); return; }
     let unsub = () => {};
     (async () => {
-      setSession(await getSession());
-      unsub = onAuthChange((ns) => setSession(ns));
+      // Mặc định vào thẳng bằng tài khoản KHÁCH (xem/demo) nếu chưa đăng nhập thật
+      setSession((await getSession()) || 'guest');
+      unsub = onAuthChange((ns) => setSession(ns || 'guest'));
     })();
     return () => unsub();
   }, []);
@@ -717,8 +719,9 @@ export default function App() {
   if (supabase && session === undefined) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500 text-sm">Đang kiểm tra đăng nhập...</div>;
   }
-  if (supabase && !session) {
-    return <Login unit={unit} onGuest={() => setSession('guest')} />;
+  // Chỉ hiện màn đăng nhập khi người dùng CHỦ ĐỘNG chọn (mặc định vào thẳng bằng khách)
+  if (supabase && wantLogin && (!session || session === 'guest')) {
+    return <Login unit={unit} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
@@ -760,7 +763,9 @@ export default function App() {
                 <User className="w-3.5 h-3.5 text-amber-300" />
                 <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : myEmail}>{isGuest ? 'Khách' : (myPerson?.name || session.user?.user_metadata?.full_name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
                 {!isGuest && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>}
-                <button onClick={isGuest ? () => setSession(null) : signOut} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
+                {isGuest
+                  ? <button onClick={() => setWantLogin(true)} title="Đăng nhập (để chỉnh sửa, lưu dữ liệu)" className="flex items-center gap-1 text-red-200 hover:text-white"><LogIn className="w-3.5 h-3.5" /><span className="text-[11px] font-semibold">Đăng nhập</span></button>
+                  : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>}
               </div>
             )}
             <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title="Chọn tháng/năm để xem hoặc nhập kỳ khác">
