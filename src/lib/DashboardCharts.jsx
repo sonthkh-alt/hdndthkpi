@@ -2,6 +2,7 @@ import {
   ResponsiveContainer, PieChart, Pie, Cell, Tooltip, Legend,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, LabelList,
   ComposedChart, Line, Area,
+  RadialBarChart, RadialBar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, RadarChart,
 } from 'recharts';
 import { deptSummary } from './dash';
 
@@ -18,7 +19,7 @@ const THEMES = {
   pro: { dark: true, accent: '#10b981', accent2: '#5eead4', line: '#34d399', mono: true },
 };
 
-export default function DashboardCharts({ dist = {}, trends = [], computed = [], theme = 'classic', dark }) {
+export default function DashboardCharts({ dist = {}, trends = [], computed = [], digital = [], theme = 'classic', dark }) {
   const T = THEMES[theme] || THEMES.classic;
   const isDark = dark != null ? dark : T.dark;
   const txt = isDark ? '#cbd5e1' : '#475569';
@@ -53,6 +54,15 @@ export default function DashboardCharts({ dist = {}, trends = [], computed = [],
     'Chất lượng': Number(g.qualityPct.toFixed(1)),
     'KPI': Number(g.kpiPct.toFixed(1)),
   }));
+
+  const avg = computed.length ? computed.reduce((s, x) => s + (x.c.totalMgr || 0), 0) / computed.length : 0;
+  const avgRating = ratingCode(avg);
+  const radar = (digital || []).map((d) => {
+    const vals = (computed || []).map((x) => Number(x.p.digital?.[d.id]) || 0);
+    const mean = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : 0;
+    return { subject: `N${d.id}`, full: d.name, value: Number(mean.toFixed(2)) };
+  });
+  const hasDigital = radar.length > 0 && computed.length > 0;
 
   // defs gradient dùng lại — id duy nhất theo theme để không đụng nhau giữa các bản
   const gid = (s) => `g-${theme}-${s}`;
@@ -127,6 +137,49 @@ export default function DashboardCharts({ dist = {}, trends = [], computed = [],
           )}
         </section>
       </div>
+
+      {/* Đồng hồ điểm TB cơ quan + Radar năng lực số */}
+      {computed.length > 0 && (
+        <div className="grid lg:grid-cols-2 gap-6">
+          <section className={cardCls}>
+            <Title>Điểm trung bình cơ quan</Title>
+            <div style={{ position: 'relative', width: '100%', height: 240 }}>
+              <ResponsiveContainer>
+                <RadialBarChart innerRadius="68%" outerRadius="100%" data={[{ name: 'avg', value: Number(avg.toFixed(1)) }]} startAngle={220} endAngle={-40}>
+                  <Defs />
+                  <PolarAngleAxis type="number" domain={[0, 100]} tick={false} />
+                  <RadialBar dataKey="value" cornerRadius={12} fill={`url(#${gid('acc')})`} background={{ fill: isDark ? 'rgba(255,255,255,.07)' : '#eef2f7' }} isAnimationActive={false} />
+                </RadialBarChart>
+              </ResponsiveContainer>
+              <div style={{ position: 'absolute', top: '50%', left: 0, right: 0, transform: 'translateY(-60%)', textAlign: 'center', pointerEvents: 'none' }}>
+                <div style={{ fontSize: 38, fontWeight: 800, color: isDark ? '#fff' : '#0f172a', lineHeight: 1, fontFamily: titleSty?.fontFamily }}>{avg.toFixed(1)}</div>
+                <div style={{ fontSize: 12, color: txt }}>/ 100 điểm</div>
+                <div style={{ marginTop: 6, display: 'inline-block', padding: '2px 10px', borderRadius: 999, background: RC[avgRating], color: '#fff', fontSize: 11, fontWeight: 700 }}>{avgRating} · {RN[avgRating]}</div>
+              </div>
+            </div>
+          </section>
+
+          <section className={cardCls}>
+            <Title>Khung năng lực số (TB cơ quan)</Title>
+            {!hasDigital ? <Empty c={note} /> : (
+              <>
+                <div style={{ width: '100%', height: 240 }}>
+                  <ResponsiveContainer>
+                    <RadarChart data={radar} outerRadius="72%">
+                      <PolarGrid stroke={grid} />
+                      <PolarAngleAxis dataKey="subject" tick={{ fill: txt, fontSize: 11 }} />
+                      <PolarRadiusAxis domain={[0, 4]} angle={90} tick={{ fill: txt, fontSize: 9 }} />
+                      <Radar name="Mức TB" dataKey="value" stroke={T.accent} fill={T.accent} fillOpacity={0.35} isAnimationActive={false} />
+                      <Tooltip contentStyle={tip} formatter={(v, n, p) => [`Mức ${v}`, p?.payload?.full || 'Năng lực số']} />
+                    </RadarChart>
+                  </ResponsiveContainer>
+                </div>
+                <p className={`text-[11px] mt-1 ${note}`}>Thang Mức 0–4. N1–N8 là 8 nhóm năng lực số (di chuột để xem tên đầy đủ).</p>
+              </>
+            )}
+          </section>
+        </div>
+      )}
 
       {/* So sánh Chất lượng & KPI theo Phòng/Ban — tông màu theo phiên bản */}
       {depts.length > 0 && (

@@ -2,6 +2,8 @@
 
 > Khi hoàn thành việc lớn, thêm 1 dòng vào đây rồi `git push` để máy khác nắm được.
 
+- **Tổng quan thêm đồ thị**: `DashboardCharts.jsx` bổ sung **đồng hồ (radial gauge) Điểm TB cơ quan** + xếp loại, và **radar Khung năng lực số** (TB cơ quan, 8 trục N1–N8, thang Mức 0–4). App.jsx truyền `digital={DIGITAL}`. Charts dùng gradient + theme (hiện chỉ 1 bản Cổ điển).
+
 - Hợp nhất đánh giá NĐ335 vào tab Đánh giá (Nhóm II theo danh mục + hệ số).
 - Đăng nhập **email + mật khẩu**: lần đầu nhận liên kết → nhập Họ tên/Chức vụ + tạo mật khẩu; có đổi mật khẩu.
 - **Tài khoản khách** `user@thanhhoa.gov.vn` / `password`: hiện sẵn ở trang login; được thử chấm điểm Nhóm I/II nhưng **không lưu** (mất khi tải lại).

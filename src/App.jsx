@@ -834,7 +834,7 @@ export default function App() {
               </div>
             )}
             <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
-              <DashboardCharts dist={dist} trends={trends} computed={computed} theme="classic" />
+              <DashboardCharts dist={dist} trends={trends} computed={computed} digital={DIGITAL} theme="classic" />
             </Suspense>
             <div className="grid lg:grid-cols-3 gap-6">
               <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
