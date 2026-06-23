@@ -462,6 +462,8 @@ export default function App() {
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; 'guest' = khách mặc định
+  const sessionRef = useRef(undefined);               // bản ref của session để dùng trong hàm async
+  const guestSeededRef = useRef(false);               // đã nạp dữ liệu mẫu cho khách chưa
   const [wantLogin, setWantLogin] = useState(false);  // true khi người dùng chủ động bấm Đăng nhập (quản trị)
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
@@ -494,6 +496,11 @@ export default function App() {
     if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p); // sửa lại ô nhập nếu gõ sai
     loadingRef.current = true;
     setConflict(false); setSeedFrom(null);
+    // Khách (demo): luôn hiển thị sẵn 5 cán bộ mẫu, không nạp dữ liệu máy chủ.
+    if (sessionRef.current === 'guest') {
+      loadDemoPeople(); guestSeededRef.current = true;
+      setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
+    }
     const res = await loadState(p);
     serverTsRef.current = res.serverTs;
     if (res.state) {
@@ -533,6 +540,13 @@ export default function App() {
     })();
     return () => unsub();
   }, []);
+
+  // Đồng bộ sessionRef + tự nạp 5 cán bộ mẫu khi vào bằng tài khoản khách (chỉ một lần/phiên khách).
+  useEffect(() => {
+    sessionRef.current = session;
+    if (session === 'guest' && !guestSeededRef.current) { guestSeededRef.current = true; loadDemoPeople(); }
+    if (session && session !== 'guest') guestSeededRef.current = false; // đăng nhập thật -> cho phép nạp lại nếu sau này quay về khách
+  }, [session]);
 
   useEffect(() => {
     if (!loaded.current || loadingRef.current) return;
