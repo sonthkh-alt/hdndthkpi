@@ -780,3 +780,391 @@ export function exportGuidePDF(unit, catalogGroups = []) {
 </body></html>`);
   win.document.close();
 }
+
+// =============================================================================
+// MODULE QUẢN TRỊ — Xuất PDF tài liệu hệ thống
+// Dùng cửa sổ in của trình duyệt: render bằng engine của trình duyệt nên TIẾNG VIỆT
+// CHUẨN (không lỗi font, không cần nhúng font nặng), người dùng bấm "Lưu thành PDF".
+// Bố cục chuyên nghiệp: header/footer cố định + ĐÁNH SỐ TRANG (CSS Paged Media),
+// bảng kẻ vằn (zebra striping), trang bìa, đánh số mục rõ ràng.
+// =============================================================================
+
+// Escape an toàn cho HTML (dùng riêng cho phần quản trị).
+const escDoc = (s) => String(s ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+/**
+ * CSS dùng chung cho các tài liệu quản trị (A4 dọc).
+ * - @page margin-box: header (giữa trên) + footer (trái/giữa-số trang/phải) cố định, lặp mọi trang.
+ * - Bảng .tbl: viền + đầu bảng nền xanh nhạt + ZEBRA STRIPING (dòng chẵn nền nhạt) để dễ đọc.
+ * @param {string} headerText  Chữ chạy ở mép trên mỗi trang.
+ * @param {string} footerLeft  Chữ ở mép dưới-trái mỗi trang.
+ */
+function adminDocCss(headerText, footerLeft) {
+  return `
+  @page{
+    size:A4 portrait; margin:22mm 16mm 20mm;
+    @top-center{ content:"${headerText}"; font:italic 9px 'Times New Roman',serif; color:#9aa0a6; }
+    @bottom-left{ content:"${footerLeft}"; font:9px 'Times New Roman',serif; color:#9aa0a6; }
+    @bottom-right{ content:"Trang " counter(page) " / " counter(pages); font:9px 'Times New Roman',serif; color:#9aa0a6; }
+  }
+  *{ box-sizing:border-box; }
+  body{ margin:0; background:#fff; color:#1a1a1a; font-family:'Times New Roman','Be Vietnam Pro',Georgia,serif; font-size:13.5px; line-height:1.55; }
+  .doc{ max-width:800px; margin:0 auto; padding:16px; }
+  .toolbar{ position:fixed; top:10px; right:12px; display:flex; gap:8px; font-family:system-ui,sans-serif; z-index:9; }
+  .toolbar button{ font-size:13px; padding:8px 16px; border:0; border-radius:8px; cursor:pointer; }
+  .toolbar .p{ background:#1d4ed8; color:#fff; } .toolbar .c{ background:#e5e7eb; color:#111; }
+  h1.h{ font-size:22px; text-align:center; margin:4px 0; }
+  h2{ font-size:16px; color:#1d4ed8; border-bottom:2px solid #d6e0fb; padding-bottom:4px; margin:20px 0 8px; }
+  h3{ font-size:14px; color:#1f2937; margin:14px 0 6px; }
+  p{ margin:6px 0; text-align:justify; } ul,ol{ margin:6px 0; padding-left:22px; } li{ margin:3px 0; text-align:justify; }
+  .muted{ color:#555; font-size:12.5px; } .bt{ font-weight:bold; margin-bottom:4px; }
+  .mono{ font-family:'Consolas','Courier New',monospace; font-size:12.3px; } .nowrap{ white-space:nowrap; }
+  .formula{ background:#eef4ff; border:1px solid #b9cdf6; border-radius:8px; padding:10px 12px; font-weight:bold; text-align:center; margin:10px 0; }
+  .box{ border-radius:8px; padding:10px 12px; margin:10px 0; }
+  .box.gray{ background:#f5f6f8; border:1px solid #d9dde3; } .box.blue{ background:#eef4ff; border:1px solid #b9cdf6; }
+  .box.amber{ background:#fff7e6; border:1px solid #f3d588; } .box.red{ background:#fdecec; border:1px solid #f3b5b5; }
+  table.tbl{ width:100%; border-collapse:collapse; margin:10px 0; font-size:12.6px; }
+  table.tbl th, table.tbl td{ border:1px solid #b9c0cc; padding:6px 8px; vertical-align:top; text-align:left; }
+  table.tbl th{ background:#dde7fb; font-weight:bold; color:#16407a; }
+  table.tbl tr:nth-child(even) td{ background:#f3f7fd; }              /* ZEBRA STRIPING */
+  table.tbl td.ctr, table.tbl th.ctr{ text-align:center; }
+  table.tbl td.tag{ font-weight:bold; color:#1d4ed8; white-space:nowrap; }
+  .cover{ text-align:center; min-height:236mm; display:flex; flex-direction:column; align-items:center; }
+  .cover .unit{ font-weight:bold; text-transform:uppercase; font-size:15px; margin-top:8mm; }
+  .cover .rule{ width:150px; height:2px; background:#1d4ed8; margin:8px auto 0; }
+  .cover-spacer{ flex:1; } .cover-kicker{ letter-spacing:2px; color:#1d4ed8; font-weight:bold; font-size:14px; }
+  .cover-title{ font-size:25px; line-height:1.4; margin:14px 0; } .cover-sub{ font-style:italic; font-size:14px; color:#333; }
+  .cover-meta{ font-style:italic; font-size:13px; margin-bottom:10px; }
+  .cover-note{ color:#b45309; font-weight:bold; font-size:12.5px; border:1px dashed #d9a441; border-radius:8px; padding:8px 12px; background:#fffbeb; }
+  .meta-tbl td{ border:0; padding:2px 6px; } .meta-tbl td:first-child{ font-weight:bold; width:34%; }
+  section.page{ page-break-before:always; }
+  .signoff{ margin-top:22px; padding-top:10px; border-top:1px solid #ddd; text-align:center; font-style:italic; color:#444; font-size:12.5px; }
+  @media print{ .toolbar{ display:none; } .doc{ padding:0; } }`;
+}
+
+// Mở cửa sổ in với toolbar "Lưu thành PDF" (dùng chung cho 2 tài liệu quản trị).
+function openAdminPrint(title, css, bodyHtml) {
+  const win = window.open('', '_blank');
+  if (!win) { alert('Trình duyệt đã chặn cửa sổ in/lưu PDF. Hãy cho phép pop-up cho trang này rồi thử lại.'); return; }
+  win.document.open();
+  win.document.write(`<!doctype html><html lang="vi"><head><meta charset="utf-8"><title>${escDoc(title)}</title><style>${css}</style></head>
+<body>
+  <div class="toolbar"><button class="p" onclick="window.print()">⬇ In / Lưu thành PDF</button><button class="c" onclick="window.close()">Đóng</button></div>
+  ${bodyHtml}
+</body></html>`);
+  win.document.close();
+}
+
+// -----------------------------------------------------------------------------
+// MOCK DATA — DỮ LIỆU ĐẦU VÀO (đổ dữ liệu thật từ DB vào đây sau này)
+// Toàn bộ nội dung kỹ thuật của tài liệu (1) lấy từ object này. Quản trị chỉ cần
+// thay/đổ dữ liệu thật (truy vấn từ Supabase, package.json, biến môi trường...)
+// vào các trường tương ứng là tài liệu tự cập nhật, KHÔNG phải sửa phần dựng HTML.
+// -----------------------------------------------------------------------------
+export const SYSTEM_DOC_DATA = {
+  system: {
+    name: 'Hệ thống Đánh giá, xếp loại cán bộ, công chức theo OKR/KPI',
+    org: 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa',
+    url: 'https://hdndthkpi.vercel.app',
+    repo: 'https://github.com/sonthkh-alt/hdndthkpi',
+    admin: 'Quản trị viên hệ thống',
+    purpose: 'Hỗ trợ đánh giá, xếp loại mức độ hoàn thành nhiệm vụ hằng tháng của cán bộ, công chức theo phương pháp OKR/KPI — khách quan, định lượng, minh bạch; áp dụng Quyết định số 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa.',
+    features: [
+      'Chấm điểm hai cấp (tự đánh giá / cấp có thẩm quyền) theo Nhóm I (30đ) và Nhóm II (70đ).',
+      'Quản lý mục tiêu OKR cấp đơn vị, liên kết từng nhiệm vụ với mục tiêu.',
+      'Bảng kiểm đếm, theo dõi công việc theo tuần; đồng bộ từ Google Sheet; thu thập thành nhiệm vụ KPI.',
+      'Tổng quan trực quan (biểu đồ phân bố xếp loại, xếp hạng, xu hướng, so sánh theo phòng/ban).',
+      'Phê duyệt và xuất phiếu đánh giá (Word), sổ tay hướng dẫn và tài liệu hệ thống (PDF).',
+      'Lưu dữ liệu theo từng kỳ (tháng/năm) với khóa lạc quan chống ghi đè.',
+    ],
+  },
+  // Phần 2 — Tech stack (kèm phiên bản). Đổ phiên bản thật từ package.json nếu cần.
+  techStack: [
+    { layer: 'Frontend', tech: 'React (SPA)', version: '18.3', role: 'Thư viện giao diện, render phía trình duyệt' },
+    { layer: 'Frontend', tech: 'Vite', version: '5.4', role: 'Công cụ build & dev server, tách chunk lazy-load' },
+    { layer: 'Frontend', tech: 'TailwindCSS', version: '3.4', role: 'Hệ thống style tiện ích (utility-first)' },
+    { layer: 'Frontend', tech: 'Recharts', version: '3.8', role: 'Biểu đồ tương tác ở tab Tổng quan (lazy-load)' },
+    { layer: 'Frontend', tech: 'lucide-react / docx / xlsx / html2pdf.js / file-saver', version: 'mới nhất', role: 'Icon & xuất Word/Excel/PDF phía client (lazy-load)' },
+    { layer: 'Backend (BaaS)', tech: 'Supabase — PostgreSQL', version: 'PostgreSQL 15', role: 'Cơ sở dữ liệu chính (lưu theo kỳ, jsonb)' },
+    { layer: 'Backend (BaaS)', tech: 'Supabase — GoTrue Auth', version: '—', role: 'Xác thực email/mật khẩu, phát hành JWT' },
+    { layer: 'Backend (BaaS)', tech: 'Supabase — PostgREST', version: '—', role: 'API REST tự sinh trên bảng dữ liệu (RLS)' },
+    { layer: 'Serverless', tech: 'Vercel Functions (Node.js)', version: 'Node 18', role: 'Proxy đọc Google Sheet (api/kiemdem) tránh CORS' },
+    { layer: 'Hosting / Web Server', tech: 'Vercel (CDN + CI/CD)', version: '—', role: 'Phục vụ tĩnh qua CDN toàn cầu, tự build khi push main' },
+  ],
+  dataFlow: [
+    'Trình duyệt tải ứng dụng React (tệp tĩnh) từ CDN của Vercel.',
+    'Ứng dụng dùng Supabase JS client (anon key) gọi Auth để đăng nhập → nhận JWT.',
+    'Mọi thao tác đọc/ghi dữ liệu kỳ đi qua PostgREST của Supabase tới PostgreSQL, ràng buộc bởi RLS theo JWT.',
+    'Lưu trạng thái kỳ là một bản ghi jsonb trong bảng app_state, kèm khóa lạc quan updated_at.',
+    'Riêng dữ liệu kiểm đếm: trình duyệt gọi hàm serverless /api/kiemdem; hàm này đọc Google Sheet công khai (CSV) phía máy chủ rồi trả JSON (cache CDN ~60s).',
+  ],
+  tables: [
+    { name: 'app_state', desc: 'Lưu toàn bộ trạng thái đánh giá của một kỳ (người, mục tiêu, danh mục) dưới dạng jsonb.', fields: [
+      { f: 'id', t: 'int8 (PK)', n: 'Khóa chính tự tăng' },
+      { f: 'period_year', t: 'int', n: 'Năm của kỳ' },
+      { f: 'period_month', t: 'int', n: 'Tháng của kỳ (1–12)' },
+      { f: 'data', t: 'jsonb', n: 'Dữ liệu kỳ: people[], objectives[], catalog{}' },
+      { f: 'updated_at', t: 'timestamptz', n: 'Thời điểm cập nhật — dùng làm khóa lạc quan' },
+    ] },
+    { name: 'auth.users (Supabase quản lý)', desc: 'Tài khoản người dùng do GoTrue quản lý.', fields: [
+      { f: 'id', t: 'uuid (PK)', n: 'Định danh người dùng' },
+      { f: 'email', t: 'text (unique)', n: 'Email đăng nhập' },
+      { f: 'encrypted_password', t: 'text', n: 'Mật khẩu đã băm (bcrypt) — không lưu plaintext' },
+      { f: 'raw_user_meta_data', t: 'jsonb', n: 'Hồ sơ: full_name, position, cờ pw_set' },
+    ] },
+  ],
+  apis: [
+    { group: 'Auth', ep: 'POST /auth/v1/token?grant_type=password', desc: 'Đăng nhập email + mật khẩu (signInWithPassword) → trả access token (JWT) + refresh token.' },
+    { group: 'Auth', ep: 'POST /auth/v1/otp', desc: 'Gửi liên kết kích hoạt lần đầu / quên mật khẩu (signInWithOtp).' },
+    { group: 'Auth', ep: 'PUT /auth/v1/user', desc: 'Đặt/đổi mật khẩu và cập nhật hồ sơ (updateUser: password, full_name, position, pw_set).' },
+    { group: 'Auth', ep: 'GET /auth/v1/user (getSession)', desc: 'Lấy phiên hiện tại; onAuthChange lắng nghe thay đổi đăng nhập/đăng xuất.' },
+    { group: 'CRUD dữ liệu', ep: 'GET app_state?period_year=..&period_month=..', desc: 'Đọc trạng thái kỳ (loadState). Trả bản ghi + updated_at.' },
+    { group: 'CRUD dữ liệu', ep: 'UPSERT app_state', desc: 'Ghi trạng thái kỳ (saveState) kèm kiểm tra updated_at — phát hiện xung đột ghi đồng thời.' },
+    { group: 'CRUD dữ liệu', ep: 'GET listPeriods / loadAllPeriods', desc: 'Liệt kê các kỳ đã có & nạp toàn bộ kỳ để vẽ biểu đồ xu hướng.' },
+    { group: 'Tích hợp', ep: 'GET /api/kiemdem', desc: 'Hàm serverless: proxy đọc Google Sheet công khai (gviz CSV) → JSON { weekTitle, persons[] }, cache 60s.' },
+    { group: 'Sao lưu', ep: 'Supabase Backup (PITR/daily)', desc: 'Sao lưu cơ sở dữ liệu do nền tảng Supabase thực hiện (xem Phần 4).' },
+  ],
+  security: [
+    'SSL/TLS: toàn bộ truy cập qua HTTPS (chứng chỉ do Vercel cấp & gia hạn tự động).',
+    'Mã hóa mật khẩu: GoTrue băm mật khẩu bằng bcrypt; hệ thống KHÔNG lưu mật khẩu dạng rõ.',
+    'Phân quyền JWT: đăng nhập trả JWT; mọi truy vấn dữ liệu kèm token, kiểm soát bởi Row-Level Security (RLS) ở PostgreSQL.',
+    'Phân vai trò ứng dụng: cán bộ / trưởng phòng / quản trị / khách (chỉ xem) — quyết định theo email khớp hồ sơ.',
+    'Khóa lạc quan (updated_at) chống ghi đè khi nhiều người sửa cùng kỳ.',
+    'Tài khoản khách (demo) chạy in-memory, KHÔNG ghi cơ sở dữ liệu.',
+    'Bí mật cấu hình (Supabase URL/anon key) đặt ở biến môi trường, không commit vào mã nguồn; .env bị loại khỏi Git.',
+  ],
+  backup: [
+    'Cơ sở dữ liệu Supabase được nền tảng sao lưu định kỳ; gói trả phí hỗ trợ Point-in-time Recovery (PITR) khôi phục về thời điểm.',
+    'Mã nguồn lưu trên GitHub (nguồn duy nhất) — mỗi commit là một mốc khôi phục; Vercel giữ lịch sử các bản deploy để rollback nhanh.',
+    'Dữ liệu kỳ ở dạng jsonb có thể kết xuất ra Excel/Word/PDF phục vụ lưu trữ ngoài.',
+    'Khôi phục sự cố: chọn bản deploy trước trên Vercel (rollback tức thời) và/hoặc phục hồi DB từ bản sao lưu Supabase.',
+  ],
+  logging: [
+    'Vercel Logs: nhật ký build & runtime của hàm serverless (gồm lỗi của /api/kiemdem).',
+    'Supabase Logs: nhật ký Auth, API (PostgREST) và truy vấn cơ sở dữ liệu.',
+    'Trình duyệt: ErrorBoundary của ứng dụng bắt lỗi React, tránh sập toàn trang; cảnh báo xung đột ghi hiển thị trực tiếp cho người dùng.',
+    'Hiệu năng: tách chunk + lazy-load thư viện nặng (biểu đồ, xuất tệp) để giảm dung lượng tải lần đầu.',
+  ],
+};
+
+/**
+ * (1) Xuất PDF — TÀI LIỆU MÔ TẢ KỸ THUẬT & VẬN HÀNH HỆ THỐNG.
+ * Bố cục: Bìa → Mục lục → Phần 1 Tổng quan → Phần 2 Kiến trúc → Phần 3 CSDL & API → Phần 4 Vận hành & Bảo mật.
+ * @param {object} data  Dữ liệu hệ thống (mặc định SYSTEM_DOC_DATA — thay bằng dữ liệu thật khi cần).
+ */
+export function exportSystemTechPDF(data = SYSTEM_DOC_DATA) {
+  const e = escDoc;
+  const s = data.system || {};
+  const now = new Date();
+  const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
+
+  const techRows = (data.techStack || []).map((t) => `<tr>
+    <td class="tag">${e(t.layer)}</td><td><b>${e(t.tech)}</b></td><td class="ctr nowrap">${e(t.version)}</td><td>${e(t.role)}</td></tr>`).join('');
+  const tableBlocks = (data.tables || []).map((tb) => `
+    <h3>Bảng <span class="mono">${e(tb.name)}</span></h3>
+    <p class="muted">${e(tb.desc)}</p>
+    <table class="tbl"><tr><th style="width:26%">Trường</th><th style="width:24%">Kiểu dữ liệu</th><th>Ý nghĩa</th></tr>
+      ${(tb.fields || []).map((f) => `<tr><td class="mono">${e(f.f)}</td><td class="mono">${e(f.t)}</td><td>${e(f.n)}</td></tr>`).join('')}
+    </table>`).join('');
+  const apiRows = (data.apis || []).map((a) => `<tr><td class="tag">${e(a.group)}</td><td class="mono">${e(a.ep)}</td><td>${e(a.desc)}</td></tr>`).join('');
+  const li = (arr) => (arr || []).map((x) => `<li>${e(x)}</li>`).join('');
+
+  const html = `
+  <div class="doc">
+    <section class="cover">
+      <div class="unit">${e(s.org)}</div>
+      <div class="rule"></div>
+      <div class="cover-spacer"></div>
+      <div class="cover-kicker">TÀI LIỆU KỸ THUẬT & VẬN HÀNH</div>
+      <h1 class="cover-title">MÔ TẢ KIẾN TRÚC, CƠ SỞ DỮ LIỆU<br>VÀ QUY TRÌNH VẬN HÀNH HỆ THỐNG</h1>
+      <div class="cover-sub">${e(s.name)}</div>
+      <div class="cover-spacer"></div>
+      <table class="meta-tbl" style="margin:0 auto 14px;">
+        <tr><td>Địa chỉ hệ thống</td><td>${e(s.url)}</td></tr>
+        <tr><td>Ngày xuất báo cáo</td><td>${dateStr}</td></tr>
+        <tr><td>Người thực hiện</td><td>${e(s.admin)} (Admin)</td></tr>
+      </table>
+      <div class="cover-note">⚠ BẢN DEMO THỬ NGHIỆM — sử dụng nội bộ, không chịu trách nhiệm về tính pháp lý và dữ liệu.</div>
+    </section>
+
+    <section class="page">
+      <h2>MỤC LỤC</h2>
+      <ol>
+        <li>Phần 1 — Tổng quan hệ thống (System Overview)</li>
+        <li>Phần 2 — Kiến trúc kỹ thuật chi tiết (Technical Architecture)</li>
+        <li>Phần 3 — Cấu trúc cơ sở dữ liệu & API (Database &amp; API Specs)</li>
+        <li>Phần 4 — Quy trình vận hành & bảo mật (Operations &amp; Security)</li>
+      </ol>
+
+      <h2>Phần 1 — Tổng quan hệ thống</h2>
+      <table class="tbl">
+        <tr><th style="width:26%">Hạng mục</th><th>Nội dung</th></tr>
+        <tr><td><b>Tên hệ thống</b></td><td>${e(s.name)}</td></tr>
+        <tr><td><b>Đơn vị chủ quản</b></td><td>${e(s.org)}</td></tr>
+        <tr><td><b>Địa chỉ</b></td><td>${e(s.url)}</td></tr>
+        <tr><td><b>Mã nguồn</b></td><td>${e(s.repo)}</td></tr>
+        <tr><td><b>Ngày xuất báo cáo</b></td><td>${dateStr}</td></tr>
+        <tr><td><b>Người thực hiện</b></td><td>${e(s.admin)} (Admin)</td></tr>
+      </table>
+      <h3>Mục tiêu</h3>
+      <p>${e(s.purpose)}</p>
+      <h3>Chức năng chính</h3>
+      <ul>${li(s.features)}</ul>
+    </section>
+
+    <section class="page">
+      <h2>Phần 2 — Kiến trúc kỹ thuật chi tiết</h2>
+      <h3>Mô hình & luồng dữ liệu (Data Flow)</h3>
+      <div class="formula">Trình duyệt (React SPA) ⇄ Supabase (Auth · PostgREST · PostgreSQL) &nbsp;|&nbsp; Vercel Serverless (/api/kiemdem) ⇄ Google Sheet</div>
+      <ol>${li(data.dataFlow)}</ol>
+      <div class="box blue"><b>Kiến trúc tổng thể:</b> ứng dụng một trang (SPA) tải tĩnh qua CDN; tầng "backend" là dịch vụ nền (BaaS) Supabase (không phải máy chủ tự dựng); hàm serverless chỉ dùng cho tác vụ cần chạy phía máy chủ (proxy Google Sheet, tránh CORS).</div>
+      <h3>Danh sách công nghệ (Tech Stack)</h3>
+      <table class="tbl">
+        <tr><th style="width:20%">Tầng</th><th style="width:26%">Công nghệ</th><th class="ctr" style="width:14%">Phiên bản</th><th>Vai trò</th></tr>
+        ${techRows}
+      </table>
+    </section>
+
+    <section class="page">
+      <h2>Phần 3 — Cấu trúc cơ sở dữ liệu & API</h2>
+      <h3>Các bảng dữ liệu chính</h3>
+      ${tableBlocks}
+      <div class="box gray"><b>Ghi chú mô hình lưu trữ:</b> toàn bộ trạng thái một kỳ (danh sách cán bộ, điểm, nhiệm vụ, mục tiêu OKR, danh mục) được đóng gói trong trường <span class="mono">data</span> kiểu <b>jsonb</b> của một bản ghi <span class="mono">app_state</span> — tối ưu cho việc nạp/lưu nguyên kỳ và phiên bản hóa theo thời gian.</div>
+      <h3>Các Endpoint API cốt lõi</h3>
+      <table class="tbl">
+        <tr><th style="width:16%">Nhóm</th><th style="width:40%">Endpoint</th><th>Mô tả</th></tr>
+        ${apiRows}
+      </table>
+    </section>
+
+    <section class="page">
+      <h2>Phần 4 — Quy trình vận hành & bảo mật</h2>
+      <h3>Sao lưu (Backup) & khôi phục sự cố</h3>
+      <ul>${li(data.backup)}</ul>
+      <h3>Biện pháp bảo mật</h3>
+      <ul>${li(data.security)}</ul>
+      <h3>Nhật ký giám sát lỗi & hiệu năng</h3>
+      <ul>${li(data.logging)}</ul>
+      <div class="signoff">
+        <p>Tài liệu kỹ thuật & vận hành — phục vụ công tác quản trị nội bộ.</p>
+        <p>${e(s.org)} • Xuất ${dateStr}.</p>
+      </div>
+    </section>
+  </div>`;
+
+  openAdminPrint('Tài liệu kỹ thuật & vận hành hệ thống', adminDocCss(e(s.name), 'Bản demo nội bộ — không chịu trách nhiệm pháp lý'), html);
+}
+
+/**
+ * (2) Xuất PDF — PHƯƠNG PHÁP TÍNH, ĐÁNH GIÁ OKR/KPI (trình bày như văn bản hành chính).
+ * @param {string} unit  Tên đơn vị (hiển thị ở bìa/header).
+ */
+export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa') {
+  const e = escDoc;
+  const now = new Date();
+  const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
+
+  const html = `
+  <div class="doc">
+    <section class="cover">
+      <div class="unit">${e(unit)}</div>
+      <div class="rule"></div>
+      <div class="cover-spacer"></div>
+      <div class="cover-kicker">TÀI LIỆU NGHIỆP VỤ</div>
+      <h1 class="cover-title">PHƯƠNG PHÁP TÍNH VÀ ĐÁNH GIÁ<br>KẾT QUẢ THỰC HIỆN NHIỆM VỤ<br>THEO OKR/KPI</h1>
+      <div class="cover-sub">Áp dụng Quyết định số 1053-QĐ/TU ngày 05/6/2026<br>của Ban Thường vụ Tỉnh ủy Thanh Hóa</div>
+      <div class="cover-spacer"></div>
+      <div class="cover-meta">Tài liệu lập ${dateStr}</div>
+      <div class="cover-note">⚠ BẢN DEMO THỬ NGHIỆM — sử dụng nội bộ, không chịu trách nhiệm về tính pháp lý và dữ liệu.</div>
+    </section>
+
+    <section class="page">
+      <h2>I. CĂN CỨ & NGUYÊN TẮC</h2>
+      <p><b>1. Căn cứ.</b> Phương pháp tính, đánh giá được xây dựng theo Quyết định số 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa về đánh giá, xếp loại mức độ hoàn thành nhiệm vụ hằng tháng của cán bộ, công chức, viên chức và người lao động.</p>
+      <p><b>2. Nguyên tắc.</b> Đánh giá theo phương pháp OKR/KPI, bảo đảm: (i) <b>định lượng</b> bằng đếm khách quan; (ii) <b>liên thông mục tiêu</b> — mỗi nhiệm vụ gắn với một mục tiêu (OKR) của đơn vị; (iii) <b>hai cấp</b> — cá nhân tự đánh giá và cấp có thẩm quyền quyết định; (iv) <b>minh bạch</b> — công khai công thức, hệ số và điều kiện xếp loại.</p>
+      <div class="box gray"><b>Đối tượng áp dụng:</b> 5 nhóm theo Mẫu 01–05 (Đại biểu HĐND tỉnh chuyên trách; Đại biểu Quốc hội chuyên trách; cán bộ lãnh đạo, quản lý; công chức không giữ chức vụ; lao động hợp đồng hỗ trợ, phục vụ).</p></div>
+
+      <h2>II. THANG ĐIỂM TỔNG QUÁT</h2>
+      <div class="formula">TỔNG ĐIỂM = Nhóm I (tối đa 30) + Nhóm II (tối đa 70) − Điểm trừ</div>
+      <p>Mỗi cán bộ được chấm ở hai cột: <b>Tự đánh giá</b> và <b>Cấp có thẩm quyền</b>; điểm xếp loại chính thức lấy theo cột Cấp có thẩm quyền. Cán bộ khởi tạo mặc định mức tối đa, việc đánh giá là trừ dần theo thực tế.</p>
+
+      <h2>III. NHÓM I — TIÊU CHÍ CHUNG (tối đa 30 điểm)</h2>
+      <p>Đánh giá phẩm chất chính trị, tư tưởng, đạo đức, ý thức tổ chức kỷ luật, năng lực, tác phong... theo bộ tiêu chí của từng nhóm đối tượng. Cộng điểm tất cả tiêu chí và giới hạn không quá 30 điểm.</p>
+      <table class="tbl">
+        <tr><th style="width:14%">Mẫu</th><th style="width:42%">Nhóm đối tượng</th><th>Cấu trúc điểm Nhóm I</th></tr>
+        <tr><td class="ctr"><b>01</b></td><td>ĐB HĐND tỉnh chuyên trách</td><td>Dùng chung tiêu chí nhóm lãnh đạo.</td></tr>
+        <tr><td class="ctr"><b>02</b></td><td>ĐB Quốc hội chuyên trách</td><td>Tương tự Mẫu 01.</td></tr>
+        <tr><td class="ctr"><b>03</b></td><td>Lãnh đạo, quản lý (Phụ lục 03)</td><td>Chính trị tư tưởng (5) + đạo đức, kỷ luật (5) + năng lực lãnh đạo–chuyên môn–thực thi–tác phong–đổi mới–CĐS (16) + tín nhiệm, đoàn kết (2) + tự phê bình (2).</td></tr>
+        <tr><td class="ctr"><b>04</b></td><td>Công chức không giữ chức vụ (Phụ lục 01)</td><td>Chính trị tư tưởng (5) + đạo đức, kỷ luật (5) + năng lực chuyên môn–thực thi–tác phong–đổi mới–CĐS (16) + tự phê bình (4).</td></tr>
+        <tr><td class="ctr"><b>05</b></td><td>Lao động hợp đồng (Phụ lục 02)</td><td>Chính trị, đạo đức, kỷ luật (15) + năng lực chuyên môn, thực thi (10) + tự phê bình (5).</td></tr>
+      </table>
+
+      <h2>IV. NHÓM II — KẾT QUẢ THỰC HIỆN NHIỆM VỤ (tối đa 70 điểm)</h2>
+      <p>Chấm bằng đếm khách quan. Mỗi nhiệm vụ chọn từ danh mục công việc (đã gán <b>hệ số</b> theo cấp độ) và nhập 4 con số: Số lượng <b>giao</b>, Số lượng <b>hoàn thành</b>, số <b>lỗi chất lượng</b>, số lần <b>chậm tiến độ</b>. Hệ thống tính 3 tỷ lệ bình quân theo hệ số:</p>
+      <table class="tbl">
+        <tr><th style="width:20%">Tỷ lệ</th><th>Công thức</th></tr>
+        <tr><td><b>a — Khối lượng</b></td><td>Σ(Hoàn thành × hệ số) ÷ Σ(Giao × hệ số) × 100% &nbsp;<i>(chặn tối đa 100%)</i></td></tr>
+        <tr><td><b>b — Chất lượng</b></td><td>Bình quân [1 − 0,25 × số lỗi chất lượng] theo hệ số × 100% &nbsp;<i>(mỗi lỗi −25%)</i></td></tr>
+        <tr><td><b>c — Tiến độ</b></td><td>Bình quân [1 − 0,25 × số lần chậm] theo hệ số × 100% &nbsp;<i>(mỗi lần chậm −25%)</i></td></tr>
+      </table>
+      <div class="formula">Điểm Nhóm II = (a + b + c) ÷ 3 × 70% &nbsp;<span class="muted">(công chức, viên chức, lao động hợp đồng)</span></div>
+      <div class="box red">
+        <p class="bt">Đối với cán bộ giữ chức vụ lãnh đạo, quản lý (Điều 7)</p>
+        <p>Điểm kết quả = <b>(a + b + c + d + đ + e) ÷ 6</b>, bổ sung 3 thành phần (mỗi mục 100% hoặc 50%):</p>
+        <ul>
+          <li><b>d</b> — Kết quả lĩnh vực/đơn vị phụ trách.</li>
+          <li><b>đ</b> — Khả năng tổ chức triển khai nhiệm vụ.</li>
+          <li><b>e</b> — Năng lực tập hợp, đoàn kết nội bộ.</li>
+        </ul>
+        <p class="muted">b và c chỉ tính trên phần đã hoàn thành; "vượt mức" (hoàn thành &gt; giao) không cộng thêm điểm (a chặn 100%) nhưng là điều kiện bắt buộc của loại A.</p>
+      </div>
+      <div class="box amber">
+        <p class="bt">Ví dụ</p>
+        <p class="mono">NV1 (hệ số 300): giao 4, HT 4, lỗi 0, chậm 1 — NV2 (hệ số 100): giao 10, HT 8, lỗi 1, chậm 0.<br>
+        a = (4×300 + 8×100) ÷ (4×300 + 10×100) = 2000 ÷ 2200 = <b>90,9%</b><br>
+        b = (1200 + 800×0,75) ÷ 2000 = <b>90,0%</b> &nbsp; c = (1200×0,75 + 800) ÷ 2000 = <b>85,0%</b><br>
+        TB = (90,9 + 90,0 + 85,0) ÷ 3 = <b>88,6%</b> → Nhóm II = 88,6% × 70% ≈ <b>62,0/70</b></p>
+      </div>
+
+      <h2>V. HỆ SỐ CÔNG VIỆC (cấp độ N1–N5)</h2>
+      <p>Hệ số phản ánh độ phức tạp/cấp độ; việc khó có hệ số cao, đóng góp nhiều hơn vào điểm — bảo đảm công bằng giữa việc khó và việc đơn giản. Trọng số mỗi nhiệm vụ = hệ số × số lượng.</p>
+      <table class="tbl">
+        <tr><th>Cấp độ</th><th class="ctr">N1</th><th class="ctr">N2</th><th class="ctr">N3</th><th class="ctr">N4</th><th class="ctr">N5</th><th class="ctr">Hỗ trợ</th></tr>
+        <tr><td><b>Hệ số</b></td><td class="ctr">100</td><td class="ctr">200</td><td class="ctr">300</td><td class="ctr">400</td><td class="ctr">500</td><td class="ctr">0 (đếm ngang nhau)</td></tr>
+      </table>
+
+      <h2>VI. XẾP LOẠI & ĐIỀU KIỆN ĐỊNH LƯỢNG (Điều 8)</h2>
+      <table class="tbl">
+        <tr><th style="width:10%">Mức</th><th style="width:40%">Xếp loại</th><th>Ngưỡng điểm (cột Cấp duyệt)</th></tr>
+        <tr><td class="ctr"><b>A</b></td><td>Hoàn thành xuất sắc nhiệm vụ</td><td>≥ 90 điểm</td></tr>
+        <tr><td class="ctr"><b>B</b></td><td>Hoàn thành tốt nhiệm vụ</td><td>70 → dưới 90 điểm</td></tr>
+        <tr><td class="ctr"><b>C</b></td><td>Hoàn thành nhiệm vụ</td><td>50 → dưới 70 điểm</td></tr>
+        <tr><td class="ctr"><b>D</b></td><td>Không hoàn thành nhiệm vụ</td><td>dưới 50 điểm</td></tr>
+      </table>
+      <p>Ngoài ngưỡng điểm, hệ thống áp dụng điều kiện định lượng xét theo TỪNG nhiệm vụ (tỷ lệ = hoàn thành ÷ giao; "không hoàn thành" khi đạt dưới 50%):</p>
+      <ul>
+        <li><b>Loại A:</b> ngoài ≥ 90 điểm, mọi nhiệm vụ đạt đủ 100% số lượng và có ≥ 30% nhiệm vụ vượt mức.</li>
+        <li><b>Loại B:</b> 70–89 điểm và không có nhiệm vụ nào đạt dưới 50%.</li>
+        <li><b>Loại C:</b> 50–69 điểm; số nhiệm vụ chậm tiến độ không quá 20%.</li>
+        <li><b>Loại D:</b> dưới 50 điểm; hoặc bị kỷ luật/kết luận suy thoái; hoặc trên 50% nhiệm vụ không hoàn thành (lãnh đạo: trên 30%).</li>
+      </ul>
+      <div class="box gray"><b>Trần xuất sắc:</b> số người loại A không vượt quá 20% số người loại B.</div>
+      <div class="box red"><b>Phân biệt hai cơ chế:</b> "bị kỷ luật" chỉ chốt mức xếp loại = Không hoàn thành nhiệm vụ (KHÔNG trừ điểm); "Điểm trừ" mới trừ trực tiếp vào tổng điểm. Khi điểm số và xếp loại lệch nhau (điểm cao nhưng bị hạ mức theo Điều 8), hệ thống hiển thị cảnh báo giải thích.</div>
+
+      <h2>VII. QUY TRÌNH & MỐC THỜI GIAN</h2>
+      <ol>
+        <li>Trước ngày 25: cán bộ tự đánh giá.</li>
+        <li>Trước ngày 26: cấp trên trực tiếp cho ý kiến.</li>
+        <li>Trước ngày 28: cấp có thẩm quyền quyết định xếp loại và phê duyệt.</li>
+        <li>Trước ngày 05 tháng sau: công khai kết quả, biểu dương, khen thưởng.</li>
+      </ol>
+      <p>Đánh giá theo tháng; riêng tháng 12 hoàn thành trước ngày 15/12. Kết quả hằng tháng là căn cứ xếp loại quý/năm và đảng viên.</p>
+      <div class="signoff">
+        <p>Tài liệu nghiệp vụ về phương pháp tính, đánh giá OKR/KPI.</p>
+        <p>${e(unit)} • Xuất ${dateStr}.</p>
+      </div>
+    </section>
+  </div>`;
+
+  openAdminPrint('Phương pháp tính, đánh giá OKR/KPI', adminDocCss('Phương pháp tính, đánh giá OKR/KPI', 'Bản demo nội bộ — không chịu trách nhiệm pháp lý'), html);
+}

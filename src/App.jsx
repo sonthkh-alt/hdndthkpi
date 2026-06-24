@@ -698,6 +698,15 @@ export default function App() {
     const { exportGuidePDF } = await import('./lib/exporters');
     exportGuidePDF(unit, catalogForGuide());
   };
+  // Module Quản trị: xuất PDF tài liệu kỹ thuật/vận hành + phương pháp tính OKR/KPI.
+  const doExportSystemDoc = async () => {
+    const { exportSystemTechPDF } = await import('./lib/exporters');
+    exportSystemTechPDF();
+  };
+  const doExportOKRMethod = async () => {
+    const { exportOKRMethodPDF } = await import('./lib/exporters');
+    exportOKRMethodPDF(unit);
+  };
 
   // Phê duyệt / bỏ phê duyệt kết quả đánh giá của cán bộ đang chọn (chỉ cấp có thẩm quyền).
   const toggleApprove = () => {
@@ -874,7 +883,7 @@ export default function App() {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }, { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50' : 'text-red-100/80 hover:text-white hover:bg-white/10'}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -1298,6 +1307,33 @@ export default function App() {
               </div>
               </fieldset>
             </div>
+          </div>
+        )}
+
+        {tab === 'admin' && canManage && (
+          <div className="space-y-6 max-w-3xl mx-auto">
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+              <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6 text-blue-700" /> Quản trị hệ thống</h2>
+              <p className="text-sm text-slate-500 mt-1">Khu vực dành riêng cho Quản trị viên. Xuất các tài liệu mô tả hệ thống dưới dạng PDF (mở cửa sổ in → chọn “Lưu thành PDF”). Tài liệu hỗ trợ đầy đủ tiếng Việt, có đánh số trang, header/footer và bảng kẻ vằn.</p>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-[240px]">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2"><FileText className="w-5 h-5 text-blue-700" /> Tài liệu kỹ thuật & vận hành hệ thống</h3>
+                <p className="text-sm text-slate-500 mt-1">Mô tả chi tiết: Tổng quan hệ thống · Kiến trúc kỹ thuật & luồng dữ liệu (Tech Stack, React/Vite/Supabase/Vercel) · Cấu trúc CSDL & API · Quy trình sao lưu, bảo mật (SSL/TLS, JWT, RLS) và giám sát lỗi.</p>
+              </div>
+              <button onClick={doExportSystemDoc} className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Xuất PDF</button>
+            </div>
+
+            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-start justify-between gap-4 flex-wrap">
+              <div className="flex-1 min-w-[240px]">
+                <h3 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-5 h-5 text-blue-700" /> Phương pháp tính, đánh giá OKR/KPI</h3>
+                <p className="text-sm text-slate-500 mt-1">Tài liệu nghiệp vụ trình bày như văn bản hành chính: căn cứ & nguyên tắc · thang điểm · Nhóm I/Nhóm II và công thức a/b/c (lãnh đạo d/đ/e) · hệ số N1–N5 · điều kiện xếp loại Điều 8 · quy trình & mốc thời gian.</p>
+              </div>
+              <button onClick={doExportOKRMethod} className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Xuất PDF</button>
+            </div>
+
+            <p className="text-xs text-slate-400 text-center">Mẹo: trong hộp thoại in, chọn “Lưu dưới dạng PDF” (Save as PDF) và bật “Đồ họa nền” (Background graphics) để giữ màu nền bảng.</p>
           </div>
         )}
 
