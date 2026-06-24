@@ -1,8 +1,11 @@
 // Vercel Serverless Function — proxy đọc "Bảng kiểm đếm, theo dõi công việc" từ Google Sheet công khai.
 // Trả JSON { fetchedAt, weekTitle, persons:[{name, trackings:[...]}] }. Tránh lỗi CORS khi gọi từ trình duyệt.
 
-const SHEET_ID = '1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ';
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv`;
+// Sheet ID đặt ở biến môi trường (Vercel -> Settings -> Environment Variables: SHEET_ID),
+// KHÔNG để cứng trong mã nguồn công khai trên GitHub.
+const SHEET_ID = process.env.SHEET_ID || '';
+const csvUrlOf = (id) => `https://docs.google.com/spreadsheets/d/${id}/gviz/tq?tqx=out:csv`;
+const editUrlOf = (id) => `https://docs.google.com/spreadsheets/d/${id}/edit?usp=sharing`;
 
 // CSV parser dạng máy trạng thái: xử lý dấu phẩy, ngoặc kép, và xuống dòng bên trong ô.
 function parseCSV(text) {
@@ -59,7 +62,11 @@ export function parseKiemDem(csv) {
 
 export default async function handler(req, res) {
   try {
-    const r = await fetch(CSV_URL, { redirect: 'follow', headers: { 'User-Agent': 'hdndthkpi-sync' } });
+    if (!SHEET_ID) {
+      res.status(500).json({ error: 'Chưa cấu hình SHEET_ID trong biến môi trường (Vercel -> Settings -> Environment Variables).' });
+      return;
+    }
+    const r = await fetch(csvUrlOf(SHEET_ID), { redirect: 'follow', headers: { 'User-Agent': 'hdndthkpi-sync' } });
     if (!r.ok) {
       res.status(502).json({ error: `Không tải được Google Sheet (HTTP ${r.status}). Kiểm tra quyền chia sẻ "ai có link đều xem được".` });
       return;
@@ -67,7 +74,8 @@ export default async function handler(req, res) {
     const csv = await r.text();
     const data = parseKiemDem(csv);
     res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300');
-    res.status(200).json({ fetchedAt: new Date().toISOString(), ...data });
+    // sheetUrl trả từ máy chủ để client hiển thị liên kết mà KHÔNG cần nhúng Sheet ID vào bundle.
+    res.status(200).json({ fetchedAt: new Date().toISOString(), sheetUrl: editUrlOf(SHEET_ID), ...data });
   } catch (e) {
     res.status(500).json({ error: String((e && e.message) || e) });
   }

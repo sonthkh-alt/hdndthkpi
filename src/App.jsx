@@ -725,7 +725,7 @@ export default function App() {
 
   // Đồng bộ "Bảng kiểm đếm" từ Google Sheet (qua proxy /api/kiemdem) -> nạp thành dòng theo dõi có thể sửa.
   // Khớp cán bộ theo tên; idempotent: chỉ thay nhóm dòng có cờ fromSheet, giữ nguyên dòng nhập tay.
-  const SHEET_URL = 'https://docs.google.com/spreadsheets/d/1ML2nsQb4Vh7iB_mbBkQhngW9ftjwIvo0-ysXe2UQ6pQ/edit?usp=sharing';
+  // Link nguồn (sheetUrl) do máy chủ trả về -> Sheet ID không nằm trong mã/bundle công khai.
   const syncFromSheet = async () => {
     setSheetSync((s) => ({ ...s, busy: true }));
     try {
@@ -755,7 +755,7 @@ export default function App() {
         });
         return next;
       });
-      setSheetSync({ at: data.fetchedAt || new Date().toISOString(), busy: false });
+      setSheetSync({ at: data.fetchedAt || new Date().toISOString(), url: data.sheetUrl || '', busy: false });
       alert(`Đã đồng bộ ${added} công việc từ Google Sheet cho ${sps.length} cán bộ vào tab Theo dõi CV.`);
     } catch (e) {
       alert('Lỗi đồng bộ Google Sheet: ' + (e && e.message ? e.message : e));
@@ -1218,7 +1218,7 @@ export default function App() {
                 <div>
                   <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2"><ClipboardList className="w-5 h-5 text-amber-500" /> Bảng kiểm đếm, theo dõi công việc</h2>
                   <p className="text-sm text-slate-500 mt-1">{getWeekTitle(new Date(trackingDate))}</p>
-                  {canManage && <p className="text-[11px] text-slate-400 mt-0.5">Nguồn đồng bộ: <a href={SHEET_URL} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">Google Sheet</a>{sheetSync.at ? ` · Đã đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ' · Bấm "Đồng bộ từ Google Sheet" để nạp dữ liệu mới nhất'}</p>}
+                  {canManage && <p className="text-[11px] text-slate-400 mt-0.5">Nguồn đồng bộ: {sheetSync.url ? <a href={sheetSync.url} target="_blank" rel="noreferrer" className="text-emerald-700 hover:underline">Google Sheet</a> : <span>Google Sheet</span>}{sheetSync.at ? ` · Đã đồng bộ lúc ${new Date(sheetSync.at).toLocaleString('vi-VN')}` : ' · Bấm "Đồng bộ từ Google Sheet" để nạp dữ liệu mới nhất'}</p>}
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                   <input type="date" value={trackingDate} onChange={(e) => setTrackingDate(e.target.value)} className="text-xs px-2 py-1.5 border border-slate-200 rounded outline-none focus:border-amber-400" />
