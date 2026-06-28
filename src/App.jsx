@@ -7,7 +7,7 @@ import SetPassword from './SetPassword.jsx';
 import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
-import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard } from './SingaporeAppraisal.jsx';
+import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -583,7 +583,7 @@ function computePerson(p) {
   };
 }
 let pid = 3, trkId = 1, t335Id = 100, krSeq = 1;
-const newTask335 = (objId = '') => ({ id: t335Id++, catalogId: '', objId, kr: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
+const newTask335 = (objId = '') => ({ id: t335Id++, catalogId: '', objId, kr: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '', exemptNote: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '', sg: { goals: [], comp: {}, values: {}, cep: '', strengths: '', development: '', devActions: '', selfComment: '', supComment: '', grade: '' } });
 
@@ -725,6 +725,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
   const [trends, setTrends] = useState([]);
   const [catalog, setCatalog] = useState({ custom: [], hidden: [] }); // danh mục công việc do quản trị tùy chỉnh (theo kỳ)
+  const [instKpi, setInstKpi] = useState(SG_INST_KPI_DEFAULT); // KPI thiết chế (Tầng A, bản Singapore) — lưu theo kỳ
   const [showChangePw, setShowChangePw] = useState(false);
   const [sheetSync, setSheetSync] = useState({ at: null, busy: false }); // đồng bộ Google Sheet
 
@@ -765,6 +766,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       const ppl = res.state.people || [];
       setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
+      setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
       bumpCounters(ppl);
     } else {
       const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
@@ -811,13 +813,13 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (session === 'guest') return; // khách chỉ xem -> không tự lưu
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
     }, 900);
     return () => clearTimeout(t);
-  }, [people, objectives, catalog, period, session]);
+  }, [people, objectives, catalog, instKpi, period, session]);
 
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
 
@@ -827,13 +829,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }));
     setObjectives(res.state.objectives || []);
     setCatalog(res.state.catalog || { custom: [], hidden: [] }); // mang theo danh mục tùy chỉnh sang kỳ mới
+    setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
     setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
   };
 
   const handleManualSave = async () => {
     if (session === 'guest') return; // khách chỉ xem
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, catalog, period }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
     else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false }));
@@ -1064,8 +1067,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
       <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
       <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">{isClassic ? '— Liên kết mục tiêu (OKR) —' : '— Việc thường xuyên / chưa gắn mục tiêu —'}</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
-      {!isClassic && <div className="mb-2 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" /><input value={t.kr || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { kr: e.target.value })} placeholder="Kết quả cần đạt (sản phẩm/chỉ tiêu) — VD: 100% đúng hạn; ≥ 5 báo cáo thẩm tra; 0 lỗi" className="flex-1 bg-white border border-indigo-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div>}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
+      {!isClassic && <div className="mb-2"><div className="flex items-center gap-2"><Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" /><input value={t.kr || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { kr: e.target.value })} placeholder='Kết quả/sản phẩm cần đạt (tiêu chuẩn nghiệm thu) — VD: "10 báo cáo thẩm tra, đúng thể thức, trước ngày 25"' title="Mô tả ngắn 'thế nào là đạt' để người làm và người chấm hiểu giống nhau (SMART: sản phẩm + tiêu chuẩn đo được + hạn). Đây là căn cứ chấm 3 mục Khối lượng/Chất lượng/Tiến độ." className="flex-1 bg-white border border-indigo-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div></div>}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg">
+        <MiniNum label="SL được giao" hint="Tổng số sản phẩm/đầu việc của nhiệm vụ này được giao trong kỳ, theo đơn vị đo được đã thống nhất từ đầu kỳ. Nếu là 1 việc trọn gói → nhập 1." value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} />
+        <MiniNum label="SL hoàn thành" hint="Số sản phẩm đã làm xong, được nghiệm thu/chấp nhận (chưa xét lỗi & độ trễ — hai mục đó chấm riêng). VD: giao 10, xong 8 → Khối lượng a = 80%." value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} note={!isClassic ? `Khối lượng a = ${t.assigned > 0 ? Math.min(100, Math.round((Number(t.completed) || 0) / t.assigned * 100)) : 0}%` : undefined} />
+        <MiniNum label="Số lần sai sót lớn" hint="Đếm số lần sản phẩm bị TRẢ LẠI / phải làm lại / bị yêu cầu sửa do sai sót lớn về nội dung, chất lượng (KHÔNG tính lỗi nhỏ tự sửa ngay như chính tả). Mỗi lần trừ 25% điểm chất lượng. Nên ghi rõ bằng chứng." value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} note={!isClassic ? DEDUCT_LABEL(t.qualityIssues) : undefined} />
+        <MiniNum label="Số lần trễ hạn" hint="Đếm số lần sản phẩm hoàn thành SAU thời hạn được giao theo lịch đã thống nhất. Mỗi lần trừ 25% điểm tiến độ. Không tính nếu chậm do nguyên nhân khách quan đã được cấp có thẩm quyền xác nhận (ghi ở ô bên dưới)." value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} note={!isClassic ? DEDUCT_LABEL(t.delays) : undefined} />
+      </div>
+      {!isClassic && <div className="mt-2"><input value={t.exemptNote || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { exemptNote: e.target.value })} placeholder="Miễn trừ do nguyên nhân khách quan (nếu có) — VD: chờ ý kiến cơ quan khác, nhiệm vụ đột xuất chen ngang…" title="Theo NĐ 335/2025: không trừ điểm nếu chậm/sai sót do nguyên nhân khách quan được cấp có thẩm quyền xác nhận. Lần đã miễn trừ thì KHÔNG tính vào số lần ở trên." className="w-full bg-amber-50/60 focus:bg-white border border-amber-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-amber-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div>}
       <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
     </div>); };
 
@@ -1296,6 +1305,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </section>
               )}
             </div>
+            {isSG && <SingaporeInstitution kpis={instKpi} canManage={canManage} onChange={setInstKpi} />}
             {isSG && <SingaporeDashboard computed={computed} onPick={(id) => { setCurId(id); setTab('eval'); }} />}
             {!isSG && (<>
             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1442,7 +1452,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     {taskEditable && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
                     {isClassic
                       ? <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
-                      : <p className="text-xs text-indigo-800 mb-3 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">Nhiệm vụ được <b>gom theo Mục tiêu</b> của cơ quan; mỗi nhiệm vụ ghi rõ <b>Kết quả cần đạt</b> và đếm khách quan (Lỗi chất lượng −25%, Chậm tiến độ −25%). <b>Mục tiêu (OKR) chỉ để định hướng — KHÔNG dùng để tính điểm</b>: điểm vẫn dựa trên số lượng/chất lượng/tiến độ. Không bắt buộc gắn mục tiêu (có thể để "việc thường xuyên").</p>}
+                      : <div className="mb-3 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 text-xs text-indigo-900/90 leading-relaxed space-y-1.5">
+                          <p>Nhiệm vụ được <b>gom theo Mục tiêu</b> của cơ quan; mỗi nhiệm vụ ghi rõ <b>Kết quả/sản phẩm cần đạt</b> (tiêu chuẩn nghiệm thu) để hai bên chấm giống nhau.</p>
+                          <p><b>Điểm mỗi nhiệm vụ = (Khối lượng + Chất lượng + Tiến độ) ÷ 3</b> — ba mặt bình đẳng: <b>a</b> = SL hoàn thành ÷ SL giao; <b>b</b> = 100% trừ 25% mỗi lần sai sót lớn; <b>c</b> = 100% trừ 25% mỗi lần trễ hạn. Làm nhiều nhưng sai/chậm cũng không đạt cao; đúng – đủ – đúng hạn mới đạt 100%. <span className="text-indigo-700">(Cách tính theo Nghị định 335/2025/NĐ-CP, áp dụng từ 01/01/2026.)</span></p>
+                          <p><b>Mục tiêu (OKR) chỉ để định hướng — KHÔNG dùng tính điểm</b>; gắn mục tiêu là khuyến khích (có thể để "việc thường xuyên"). Di chuột vào nhãn <span className="text-slate-500">ⓘ</span> ở mỗi ô để xem định nghĩa và ví dụ.</p>
+                        </div>}
                     {isClassic
                       ? (<><div className="space-y-3">{(cur.tasks335 || []).map((t, i) => renderTask335Row(t, i))}</div>
                           {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}</>)
@@ -1950,9 +1964,11 @@ function Stat({ icon: Icon, label, value, color }) {
 }
 function Field({ label, children, className = '' }) { return (<label className={`block ${className}`}><span className="text-xs font-semibold text-slate-500 mb-1 block">{label}</span>{children}</label>); }
 function SumRow({ label, value, danger }) { return (<div className="flex justify-between items-center"><span className="text-slate-500 text-xs">{label}</span><span className={`font-semibold ${danger ? 'text-rose-600' : 'text-slate-700'}`}>{value}</span></div>); }
-function MiniNum({ label, value, onChange, max, min = 0, step = 1, disabled = false }) {
-  return (<label className="block"><span className="text-[10px] font-semibold text-slate-400 block mb-0.5">{label}</span><input type="number" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => { let v = Number(e.target.value); if (max !== undefined) v = Math.min(max, v); onChange(Math.max(min, v)); }} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center font-semibold text-slate-700 outline-none focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50" /></label>);
+function MiniNum({ label, value, onChange, max, min = 0, step = 1, disabled = false, hint, note }) {
+  return (<label className="block" title={hint || undefined}><span className="text-[10px] font-semibold text-slate-400 block mb-0.5">{label}{hint && <span className="text-slate-300 ml-0.5" title={hint}>ⓘ</span>}</span><input type="number" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => { let v = Number(e.target.value); if (max !== undefined) v = Math.min(max, v); onChange(Math.max(min, v)); }} className="w-full bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-center font-semibold text-slate-700 outline-none focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed disabled:bg-slate-50" />{note && <span className="block text-[10px] text-slate-400 mt-0.5 leading-tight">{note}</span>}</label>);
 }
+// Nhãn mức theo số lần trừ 25% (NĐ 335/2025): 0→100% … ≥4→0%. Dùng cho gợi ý chấm nhất quán.
+const DEDUCT_LABEL = (count) => { const pct = Math.max(0, 100 - 25 * (Number(count) || 0)); const lb = pct >= 100 ? 'Đạt hoàn toàn' : pct >= 75 ? 'Cơ bản đạt' : pct >= 50 ? 'Đạt một phần' : pct >= 25 ? 'Yếu' : 'Không đạt'; return `→ ${pct}%: ${lb}`; };
 function GB({ icon: Icon, title, children }) { return (<div><h3 className="font-bold text-slate-800 flex items-center gap-2 mb-2"><Icon className="w-5 h-5 text-red-700" /> {title}</h3><div className="text-sm text-slate-600 space-y-2 leading-relaxed">{children}</div></div>); }
 
 const CONTACT_EMAIL = 'sonthkh@gmail.com';

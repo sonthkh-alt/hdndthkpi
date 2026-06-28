@@ -95,6 +95,70 @@ export function defaultSG(profile, type, objIds = []) {
   };
 }
 
+// ============================================================================
+// TẦNG A — BẢNG ĐIỂM THIẾT CHẾ (Văn phòng/HĐND), dải màu Xanh/Vàng/Đỏ.
+// Mô phỏng Town Council Management Report (TCMR) của MND Singapore: chấm KPI THIẾT CHẾ
+// do người dân cử điều hành theo dải màu, mỗi chỉ số xếp màu RIÊNG (không gộp 1 điểm),
+// công bố theo kỳ để minh bạch. Đại biểu dân cử KHÔNG bị chấm điểm cá nhân.
+// ============================================================================
+export const SG_INST_KPI_DEFAULT = [
+  { id: 'a1', name: 'Phục vụ kỳ họp', desc: 'Tỷ lệ tài liệu kỳ họp gửi đại biểu đúng hạn quy định', unit: '%', value: 92, better: 'high', green: 95, amber: 80 },
+  { id: 'a2', name: 'Văn bản đúng hạn', desc: 'Tỷ lệ văn bản tham mưu, ban hành đúng thời hạn', unit: '%', value: 88, better: 'high', green: 95, amber: 85 },
+  { id: 'a3', name: 'Xử lý kiến nghị cử tri', desc: 'Tỷ lệ kiến nghị/đơn thư được xử lý đúng hạn và có phản hồi', unit: '%', value: 82, better: 'high', green: 90, amber: 70 },
+  { id: 'a4', name: 'Hài lòng về phục vụ', desc: 'Tỷ lệ đại biểu/cử tri hài lòng về phục vụ của Văn phòng (khảo sát)', unit: '%', value: 78, better: 'high', green: 80, amber: 60 },
+  { id: 'a5', name: 'Minh bạch & quản trị', desc: 'Điểm vi phạm về công khai, tài chính, kiểm toán (càng thấp càng tốt)', unit: 'điểm', value: 0, better: 'low', green: 0, amber: 1 },
+];
+export function instBand(k) {
+  const v = Number(k.value) || 0;
+  if (k.better === 'low') return v <= Number(k.green) ? 'green' : v <= Number(k.amber) ? 'amber' : 'red';
+  return v >= Number(k.green) ? 'green' : v >= Number(k.amber) ? 'amber' : 'red';
+}
+export const INST_BAND = {
+  green: { label: 'Xanh — Tốt', cls: 'bg-emerald-500', soft: 'bg-emerald-50 text-emerald-700 border-emerald-200', dot: 'bg-emerald-500' },
+  amber: { label: 'Vàng — Cần cải thiện', cls: 'bg-amber-500', soft: 'bg-amber-50 text-amber-700 border-amber-200', dot: 'bg-amber-500' },
+  red: { label: 'Đỏ — Yếu', cls: 'bg-rose-500', soft: 'bg-rose-50 text-rose-700 border-rose-200', dot: 'bg-rose-500' },
+};
+const bandThresholdText = (k) => k.better === 'low'
+  ? `Xanh ≤ ${k.green}${k.unit} · Vàng ≤ ${k.amber}${k.unit} · Đỏ > ${k.amber}${k.unit}`
+  : `Xanh ≥ ${k.green}${k.unit} · Vàng ≥ ${k.amber}${k.unit} · Đỏ < ${k.amber}${k.unit}`;
+
+export function SingaporeInstitution({ kpis = [], canManage, onChange }) {
+  const list = kpis.length ? kpis : SG_INST_KPI_DEFAULT;
+  const upK = (id, patch) => onChange && onChange(list.map((k) => (k.id === id ? { ...k, ...patch } : k)));
+  const count = { green: 0, amber: 0, red: 0 };
+  list.forEach((k) => { count[instBand(k)]++; });
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-indigo-700 to-violet-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Compass className="w-5 h-5 text-violet-200" /> Tầng A — Bảng điểm THIẾT CHẾ (cơ quan), dải màu Xanh/Vàng/Đỏ</h2></div>
+      <div className="p-4">
+        <p className="text-[12px] text-indigo-800/80 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 mb-3">Mô phỏng <b>Town Council Management Report</b> của Singapore: chấm KPI của <b>cơ quan/Văn phòng</b> theo dải màu, mỗi chỉ số xếp màu <b>riêng</b> (không gộp thành 1 điểm), công bố theo kỳ để minh bạch. <b>Đại biểu dân cử KHÔNG bị chấm điểm cá nhân</b> — chỉ đánh giá thiết chế phục vụ và công chức (Tầng B).</p>
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {list.map((k) => { const b = INST_BAND[instBand(k)]; return (
+            <div key={k.id} className={`rounded-xl border p-3 ${b.soft}`}>
+              <div className="flex items-start justify-between gap-2">
+                <p className="text-sm font-bold text-slate-800 leading-snug">{k.name}</p>
+                <span className={`shrink-0 text-[10px] font-bold text-white px-2 py-0.5 rounded ${b.cls}`}>{b.label}</span>
+              </div>
+              <p className="text-[11px] text-slate-500 mt-1 leading-snug">{k.desc}</p>
+              <div className="mt-2 flex items-center gap-2">
+                <input type="number" value={k.value} disabled={!canManage} onChange={(e) => upK(k.id, { value: e.target.value })} className="w-20 bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm text-center font-bold text-slate-800 outline-none focus:border-indigo-400 disabled:bg-slate-50" />
+                <span className="text-xs text-slate-500">{k.unit}</span>
+              </div>
+              <p className="text-[10px] text-slate-400 mt-1.5">{bandThresholdText(k)}</p>
+            </div>
+          ); })}
+        </div>
+        <div className="mt-3 flex items-center gap-3 text-xs">
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-emerald-500" /> Xanh: <b>{count.green}</b></span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-amber-500" /> Vàng: <b>{count.amber}</b></span>
+          <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded-full bg-rose-500" /> Đỏ: <b>{count.red}</b></span>
+          {canManage && <span className="text-slate-400 ml-auto">Quản trị nhập số liệu từng kỳ; ngưỡng dải màu tham khảo TCMR + chuẩn dịch vụ GovTech.</span>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ---------- Thành phần dùng lại ----------
 function RatingSelect({ value, disabled, onChange }) {
   return (

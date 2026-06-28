@@ -11,7 +11,11 @@ paths:
 > - **`src/main.jsx`** render `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** giữ state `version` ('classic'|'improved'|'sg') trong `localStorage` (`hdndkpi_version`) và truyền `version`/`onPickVersion` xuống `App`.
 > - **`src/App.jsx`** — toàn bộ ứng dụng: model + UI. Ba bộ tiêu chí `CRITERIA_CLASSIC` + `CRITERIA_IMPROVED` + `CRITERIA_SG` (CÙNG id/`max`/thang điểm, chỉ khác câu chữ; `CRITERIA_SG` dùng `dancuGroups` cho Mẫu 01/02); biến `CRITERIA` "active" đổi qua `setCriteriaVersion(version)` (gọi đầu render, giống `setCatalogRegistry`). `version` nằm trong deps `computed`.
 > - **Nhóm II (bản Cải tiến)**: nhiệm vụ `tasks335[]` có thêm `kr` (Kết quả cần đạt); UI gom theo Mục tiêu (`renderGroupedTasks`/`renderTask335Row`). **OKR chỉ để định hướng — KHÔNG tính vào điểm** (xem changelog: nghiên cứu Google/Doerr/Goodhart).
-> - **Bản Singapore ('sg') = mô hình Singapore THẬT** — KHÔNG dùng 30/70 + Điều 8. Toàn bộ ở **`src/SingaporeAppraisal.jsx`**: `computeSG` (Work Review + AIM + ISE → Grade A–E), `defaultSG` (seed), `SingaporeAppraisal` (phiếu, tab Đánh giá), `SingaporeDashboard` (tab Tổng quan). Dữ liệu trong `person.sg`. CEP tách riêng. Xuất Word: `exportSGAppraisal` (exporters.js). App dùng `scoreOf = isSG?computeSG:computePerson`. `CRITERIA_SG` (Nhóm I dân cử) chỉ còn dùng cho nhãn Mẫu.
+> - **Bản Singapore ('sg') = mô hình Singapore THẬT, 2 TẦNG** — KHÔNG dùng 30/70 + Điều 8. Toàn bộ ở **`src/SingaporeAppraisal.jsx`**:
+>   - *Tầng B — cá nhân*: `computeSG` (Work Review + AIM + ISE → Grade A–E), `defaultSG` (seed), `SingaporeAppraisal` (phiếu, tab Đánh giá), `SingaporeDashboard` (xếp hạng, tab Tổng quan). Dữ liệu `person.sg`. CEP tách riêng. Xuất Word `exportSGAppraisal`.
+>   - *Tầng A — thiết chế* (mô phỏng Town Council Management Report SG): `SingaporeInstitution` + `SG_INST_KPI_DEFAULT`/`instBand`/`INST_BAND` — 5 KPI cơ quan, **dải màu Xanh/Vàng/Đỏ riêng**. State `instKpi` (App) lưu theo kỳ. **Đại biểu dân cử KHÔNG chấm điểm cá nhân.**
+>   - App dùng `scoreOf = isSG?computeSG:computePerson`. `CRITERIA_SG` (Nhóm I dân cử) chỉ còn dùng nhãn Mẫu.
+> - **Nhóm II khớp NĐ 335/2025/NĐ-CP** (01/01/2026): (a+b+c)/3, −25%/lần, 70đ. `renderTask335Row` có tooltip định nghĩa (MiniNum `hint`/`note`), `DEDUCT_LABEL` (nhãn mức 0→100%…), ô `exemptNote` (miễn trừ khách quan). GIỮ công thức, chỉ rõ câu chữ.
 > - **OKR (mọi bản)**: `objectives[].krs[]` (Key Results) hiển thị ở tab Tổng quan; helper `krPct`/`objKrGrade`/`addKr`… KR chỉ theo dõi tiến độ cơ quan, không vào điểm cá nhân.
 
 ## Danh sách file
