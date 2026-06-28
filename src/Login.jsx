@@ -15,7 +15,8 @@ const t = {
   foot: 'text-red-100/70', footWarn: 'text-amber-200',
 };
 
-export default function Login({ unit, onGuest, onClose }) {
+export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion }) {
+  const isSG = version === 'sg';
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
@@ -69,6 +70,21 @@ export default function Login({ unit, onGuest, onClose }) {
         </div>
 
         <div className={`rounded-2xl shadow-2xl p-6 text-slate-800 ${t.card}`}>
+          {onPickVersion && (
+            <div className="mb-4">
+              <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Chọn phiên bản bộ tiêu chí đánh giá</p>
+              <div className="grid grid-cols-2 gap-2">
+                <button type="button" onClick={() => onPickVersion('classic')} className={`rounded-xl border p-2.5 text-left transition ${!isSG ? 'border-red-400 bg-red-50 ring-2 ring-red-200' : 'border-slate-200 bg-white/70 hover:border-red-300'}`}>
+                  <span className="block text-[13px] font-bold text-slate-800">Cổ điển</span>
+                  <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)</span>
+                </button>
+                <button type="button" onClick={() => onPickVersion('sg')} className={`rounded-xl border p-2.5 text-left transition ${isSG ? 'border-cyan-400 bg-cyan-50 ring-2 ring-cyan-200' : 'border-slate-200 bg-white/70 hover:border-cyan-300'}`}>
+                  <span className="block text-[13px] font-bold text-slate-800">Singapore <span className="text-[10px] font-semibold text-cyan-700">(thử nghiệm)</span></span>
+                  <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">Cùng khung điểm, câu hỏi dễ hiểu (AIM/ISE)</span>
+                </button>
+              </div>
+            </div>
+          )}
           {mode === 'link' && status === 'sent' ? (
             <div className="text-center py-4">
               <CheckCircle2 className="w-12 h-12 text-emerald-500 mx-auto mb-3" />

@@ -7,8 +7,9 @@ paths:
 
 # Kiến trúc & nơi sửa
 
-> **MỘT phiên bản giao diện duy nhất** (tông đỏ "Cổ điển"). *(Trước đây từng có 3 bản: Mới + PRO đã được gỡ bỏ — xem changelog. Mã hai bản đó còn trong lịch sử git nếu cần khôi phục.)*
-> - **`src/App.jsx`** — toàn bộ ứng dụng: model (CRITERIA, scoring, catalog…) + UI. `src/main.jsx` render `<ErrorBoundary><App/></ErrorBoundary>` trực tiếp (không còn `Root.jsx`).
+> **HAI phiên bản BỘ TIÊU CHÍ** chọn ở Đăng nhập / header: **Cổ điển** (tông đỏ, QĐ 1053) và **Singapore** (tông xanh teal, câu hỏi AIM/ISE/WoG). *(Trước đây từng có 3 bản GIAO DIỆN Cổ điển/Mới/PRO — đã gỡ; nay là 2 bản TIÊU CHÍ dùng chung 1 giao diện. Mã 3 bản cũ còn trong lịch sử git.)*
+> - **`src/main.jsx`** render `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** giữ state `version` ('classic'|'sg') trong `localStorage` (`hdndkpi_version`) và truyền `version`/`onPickVersion` xuống `App`.
+> - **`src/App.jsx`** — toàn bộ ứng dụng: model + UI. Hai bộ tiêu chí `CRITERIA_CLASSIC` + `CRITERIA_SG` (CÙNG id/`max`/thang điểm, chỉ khác câu chữ); biến `CRITERIA` "active" đổi qua `setCriteriaVersion(version)` (gọi đầu render, giống `setCatalogRegistry`). `version` nằm trong deps `computed`.
 
 ## Danh sách file
 - **`src/App.jsx`** — toàn bộ ứng dụng (model + UI). Tabs: Tổng quan · Đánh giá · Năng lực số · Theo dõi CV · Hướng dẫn · Liên hệ · Danh mục (chỉ Quản trị).

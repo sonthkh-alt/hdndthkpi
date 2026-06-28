@@ -28,7 +28,8 @@ const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions)
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
 const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
 
-const CRITERIA = {
+// ===== BỘ TIÊU CHÍ "CỔ ĐIỂN" (theo QĐ 1053-QĐ/TU) — giữ nguyên câu chữ pháp lý =====
+const CRITERIA_CLASSIC = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c+d+đ+e)/6', groups: [
     { id: 'L1', title: '1. Về chính trị, tư tưởng', max: 5, items: [
       { id: '1.1', max: 1, text: 'Tuyệt đối trung thành với Đảng, Tổ quốc và Nhân dân; kiên định lý tưởng cách mạng, chủ nghĩa Mác - Lênin, tư tưởng Hồ Chí Minh.' },
@@ -98,18 +99,102 @@ const CRITERIA = {
 
 // Nhóm Đại biểu HĐND chuyên trách (Mẫu 01) và Đại biểu Quốc hội chuyên trách (Mẫu 02)
 // — dùng chung bộ Tiêu chí chung của nhóm lãnh đạo. Công thức Nhóm II tính theo CHỨC VỤ.
-CRITERIA.hdnd = {
+CRITERIA_CLASSIC.hdnd = {
   label: 'Đại biểu HĐND tỉnh hoạt động chuyên trách',
   mau: 'Mẫu số 01',
   formula: '(a+b+c)/3',
-  groups: CRITERIA.leader.groups,
+  groups: CRITERIA_CLASSIC.leader.groups,
 };
-CRITERIA.dbqh = {
+CRITERIA_CLASSIC.dbqh = {
   label: 'Đại biểu Quốc hội hoạt động chuyên trách',
   mau: 'Mẫu số 02',
   formula: '(a+b+c)/3',
-  groups: CRITERIA.leader.groups,
+  groups: CRITERIA_CLASSIC.leader.groups,
 };
+
+// ===== BỘ TIÊU CHÍ "SINGAPORE" (phiên bản thử nghiệm) =====
+// Lai ghép: GIỮ NGUYÊN id, điểm tối đa (max), thang 30đ và công thức của bản Cổ điển
+// (nên mọi tính toán/clamp/xuất phiếu/Điều 8 dùng chung, đổi phiên bản không mất điểm),
+// chỉ VIẾT LẠI câu hỏi theo phong cách dễ hiểu của khu vực công Singapore:
+//  • AIM  = Analytical (Phân tích) · Influence/Collaboration (Ảnh hưởng, hợp tác) · Motivation for Excellence (Động lực hướng tới xuất sắc)
+//  • ISE  = Integrity (Liêm chính) · Service (Phục vụ) · Excellence (Xuất sắc)
+//  • WoG  = Whole-of-Government (tư duy "một cơ quan thống nhất", lấy người dân/đại biểu làm trung tâm)
+// Mỗi câu hỏi nêu rõ "Anh/chị có…?" kèm ví dụ, bám đúng nội hàm của tiêu chí gốc.
+const CRITERIA_SG = {
+  leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c+d+đ+e)/6', groups: [
+    { id: 'L1', title: '1. Chính trị, tư tưởng & Liêm chính (Integrity)', max: 5, items: [
+      { id: '1.1', max: 1, text: 'Trung thành & nêu gương: Anh/chị có tuyệt đối trung thành với Đảng, Tổ quốc, Nhân dân và là tấm gương cho cấp dưới noi theo? (VD: gương mẫu chấp hành, không phát ngôn trái chủ trương).' },
+      { id: '1.2', max: 1, text: 'Bản lĩnh chính trị: Anh/chị có giữ vững lập trường, bảo vệ đường lối của Đảng và giữ kỷ luật phát ngôn ngay cả khi gặp việc khó, nhạy cảm?' },
+      { id: '1.3', max: 1, text: 'Đặt lợi ích chung lên trên (tinh thần phục vụ): Anh/chị có ưu tiên lợi ích của tập thể, quốc gia và Nhân dân trước lợi ích cá nhân?' },
+      { id: '1.4', max: 1, text: 'Sẵn sàng nhận việc: Anh/chị có chấp hành phân công và hoàn thành tốt mọi nhiệm vụ được giao, kể cả việc khó, việc mới?' },
+      { id: '1.5', max: 0.5, text: 'Chủ động học tập: Anh/chị có thường xuyên cập nhật nghị quyết của Đảng, chính sách pháp luật và kiến thức mới của lĩnh vực mình phụ trách?' },
+      { id: '1.6', max: 0.5, text: 'Tư duy đổi mới & tầm nhìn: Anh/chị có tầm nhìn xa và sẵn sàng thay đổi cách làm để thích ứng với yêu cầu mới?' } ] },
+    { id: 'L2', title: '2. Đạo đức, kỷ luật & nêu gương (Integrity)', max: 5, items: [
+      { id: '2.1', max: 1, text: 'Lối sống trong sạch: Anh/chị có sống trung thực, cần – kiệm – liêm – chính, chí công vô tư và nêu gương?' },
+      { id: '2.2', max: 1, text: 'Phòng chống tiêu cực: Anh/chị có kiên quyết tránh và đấu tranh với tham ô, tham nhũng, lợi ích nhóm, "tự diễn biến", "tự chuyển hóa"?' },
+      { id: '2.3', max: 1, text: 'Dám làm, dám chịu trách nhiệm: Anh/chị có tự giác tu dưỡng, dám nghĩ – dám làm – dám chịu trách nhiệm vì việc chung?' },
+      { id: '2.4', max: 1, text: 'Tôn trọng nguyên tắc: Anh/chị có thực hiện nghiêm tập trung dân chủ, tự phê bình và phê bình?' },
+      { id: '2.5', max: 0.5, text: 'Minh bạch: Anh/chị có kê khai và công khai tài sản, thu nhập đúng quy định?' },
+      { id: '2.6', max: 0.5, text: 'Trung thực báo cáo: Anh/chị có cung cấp thông tin chính xác, kịp thời cho cấp trên?' } ] },
+    { id: 'L3', title: '3. Năng lực lãnh đạo & chuyên môn · Thực thi · Tác phong · Đổi mới · Chuyển đổi số (AIM)', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Năng lực lãnh đạo & tư duy phân tích (Analytical): Anh/chị có nhìn được tổng thể, biết phân tích – dự báo, hoạch định và điều hành khoa học, phân công – giám sát rõ ràng? (VD: lập kế hoạch, giao việc đúng người, theo dõi tiến độ chặt chẽ).' },
+      { id: '3.2', max: 3, text: 'Chuyên môn sâu: Anh/chị có am hiểu pháp luật, quy trình; phát hiện được vấn đề mới, khó và đề xuất giải pháp khả thi?' },
+      { id: '3.3', max: 2, text: 'Khả năng thực thi (Delivery): Anh/chị có hoàn thành tốt cả nhiệm vụ thường xuyên lẫn đột xuất, bảo đảm tiến độ và chất lượng?' },
+      { id: '3.4', max: 2, text: 'Tác phong & hợp tác (Influence/Collaboration): Anh/chị có trách nhiệm cao, phối hợp hiệu quả với phòng/đơn vị khác theo tinh thần "một cơ quan thống nhất" (Whole-of-Government)?' },
+      { id: '3.5', max: 3, text: 'Đổi mới, sáng tạo (Motivation for Excellence): Anh/chị có dám nghĩ – dám làm, có sáng kiến/giải pháp đột phá và tiên phong trong nhiệm vụ mới?' },
+      { id: '3.6', max: 3, text: 'Cải cách hành chính & chuyển đổi số: Anh/chị có thúc đẩy ứng dụng CNTT, lập – nộp hồ sơ điện tử đúng quy định và lấy sự hài lòng của người dân/đại biểu làm thước đo?' } ] },
+    { id: 'L4', title: '4. Uy tín & quy tụ đoàn kết (Service)', max: 2, items: [
+      { id: '4.1', max: 1, text: 'Uy tín: Anh/chị có được tín nhiệm trong nội bộ và gắn bó mật thiết với Nhân dân?' },
+      { id: '4.2', max: 1, text: 'Quy tụ, đoàn kết: Anh/chị có xây dựng được tập thể đoàn kết, vững mạnh?' } ] },
+    { id: 'L5', title: '5. Tự soi, tự sửa (Excellence – cầu thị)', max: 2, items: [
+      { id: '5.1', max: 1, text: 'Cầu thị: Anh/chị có chủ động tự phê bình, tự nhận diện thiếu sót trong lãnh đạo, chỉ đạo?' },
+      { id: '5.2', max: 1, text: 'Khắc phục: Kết quả sửa chữa hạn chế, khuyết điểm đã được chỉ ra (của bản thân và trong phạm vi phụ trách) ra sao?' } ] },
+  ] },
+  staff: { label: 'Công chức, viên chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
+    { id: 'S1', title: '1. Chính trị, tư tưởng & Liêm chính (Integrity)', max: 5, items: [
+      { id: '1.1', max: 2.5, text: 'Bản lĩnh & học tập: Anh/chị có lập trường chính trị vững vàng, chủ động học tập nghị quyết của Đảng, chính sách pháp luật và vận dụng vào công việc?' },
+      { id: '1.2', max: 2.5, text: 'Kỷ luật & chấp hành: Anh/chị có thực hiện nghiêm nguyên tắc tổ chức (tập trung dân chủ, tự phê bình và phê bình), kỷ luật phát ngôn và bảo vệ bí mật nhà nước?' } ] },
+    { id: 'S2', title: '2. Đạo đức & ý thức tổ chức kỷ luật (Integrity)', max: 5, items: [
+      { id: '2.1', max: 1, text: 'Lối sống trong sạch: Anh/chị có trung thực, khiêm tốn, giản dị; tham gia phòng chống tham nhũng, tiêu cực và không vụ lợi?' },
+      { id: '2.2', max: 1, text: 'Trách nhiệm & kỷ luật: Anh/chị có tinh thần trách nhiệm cao, chấp hành phân công và thực hiện đúng quy chế, nội quy cơ quan?' },
+      { id: '2.3', max: 0.5, text: 'Minh bạch: Anh/chị có kê khai, công khai tài sản, thu nhập đúng quy định (nếu thuộc diện phải kê khai)?' },
+      { id: '2.4', max: 0.5, text: 'Trung thực báo cáo: Anh/chị có cung cấp thông tin chính xác, khách quan khi được yêu cầu?' },
+      { id: '2.5', max: 1, text: 'Đoàn kết & hợp tác (Collaboration): Anh/chị có quan hệ tốt với đồng nghiệp và tích cực tham gia xây dựng tổ chức, phong trào tập thể?' },
+      { id: '2.6', max: 1, text: 'Gắn bó cơ sở: Anh/chị có giữ mối liên hệ tốt với cấp ủy và Nhân dân nơi cư trú?' } ] },
+    { id: 'S3', title: '3. Chuyên môn · Thực thi · Tác phong · Đổi mới · Chuyển đổi số (AIM)', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Chuyên môn & tư duy phân tích (Analytical): Anh/chị có nắm vững lĩnh vực, pháp luật, quy trình; biết nghiên cứu – phân tích – tổng hợp; xử lý việc độc lập và làm việc nhóm hiệu quả?' },
+      { id: '3.2', max: 3, text: 'Khả năng thực thi (Delivery): Anh/chị có hoàn thành tốt cả nhiệm vụ thường xuyên lẫn đột xuất, đúng tiến độ?' },
+      { id: '3.3', max: 3, text: 'Tác phong & hợp tác (Influence): Anh/chị có trách nhiệm cao, thái độ chuẩn mực, phối hợp hiệu quả và làm việc khoa học?' },
+      { id: '3.4', max: 3, text: 'Đổi mới, sáng tạo (Motivation for Excellence): Anh/chị có dám nghĩ – dám làm, có sáng kiến/giải pháp tạo tác động tích cực đến kết quả của cơ quan?' },
+      { id: '3.5', max: 4, text: 'Chuyển đổi số: Anh/chị có sử dụng thành thạo CNTT trong công việc; lập và nộp hồ sơ điện tử đúng quy định?' } ] },
+    { id: 'S4', title: '4. Tự soi, tự sửa (Excellence – cầu thị)', max: 4, items: [
+      { id: '4.1', max: 2, text: 'Cầu thị: Anh/chị có tinh thần tự phê bình, tự nhận diện hạn chế, khuyết điểm của bản thân?' },
+      { id: '4.2', max: 2, text: 'Khắc phục: Kết quả sửa chữa hạn chế, khuyết điểm đã được chỉ ra ra sao?' } ] },
+  ] },
+  contract: { label: 'Lao động hợp đồng hỗ trợ, phục vụ', mau: 'Mẫu số 05', formula: '(a+b+c)/3', groups: [
+    { id: 'C1', title: '1. Chính trị, đạo đức & ý thức kỷ luật (Integrity – Phục vụ)', max: 15, items: [
+      { id: '1.1', max: 3, text: 'Chấp hành: Anh/chị có thực hiện đúng chủ trương của Đảng, chính sách pháp luật và kỷ luật của cơ quan?' },
+      { id: '1.2', max: 3, text: 'Đạo đức: Anh/chị có gương mẫu về lối sống, không tham ô, lãng phí?' },
+      { id: '1.3', max: 3, text: 'Tác phong phục vụ (Service): Anh/chị có tận tụy, trung thực, năng động, thái độ đúng mực với mọi người?' },
+      { id: '1.4', max: 3, text: 'Sẵn sàng nhận việc: Anh/chị có chấp hành phân công và thực hiện tốt quy chế, nội quy cơ quan?' },
+      { id: '1.5', max: 3, text: 'Ứng xử: Anh/chị có thực hiện đúng quy tắc ứng xử trong cơ quan?' } ] },
+    { id: 'C2', title: '2. Năng lực & khả năng thực thi (Delivery)', max: 10, items: [
+      { id: '2.1', max: 3, text: 'Cập nhật kiến thức: Anh/chị có chủ động cập nhật kiến thức để phục vụ tốt nhiệm vụ được giao?' },
+      { id: '2.2', max: 3, text: 'Lập kế hoạch: Anh/chị có xây dựng kế hoạch công tác cá nhân theo quy định?' },
+      { id: '2.3', max: 2, text: 'Thành thạo quy trình: Anh/chị có nắm vững quy chế, quy trình tác nghiệp theo yêu cầu?' },
+      { id: '2.4', max: 2, text: 'An toàn, hiệu quả: Anh/chị có sử dụng thành thạo phương tiện, thiết bị, bảo đảm an toàn và hiệu quả?' } ] },
+    { id: 'C3', title: '3. Tự soi, tự sửa (Excellence – cầu thị)', max: 5, items: [
+      { id: '3.1', max: 5, text: 'Cầu thị: Anh/chị có tự nhận diện hạn chế và chủ động khắc phục những điều đã được chỉ ra?' } ] },
+  ] },
+};
+CRITERIA_SG.hdnd = { label: CRITERIA_CLASSIC.hdnd.label, mau: 'Mẫu số 01', formula: '(a+b+c)/3', groups: CRITERIA_SG.leader.groups };
+CRITERIA_SG.dbqh = { label: CRITERIA_CLASSIC.dbqh.label, mau: 'Mẫu số 02', formula: '(a+b+c)/3', groups: CRITERIA_SG.leader.groups };
+
+// Bộ tiêu chí "đang hoạt động" — đổi theo phiên bản giao diện (giống mẫu setCatalogRegistry).
+// computePerson/UI/exporters đều đọc CRITERIA này; App gọi setCriteriaVersion(version) khi render.
+let CRITERIA = CRITERIA_CLASSIC;
+function setCriteriaVersion(v) { CRITERIA = (v === 'sg') ? CRITERIA_SG : CRITERIA_CLASSIC; }
+
 // Thứ tự hiển thị nhóm đối tượng (Mẫu 01 → 05)
 const CRITERIA_ORDER = ['hdnd', 'dbqh', 'leader', 'staff', 'contract'];
 
@@ -476,7 +561,9 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App() {
+export default function App({ version = 'classic', onPickVersion } = {}) {
+  setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Singapore) trước mọi tính toán & render
+  const isSG = version === 'sg';
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -631,7 +718,7 @@ export default function App() {
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } }); // d/đ/e cho lãnh đạo
 
   setCatalogRegistry(catalog); // đồng bộ registry danh mục trước khi tính điểm/đổ dropdown
-  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people, catalog]);
+  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people, catalog, version]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
@@ -826,7 +913,7 @@ export default function App() {
   }
   // Chỉ hiện màn đăng nhập khi người dùng CHỦ ĐỘNG chọn (mặc định vào thẳng bằng khách)
   if (supabase && wantLogin && (!session || session === 'guest')) {
-    return <Login unit={unit} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
+    return <Login unit={unit} version={version} onPickVersion={onPickVersion} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
@@ -835,10 +922,10 @@ export default function App() {
 
   return (
     <div className="min-h-screen text-slate-800" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
-      <header className="relative overflow-hidden text-white bg-gradient-to-br from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]">
+      <header className={`relative overflow-hidden text-white bg-gradient-to-br ${isSG ? 'from-[#0b3b5e] via-[#0e7490] to-[#155e75]' : 'from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]'}`}>
         <div className="absolute inset-0 tech-grid pointer-events-none" />
-        <div className="absolute -top-24 -right-10 w-80 h-80 rounded-full bg-amber-400/20 blur-3xl pointer-events-none" />
-        <div className="absolute -bottom-24 -left-10 w-72 h-72 rounded-full bg-rose-500/20 blur-3xl pointer-events-none" />
+        <div className={`absolute -top-24 -right-10 w-80 h-80 rounded-full blur-3xl pointer-events-none ${isSG ? 'bg-cyan-300/20' : 'bg-amber-400/20'}`} />
+        <div className={`absolute -bottom-24 -left-10 w-72 h-72 rounded-full blur-3xl pointer-events-none ${isSG ? 'bg-teal-400/20' : 'bg-rose-500/20'}`} />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <div className="shrink-0 w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-xl ring-2 ring-amber-300/60 emblem-glow animate-floatY p-1.5">
@@ -846,14 +933,21 @@ export default function App() {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-amber-300 text-[11px] font-semibold tracking-[0.22em] uppercase">Hệ thống quản trị OKR / KPI</p>
-                <span className="text-[10px] font-bold uppercase tracking-wider bg-amber-400 text-red-900 px-2 py-0.5 rounded">Bản demo thử nghiệm</span>
+                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${isSG ? 'text-cyan-200' : 'text-amber-300'}`}>Hệ thống quản trị OKR / KPI</p>
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${isSG ? 'bg-cyan-300 text-cyan-950' : 'bg-amber-400 text-red-900'}`}>Bản demo thử nghiệm</span>
+                {isSG && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-cyan-200/40 text-cyan-100">Phiên bản Singapore</span>}
               </div>
               <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
               <p className="text-red-100/90 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
+            {onPickVersion && (
+              <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10" title="Chọn phiên bản bộ tiêu chí đánh giá">
+                <button onClick={() => onPickVersion('classic')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${!isSG ? 'bg-white text-red-800' : 'text-white/80 hover:bg-white/10'}`}>Cổ điển</button>
+                <button onClick={() => onPickVersion('sg')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${isSG ? 'bg-white text-cyan-800' : 'text-white/80 hover:bg-white/10'}`}>Singapore</button>
+              </div>
+            )}
             <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${isGuest ? 'bg-amber-500/20 text-amber-100' : (cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100')}`}>
               {isGuest || !cloud.ready ? <CloudOff className="w-3.5 h-3.5" /> : <Cloud className="w-3.5 h-3.5" />}
               {isGuest ? 'Dùng thử · không lưu' : (cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ')}
@@ -884,7 +978,7 @@ export default function App() {
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
             {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }, { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
-              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50' : 'text-red-100/80 hover:text-white hover:bg-white/10'}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
+              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? (isSG ? 'bg-white text-cyan-800 shadow-lg shadow-black/20 ring-1 ring-cyan-300/50' : 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50') : (isSG ? 'text-cyan-100/80 hover:text-white hover:bg-white/10' : 'text-red-100/80 hover:text-white hover:bg-white/10')}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
       </header>
@@ -1060,6 +1154,17 @@ export default function App() {
 
             <div className="flex-1 space-y-6">
               <div className="space-y-6">
+                {isSG && (
+                  <section className="bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-2xl p-5">
+                    <h2 className="flex items-center gap-2 font-bold text-cyan-900"><Award className="w-5 h-5 text-cyan-700" /> Phiên bản Singapore — cách hiểu bộ tiêu chí</h2>
+                    <p className="text-sm text-cyan-900/80 mt-1.5 leading-relaxed">Vẫn dùng <b>khung điểm 30/70</b> và <b>điều kiện xếp loại Điều 8</b> như bản Cổ điển (theo QĐ 1053), nhưng câu hỏi được viết lại theo phong cách khu vực công Singapore để <b>dễ tự đánh giá hơn</b>: mỗi câu là một câu hỏi "Anh/chị có…?" kèm ví dụ.</p>
+                    <div className="grid sm:grid-cols-3 gap-2.5 mt-3 text-[12px]">
+                      <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">AIM — Năng lực</p><p className="text-cyan-900/75 mt-0.5 leading-snug">Phân tích (Analytical) · Ảnh hưởng & hợp tác (Influence) · Động lực hướng tới xuất sắc (Motivation).</p></div>
+                      <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">ISE — Giá trị cốt lõi</p><p className="text-cyan-900/75 mt-0.5 leading-snug">Liêm chính (Integrity) · Phục vụ (Service) · Xuất sắc (Excellence).</p></div>
+                      <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">WoG — Hợp tác</p><p className="text-cyan-900/75 mt-0.5 leading-snug">"Một cơ quan thống nhất", lấy người dân/đại biểu làm trung tâm; KPI hướng kết quả.</p></div>
+                    </div>
+                  </section>
+                )}
                 {!selfEditable && !mgrEditable && (
                   <div className="bg-slate-100 border border-slate-200 rounded-xl p-3 text-sm text-slate-600 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-slate-400" /> Bạn đang ở chế độ <b>chỉ xem</b> với cán bộ này (không đủ quyền chỉnh sửa).</div>
                 )}
