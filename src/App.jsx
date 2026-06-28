@@ -314,6 +314,12 @@ const VERSION_THEME = {
   sg: { grad: 'from-[#3b0764] via-[#6d28d9] to-[#4338ca]', blob1: 'bg-violet-300/20', blob2: 'bg-indigo-400/20', eyebrow: 'text-violet-200', badge: 'bg-violet-300 text-violet-950', tabOn: 'bg-white text-indigo-800 ring-1 ring-violet-300/50', tabOff: 'text-violet-100/80 hover:text-white hover:bg-white/10' },
 };
 const VERSION_NAME = (v) => (VERSIONS.find((x) => x.id === v) || VERSIONS[0]).name;
+// Màu cho tiến độ Key Result (literal để Tailwind không bị purge).
+const KR_TONE = {
+  emerald: { bar: 'bg-emerald-500', text: 'text-emerald-600', chip: 'bg-emerald-50 text-emerald-700 border-emerald-100' },
+  amber: { bar: 'bg-amber-500', text: 'text-amber-600', chip: 'bg-amber-50 text-amber-700 border-amber-100' },
+  rose: { bar: 'bg-rose-500', text: 'text-rose-600', chip: 'bg-rose-50 text-rose-700 border-rose-100' },
+};
 
 // Chức danh được coi là "giữ chức vụ lãnh đạo, quản lý" → áp công thức 6 thành phần (Điều 7 QĐ 1053).
 // Dùng chung cho cả 3 phiên bản (bản PRO import lại từ đây).
@@ -575,7 +581,7 @@ function computePerson(p) {
     grade: g.code, gradeReasons: g.reasons,
   };
 }
-let pid = 3, trkId = 1, t335Id = 100;
+let pid = 3, trkId = 1, t335Id = 100, krSeq = 1;
 const newTask335 = (objId = '') => ({ id: t335Id++, catalogId: '', objId, kr: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
@@ -689,9 +695,18 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
   const [unit] = useState('Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa');
   const [objectives, setObjectives] = useState([
-    { id: 'o1', title: 'Nâng cao chất lượng tham mưu xây dựng, ban hành nghị quyết HĐND tỉnh', source: 'NQ 66-NQ/TW' },
-    { id: 'o2', title: 'Đẩy mạnh chuyển đổi số, ứng dụng AI trong công tác Văn phòng', source: 'NQ 57-NQ/TW' },
-    { id: 'o3', title: 'Phục vụ hiệu quả kỳ họp và hoạt động giám sát của HĐND tỉnh', source: 'Chương trình công tác' },
+    { id: 'o1', title: 'Nâng cao chất lượng tham mưu xây dựng, ban hành nghị quyết HĐND tỉnh', source: 'NQ 66-NQ/TW', krs: [
+      { id: 'kr1a', text: 'Tỷ lệ báo cáo thẩm tra nộp đúng hạn (chậm nhất 15 ngày trước khai mạc)', target: 100, current: 90, unit: '%' },
+      { id: 'kr1b', text: 'Số nghị quyết được thông qua không phải chỉnh sửa lớn về thể thức/nội dung', target: 12, current: 9, unit: 'NQ' },
+    ] },
+    { id: 'o2', title: 'Đẩy mạnh chuyển đổi số, ứng dụng AI trong công tác Văn phòng', source: 'NQ 57-NQ/TW', krs: [
+      { id: 'kr2a', text: 'Tỷ lệ hồ sơ, văn bản xử lý trên môi trường điện tử', target: 100, current: 75, unit: '%' },
+      { id: 'kr2b', text: 'Số cán bộ thành thạo công cụ AI hỗ trợ soạn thảo, tổng hợp', target: 30, current: 18, unit: 'người' },
+    ] },
+    { id: 'o3', title: 'Phục vụ hiệu quả kỳ họp và hoạt động giám sát của HĐND tỉnh', source: 'Chương trình công tác', krs: [
+      { id: 'kr3a', text: 'Tỷ lệ kiến nghị cử tri được theo dõi, đôn đốc giải quyết đúng hạn', target: 100, current: 82, unit: '%' },
+      { id: 'kr3b', text: 'Số cuộc giám sát chuyên đề hoàn thành theo kế hoạch năm', target: 8, current: 5, unit: 'cuộc' },
+    ] },
   ]);
   const [people, setPeople] = useState(() => seedDemoPeople());
   const [curId, setCurId] = useState(people[0].id);
@@ -848,6 +863,15 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (!ts.length) return null;
     return ts.reduce((s, t) => s + task335Score(t), 0) / ts.length;
   };
+  // ===== OKR: Key Results cấp Mục tiêu (độc lập với điểm cá nhân — chỉ theo dõi tiến độ cơ quan) =====
+  const krPct = (kr) => { const tg = Number(kr.target) || 0, cu = Number(kr.current) || 0; if (tg <= 0) return 0; return Math.max(0, Math.min(100, (cu / tg) * 100)); };
+  const objKrGrade = (o) => { const ks = (o.krs || []).filter((k) => (k.text || '').trim() || Number(k.target) > 0); if (!ks.length) return null; return ks.reduce((s, k) => s + krPct(k), 0) / ks.length; };
+  const upObjective = (id, patch) => setObjectives((os) => os.map((o) => (o.id === id ? { ...o, ...patch } : o)));
+  const addKr = (oid) => setObjectives((os) => os.map((o) => (o.id === oid ? { ...o, krs: [...(o.krs || []), { id: 'kr' + (krSeq++), text: '', target: 100, current: 0, unit: '%' }] } : o)));
+  const upKr = (oid, kid, patch) => setObjectives((os) => os.map((o) => (o.id === oid ? { ...o, krs: (o.krs || []).map((k) => (k.id === kid ? { ...k, ...patch } : k)) } : o)));
+  const delKr = (oid, kid) => setObjectives((os) => os.map((o) => (o.id === oid ? { ...o, krs: (o.krs || []).filter((k) => k.id !== kid) } : o)));
+  // Vùng tốt của OKR khát vọng là 60–70% (Google) — màu theo mức đạt.
+  const krTone = (p) => (p >= 70 ? 'emerald' : p >= 40 ? 'amber' : 'rose');
 
   const tabs = [
     { id: 'dash', label: 'Tổng quan', icon: LayoutDashboard },
@@ -1201,20 +1225,42 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Mục tiêu cấp Văn phòng (OKR)</h2></div>
                 <div className="p-4 space-y-3">
-                  {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.tasks335 || []).filter((t) => t.objId === o.id && t.catalogId).length;
+                  <p className="text-[11px] text-slate-500 bg-indigo-50/70 border border-indigo-100 rounded-lg p-2">Mỗi <b>Mục tiêu (Objective)</b> có các <b>Kết quả then chốt (Key Result)</b> đo được — tiến độ chấm 0–100% (OKR khát vọng đạt <b>60–70%</b> đã là tốt). <b>OKR chỉ theo dõi tiến độ cơ quan, KHÔNG cộng vào điểm cá nhân.</b></p>
+                  {objectives.map((o) => { const pr = objProgress(o.id); const linked = people.flatMap((p) => p.tasks335 || []).filter((t) => t.objId === o.id && t.catalogId).length; const krg = objKrGrade(o); const krs = o.krs || []; const og = krg === null ? null : KR_TONE[krTone(krg)];
                     return (
                       <div key={o.id} className="border border-slate-200 rounded-xl p-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="flex-1">
-                            <input value={o.title} disabled={!canManage} onChange={(e) => setObjectives((os) => os.map((x) => (x.id === o.id ? { ...x, title: e.target.value } : x)))} className="w-full font-semibold text-sm text-slate-800 bg-transparent outline-none focus:bg-slate-50 rounded px-1 -ml-1 disabled:text-slate-600" />
-                            <div className="flex items-center gap-2 mt-1"><span className="text-[11px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-100">{o.source}</span><span className="text-[11px] text-slate-400 flex items-center gap-1"><Link2 className="w-3 h-3" /> {linked} nhiệm vụ</span></div>
+                            <input value={o.title} disabled={!canManage} onChange={(e) => upObjective(o.id, { title: e.target.value })} className="w-full font-semibold text-sm text-slate-800 bg-transparent outline-none focus:bg-slate-50 rounded px-1 -ml-1 disabled:text-slate-600" />
+                            <div className="flex items-center gap-2 mt-1 flex-wrap"><span className="text-[11px] font-bold bg-red-50 text-red-700 px-2 py-0.5 rounded border border-red-100">{o.source}</span><span className="text-[11px] text-slate-400 flex items-center gap-1"><Link2 className="w-3 h-3" /> {linked} nhiệm vụ</span>{og && <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${og.chip}`}>OKR {krg.toFixed(0)}%</span>}</div>
                           </div>
-                          {canManage && <button onClick={() => setObjectives((os) => os.filter((x) => x.id !== o.id))} className="text-slate-300 hover:text-rose-500 p-1"><Trash2 className="w-4 h-4" /></button>}
+                          {canManage && <button onClick={() => { if (!window.confirm('Xóa mục tiêu này (kèm các Key Result)?')) return; setObjectives((os) => os.filter((x) => x.id !== o.id)); }} className="text-slate-300 hover:text-rose-500 p-1"><Trash2 className="w-4 h-4" /></button>}
                         </div>
-                        <div className="mt-2 flex items-center gap-3"><div className="flex-1 h-2.5 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${pr === null ? 'bg-slate-200' : statusOf(pr).dot} transition-all`} style={{ width: `${pr || 0}%` }} /></div><span className="text-xs font-bold text-slate-600 w-20 text-right">{pr === null ? 'Chưa có' : `${pr.toFixed(0)}%`}</span></div>
+                        <div className="mt-2.5 space-y-2">
+                          <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wide flex items-center gap-1"><Target className="w-3 h-3" /> Kết quả then chốt (Key Results)</p>
+                          {krs.length === 0 && <p className="text-[11px] text-slate-400 italic">Chưa có KR.{canManage ? ' Thêm KR đo được — VD: "Tỷ lệ văn bản tham mưu đúng hạn", chỉ tiêu 100%.' : ''}</p>}
+                          {krs.map((k) => { const p = krPct(k); const kt = KR_TONE[krTone(p)]; return (
+                            <div key={k.id} className="rounded-lg border border-slate-100 bg-slate-50/60 p-2">
+                              <div className="flex items-center gap-2">
+                                <input value={k.text} disabled={!canManage} onChange={(e) => upKr(o.id, k.id, { text: e.target.value })} placeholder="Kết quả then chốt đo được (outcome)..." className="flex-1 bg-white border border-slate-200 rounded px-2 py-1 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:bg-transparent disabled:border-transparent" />
+                                {canManage && <button onClick={() => delKr(o.id, k.id)} className="shrink-0 text-slate-300 hover:text-rose-500 p-0.5"><Trash2 className="w-3.5 h-3.5" /></button>}
+                              </div>
+                              <div className="flex items-center gap-2 mt-1.5">
+                                <input type="number" value={k.current} disabled={!canManage} onChange={(e) => upKr(o.id, k.id, { current: e.target.value })} title="Hiện tại" className="w-14 bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-center outline-none focus:border-indigo-400 disabled:bg-slate-50" />
+                                <span className="text-slate-400 text-xs">/</span>
+                                <input type="number" value={k.target} disabled={!canManage} onChange={(e) => upKr(o.id, k.id, { target: e.target.value })} title="Chỉ tiêu" className="w-14 bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-center outline-none focus:border-indigo-400 disabled:bg-slate-50" />
+                                <input value={k.unit || ''} disabled={!canManage} onChange={(e) => upKr(o.id, k.id, { unit: e.target.value })} title="Đơn vị" placeholder="đv" className="w-12 bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-center outline-none focus:border-indigo-400 disabled:bg-slate-50" />
+                                <div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${kt.bar} transition-all`} style={{ width: `${p}%` }} /></div>
+                                <span className={`text-[11px] font-bold w-9 text-right ${kt.text}`}>{p.toFixed(0)}%</span>
+                              </div>
+                            </div>
+                          ); })}
+                          {canManage && <button onClick={() => addKr(o.id)} className="flex items-center gap-1 text-[11px] font-semibold text-indigo-600 hover:text-indigo-700"><Plus className="w-3.5 h-3.5" /> Thêm Key Result</button>}
+                        </div>
+                        <div className="mt-2 flex items-center gap-2"><span className="text-[10px] text-slate-400 w-24 shrink-0" title="Trung bình điểm % các nhiệm vụ cá nhân liên kết với mục tiêu này">Thực thi nhiệm vụ</span><div className="flex-1 h-2 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${pr === null ? 'bg-slate-200' : statusOf(pr).dot} transition-all`} style={{ width: `${pr || 0}%` }} /></div><span className="text-[11px] font-bold text-slate-500 w-12 text-right">{pr === null ? '—' : `${pr.toFixed(0)}%`}</span></div>
                       </div>
                     ); })}
-                  {canManage && <button onClick={() => setObjectives((os) => [...os, { id: 'o' + Date.now(), title: 'Mục tiêu mới...', source: 'Chương trình công tác' }])} className="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm mục tiêu</button>}
+                  {canManage && <button onClick={() => setObjectives((os) => [...os, { id: 'o' + Date.now(), title: 'Mục tiêu mới...', source: 'Chương trình công tác', krs: [] }])} className="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm mục tiêu</button>}
                 </div>
               </section>
               <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
@@ -1764,8 +1810,13 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </div>
             </GB>
 
-            <GB icon={Link2} title="5. Liên kết mục tiêu (OKR)">
-              <p>Mục tiêu (OKR) cấp Văn phòng gắn với Nghị quyết, chương trình công tác. Mỗi nhiệm vụ cá nhân nên <b>liên kết lên một mục tiêu</b> để dồn sức vào việc chiến lược, tránh phân mảnh. Tiến độ một mục tiêu = trung bình điểm các nhiệm vụ liên kết với nó (hiển thị ở tab Tổng quan).</p>
+            <GB icon={Link2} title="5. Liên kết mục tiêu (OKR) & Key Results">
+              <p><b>OKR = Objective (Mục tiêu định hướng) + Key Results (Kết quả then chốt đo được).</b> Ở tab <b>Tổng quan</b>, mỗi Mục tiêu cấp Văn phòng (gắn với Nghị quyết, chương trình công tác) có <b>2–3 Key Result</b> dạng "hiện tại / chỉ tiêu + đơn vị" — phần mềm tự tính tiến độ %. OKR khát vọng đạt <b>60–70%</b> đã là tốt.</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1.5">
+                <li><b>OKR chỉ để ĐỊNH HƯỚNG & theo dõi tiến độ cơ quan</b> — theo thông lệ Google/John Doerr và quy luật Goodhart, <b>KHÔNG dùng % đạt OKR để tính điểm hay xếp loại cá nhân</b> (tránh đặt mục tiêu thấp cho dễ đạt). Điểm Nhóm II vẫn dựa trên số lượng/chất lượng/tiến độ thực hiện nhiệm vụ.</li>
+                <li>Mỗi nhiệm vụ cá nhân (Nhóm II) nên <b>liên kết lên một mục tiêu</b> để dồn sức vào việc chiến lược — <b>khuyến khích, không bắt buộc</b> (việc không gắn xếp vào "việc thường xuyên").</li>
+                <li>Tab Tổng quan hiển thị 2 chỉ số cho mỗi mục tiêu: <b>OKR</b> (trung bình % các Key Result) và <b>Thực thi nhiệm vụ</b> (trung bình điểm các nhiệm vụ liên kết).</li>
+              </ul>
             </GB>
 
             <GB icon={Activity} title="6. Trạng thái nhiệm vụ (màu)">
