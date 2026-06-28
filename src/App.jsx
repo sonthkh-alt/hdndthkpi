@@ -436,31 +436,31 @@ const gradeClass = (code) => GRADES[code] || GRADES.D;
 //  - KHÔNG hoàn thành: r < 50% (đạt dưới một nửa số lượng giao) — chỉ khi đó nhiệm vụ mới bị coi là không hoàn thành.
 //  - chậm tiến độ: có ≥ 1 lần chậm.
 const FAIL_RATIO = 0.5; // ngưỡng "không hoàn thành" của MỖI nhiệm vụ
-function taskStats(tasks) {
+function taskStats(tasks, which = 'mgr') {
   const valid = (tasks || []).filter((t) => t.catalogId);
   const n = valid.length;
   if (!n) return { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
   let done = 0, exceed = 0, delay = 0, fail = 0;
   valid.forEach((t) => {
-    const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
+    const as = Number(t.assigned) || 0, cp = tCompleted(t, which);
     const r = as > 0 ? cp / as : 0;
     if (r >= 1) done++;
     if (r > 1) exceed++;
     if (r < FAIL_RATIO) fail++;
-    if ((Number(t.delays) || 0) > 0) delay++;
+    if (tDelays(t, which) > 0) delay++;
   });
   return { n, doneRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, failRate: (fail / n) * 100 };
 }
 
 // Phân loại nhiệm vụ để liệt kê đích danh (dùng chung cho GradeExplain bản Cổ điển & hộp điều kiện bản Mới).
 //  failed: đạt <50% số lượng (không hoàn thành) · partial: 50–99% (chưa đủ) · delayed: có lần chậm · uncounted: chưa chọn danh mục
-function taskBreakdown(tasks) {
+function taskBreakdown(tasks, which = 'mgr') {
   const list = (tasks || []).filter((t) => t.catalogId);
-  const ratio = (t) => { const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0; return as > 0 ? cp / as : 0; };
+  const ratio = (t) => { const as = Number(t.assigned) || 0, cp = tCompleted(t, which); return as > 0 ? cp / as : 0; };
   return {
     failed: list.filter((t) => ratio(t) < 0.5),
     partial: list.filter((t) => { const r = ratio(t); return r >= 0.5 && r < 1; }),
-    delayed: list.filter((t) => (Number(t.delays) || 0) > 0),
+    delayed: list.filter((t) => tDelays(t, which) > 0),
     uncounted: (tasks || []).filter((t) => !t.catalogId).length,
   };
 }
@@ -503,16 +503,21 @@ function statusOf(p) {
   return { label: 'Chậm / rủi ro', dot: 'bg-rose-500', txt: 'text-rose-600', soft: 'bg-rose-50' };
 }
 const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
-// Điểm % của 1 nhiệm vụ Nhóm II (đếm khách quan) — dùng cho màu trạng thái & tiến độ OKR
-function task335Score(t) {
+// Đọc số liệu Nhóm II theo "Tự ĐG" (self) hoặc "Cấp duyệt" (mgr). Cấp duyệt MẶC ĐỊNH kế thừa Tự ĐG
+// khi cấp trên chưa sửa (giống Nhóm I: mgrScores[id] ?? selfScores[id]).
+const tCompleted = (t, which) => Number(which === 'self' ? t.completed : (t.mgrCompleted ?? t.completed)) || 0;
+const tQuality = (t, which) => Number(which === 'self' ? t.qualityIssues : (t.mgrQualityIssues ?? t.qualityIssues)) || 0;
+const tDelays = (t, which) => Number(which === 'self' ? t.delays : (t.mgrDelays ?? t.delays)) || 0;
+// Điểm % của 1 nhiệm vụ Nhóm II (đếm khách quan) — dùng cho màu trạng thái & tiến độ OKR. which = 'mgr'(mặc định) | 'self'.
+function task335Score(t, which = 'mgr') {
   const as = Number(t.assigned) || 0;
   if (as === 0) return 0;
-  const a = Math.min(100, (Number(t.completed) || 0) / as * 100);
-  const b = Math.max(0, 1 - 0.25 * (Number(t.qualityIssues) || 0)) * 100;
-  const c = Math.max(0, 1 - 0.25 * (Number(t.delays) || 0)) * 100;
+  const a = Math.min(100, tCompleted(t, which) / as * 100);
+  const b = Math.max(0, 1 - 0.25 * tQuality(t, which)) * 100;
+  const c = Math.max(0, 1 - 0.25 * tDelays(t, which)) * 100;
   return (a + b + c) / 3;
 }
-function agg335(tasks335) {
+function agg335(tasks335, which = 'mgr') {
   const valid = (tasks335 || []).filter(t => t.catalogId);
   // Chưa nhập nhiệm vụ nào -> mặc định đạt tối đa 100 (cán bộ mới khởi tạo 100/100, đánh giá trừ dần)
   if (valid.length === 0) return { a: 100, b: 100, c: 100, val: 100 };
@@ -523,10 +528,10 @@ function agg335(tasks335) {
     // Hệ số làm trọng số; nhóm hỗ trợ (III.*) có hệ số 0 -> coi trọng số = 1 (đếm ngang nhau)
     const w = Number(cat.maxScore) || 1;
     const as = Number(t.assigned) || 0;
-    const cp = Number(t.completed) || 0;
-    const qI = Number(t.qualityIssues) || 0;
-    const dl = Number(t.delays) || 0;
-    
+    const cp = tCompleted(t, which);
+    const qI = tQuality(t, which);
+    const dl = tDelays(t, which);
+
     totalAssignedScore += as * w;
     totalCompletedScore += cp * w;
     totalQualityScore += cp * w * Math.max(0, 1 - 0.25 * qI);
@@ -560,7 +565,9 @@ function computePerson(p) {
     nself += sv; nmgr += clamp(mgrScores[it.id] ?? sv, 0, it.max);
   }));
   nself = Math.min(nself, 30); nmgr = Math.min(nmgr, 30);
-  const k = agg335(p.tasks335);
+  // Nhóm II: tính RIÊNG theo Tự ĐG (self) và Cấp duyệt (mgr). Cấp duyệt mặc định kế thừa Tự ĐG.
+  const k = agg335(p.tasks335, 'mgr');
+  const kSelf = agg335(p.tasks335, 'self');
   const leader = isLeaderPerson(p);
   // Lãnh đạo, quản lý (Điều 7): Điểm KQ = (a+b+c+d+đ+e)/6. d/đ/e mỗi mục 100% hoặc 50%.
   if (leader) {
@@ -568,16 +575,19 @@ function computePerson(p) {
     const d = Number(ls.d ?? 100), dd = Number(ls.dd ?? 100), e = Number(ls.e ?? 100);
     k.d = d; k.dd = dd; k.e = e;
     k.val = (k.a + k.b + k.c + d + dd + e) / 6;
+    kSelf.d = d; kSelf.dd = dd; kSelf.e = e;
+    kSelf.val = (kSelf.a + kSelf.b + kSelf.c + d + dd + e) / 6;
   }
-  const nhomII = (k.val / 100) * 70;
+  const nhomII = (k.val / 100) * 70;            // theo Cấp duyệt (dùng xếp loại chính thức)
+  const nhomIISelf = (kSelf.val / 100) * 70;    // theo Tự đánh giá
   const ded = Number(p.deduction || 0);
-  const totalSelf = clamp(nself + nhomII - ded);
+  const totalSelf = clamp(nself + nhomIISelf - ded);
   const totalMgr = clamp(nmgr + nhomII - ded);
-  const st = taskStats(p.tasks335);
+  const st = taskStats(p.tasks335, 'mgr');
   const g = evalGradeCode(totalMgr, st, { disciplined: !!p.disciplined, leader });
 
   return {
-    nself, nmgr, k, leader, st, nhomII,
+    nself, nmgr, k, kSelf, leader, st, nhomII, nhomIISelf,
     totalSelf, totalMgr,
     grade: g.code, gradeReasons: g.reasons,
   };
@@ -914,9 +924,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     // Chi tiết Nhóm II: từng nhiệm vụ kèm tên danh mục, tỷ lệ hoàn thành, điểm %.
     const tasks = (cur.tasks335 || []).map((t) => {
       const cat = t.catalogId ? findCatalogItem(t.catalogId) : null;
-      const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
+      // Phiếu chính thức dùng số liệu CẤP DUYỆT (mgr, mặc định kế thừa Tự ĐG khi chưa sửa).
+      const as = Number(t.assigned) || 0, cp = (t.mgrCompleted ?? t.completed) || 0;
       const obj = t.objId ? objectives.find((o) => o.id === t.objId) : null;
-      return { catalogName: cat ? cat.name : '', note: t.note || '', kr: t.kr || '', objTitle: obj ? obj.title : '', assigned: t.assigned, completed: t.completed, qualityIssues: t.qualityIssues || 0, delays: t.delays || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
+      return { catalogName: cat ? cat.name : '', note: t.note || '', kr: t.kr || '', objTitle: obj ? obj.title : '', assigned: t.assigned, completed: cp, qualityIssues: (t.mgrQualityIssues ?? t.qualityIssues) || 0, delays: (t.mgrDelays ?? t.delays) || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
     });
     exportWordPhieu({
       unit, mau: cfgW?.mau, name: cur.name, position: cur.position, department: cur.department,
@@ -1068,11 +1079,32 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
       <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">{isClassic ? '— Liên kết mục tiêu (OKR) —' : '— Việc thường xuyên / chưa gắn mục tiêu —'}</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
       {!isClassic && <div className="mb-2"><div className="flex items-center gap-2"><Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" /><input value={t.kr || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { kr: e.target.value })} placeholder='Kết quả/sản phẩm cần đạt (tiêu chuẩn nghiệm thu) — VD: "10 báo cáo thẩm tra, đúng thể thức, trước ngày 25"' title="Mô tả ngắn 'thế nào là đạt' để người làm và người chấm hiểu giống nhau (SMART: sản phẩm + tiêu chuẩn đo được + hạn). Đây là căn cứ chấm 3 mục Khối lượng/Chất lượng/Tiến độ." className="flex-1 bg-white border border-indigo-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div></div>}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg">
-        <MiniNum label="SL được giao" hint="Tổng số sản phẩm/đầu việc của nhiệm vụ này được giao trong kỳ, theo đơn vị đo được đã thống nhất từ đầu kỳ. Nếu là 1 việc trọn gói → nhập 1." value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} />
-        <MiniNum label="SL hoàn thành" hint="Số sản phẩm đã làm xong, được nghiệm thu/chấp nhận (chưa xét lỗi & độ trễ — hai mục đó chấm riêng). VD: giao 10, xong 8 → Khối lượng a = 80%." value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} note={!isClassic ? `Khối lượng a = ${t.assigned > 0 ? Math.min(100, Math.round((Number(t.completed) || 0) / t.assigned * 100)) : 0}%` : undefined} />
-        <MiniNum label="Số lần sai sót lớn" hint="Đếm số lần sản phẩm bị TRẢ LẠI / phải làm lại / bị yêu cầu sửa do sai sót lớn về nội dung, chất lượng (KHÔNG tính lỗi nhỏ tự sửa ngay như chính tả). Mỗi lần trừ 25% điểm chất lượng. Nên ghi rõ bằng chứng." value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} note={!isClassic ? DEDUCT_LABEL(t.qualityIssues) : undefined} />
-        <MiniNum label="Số lần trễ hạn" hint="Đếm số lần sản phẩm hoàn thành SAU thời hạn được giao theo lịch đã thống nhất. Mỗi lần trừ 25% điểm tiến độ. Không tính nếu chậm do nguyên nhân khách quan đã được cấp có thẩm quyền xác nhận (ghi ở ô bên dưới)." value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} note={!isClassic ? DEDUCT_LABEL(t.delays) : undefined} />
+      <div className="bg-white/60 p-2 rounded-lg">
+        <div className="flex items-center gap-2 mb-2">
+          <span className="text-[11px] font-semibold text-slate-500 flex-1" title="Tổng số sản phẩm/đầu việc được giao trong kỳ (định mức). Việc trọn gói → nhập 1.">Số lượng được giao (định mức)</span>
+          <input type="number" min="1" value={t.assigned} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { assigned: Math.max(1, Number(e.target.value) || 1) })} className="w-16 bg-white border border-slate-200 rounded px-1.5 py-1 text-xs text-center font-semibold text-slate-700 outline-none focus:border-slate-400 disabled:opacity-50 disabled:bg-slate-50" />
+        </div>
+        <div className="grid grid-cols-[1fr_3.5rem_3.5rem] gap-x-2 gap-y-1.5 items-center">
+          <span />
+          <span className="text-[10px] font-bold text-slate-400 text-center" title="Cán bộ tự đánh giá">Tự ĐG</span>
+          <span className="text-[10px] font-bold text-red-500 text-center" title="Cấp có thẩm quyền rà soát, xác nhận (dùng để xếp loại). Mặc định kế thừa số Tự ĐG khi chưa sửa.">Cấp duyệt</span>
+          {[
+            { lb: 'SL hoàn thành', s: 'completed', m: 'mgrCompleted', h: 'Số sản phẩm đã làm xong, được nghiệm thu/chấp nhận (chưa xét lỗi & độ trễ). VD: giao 10, xong 8 → Khối lượng a = 80%.' },
+            { lb: 'Số lần sai sót lớn', s: 'qualityIssues', m: 'mgrQualityIssues', h: 'Số lần sản phẩm bị TRẢ LẠI / làm lại / yêu cầu sửa do sai sót lớn về nội dung, chất lượng (không tính lỗi nhỏ tự sửa). Mỗi lần −25% điểm chất lượng.' },
+            { lb: 'Số lần trễ hạn', s: 'delays', m: 'mgrDelays', h: 'Số lần hoàn thành SAU thời hạn được giao. Mỗi lần −25% điểm tiến độ. Không tính nếu chậm do nguyên nhân khách quan được xác nhận (ô dưới).' },
+          ].map((r) => (<Fragment key={r.s}>
+            <span className="text-[11px] text-slate-600" title={r.h}>{r.lb} <span className="text-slate-300">ⓘ</span></span>
+            <input type="number" min="0" value={t[r.s] ?? 0} disabled={!selfEditable} onChange={(e) => upTask335(t.id, { [r.s]: Math.max(0, Number(e.target.value) || 0) })} className="w-full bg-slate-50 border border-slate-200 rounded px-1 py-1 text-xs text-center text-slate-600 outline-none focus:border-slate-400 disabled:opacity-50" />
+            <input type="number" min="0" value={t[r.m] ?? t[r.s] ?? 0} disabled={!mgrEditable} onChange={(e) => upTask335(t.id, { [r.m]: Math.max(0, Number(e.target.value) || 0) })} className="w-full bg-red-50 border border-red-200 rounded px-1 py-1 text-xs text-center font-bold text-red-700 outline-none focus:border-red-400 disabled:opacity-50" />
+          </Fragment>))}
+        </div>
+        {t.catalogId && (() => { const ss = task335Score(t, 'self'), ms = task335Score(t, 'mgr'); const m2 = statusOf(ms); return (
+          <div className="mt-2 pt-2 border-t border-slate-200/70 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-[11px]">
+            <span className="text-slate-400">Điểm nhiệm vụ:</span>
+            <span className="text-slate-500">Tự ĐG <b className="text-slate-700">{ss.toFixed(0)}%</b></span>
+            <span className={m2.txt}>Cấp duyệt <b>{ms.toFixed(0)}%</b> · {m2.label}</span>
+          </div>
+        ); })()}
       </div>
       {!isClassic && <div className="mt-2"><input value={t.exemptNote || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { exemptNote: e.target.value })} placeholder="Miễn trừ do nguyên nhân khách quan (nếu có) — VD: chờ ý kiến cơ quan khác, nhiệm vụ đột xuất chen ngang…" title="Theo NĐ 335/2025: không trừ điểm nếu chậm/sai sót do nguyên nhân khách quan được cấp có thẩm quyền xác nhận. Lần đã miễn trừ thì KHÔNG tính vào số lần ở trên." className="w-full bg-amber-50/60 focus:bg-white border border-amber-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-amber-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div>}
       <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
