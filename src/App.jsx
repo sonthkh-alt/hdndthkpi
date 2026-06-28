@@ -874,6 +874,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || scoreOf(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0, E: 0 }; computed.forEach(({ c }) => { d[c.grade] = (d[c.grade] || 0) + 1; }); return d; }, [computed]);
   const upCurSG = (patch) => upPerson(curId, { sg: { ...(cur?.sg || {}), ...patch } });
+  // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.
+  useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
@@ -968,11 +970,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   // Module Quản trị: xuất PDF tài liệu kỹ thuật/vận hành + phương pháp tính OKR/KPI.
   const doExportSystemDoc = async () => {
     const { exportSystemTechPDF } = await import('./lib/exporters');
-    exportSystemTechPDF();
+    exportSystemTechPDF(version);
   };
   const doExportOKRMethod = async () => {
     const { exportOKRMethodPDF } = await import('./lib/exporters');
-    exportOKRMethodPDF(unit);
+    exportOKRMethodPDF(unit, version);
   };
 
   // Phê duyệt / bỏ phê duyệt kết quả đánh giá của cán bộ đang chọn (chỉ cấp có thẩm quyền).
@@ -1216,7 +1218,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }, { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage ? [...(isSG ? [] : [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }]), { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -1705,6 +1707,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6 text-blue-700" /> Quản trị hệ thống</h2>
               <p className="text-sm text-slate-500 mt-1">Khu vực dành riêng cho Quản trị viên. Xuất các tài liệu mô tả hệ thống dưới dạng PDF (mở cửa sổ in → chọn “Lưu thành PDF”). Tài liệu hỗ trợ đầy đủ tiếng Việt, có đánh số trang, header/footer và bảng kẻ vằn.</p>
+              <p className="text-sm mt-2 inline-flex items-center gap-2"><span className="font-semibold text-slate-600">Tài liệu xuất tương ứng phiên bản đang dùng:</span> <span className={`text-xs font-bold px-2 py-0.5 rounded border ${isSG ? 'bg-violet-50 text-indigo-700 border-violet-200' : isImproved ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{VERSION_NAME(version)}</span></p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-start justify-between gap-4 flex-wrap">
@@ -1717,8 +1720,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-start justify-between gap-4 flex-wrap">
               <div className="flex-1 min-w-[240px]">
-                <h3 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-5 h-5 text-blue-700" /> Phương pháp tính, đánh giá OKR/KPI</h3>
-                <p className="text-sm text-slate-500 mt-1">Tài liệu nghiệp vụ trình bày như văn bản hành chính: căn cứ & nguyên tắc · thang điểm · Nhóm I/Nhóm II và công thức a/b/c (lãnh đạo d/đ/e) · hệ số N1–N5 · điều kiện xếp loại Điều 8 · quy trình & mốc thời gian.</p>
+                <h3 className="font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-5 h-5 text-blue-700" /> Phương pháp tính, đánh giá {isSG ? '(mô hình Singapore)' : 'OKR/KPI'}</h3>
+                <p className="text-sm text-slate-500 mt-1">{isSG
+                  ? 'Tài liệu nghiệp vụ cho phiên bản Singapore: hai tầng đánh giá · Bảng điểm thiết chế (dải màu) · Phiếu cá nhân Work Review + Năng lực (AIM) + Giá trị (ISE) · công thức tổng hợp 60/25/15 & xếp loại A–E · Tiềm năng CEP · nguyên tắc không chấm điểm đại biểu dân cử.'
+                  : isImproved
+                  ? 'Tài liệu nghiệp vụ (bản Cải tiến): căn cứ & nguyên tắc · thang điểm · Nhóm I (AIM/ISE) · Nhóm II công thức a/b/c (lãnh đạo d/đ/e) gom theo Mục tiêu (OKR) · điều kiện xếp loại Điều 8 · ghi chú theo Nghị định 335/2025.'
+                  : 'Tài liệu nghiệp vụ trình bày như văn bản hành chính: căn cứ & nguyên tắc · thang điểm · Nhóm I/Nhóm II và công thức a/b/c (lãnh đạo d/đ/e) · hệ số N1–N5 · điều kiện xếp loại Điều 8 · quy trình & mốc thời gian.'}</p>
               </div>
               <button onClick={doExportOKRMethod} className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-blue-700 hover:bg-blue-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Xuất PDF</button>
             </div>
@@ -1734,11 +1741,69 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <div className="flex items-start justify-between gap-4 flex-wrap">
               <div>
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
-                <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Người mới đọc cũng hiểu cách hệ thống chấm điểm và sử dụng.</p>
+                <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Nội dung hiển thị <b>theo đúng phiên bản đang dùng</b>.</p>
               </div>
-              <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>
+              {!isSG && <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>}
             </div>
 
+            <div className={`rounded-xl border p-4 ${isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
+              <p className={`font-bold mb-1 ${isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {VERSION_NAME(version)}</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{isSG
+                ? 'Mô hình quản lý hiệu suất khu vực công Singapore (THAM KHẢO) — KHÔNG dùng thang 30/70 và Điều 8. Đánh giá theo HAI tầng: (A) Bảng điểm THIẾT CHẾ của cơ quan chấm theo dải màu Xanh/Vàng/Đỏ; (B) Phiếu CÁ NHÂN gồm Kết quả công việc (Work Review) + Năng lực (AIM) + Giá trị (ISE) → Xếp loại A–E, kèm Tiềm năng (CEP). Đại biểu dân cử không chấm điểm cá nhân.'
+                : isImproved
+                ? 'Cùng khung điểm 100 và điều kiện xếp loại Điều 8 như bản Cổ điển, nhưng câu hỏi Nhóm I viết lại theo hướng dễ hiểu (năng lực AIM, giá trị Liêm chính–Phục vụ–Xuất sắc); Nhóm II gom theo Mục tiêu (OKR) và bổ sung ô "Kết quả cần đạt". Số liệu Nhóm II khớp Nghị định 335/2025/NĐ-CP.'
+                : 'Bộ tiêu chí theo Quyết định số 1053-QĐ/TU (giữ nguyên câu chữ pháp lý). Thang 100 điểm: Nhóm I (tối đa 30) + Nhóm II (tối đa 70) − Điểm trừ; xếp loại 4 mức theo điều kiện Điều 8. Hướng dẫn chi tiết bên dưới.'}</p>
+            </div>
+
+            {isSG && (<>
+            <GB icon={Award} title="1. Tổng quan: mô hình đánh giá Singapore (tham khảo)">
+              <p>Phiên bản Singapore mô phỏng cách khu vực công Singapore quản lý hiệu suất, để <b>tham khảo, học hỏi</b>. Khác với bản Cổ điển/Cải tiến, phiên bản này <b>không dùng thang 30/70 hay Điều 8</b>. Việc đánh giá tách thành hai tầng độc lập:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li><b>Tầng A — Thiết chế:</b> chấm KPI của cả cơ quan (xem tab Tổng quan), mỗi chỉ số xếp dải màu riêng.</li>
+                <li><b>Tầng B — Cá nhân:</b> phiếu đánh giá từng công chức (tab Đánh giá).</li>
+              </ul>
+              <p className="mt-2 bg-violet-50 border border-violet-100 rounded-lg p-2.5 text-[13px]"><b>Nguyên tắc cốt lõi:</b> đại biểu dân cử (HĐND/Quốc hội) <b>không bị chấm điểm cá nhân</b> — họ chịu trách nhiệm trước cử tri qua bầu cử và sự minh bạch. Chỉ đánh giá thiết chế phục vụ và công chức.</p>
+            </GB>
+            <GB icon={Compass} title="2. Tầng A — Bảng điểm THIẾT CHẾ (dải màu Xanh/Vàng/Đỏ)">
+              <p>Mô phỏng <b>Town Council Management Report</b> của Singapore: chấm các chỉ số của cơ quan, mỗi chỉ số xếp <b>một dải màu riêng</b> (không gộp thành một điểm tổng), công bố theo kỳ để minh bạch. Năm chỉ số mặc định:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li>Phục vụ kỳ họp (tỷ lệ tài liệu đúng hạn);</li>
+                <li>Văn bản tham mưu đúng hạn;</li>
+                <li>Xử lý kiến nghị cử tri đúng hạn;</li>
+                <li>Mức hài lòng về phục vụ (khảo sát);</li>
+                <li>Minh bạch & quản trị (điểm vi phạm, càng thấp càng tốt).</li>
+              </ul>
+              <p className="mt-2"><b>Xanh</b> = tốt · <b>Vàng</b> = cần cải thiện · <b>Đỏ</b> = yếu. Quản trị nhập số liệu từng kỳ; ngưỡng dải màu có thể điều chỉnh.</p>
+            </GB>
+            <GB icon={BarChart3} title="3. Tầng B — Phiếu cá nhân: Kết quả + Năng lực + Giá trị">
+              <p>Mỗi công chức được đánh giá trên phiếu gồm:</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li><b>Work Review (Kết quả công việc):</b> các mục tiêu công việc gắn OKR, mỗi mục tiêu có "Kết quả then chốt" và được cấp trên chấm <b>mức đạt 1–5</b> (có trọng số).</li>
+                <li><b>Competencies — Năng lực (AIM):</b> Phân tích & trí tuệ · Ảnh hưởng & hợp tác · Động lực hướng tới xuất sắc (thang 1–5).</li>
+                <li><b>Core Values — Giá trị (ISE):</b> Liêm chính · Phục vụ · Xuất sắc (thang 1–5).</li>
+              </ul>
+            </GB>
+            <GB icon={TrendingUp} title="4. Cách tính điểm tổng hợp & Xếp loại A–E">
+              <div className="bg-slate-50 border border-slate-200 rounded-lg p-3">
+                <p className="font-semibold text-slate-700">Điểm tổng hợp = Hiệu suất × 60% + Năng lực (AIM) × 25% + Giá trị (ISE) × 15%</p>
+              </div>
+              <p className="mt-2">Hệ thống đề xuất <b>Xếp loại A–E</b> (A: Outstanding ≥90 · B: Exceeds 75–89 · C: Meets 55–74 · D: Below 40–54 · E: Unsatisfactory &lt;40). Cấp trên có thể <b>hiệu chỉnh</b> theo xếp hạng tương đối giữa các cán bộ (không áp quota cứng).</p>
+            </GB>
+            <GB icon={Compass} title="5. Tiềm năng (CEP) — tách riêng khỏi điểm">
+              <p><b>Currently Estimated Potential (CEP)</b> là mức trách nhiệm cao nhất ước lượng cán bộ có thể đảm nhận trong 3–5 năm tới. CEP <b>tách riêng</b>, dùng cho quy hoạch, phát triển nhân sự — <b>không cộng vào</b> và không ảnh hưởng điểm/xếp loại của kỳ.</p>
+            </GB>
+            <GB icon={MessageSquare} title="6. Phát triển, đăng nhập, lưu trữ & nguồn tham khảo">
+              <ul className="list-disc pl-5 space-y-1">
+                <li><b>Development (CFR/IDP):</b> ghi điểm mạnh, lĩnh vực phát triển, kế hoạch và đối thoại cán bộ ↔ cấp trên.</li>
+                <li><b>Đăng nhập & phân quyền, lưu theo kỳ, đa máy:</b> dùng chung cơ chế với các phiên bản khác (email + mật khẩu; vai trò Cán bộ/Trưởng phòng/Quản trị; lưu riêng theo tháng/năm).</li>
+                <li><b>Xuất phiếu Word</b> theo bố cục Singapore ở cuối phiếu cá nhân.</li>
+                <li><b>Nguồn tham khảo:</b> PSD Singapore (CEP), CSC (giá trị Liêm chính–Phục vụ–Xuất sắc), MND (Town Council Management Report), MOF (SPOR), GovTech (OKR & KPI dịch vụ).</li>
+              </ul>
+              <p className="mt-2 text-slate-500 text-[13px]">Lưu ý: các trọng số (60/25/15) và ngưỡng dải màu là cách vận dụng hợp lý để tham khảo; Singapore không công bố biểu mẫu chi tiết.</p>
+            </GB>
+            </>)}
+
+            {!isSG && (<>
             <GB icon={LayoutDashboard} title="1. Năm khu vực (tab) của hệ thống">
               <ul className="list-disc pl-5 space-y-1">
                 <li><b>Tổng quan:</b> Mục tiêu OKR cấp Văn phòng, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A) và xu hướng theo kỳ.</li>
@@ -1972,11 +2037,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <li><b>Xuất bảng (PDF)</b>: mở cửa sổ bảng theo mẫu hành chính (A4 ngang); bấm "In / Lưu thành PDF" để lưu file hoặc in giấy.</li>
               </ul>
             </GB>
+            </>)}
           </div>
           </div>
         )}
 
-        {tab === 'catalog' && canManage && (
+        {tab === 'catalog' && canManage && !isSG && (
           <CatalogManager catalog={catalog} onChange={setCatalog} />
         )}
       </main>

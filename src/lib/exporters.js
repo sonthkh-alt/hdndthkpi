@@ -1042,9 +1042,11 @@ export const SYSTEM_DOC_DATA = {
  * Bố cục: Bìa → Mục lục → Phần 1 Tổng quan → Phần 2 Kiến trúc → Phần 3 CSDL & API → Phần 4 Vận hành & Bảo mật.
  * @param {object} data  Dữ liệu hệ thống (mặc định SYSTEM_DOC_DATA — thay bằng dữ liệu thật khi cần).
  */
-export function exportSystemTechPDF(data = SYSTEM_DOC_DATA) {
+export function exportSystemTechPDF(version = 'classic') {
   const e = escDoc;
+  const data = SYSTEM_DOC_DATA;
   const s = data.system || {};
+  const vName = { classic: 'Cổ điển (QĐ 1053)', improved: 'Cải tiến (AIM/ISE + OKR)', sg: 'Singapore (cơ quan dân cử)' }[version] || 'Cổ điển';
   const now = new Date();
   const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
 
@@ -1071,6 +1073,7 @@ export function exportSystemTechPDF(data = SYSTEM_DOC_DATA) {
       <div class="cover-spacer"></div>
       <table class="meta-tbl" style="margin:0 auto 14px;">
         <tr><td>Địa chỉ hệ thống</td><td>${e(s.url)}</td></tr>
+        <tr><td>Phiên bản đang dùng</td><td>${e(vName)}</td></tr>
         <tr><td>Ngày xuất báo cáo</td><td>${dateStr}</td></tr>
         <tr><td>Người thực hiện</td><td>${e(s.admin)} (Admin)</td></tr>
       </table>
@@ -1149,10 +1152,81 @@ export function exportSystemTechPDF(data = SYSTEM_DOC_DATA) {
  * (2) Xuất PDF — PHƯƠNG PHÁP TÍNH, ĐÁNH GIÁ OKR/KPI (trình bày như văn bản hành chính).
  * @param {string} unit  Tên đơn vị (hiển thị ở bìa/header).
  */
-export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa') {
+export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa', version = 'classic') {
   const e = escDoc;
   const now = new Date();
   const dateStr = `ngày ${String(now.getDate()).padStart(2, '0')} tháng ${String(now.getMonth() + 1).padStart(2, '0')} năm ${now.getFullYear()}`;
+
+  // Phiên bản Singapore dùng phương pháp riêng (không 30/70 + Điều 8) → tài liệu nghiệp vụ riêng.
+  if (version === 'sg') {
+    const htmlSG = `
+    <div class="doc">
+      <section class="cover">
+        <div class="unit">${e(unit)}</div>
+        <div class="rule"></div>
+        <div class="cover-spacer"></div>
+        <div class="cover-kicker">TÀI LIỆU NGHIỆP VỤ (THAM KHẢO)</div>
+        <h1 class="cover-title">PHƯƠNG PHÁP ĐÁNH GIÁ HIỆU SUẤT<br>THEO MÔ HÌNH KHU VỰC CÔNG<br>SINGAPORE</h1>
+        <div class="cover-sub">Tham khảo: PSD (CEP), CSC (Liêm chính–Phục vụ–Xuất sắc),<br>MND (Town Council Management Report), MOF (SPOR), GovTech (OKR)</div>
+        <div class="cover-spacer"></div>
+        <div class="cover-meta">Tài liệu lập ${dateStr}</div>
+        <div class="cover-note">⚠ BẢN DEMO THỬ NGHIỆM — phương pháp tham khảo, các trọng số/ngưỡng là cách vận dụng hợp lý.</div>
+      </section>
+      <section class="page">
+        <h2>I. NGUYÊN TẮC CHUNG</h2>
+        <p>Phiên bản Singapore mô phỏng cách quản lý hiệu suất khu vực công Singapore, <b>không dùng thang 30/70 và Điều 8</b>. Đánh giá tách thành HAI tầng độc lập: (A) đánh giá <b>thiết chế/cơ quan</b> theo bộ chỉ số dải màu; (B) đánh giá <b>cá nhân</b> công chức theo kết quả + năng lực + giá trị.</p>
+        <div class="box red"><b>Nguyên tắc cốt lõi:</b> đại biểu dân cử (HĐND/Quốc hội) KHÔNG bị chấm điểm cá nhân — chịu trách nhiệm trước cử tri qua bầu cử và minh bạch. Chỉ chấm điểm thiết chế phục vụ và công chức.</div>
+
+        <h2>II. TẦNG A — BẢNG ĐIỂM THIẾT CHẾ (dải màu Xanh/Vàng/Đỏ)</h2>
+        <p>Mô phỏng Town Council Management Report (MND Singapore): chấm KPI của cơ quan, mỗi chỉ số xếp <b>một dải màu riêng</b> (không gộp thành một điểm), công bố theo kỳ.</p>
+        <table class="tbl">
+          <tr><th style="width:32%">Chỉ số</th><th style="width:20%">Đo lường</th><th>Ngưỡng dải màu (mặc định)</th></tr>
+          <tr><td>Phục vụ kỳ họp</td><td>% tài liệu kỳ họp đúng hạn</td><td>Xanh ≥ 95% · Vàng ≥ 80% · Đỏ &lt; 80%</td></tr>
+          <tr><td>Văn bản đúng hạn</td><td>% văn bản tham mưu đúng hạn</td><td>Xanh ≥ 95% · Vàng ≥ 85% · Đỏ &lt; 85%</td></tr>
+          <tr><td>Xử lý kiến nghị cử tri</td><td>% xử lý đúng hạn, có phản hồi</td><td>Xanh ≥ 90% · Vàng ≥ 70% · Đỏ &lt; 70%</td></tr>
+          <tr><td>Hài lòng về phục vụ</td><td>% hài lòng (khảo sát)</td><td>Xanh ≥ 80% · Vàng ≥ 60% · Đỏ &lt; 60%</td></tr>
+          <tr><td>Minh bạch & quản trị</td><td>điểm vi phạm (thấp hơn = tốt)</td><td>Xanh ≤ 0 · Vàng ≤ 1 · Đỏ &gt; 1</td></tr>
+        </table>
+
+        <h2>III. TẦNG B — PHIẾU CÁ NHÂN</h2>
+        <p>Mỗi công chức được đánh giá trên ba cấu phần:</p>
+        <ul>
+          <li><b>Work Review (Kết quả công việc):</b> các mục tiêu công việc gắn OKR, mỗi mục tiêu có "Kết quả then chốt"; cấp trên chấm mức đạt 1–5 (có trọng số).</li>
+          <li><b>Competencies — Năng lực (AIM):</b> Phân tích & trí tuệ · Ảnh hưởng & hợp tác · Động lực hướng tới xuất sắc (1–5).</li>
+          <li><b>Core Values — Giá trị (ISE):</b> Liêm chính · Phục vụ · Xuất sắc (1–5).</li>
+        </ul>
+        <div class="formula">Điểm tổng hợp = Hiệu suất × 60% + Năng lực × 25% + Giá trị × 15%</div>
+
+        <h2>IV. XẾP LOẠI A–E</h2>
+        <table class="tbl">
+          <tr><th style="width:12%">Mức</th><th style="width:48%">Xếp loại</th><th>Ngưỡng điểm tổng hợp</th></tr>
+          <tr><td class="ctr"><b>A</b></td><td>Outstanding — Xuất sắc nổi bật</td><td>≥ 90</td></tr>
+          <tr><td class="ctr"><b>B</b></td><td>Exceeds — Vượt mong đợi</td><td>75 → dưới 90</td></tr>
+          <tr><td class="ctr"><b>C</b></td><td>Meets — Đạt mong đợi</td><td>55 → dưới 75</td></tr>
+          <tr><td class="ctr"><b>D</b></td><td>Below — Dưới mong đợi</td><td>40 → dưới 55</td></tr>
+          <tr><td class="ctr"><b>E</b></td><td>Unsatisfactory — Không đạt</td><td>dưới 40</td></tr>
+        </table>
+        <p>Hệ thống đề xuất mức tự động; cấp trên có thể hiệu chỉnh theo xếp hạng tương đối giữa các cán bộ (không áp quota cứng).</p>
+
+        <h2>V. TIỀM NĂNG (CEP)</h2>
+        <p><b>Currently Estimated Potential</b> — mức trách nhiệm cao nhất ước lượng cán bộ có thể đảm nhận trong 3–5 năm tới. <b>Tách riêng</b> khỏi điểm hiệu suất, dùng cho quy hoạch và phát triển; KHÔNG ảnh hưởng xếp loại của kỳ.</p>
+
+        <h2>VI. ĐỐI THOẠI PHÁT TRIỂN (CFR/IDP)</h2>
+        <p>Ghi điểm mạnh, lĩnh vực cần phát triển, kế hoạch phát triển cá nhân và nhận xét đối thoại giữa cán bộ với cấp trên — đề cao phát triển, không chỉ chấm điểm.</p>
+        <div class="signoff">
+          <p>Tài liệu nghiệp vụ — phương pháp đánh giá theo mô hình Singapore (tham khảo).</p>
+          <p>${e(unit)} • Xuất ${dateStr}.</p>
+        </div>
+      </section>
+    </div>`;
+    openAdminPrint('Phương pháp tính, đánh giá (Singapore)', adminDocCss('Phương pháp tính, đánh giá (mô hình Singapore)', 'Bản demo nội bộ — không chịu trách nhiệm pháp lý'), htmlSG);
+    return;
+  }
+
+  // Bản Cải tiến: cùng phương pháp QĐ 1053 nhưng ghi chú điểm khác biệt.
+  const verNote = version === 'improved'
+    ? `<div class="box gray"><b>Bản Cải tiến:</b> giữ nguyên thang điểm và công thức của bản Cổ điển (theo QĐ 1053 và Nghị định 335/2025/NĐ-CP); chỉ viết lại câu hỏi Nhóm I theo hướng dễ hiểu (năng lực AIM: Phân tích – Ảnh hưởng – Động lực; giá trị Liêm chính – Phục vụ – Xuất sắc) và <b>gom nhiệm vụ Nhóm II theo Mục tiêu (OKR)</b>, bổ sung ô "Kết quả cần đạt". Mục tiêu (OKR) chỉ để định hướng, KHÔNG dùng để tính điểm.</div>`
+    : '';
 
   const html = `
   <div class="doc">
@@ -1169,6 +1243,7 @@ export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND t�
     </section>
 
     <section class="page">
+      ${verNote}
       <h2>I. CĂN CỨ & NGUYÊN TẮC</h2>
       <p><b>1. Căn cứ.</b> Phương pháp tính, đánh giá được xây dựng theo Quyết định số 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa về đánh giá, xếp loại mức độ hoàn thành nhiệm vụ hằng tháng của cán bộ, công chức, viên chức và người lao động.</p>
       <p><b>2. Nguyên tắc.</b> Đánh giá theo phương pháp OKR/KPI, bảo đảm: (i) <b>định lượng</b> bằng đếm khách quan; (ii) <b>liên thông mục tiêu</b> — mỗi nhiệm vụ gắn với một mục tiêu (OKR) của đơn vị; (iii) <b>hai cấp</b> — cá nhân tự đánh giá và cấp có thẩm quyền quyết định; (iv) <b>minh bạch</b> — công khai công thức, hệ số và điều kiện xếp loại.</p>
