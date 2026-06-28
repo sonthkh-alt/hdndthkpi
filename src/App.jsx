@@ -7,6 +7,7 @@ import SetPassword from './SetPassword.jsx';
 import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
+import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard } from './SingaporeAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -584,7 +585,7 @@ function computePerson(p) {
 let pid = 3, trkId = 1, t335Id = 100, krSeq = 1;
 const newTask335 = (objId = '') => ({ id: t335Id++, catalogId: '', objId, kr: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
-const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
+const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '', sg: { goals: [], comp: {}, values: {}, cep: '', strengths: '', development: '', devActions: '', selfComment: '', supComment: '', grade: '' } });
 
 // Dữ liệu MẪU: 5 cán bộ tượng trưng cho 5 nhóm đối tượng (Mẫu 01–05) — đủ điểm số, xếp loại (A→D) và liên kết OKR.
 // Sinh nhiệm vụ Nhóm II PHỦ TOÀN BỘ danh mục áp dụng cho nhóm đối tượng, theo "hồ sơ" giữ đúng xếp loại:
@@ -632,6 +633,7 @@ function seedDemoPeople() {
     digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
     selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '',
     tasks335: genTasksFull(type, profile, OKR),
+    sg: defaultSG(profile, type, OKR),
   });
   return [
     mk('hdnd', 'Nguyễn Văn An', 'Thường trực HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'an.demo@thanhhoa.gov.vn', 'A', {
@@ -853,9 +855,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const upLead = (key, v) => upCur({ leadScores: { ...(cur.leadScores || {}), [key]: v } }); // d/đ/e cho lãnh đạo
 
   setCatalogRegistry(catalog); // đồng bộ registry danh mục trước khi tính điểm/đổ dropdown
-  const computed = useMemo(() => people.map((p) => ({ p, c: computePerson(p) })), [people, catalog, version]);
-  const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || computePerson(cur)) : null;
-  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0 }; computed.forEach(({ c }) => d[c.grade]++); return d; }, [computed]);
+  // Bản Singapore dùng mô hình riêng (computeSG); 2 bản còn lại dùng khung 30/70 (computePerson).
+  const scoreOf = isSG ? computeSG : computePerson;
+  const computed = useMemo(() => people.map((p) => ({ p, c: scoreOf(p) })), [people, catalog, version]);
+  const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || scoreOf(cur)) : null;
+  const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0, E: 0 }; computed.forEach(({ c }) => { d[c.grade] = (d[c.grade] || 0) + 1; }); return d; }, [computed]);
+  const upCurSG = (patch) => upPerson(curId, { sg: { ...(cur?.sg || {}), ...patch } });
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
@@ -881,7 +886,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
   ];
   const cfg = cur ? CRITERIA[cur.type] : null;
-  const result = curC ? gradeClass(curC.grade) : classify(0);
+  const result = isSG ? sgGradeInfo(curC?.grade) : (curC ? gradeClass(curC.grade) : classify(0));
   const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
   const digPassed = cur ? DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length : 0;
 
@@ -920,6 +925,22 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       total: curC.totalMgr, totalSelf: curC.totalSelf, cls: result.code, clsName: result.name, gradeReasons: curC.gradeReasons || [],
       selfNote: cur.selfNote, mgrNote: cur.mgrNote,
       approved: !!cur.approved, approvedBy: cur.approvedBy, approvedRole: cur.approvedRole, approvedAt: cur.approvedAt,
+    });
+  };
+  // Xuất phiếu Word theo bố cục Singapore (Work Review · AIM · ISE · Grade · CEP · Development).
+  const doSGWord = async () => {
+    const { exportSGAppraisal } = await import('./lib/exporters');
+    const sg = cur.sg || {};
+    const objTitle = (oid) => (objectives.find((o) => o.id === oid) || {}).title || '';
+    exportSGAppraisal({
+      unit, name: cur.name, position: cur.position, department: cur.department,
+      typeLabel: CRITERIA[cur.type]?.label, month: period.month, year: period.year,
+      goals: (sg.goals || []).map((g) => ({ title: g.title, obj: objTitle(g.objId), kr: g.kr, current: g.current, target: g.target, unit2: g.unit, weight: g.weight, rating: g.rating })),
+      comp: sg.comp || {}, values: sg.values || {},
+      perfPct: curC.perfPct, compPct: curC.compPct, valPct: curC.valPct, overall: curC.overall,
+      grade: result.code, gradeName: result.name, autoGrade: curC.autoGrade,
+      cep: sg.cep || '', strengths: sg.strengths || '', development: sg.development || '', devActions: sg.devActions || '',
+      selfComment: sg.selfComment || '', supComment: sg.supComment || '',
     });
   };
   const doExportTracking = async () => {
@@ -1209,18 +1230,20 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <Stat icon={Users} label="Tổng số cán bộ" value={people.length} color="slate" />
               <Stat icon={TrendingUp} label="Điểm TB cơ quan" value={avg.toFixed(1)} color="red" />
-              <Stat icon={Award} label="Hoàn thành xuất sắc" value={dist.A} color="emerald" />
+              <Stat icon={Award} label={isSG ? 'Grade A (Outstanding)' : 'Hoàn thành xuất sắc'} value={dist.A} color="emerald" />
               <Stat icon={Target} label="Mục tiêu (OKR)" value={objectives.length} color="amber" />
             </div>
-            {overCap && (
+            {!isSG && overCap && (
               <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 flex items-start gap-3">
                 <AlertTriangle className="w-5 h-5 text-rose-500 shrink-0 mt-0.5" />
                 <p className="text-sm text-rose-700">Cảnh báo trần tỷ lệ: đang có <b>{dist.A}</b> "Hoàn thành xuất sắc" trong khi tối đa cho phép là <b>{Math.floor(dist.B * 0.2)}</b> (không vượt quá 20% của {dist.B} người "Hoàn thành tốt").</p>
               </div>
             )}
-            <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
-              <DashboardCharts dist={dist} trends={trends} computed={computed} digital={DIGITAL} theme="classic" />
-            </Suspense>
+            {!isSG && (
+              <Suspense fallback={<div className="text-sm text-slate-400 text-center py-8">Đang tải biểu đồ…</div>}>
+                <DashboardCharts dist={dist} trends={trends} computed={computed} digital={DIGITAL} theme="classic" />
+              </Suspense>
+            )}
             <div className="grid lg:grid-cols-3 gap-6">
               <section className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Mục tiêu cấp Văn phòng (OKR)</h2></div>
@@ -1263,6 +1286,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   {canManage && <button onClick={() => setObjectives((os) => [...os, { id: 'o' + Date.now(), title: 'Mục tiêu mới...', source: 'Chương trình công tác', krs: [] }])} className="w-full flex items-center justify-center gap-2 py-2 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm mục tiêu</button>}
                 </div>
               </section>
+              {!isSG && (
               <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5">
                 <h2 className="flex items-center gap-2 font-bold text-slate-800 mb-4"><BarChart3 className="w-5 h-5 text-red-700" /> Phân bố xếp loại</h2>
                 <div className="space-y-3">
@@ -1270,7 +1294,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     return (<div key={code}><div className="flex justify-between text-xs mb-1"><span className="font-semibold text-slate-600">Loại {code} — {cl.name}</span><span className="font-bold text-slate-700">{n}</span></div><div className="h-3 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${cl.bar} transition-all`} style={{ width: `${pct}%` }} /></div></div>); })}
                 </div>
               </section>
+              )}
             </div>
+            {isSG && <SingaporeDashboard computed={computed} onPick={(id) => { setCurId(id); setTab('eval'); }} />}
+            {!isSG && (<>
             <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
               <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between">
                 <h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Tổng hợp kết quả (Mẫu 1A)</h2>
@@ -1332,6 +1359,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <p className="text-[11px] text-slate-400 px-4 py-2.5 border-t border-slate-100">Tổng hợp từ dữ liệu đã lưu của các kỳ. Bấm "Làm mới" sau khi cập nhật điểm để đồng bộ.</p>
               </section>
             )}
+            </>)}
           </div>
         )}
 
@@ -1345,9 +1373,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">Tổng điểm KPI</p>
-                <div className="flex justify-center items-end gap-2 text-red-600"><span className="text-4xl font-extrabold leading-none">{curC.totalMgr.toFixed(1)}</span><span className="text-sm font-bold pb-1">/ 100</span></div>
-                <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold ${result.soft}`}>{result.name}</span></div>
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">{isSG ? 'Điểm tổng hợp (Singapore)' : 'Tổng điểm KPI'}</p>
+                <div className={`flex justify-center items-end gap-2 ${isSG ? 'text-indigo-600' : 'text-red-600'}`}><span className="text-4xl font-extrabold leading-none">{curC.totalMgr.toFixed(1)}</span><span className="text-sm font-bold pb-1">/ 100</span></div>
+                <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${result.soft}`}>{isSG ? `${result.code} · ` : ''}{result.name}</span></div>
               </div>
             </aside>
 
@@ -1395,6 +1423,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     </div>
                   </Field>
                 </section>
+                {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
+                {!isSG && (<>
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Nhóm I — Tiêu chí chung</h2><div className="flex items-center gap-3 text-sm"><span className="text-slate-300">Tự: <b className="text-white">{curC.nself.toFixed(1)}</b></span><span className="text-amber-300 font-bold">Duyệt: {curC.nmgr.toFixed(1)}/30</span></div></div>
                   <div className="px-4 pt-3 flex justify-end gap-2 text-[11px] font-bold text-slate-400 pr-2"><span className="w-16 text-center">TỰ ĐG</span><span className="w-16 text-center text-red-600">CẤP DUYỆT</span></div>
@@ -1449,8 +1479,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <Field label="Ý kiến tự nhận xét của cá nhân"><textarea value={cur.selfNote} disabled={!selfEditable} onChange={(e) => upCur({ selfNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                   <Field label="Nhận xét, kết luận của cấp có thẩm quyền"><textarea value={cur.mgrNote} disabled={!mgrEditable} onChange={(e) => upCur({ mgrNote: e.target.value })} rows={2} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                 </section>
+                </>)}
               </div>
-              <aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4">
+              {!isSG && (<aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4">
                 <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
                   <div className={`${result.cls} text-white text-center py-5`}><p className="text-xs opacity-90 uppercase tracking-wider">Tổng điểm (cấp duyệt)</p><p className="text-5xl font-extrabold mt-1">{curC.totalMgr.toFixed(2)}</p><p className="text-sm opacity-90">Tự đánh giá: {curC.totalSelf.toFixed(2)} / 100</p></div>
                   <div className="p-4 text-center border-b border-slate-100"><span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm ${result.soft}`}><span className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center font-extrabold">{result.code}</span>{result.name}</span></div>
@@ -1489,7 +1520,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <button onClick={() => window.print()} className="w-full flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold py-2.5 rounded-xl"><Printer className="w-4 h-4" /> In phiếu (PDF)</button>
                   {(canManage || mgrEditable) && <button onClick={() => { if (!window.confirm('Đặt lại toàn bộ điểm và nhiệm vụ của cán bộ này về mặc định?')) return; upCur({ selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }); }} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Đặt lại cán bộ này</button>}
                 </div>
-              </div></aside>
+              </div></aside>)}
             </div>
           </div>
         )}

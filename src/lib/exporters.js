@@ -217,6 +217,96 @@ export async function exportWordPhieu(ev) {
   saveAs(blob, `Phieu_DanhGia_${(ev.name || 'canbo').replace(/\s+/g, '_')}_${ev.month}_${ev.year}.docx`);
 }
 
+// WORD — Phiếu đánh giá theo mô hình SINGAPORE (Performance Appraisal).
+// Bố cục: thông tin · Work Review (mục tiêu+KR+mức đạt) · Competencies (AIM) · Values (ISE)
+// · Overall Grade A–E · CEP (tiềm năng) · Development (CFR/IDP) + chữ ký.
+const SG_RATING_LABEL = { 5: 'Xuất sắc', 4: 'Vượt mong đợi', 3: 'Đạt mong đợi', 2: 'Cần cải thiện', 1: 'Chưa đạt', 0: '—' };
+const SG_COMP_LABEL = { analytical: 'Năng lực phân tích & trí tuệ (Analytical)', influence: 'Ảnh hưởng & hợp tác (Influence)', motivation: 'Động lực hướng tới xuất sắc (Motivation)' };
+const SG_VAL_LABEL = { integrity: 'Liêm chính (Integrity)', service: 'Phục vụ (Service)', excellence: 'Xuất sắc (Excellence)' };
+export async function exportSGAppraisal(ev) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
+  const children = [];
+  children.push(P((ev.unit || '').toUpperCase(), { bold: true, size: 24, align: C }));
+  children.push(P('PHIẾU ĐÁNH GIÁ HIỆU SUẤT — MÔ HÌNH SINGAPORE (THAM KHẢO)', { bold: true, size: 30, align: C, spacingAfter: 60 }));
+  children.push(P('Performance Appraisal — Singapore Public Service style', { italics: true, size: 22, align: C }));
+  children.push(P(`Kỳ đánh giá: Tháng ${ev.month}/${ev.year}`, { italics: true, size: 24, align: C, spacingAfter: 200 }));
+
+  children.push(P([{ text: 'Họ và tên: ', bold: true }, { text: ev.name || '...' }]));
+  children.push(P([{ text: 'Chức vụ / Vị trí việc làm: ', bold: true }, { text: ev.position || '...' }]));
+  if (ev.department) children.push(P([{ text: 'Phòng / Bộ phận: ', bold: true }, { text: ev.department }]));
+  children.push(P([{ text: 'Nhóm đối tượng: ', bold: true }, { text: ev.typeLabel || '' }], { spacingAfter: 160 }));
+
+  // 1. WORK REVIEW
+  children.push(P('1. WORK REVIEW — KẾT QUẢ CÔNG VIỆC (What)', { bold: true, size: 26, spacingAfter: 80 }));
+  const gRows = [new TableRow({ tableHeader: true, children: [
+    TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
+    TC('Mục tiêu công việc · Key Result · Mục tiêu (OKR) gắn', { bold: true, align: C, shade: 'E8EEF7', width: 55 }),
+    TC('Kết quả', { bold: true, align: C, shade: 'E8EEF7', width: 14 }),
+    TC('Trọng số', { bold: true, align: C, shade: 'E8EEF7', width: 10 }),
+    TC('Mức đạt', { bold: true, align: C, shade: 'E8EEF7', width: 16 }),
+  ] })];
+  (ev.goals || []).forEach((g, i) => {
+    const lines = [g.title || '(chưa đặt)', g.kr ? `KR: ${g.kr}` : '', g.obj ? `OKR: ${g.obj}` : ''].filter(Boolean).join(' — ');
+    gRows.push(new TableRow({ children: [
+      TC(i + 1, { align: C, size: 20 }),
+      TC(lines, { size: 20 }),
+      TC(`${g.current ?? ''}/${g.target ?? ''} ${g.unit2 || ''}`.trim(), { align: C, size: 20 }),
+      TC(g.weight ?? '', { align: C, size: 20 }),
+      TC(`${g.rating || 0} · ${SG_RATING_LABEL[g.rating || 0]}`, { align: C, size: 20 }),
+    ] }));
+  });
+  if ((ev.goals || []).length === 0) gRows.push(new TableRow({ children: [TC('Chưa có mục tiêu công việc.', { span: 5, italics: true, align: C, size: 20 })] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: gRows }));
+  children.push(P(`→ Điểm hiệu suất (Performance): ${fmt(ev.perfPct, 0)}%`, { italics: true, size: 22, spacingAfter: 120 }));
+
+  // 2 + 3. COMPETENCIES + VALUES
+  children.push(P('2. COMPETENCIES — NĂNG LỰC (How · AIM) & 3. CORE VALUES (ISE)', { bold: true, size: 26, spacingAfter: 80 }));
+  const cRows = [new TableRow({ tableHeader: true, children: [
+    TC('Tiêu chí', { bold: true, align: C, shade: 'E8EEF7', width: 70 }),
+    TC('Mức (1–5)', { bold: true, align: C, shade: 'E8EEF7', width: 30 }),
+  ] })];
+  Object.keys(SG_COMP_LABEL).forEach((k) => { const v = (ev.comp || {})[k] || 0; cRows.push(new TableRow({ children: [TC(SG_COMP_LABEL[k], { size: 20 }), TC(`${v} · ${SG_RATING_LABEL[v]}`, { align: C, size: 20 })] })); });
+  Object.keys(SG_VAL_LABEL).forEach((k) => { const v = (ev.values || {})[k] || 0; cRows.push(new TableRow({ children: [TC(SG_VAL_LABEL[k], { size: 20 }), TC(`${v} · ${SG_RATING_LABEL[v]}`, { align: C, size: 20 })] })); });
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: cRows }));
+  children.push(P(`→ Năng lực AIM: ${fmt(ev.compPct, 0)}% · Giá trị ISE: ${fmt(ev.valPct, 0)}%`, { italics: true, size: 22, spacingAfter: 120 }));
+
+  // 4. OVERALL GRADE
+  children.push(P('4. OVERALL PERFORMANCE GRADE — XẾP LOẠI', { bold: true, size: 26, spacingAfter: 60 }));
+  children.push(P([{ text: 'Điểm tổng hợp: ', bold: true }, { text: `${fmt(ev.overall, 1)}/100 (Hiệu suất 60% + Năng lực 25% + Giá trị 15%)` }]));
+  children.push(P([{ text: 'Xếp loại chính thức: ', bold: true }, { text: `${ev.grade} — ${ev.gradeName}` }]));
+  children.push(P([{ text: 'Đề xuất tự động: ', bold: true }, { text: ev.autoGrade || '' }], { spacingAfter: 60 }));
+  children.push(P('Ghi chú: Singapore dùng xếp hạng tương đối có hiệu chỉnh giữa các đơn vị (không áp quota cứng).', { italics: true, size: 20, spacingAfter: 120 }));
+
+  // 5. CEP
+  children.push(P('5. CURRENTLY ESTIMATED POTENTIAL (CEP) — TIỀM NĂNG', { bold: true, size: 26, spacingAfter: 60 }));
+  children.push(P([{ text: 'Mức trách nhiệm cao nhất ước lượng có thể đảm nhận (3–5 năm tới): ', bold: true }, { text: ev.cep || '—' }]));
+  children.push(P('Tách riêng khỏi điểm hiệu suất; dùng cho quy hoạch, phát triển — không ảnh hưởng xếp loại.', { italics: true, size: 20, spacingAfter: 120 }));
+
+  // 6. DEVELOPMENT
+  children.push(P('6. DEVELOPMENT & CONVERSATION (CFR / IDP)', { bold: true, size: 26, spacingAfter: 60 }));
+  const dl = (label, val) => children.push(P([{ text: `${label}: `, bold: true }, { text: val || '...' }], { spacingAfter: 40 }));
+  dl('Điểm mạnh nổi bật', ev.strengths);
+  dl('Lĩnh vực cần phát triển', ev.development);
+  dl('Kế hoạch phát triển cá nhân (IDP)', ev.devActions);
+  dl('Ý kiến của cán bộ', ev.selfComment);
+  dl('Nhận xét của cấp trên', ev.supComment);
+  children.push(P('', { spacingAfter: 200 }));
+
+  const signCol = (role, hint) => [P(role, { bold: true, align: C, size: 24 }), P(hint, { italics: true, align: C, size: 20 }), P('', { spacingAfter: 600 })];
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE }, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+    rows: [new TableRow({ children: [
+      new TableCell({ borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('CÁN BỘ (Appraisee)', '(Ký, ghi rõ họ tên)') }),
+      new TableCell({ borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } }, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('CẤP TRÊN TRỰC TIẾP (Appraiser)', '(Ký, ghi rõ họ tên)') }),
+    ] })],
+  }));
+
+  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1000 } } }, children }] });
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `SG_Appraisal_${(ev.name || 'officer').replace(/\s+/g, '_')}_${ev.month}_${ev.year}.docx`);
+}
+
 // EXCEL — Bảng kiểm đếm, theo dõi công việc
 export function exportTrackingExcel(people, weekTitle, unit) {
   const aoa = [
