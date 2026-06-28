@@ -112,7 +112,7 @@ CRITERIA_CLASSIC.dbqh = {
   groups: CRITERIA_CLASSIC.leader.groups,
 };
 
-// ===== BỘ TIÊU CHÍ "SINGAPORE" (phiên bản thử nghiệm) =====
+// ===== BỘ TIÊU CHÍ "CẢI TIẾN" (giữ Nhóm I kiểu AIM/ISE cho dễ hiểu) =====
 // Lai ghép: GIỮ NGUYÊN id, điểm tối đa (max), thang 30đ và công thức của bản Cổ điển
 // (nên mọi tính toán/clamp/xuất phiếu/Điều 8 dùng chung, đổi phiên bản không mất điểm),
 // chỉ VIẾT LẠI câu hỏi theo phong cách dễ hiểu của khu vực công Singapore:
@@ -120,7 +120,7 @@ CRITERIA_CLASSIC.dbqh = {
 //  • ISE  = Integrity (Liêm chính) · Service (Phục vụ) · Excellence (Xuất sắc)
 //  • WoG  = Whole-of-Government (tư duy "một cơ quan thống nhất", lấy người dân/đại biểu làm trung tâm)
 // Mỗi câu hỏi nêu rõ "Anh/chị có…?" kèm ví dụ, bám đúng nội hàm của tiêu chí gốc.
-const CRITERIA_SG = {
+const CRITERIA_IMPROVED = {
   leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c+d+đ+e)/6', groups: [
     { id: 'L1', title: '1. Chính trị, tư tưởng & Liêm chính (Integrity)', max: 5, items: [
       { id: '1.1', max: 1, text: 'Trung thành & nêu gương: Anh/chị có tuyệt đối trung thành với Đảng, Tổ quốc, Nhân dân và là tấm gương cho cấp dưới noi theo? (VD: gương mẫu chấp hành, không phát ngôn trái chủ trương).' },
@@ -187,16 +187,133 @@ const CRITERIA_SG = {
       { id: '3.1', max: 5, text: 'Cầu thị: Anh/chị có tự nhận diện hạn chế và chủ động khắc phục những điều đã được chỉ ra?' } ] },
   ] },
 };
-CRITERIA_SG.hdnd = { label: CRITERIA_CLASSIC.hdnd.label, mau: 'Mẫu số 01', formula: '(a+b+c)/3', groups: CRITERIA_SG.leader.groups };
-CRITERIA_SG.dbqh = { label: CRITERIA_CLASSIC.dbqh.label, mau: 'Mẫu số 02', formula: '(a+b+c)/3', groups: CRITERIA_SG.leader.groups };
+CRITERIA_IMPROVED.hdnd = { label: CRITERIA_CLASSIC.hdnd.label, mau: 'Mẫu số 01', formula: '(a+b+c)/3', groups: CRITERIA_IMPROVED.leader.groups };
+CRITERIA_IMPROVED.dbqh = { label: CRITERIA_CLASSIC.dbqh.label, mau: 'Mẫu số 02', formula: '(a+b+c)/3', groups: CRITERIA_IMPROVED.leader.groups };
+
+// ===== BỘ TIÊU CHÍ "SINGAPORE (CƠ QUAN DÂN CỬ)" =====
+// Cùng id/max/thang điểm/công thức như bản Cổ điển (đổi phiên bản KHÔNG mất điểm), nhưng câu hỏi
+// được thiết kế RIÊNG cho cơ quan dân cử (HĐND/Đoàn ĐBQH): nhấn chức năng ĐẠI DIỆN cử tri, GIÁM SÁT,
+// quyết định/nghị quyết các vấn đề quan trọng, TIẾP XÚC CỬ TRI — theo phong cách AIM/ISE/WoG.
+// Đại biểu (Mẫu 01/02) dùng bộ "dancuGroups" riêng; lãnh đạo/công chức/HĐ phục vụ cơ quan dân cử.
+const dancuGroups = [
+  { id: 'L1', title: '1. Bản lĩnh chính trị & Liêm chính của người đại biểu (Integrity)', max: 5, items: [
+    { id: '1.1', max: 1, text: 'Trung thành & gương mẫu: Đại biểu có tuyệt đối trung thành với Tổ quốc, Nhân dân và gương mẫu chấp hành Hiến pháp, pháp luật?' },
+    { id: '1.2', max: 1, text: 'Bản lĩnh đại diện: Đại biểu có dám nói lên ý chí, nguyện vọng chính đáng của cử tri, kể cả vấn đề khó, nhạy cảm?' },
+    { id: '1.3', max: 1, text: 'Đặt lợi ích Nhân dân lên trên (tinh thần phục vụ): Đại biểu có hành động vì lợi ích chung của cử tri và địa phương trước lợi ích cá nhân?' },
+    { id: '1.4', max: 1, text: 'Trách nhiệm với nhiệm vụ dân cử: Đại biểu có thực hiện đầy đủ nhiệm vụ, quyền hạn theo luật và chương trình hoạt động?' },
+    { id: '1.5', max: 0.5, text: 'Cập nhật chính sách: Đại biểu có nghiên cứu chủ trương của Đảng, pháp luật và tình hình kinh tế - xã hội để quyết định đúng?' },
+    { id: '1.6', max: 0.5, text: 'Tầm nhìn & đổi mới: Đại biểu có tư duy đổi mới, đề xuất cách làm mới nâng cao hiệu quả hoạt động dân cử?' } ] },
+  { id: 'L2', title: '2. Đạo đức, gắn bó với cử tri & kỷ luật (Integrity – Service)', max: 5, items: [
+    { id: '2.1', max: 1, text: 'Lối sống trong sạch: Đại biểu có cần – kiệm – liêm – chính, gương mẫu trước cử tri?' },
+    { id: '2.2', max: 1, text: 'Liêm chính, không vụ lợi: Đại biểu có tránh xung đột lợi ích, không lợi dụng vị trí đại biểu để trục lợi?' },
+    { id: '2.3', max: 1, text: 'Gắn bó cử tri: Đại biểu có giữ liên hệ chặt chẽ, lắng nghe và phản ánh trung thực ý kiến, kiến nghị của cử tri?' },
+    { id: '2.4', max: 1, text: 'Kỷ luật & nguyên tắc: Đại biểu có tuân thủ nội quy kỳ họp, phát ngôn có trách nhiệm, theo nguyên tắc tập trung dân chủ?' },
+    { id: '2.5', max: 0.5, text: 'Minh bạch: Đại biểu có kê khai, công khai tài sản, thu nhập đúng quy định?' },
+    { id: '2.6', max: 0.5, text: 'Trung thực thông tin: Đại biểu có báo cáo, cung cấp thông tin chính xác về hoạt động của mình?' } ] },
+  { id: 'L3', title: '3. Năng lực hoạt động dân cử · Lập pháp/Nghị quyết · Giám sát · Tiếp xúc cử tri · Đổi mới · Chuyển đổi số (AIM)', max: 16, items: [
+    { id: '3.1', max: 3, text: 'Phân tích chính sách (Analytical): Đại biểu có nghiên cứu sâu tài liệu, phân tích – phản biện chính sách và dự báo tác động để quyết định đúng các vấn đề quan trọng của địa phương?' },
+    { id: '3.2', max: 3, text: 'Chất lượng góp ý lập pháp/nghị quyết: Đại biểu có đóng góp ý kiến chất lượng vào dự thảo nghị quyết, văn bản; am hiểu pháp luật và thực tiễn?' },
+    { id: '3.3', max: 2, text: 'Hiệu quả giám sát (Delivery): Đại biểu có thực hiện tốt hoạt động giám sát, chất vấn và theo đến cùng kết quả giải quyết kiến nghị của cử tri?' },
+    { id: '3.4', max: 2, text: 'Ảnh hưởng & phối hợp (Influence/Collaboration): Đại biểu có phối hợp hiệu quả với các cơ quan và đại biểu khác theo tinh thần "một cơ quan thống nhất" (Whole-of-Government) vì kết quả chung?' },
+    { id: '3.5', max: 3, text: 'Đổi mới vì cử tri (Motivation for Excellence): Đại biểu có sáng kiến nâng cao chất lượng đại diện, giải quyết hiệu quả vấn đề bức xúc của cử tri?' },
+    { id: '3.6', max: 3, text: 'Chuyển đổi số & lấy người dân làm trung tâm: Đại biểu có ứng dụng CNTT trong hoạt động và lấy sự hài lòng của cử tri làm thước đo?' } ] },
+  { id: 'L4', title: '4. Uy tín với cử tri & quy tụ đoàn kết (Service)', max: 2, items: [
+    { id: '4.1', max: 1, text: 'Uy tín: Đại biểu có được cử tri và đồng nghiệp tín nhiệm, gắn bó mật thiết với Nhân dân?' },
+    { id: '4.2', max: 1, text: 'Quy tụ, đoàn kết: Đại biểu có góp phần xây dựng tập thể đoàn kết, đồng thuận?' } ] },
+  { id: 'L5', title: '5. Tự soi, tự sửa & trách nhiệm giải trình (Excellence)', max: 2, items: [
+    { id: '5.1', max: 1, text: 'Cầu thị: Đại biểu có chủ động tự đánh giá, tiếp thu góp ý của cử tri và đồng nghiệp?' },
+    { id: '5.2', max: 1, text: 'Giải trình & khắc phục: Đại biểu có giải trình rõ ràng và khắc phục hạn chế đã được chỉ ra?' } ] },
+];
+const CRITERIA_SG = {
+  leader: { label: 'Cán bộ lãnh đạo, quản lý', mau: 'Mẫu số 03', formula: '(a+b+c+d+đ+e)/6', groups: [
+    { id: 'L1', title: '1. Chính trị, tư tưởng & Liêm chính (Integrity)', max: 5, items: [
+      { id: '1.1', max: 1, text: 'Trung thành & nêu gương: Anh/chị có trung thành với Đảng, Tổ quốc, Nhân dân và nêu gương trong phục vụ cơ quan dân cử?' },
+      { id: '1.2', max: 1, text: 'Bản lĩnh chính trị: Anh/chị có giữ vững lập trường, bảo vệ đường lối của Đảng và giữ kỷ luật phát ngôn?' },
+      { id: '1.3', max: 1, text: 'Tinh thần phục vụ: Anh/chị có đặt lợi ích chung và yêu cầu phục vụ đại biểu, cử tri lên trên lợi ích cá nhân?' },
+      { id: '1.4', max: 1, text: 'Trách nhiệm: Anh/chị có hoàn thành tốt mọi nhiệm vụ phục vụ hoạt động của HĐND/Đoàn ĐBQH?' },
+      { id: '1.5', max: 0.5, text: 'Học tập: Anh/chị có cập nhật nghị quyết, pháp luật và kiến thức phục vụ công tác dân cử?' },
+      { id: '1.6', max: 0.5, text: 'Tầm nhìn & đổi mới: Anh/chị có tư duy đổi mới nâng cao chất lượng tham mưu, phục vụ?' } ] },
+    { id: 'L2', title: '2. Đạo đức, kỷ luật & nêu gương (Integrity)', max: 5, items: [
+      { id: '2.1', max: 1, text: 'Lối sống trong sạch: Anh/chị có sống cần – kiệm – liêm – chính và nêu gương?' },
+      { id: '2.2', max: 1, text: 'Phòng chống tiêu cực: Anh/chị có kiên quyết tránh tham ô, tham nhũng, lợi ích nhóm?' },
+      { id: '2.3', max: 1, text: 'Dám chịu trách nhiệm: Anh/chị có dám nghĩ – dám làm – dám chịu trách nhiệm vì việc chung?' },
+      { id: '2.4', max: 1, text: 'Tôn trọng nguyên tắc: Anh/chị có thực hiện nghiêm tập trung dân chủ, tự phê bình và phê bình?' },
+      { id: '2.5', max: 0.5, text: 'Minh bạch: Anh/chị có kê khai, công khai tài sản, thu nhập đúng quy định?' },
+      { id: '2.6', max: 0.5, text: 'Trung thực báo cáo: Anh/chị có cung cấp thông tin chính xác, kịp thời cho cấp trên?' } ] },
+    { id: 'L3', title: '3. Năng lực lãnh đạo & tham mưu phục vụ dân cử · Thực thi · Tác phong · Đổi mới · Chuyển đổi số (AIM)', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Lãnh đạo & phân tích (Analytical): Anh/chị có hoạch định, điều hành khoa học và phân tích – tham mưu đúng để phục vụ kỳ họp, hoạt động giám sát của cơ quan dân cử?' },
+      { id: '3.2', max: 3, text: 'Chuyên môn sâu: Anh/chị có am hiểu pháp luật, quy trình hoạt động của HĐND/Quốc hội và đề xuất giải pháp khả thi?' },
+      { id: '3.3', max: 2, text: 'Thực thi (Delivery): Anh/chị có bảo đảm tiến độ – chất lượng các nhiệm vụ phục vụ kỳ họp, giám sát, tiếp xúc cử tri?' },
+      { id: '3.4', max: 2, text: 'Tác phong & phối hợp (Influence): Anh/chị có phối hợp hiệu quả giữa các phòng/cơ quan theo tinh thần "một cơ quan thống nhất" (WoG)?' },
+      { id: '3.5', max: 3, text: 'Đổi mới (Motivation for Excellence): Anh/chị có sáng kiến nâng cao chất lượng tham mưu, phục vụ đại biểu và cử tri?' },
+      { id: '3.6', max: 3, text: 'Cải cách hành chính & chuyển đổi số: Anh/chị có thúc đẩy CNTT, hồ sơ điện tử và lấy sự hài lòng của đại biểu, cử tri làm thước đo?' } ] },
+    { id: 'L4', title: '4. Uy tín & quy tụ đoàn kết (Service)', max: 2, items: [
+      { id: '4.1', max: 1, text: 'Uy tín: Anh/chị có uy tín trong nội bộ và với đại biểu, cử tri?' },
+      { id: '4.2', max: 1, text: 'Quy tụ, đoàn kết: Anh/chị có xây dựng được tập thể đoàn kết, vững mạnh?' } ] },
+    { id: 'L5', title: '5. Tự soi, tự sửa (Excellence – cầu thị)', max: 2, items: [
+      { id: '5.1', max: 1, text: 'Cầu thị: Anh/chị có chủ động tự soi, tự sửa trong lãnh đạo, chỉ đạo?' },
+      { id: '5.2', max: 1, text: 'Khắc phục: Kết quả khắc phục hạn chế, khuyết điểm đã được chỉ ra ra sao?' } ] },
+  ] },
+  staff: { label: 'Công chức, viên chức không giữ chức vụ lãnh đạo, quản lý', mau: 'Mẫu số 04', formula: '(a+b+c)/3', groups: [
+    { id: 'S1', title: '1. Chính trị, tư tưởng & Liêm chính (Integrity)', max: 5, items: [
+      { id: '1.1', max: 2.5, text: 'Bản lĩnh & học tập: Anh/chị có lập trường vững vàng, chủ động học nghị quyết, pháp luật và vận dụng vào công tác phục vụ cơ quan dân cử?' },
+      { id: '1.2', max: 2.5, text: 'Kỷ luật & chấp hành: Anh/chị có thực hiện nghiêm nguyên tắc tổ chức, kỷ luật phát ngôn và bảo vệ bí mật nhà nước?' } ] },
+    { id: 'S2', title: '2. Đạo đức & ý thức tổ chức kỷ luật (Integrity)', max: 5, items: [
+      { id: '2.1', max: 1, text: 'Lối sống trong sạch: Anh/chị có trung thực, giản dị, không vụ lợi và tham gia phòng chống tiêu cực?' },
+      { id: '2.2', max: 1, text: 'Trách nhiệm & kỷ luật: Anh/chị có chấp hành phân công và thực hiện đúng quy chế, nội quy cơ quan?' },
+      { id: '2.3', max: 0.5, text: 'Minh bạch: Anh/chị có kê khai, công khai tài sản, thu nhập đúng quy định (nếu thuộc diện)?' },
+      { id: '2.4', max: 0.5, text: 'Trung thực báo cáo: Anh/chị có cung cấp thông tin chính xác, khách quan khi được yêu cầu?' },
+      { id: '2.5', max: 1, text: 'Đoàn kết & hợp tác (Collaboration): Anh/chị có quan hệ tốt với đồng nghiệp và tích cực tham gia phong trào tập thể?' },
+      { id: '2.6', max: 1, text: 'Gắn bó cơ sở: Anh/chị có giữ mối liên hệ tốt với cấp ủy và Nhân dân nơi cư trú?' } ] },
+    { id: 'S3', title: '3. Chuyên môn tham mưu phục vụ dân cử · Thực thi · Tác phong · Đổi mới · Chuyển đổi số (AIM)', max: 16, items: [
+      { id: '3.1', max: 3, text: 'Chuyên môn & phân tích (Analytical): Anh/chị có nắm vững lĩnh vực, pháp luật, quy trình hoạt động dân cử; biết nghiên cứu – phân tích – tổng hợp phục vụ kỳ họp, giám sát?' },
+      { id: '3.2', max: 3, text: 'Khả năng thực thi (Delivery): Anh/chị có hoàn thành tốt cả nhiệm vụ thường xuyên lẫn đột xuất, đúng tiến độ?' },
+      { id: '3.3', max: 3, text: 'Tác phong & hợp tác (Influence): Anh/chị có trách nhiệm cao, phối hợp hiệu quả và làm việc khoa học?' },
+      { id: '3.4', max: 3, text: 'Đổi mới (Motivation for Excellence): Anh/chị có sáng kiến/giải pháp nâng cao chất lượng phục vụ cơ quan dân cử?' },
+      { id: '3.5', max: 4, text: 'Chuyển đổi số: Anh/chị có sử dụng thành thạo CNTT; lập và nộp hồ sơ điện tử đúng quy định?' } ] },
+    { id: 'S4', title: '4. Tự soi, tự sửa (Excellence – cầu thị)', max: 4, items: [
+      { id: '4.1', max: 2, text: 'Cầu thị: Anh/chị có tự nhận diện hạn chế, khuyết điểm của bản thân?' },
+      { id: '4.2', max: 2, text: 'Khắc phục: Kết quả sửa chữa hạn chế, khuyết điểm đã được chỉ ra ra sao?' } ] },
+  ] },
+  contract: { label: 'Lao động hợp đồng hỗ trợ, phục vụ', mau: 'Mẫu số 05', formula: '(a+b+c)/3', groups: [
+    { id: 'C1', title: '1. Chính trị, đạo đức & ý thức kỷ luật (Integrity – Phục vụ)', max: 15, items: [
+      { id: '1.1', max: 3, text: 'Chấp hành: Anh/chị có thực hiện đúng chủ trương của Đảng, pháp luật và kỷ luật của cơ quan?' },
+      { id: '1.2', max: 3, text: 'Đạo đức: Anh/chị có gương mẫu về lối sống, không tham ô, lãng phí?' },
+      { id: '1.3', max: 3, text: 'Tác phong phục vụ (Service): Anh/chị có tận tụy, trung thực, năng động, đúng mực khi phục vụ hoạt động của cơ quan dân cử?' },
+      { id: '1.4', max: 3, text: 'Sẵn sàng nhận việc: Anh/chị có chấp hành phân công và thực hiện tốt quy chế, nội quy cơ quan?' },
+      { id: '1.5', max: 3, text: 'Ứng xử: Anh/chị có thực hiện đúng quy tắc ứng xử trong cơ quan?' } ] },
+    { id: 'C2', title: '2. Năng lực & khả năng thực thi (Delivery)', max: 10, items: [
+      { id: '2.1', max: 3, text: 'Cập nhật kiến thức: Anh/chị có chủ động cập nhật kiến thức để phục vụ tốt nhiệm vụ được giao?' },
+      { id: '2.2', max: 3, text: 'Lập kế hoạch: Anh/chị có xây dựng kế hoạch công tác cá nhân theo quy định?' },
+      { id: '2.3', max: 2, text: 'Thành thạo quy trình: Anh/chị có nắm vững quy chế, quy trình tác nghiệp theo yêu cầu?' },
+      { id: '2.4', max: 2, text: 'An toàn, hiệu quả: Anh/chị có sử dụng thành thạo phương tiện, thiết bị, bảo đảm an toàn và hiệu quả?' } ] },
+    { id: 'C3', title: '3. Tự soi, tự sửa (Excellence – cầu thị)', max: 5, items: [
+      { id: '3.1', max: 5, text: 'Cầu thị: Anh/chị có tự nhận diện hạn chế và chủ động khắc phục những điều đã được chỉ ra?' } ] },
+  ] },
+};
+CRITERIA_SG.hdnd = { label: CRITERIA_CLASSIC.hdnd.label, mau: 'Mẫu số 01', formula: '(a+b+c)/3', groups: dancuGroups };
+CRITERIA_SG.dbqh = { label: CRITERIA_CLASSIC.dbqh.label, mau: 'Mẫu số 02', formula: '(a+b+c)/3', groups: dancuGroups };
 
 // Bộ tiêu chí "đang hoạt động" — đổi theo phiên bản giao diện (giống mẫu setCatalogRegistry).
 // computePerson/UI/exporters đều đọc CRITERIA này; App gọi setCriteriaVersion(version) khi render.
 let CRITERIA = CRITERIA_CLASSIC;
-function setCriteriaVersion(v) { CRITERIA = (v === 'sg') ? CRITERIA_SG : CRITERIA_CLASSIC; }
+function setCriteriaVersion(v) { CRITERIA = (v === 'improved') ? CRITERIA_IMPROVED : (v === 'sg') ? CRITERIA_SG : CRITERIA_CLASSIC; }
 
 // Thứ tự hiển thị nhóm đối tượng (Mẫu 01 → 05)
 const CRITERIA_ORDER = ['hdnd', 'dbqh', 'leader', 'staff', 'contract'];
+
+// ===== 3 PHIÊN BẢN BỘ TIÊU CHÍ — nhãn + theme màu (Root/Login/header dùng chung) =====
+const VERSIONS = [
+  { id: 'classic', name: 'Cổ điển', desc: 'Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)' },
+  { id: 'improved', name: 'Cải tiến', desc: 'Cùng khung điểm, câu hỏi dễ hiểu (AIM/ISE)' },
+  { id: 'sg', name: 'Singapore', desc: 'Thiết kế riêng cho cơ quan dân cử (HĐND/ĐBQH)' },
+];
+const VERSION_THEME = {
+  classic: { grad: 'from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]', blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/20', eyebrow: 'text-amber-300', badge: 'bg-amber-400 text-red-900', tabOn: 'bg-white text-red-800 ring-1 ring-amber-300/50', tabOff: 'text-red-100/80 hover:text-white hover:bg-white/10' },
+  improved: { grad: 'from-[#0b3b5e] via-[#0e7490] to-[#155e75]', blob1: 'bg-cyan-300/20', blob2: 'bg-teal-400/20', eyebrow: 'text-cyan-200', badge: 'bg-cyan-300 text-cyan-950', tabOn: 'bg-white text-cyan-800 ring-1 ring-cyan-300/50', tabOff: 'text-cyan-100/80 hover:text-white hover:bg-white/10' },
+  sg: { grad: 'from-[#3b0764] via-[#6d28d9] to-[#4338ca]', blob1: 'bg-violet-300/20', blob2: 'bg-indigo-400/20', eyebrow: 'text-violet-200', badge: 'bg-violet-300 text-violet-950', tabOn: 'bg-white text-indigo-800 ring-1 ring-violet-300/50', tabOff: 'text-violet-100/80 hover:text-white hover:bg-white/10' },
+};
+const VERSION_NAME = (v) => (VERSIONS.find((x) => x.id === v) || VERSIONS[0]).name;
 
 // Chức danh được coi là "giữ chức vụ lãnh đạo, quản lý" → áp công thức 6 thành phần (Điều 7 QĐ 1053).
 // Dùng chung cho cả 3 phiên bản (bản PRO import lại từ đây).
@@ -459,7 +576,7 @@ function computePerson(p) {
   };
 }
 let pid = 3, trkId = 1, t335Id = 100;
-const newTask335 = () => ({ id: t335Id++, catalogId: '', objId: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
+const newTask335 = (objId = '') => ({ id: t335Id++, catalogId: '', objId, kr: '', assigned: 1, completed: 1, qualityIssues: 0, delays: 0, note: '' });
 const newTracking = () => ({ id: trkId++, content: '', coordination: '', directive: '', finalProduct: '', startDate: '', endDate: '', doneWork: '', doingWork: '', difficulties: '', proposals: '', note: '', catalogId: '', objId: '', completed: 0, qualityIssues: 0, delays: 0 });
 const newPerson = (name, type) => ({ id: pid++, name, position: '', department: '', email: '', role: 'canbo', type, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, digital: {}, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' });
 
@@ -562,8 +679,11 @@ function getWeekTitle(dateObj) {
 }
 
 export default function App({ version = 'classic', onPickVersion } = {}) {
-  setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Singapore) trước mọi tính toán & render
+  setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore) trước mọi tính toán & render
+  const isImproved = version === 'improved';
   const isSG = version === 'sg';
+  const isClassic = !isImproved && !isSG;
+  const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -763,7 +883,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     const tasks = (cur.tasks335 || []).map((t) => {
       const cat = t.catalogId ? findCatalogItem(t.catalogId) : null;
       const as = Number(t.assigned) || 0, cp = Number(t.completed) || 0;
-      return { catalogName: cat ? cat.name : '', note: t.note || '', assigned: t.assigned, completed: t.completed, qualityIssues: t.qualityIssues || 0, delays: t.delays || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
+      const obj = t.objId ? objectives.find((o) => o.id === t.objId) : null;
+      return { catalogName: cat ? cat.name : '', note: t.note || '', kr: t.kr || '', objTitle: obj ? obj.title : '', assigned: t.assigned, completed: t.completed, qualityIssues: t.qualityIssues || 0, delays: t.delays || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
     });
     exportWordPhieu({
       unit, mau: cfgW?.mau, name: cur.name, position: cur.position, department: cur.department,
@@ -893,6 +1014,37 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
 
+  // Render 1 dòng nhiệm vụ Nhóm II (dùng cho cả danh sách phẳng — Cổ điển, và gom theo Mục tiêu — Cải tiến/Singapore).
+  const renderTask335Row = (t, i) => { const sc = task335Score(t); const st = statusOf(sc);
+    return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
+      <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
+      <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">{isClassic ? '— Liên kết mục tiêu (OKR) —' : '— Việc thường xuyên / chưa gắn mục tiêu —'}</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+      {!isClassic && <div className="mb-2 flex items-center gap-2"><Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" /><input value={t.kr || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { kr: e.target.value })} placeholder="Kết quả cần đạt (sản phẩm/chỉ tiêu) — VD: 100% đúng hạn; ≥ 5 báo cáo thẩm tra; 0 lỗi" className="flex-1 bg-white border border-indigo-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div>}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
+      <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
+    </div>); };
+
+  // Gom nhiệm vụ theo Mục tiêu (Cải tiến/Singapore) — mỗi mục tiêu một khối, cuối cùng là "việc thường xuyên".
+  const renderGroupedTasks = () => {
+    const tasks = cur.tasks335 || [];
+    const idxOf = (t) => tasks.indexOf(t);
+    const groups = [];
+    objectives.forEach((o) => { const ts = tasks.filter((t) => t.objId === o.id); if (ts.length) groups.push({ key: o.id, title: o.title, ts }); });
+    const unl = tasks.filter((t) => !t.objId || !objectives.some((o) => o.id === t.objId));
+    if (unl.length || !groups.length) groups.push({ key: '__none__', title: 'Việc thường xuyên / chưa gắn mục tiêu', ts: unl, none: true });
+    return groups.map((g) => (
+      <div key={g.key} className="rounded-xl border border-slate-200 overflow-hidden">
+        <div className={`px-3 py-2 flex items-center gap-2 ${g.none ? 'bg-slate-100' : 'bg-indigo-50 border-b border-indigo-100'}`}>
+          <Target className={`w-4 h-4 shrink-0 ${g.none ? 'text-slate-400' : 'text-indigo-600'}`} />
+          <span className={`text-xs font-bold ${g.none ? 'text-slate-600' : 'text-indigo-800'}`}>{g.none ? g.title : `Mục tiêu: ${g.title}`}</span>
+          <span className="ml-auto text-[10px] font-semibold text-slate-500">{g.ts.length} nhiệm vụ</span>
+        </div>
+        <div className="p-2 space-y-3">{g.ts.map((t) => renderTask335Row(t, idxOf(t)))}</div>
+        {taskEditable && !g.none && <button onClick={() => upCur({ tasks335: [...tasks, newTask335(g.key)] })} className="w-full flex items-center justify-center gap-1.5 py-2 text-[11px] font-semibold text-indigo-600 hover:bg-indigo-50 border-t border-slate-100"><Plus className="w-3.5 h-3.5" /> Thêm nhiệm vụ vào mục tiêu này</button>}
+      </div>
+    ));
+  };
+
   // Lần đầu đăng nhập: gán Họ tên + Chức vụ vào danh sách cán bộ theo email (cập nhật nếu đã có, thêm mới nếu chưa).
   const applyFirstLoginProfile = ({ name, position }) => {
     if (!myEmail) return;
@@ -922,10 +1074,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
   return (
     <div className="min-h-screen text-slate-800" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
-      <header className={`relative overflow-hidden text-white bg-gradient-to-br ${isSG ? 'from-[#0b3b5e] via-[#0e7490] to-[#155e75]' : 'from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]'}`}>
+      <header className={`relative overflow-hidden text-white bg-gradient-to-br ${th.grad}`}>
         <div className="absolute inset-0 tech-grid pointer-events-none" />
-        <div className={`absolute -top-24 -right-10 w-80 h-80 rounded-full blur-3xl pointer-events-none ${isSG ? 'bg-cyan-300/20' : 'bg-amber-400/20'}`} />
-        <div className={`absolute -bottom-24 -left-10 w-72 h-72 rounded-full blur-3xl pointer-events-none ${isSG ? 'bg-teal-400/20' : 'bg-rose-500/20'}`} />
+        <div className={`absolute -top-24 -right-10 w-80 h-80 rounded-full blur-3xl pointer-events-none ${th.blob1}`} />
+        <div className={`absolute -bottom-24 -left-10 w-72 h-72 rounded-full blur-3xl pointer-events-none ${th.blob2}`} />
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <div className="shrink-0 w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-xl ring-2 ring-amber-300/60 emblem-glow animate-floatY p-1.5">
@@ -933,19 +1085,20 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${isSG ? 'text-cyan-200' : 'text-amber-300'}`}>Hệ thống quản trị OKR / KPI</p>
-                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${isSG ? 'bg-cyan-300 text-cyan-950' : 'bg-amber-400 text-red-900'}`}>Bản demo thử nghiệm</span>
-                {isSG && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-cyan-200/40 text-cyan-100">Phiên bản Singapore</span>}
+                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>Hệ thống quản trị OKR / KPI</p>
+                <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${th.badge}`}>Bản demo thử nghiệm</span>
+                {!isClassic && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Phiên bản {VERSION_NAME(version)}</span>}
               </div>
               <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
-              <p className="text-red-100/90 text-xs sm:text-sm mt-0.5">{unit}</p>
+              <p className="text-white/85 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
             {onPickVersion && (
               <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10" title="Chọn phiên bản bộ tiêu chí đánh giá">
-                <button onClick={() => onPickVersion('classic')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${!isSG ? 'bg-white text-red-800' : 'text-white/80 hover:bg-white/10'}`}>Cổ điển</button>
-                <button onClick={() => onPickVersion('sg')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${isSG ? 'bg-white text-cyan-800' : 'text-white/80 hover:bg-white/10'}`}>Singapore</button>
+                {VERSIONS.map((v) => { const on = version === v.id; return (
+                  <button key={v.id} onClick={() => onPickVersion(v.id)} title={v.desc} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${on ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'}`}>{v.name}</button>
+                ); })}
               </div>
             )}
             <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${isGuest ? 'bg-amber-500/20 text-amber-100' : (cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100')}`}>
@@ -978,7 +1131,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
             {[...tabs, ...(canManage ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }, { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
-              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? (isSG ? 'bg-white text-cyan-800 shadow-lg shadow-black/20 ring-1 ring-cyan-300/50' : 'bg-white text-red-800 shadow-lg shadow-black/20 ring-1 ring-amber-300/50') : (isSG ? 'text-cyan-100/80 hover:text-white hover:bg-white/10' : 'text-red-100/80 hover:text-white hover:bg-white/10')}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
+              return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
       </header>
@@ -1154,14 +1307,24 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
             <div className="flex-1 space-y-6">
               <div className="space-y-6">
-                {isSG && (
+                {isImproved && (
                   <section className="bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-200 rounded-2xl p-5">
-                    <h2 className="flex items-center gap-2 font-bold text-cyan-900"><Award className="w-5 h-5 text-cyan-700" /> Phiên bản Singapore — cách hiểu bộ tiêu chí</h2>
+                    <h2 className="flex items-center gap-2 font-bold text-cyan-900"><Award className="w-5 h-5 text-cyan-700" /> Phiên bản Cải tiến — cách hiểu bộ tiêu chí</h2>
                     <p className="text-sm text-cyan-900/80 mt-1.5 leading-relaxed">Vẫn dùng <b>khung điểm 30/70</b> và <b>điều kiện xếp loại Điều 8</b> như bản Cổ điển (theo QĐ 1053), nhưng câu hỏi được viết lại theo phong cách khu vực công Singapore để <b>dễ tự đánh giá hơn</b>: mỗi câu là một câu hỏi "Anh/chị có…?" kèm ví dụ.</p>
                     <div className="grid sm:grid-cols-3 gap-2.5 mt-3 text-[12px]">
                       <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">AIM — Năng lực</p><p className="text-cyan-900/75 mt-0.5 leading-snug">Phân tích (Analytical) · Ảnh hưởng & hợp tác (Influence) · Động lực hướng tới xuất sắc (Motivation).</p></div>
                       <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">ISE — Giá trị cốt lõi</p><p className="text-cyan-900/75 mt-0.5 leading-snug">Liêm chính (Integrity) · Phục vụ (Service) · Xuất sắc (Excellence).</p></div>
                       <div className="bg-white/70 rounded-xl border border-cyan-100 p-2.5"><p className="font-bold text-cyan-800">WoG — Hợp tác</p><p className="text-cyan-900/75 mt-0.5 leading-snug">"Một cơ quan thống nhất", lấy người dân/đại biểu làm trung tâm; KPI hướng kết quả.</p></div>
+                    </div>
+                  </section>
+                )}
+                {isSG && (
+                  <section className="bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-200 rounded-2xl p-5">
+                    <h2 className="flex items-center gap-2 font-bold text-indigo-900"><Award className="w-5 h-5 text-indigo-700" /> Phiên bản Singapore (cơ quan dân cử)</h2>
+                    <p className="text-sm text-indigo-900/80 mt-1.5 leading-relaxed">Bộ tiêu chí thiết kế riêng cho hoạt động của <b>HĐND / Đoàn ĐBQH</b>: nhấn chức năng <b>đại diện cử tri · giám sát · quyết định/nghị quyết · tiếp xúc, giải quyết kiến nghị cử tri</b> — theo phong cách AIM/ISE và tinh thần "lấy người dân làm trung tâm". Vẫn giữ <b>khung điểm 30/70 + Điều 8</b> nên đổi phiên bản không mất điểm.</p>
+                    <div className="grid sm:grid-cols-2 gap-2.5 mt-3 text-[12px]">
+                      <div className="bg-white/70 rounded-xl border border-violet-100 p-2.5"><p className="font-bold text-indigo-800">Đại biểu dân cử (Mẫu 01/02)</p><p className="text-indigo-900/75 mt-0.5 leading-snug">Câu hỏi xoay quanh: bản lĩnh đại diện, gắn bó cử tri, phân tích chính sách, chất lượng góp ý lập pháp/nghị quyết, hiệu quả giám sát.</p></div>
+                      <div className="bg-white/70 rounded-xl border border-violet-100 p-2.5"><p className="font-bold text-indigo-800">Cán bộ phục vụ (Mẫu 03/04/05)</p><p className="text-indigo-900/75 mt-0.5 leading-snug">Câu hỏi xoay quanh tham mưu, phục vụ kỳ họp – giám sát – tiếp xúc cử tri; lấy sự hài lòng của đại biểu, cử tri làm thước đo.</p></div>
                     </div>
                   </section>
                 )}
@@ -1201,15 +1364,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-4">
                     {taskEditable && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
-                    <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
-                    <div className="space-y-3">{(cur.tasks335 || []).map((t, i) => { const sc = task335Score(t); const st = statusOf(sc);
-                      return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
-                        <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
-                        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Liên kết mục tiêu (OKR) —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
-                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 bg-white/60 p-2 rounded-lg"><MiniNum label="Số lượng giao" value={t.assigned} min={1} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { assigned: v })} /><MiniNum label="Số lượng HT" value={t.completed} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { completed: v })} /><MiniNum label="Lỗi chất lượng" value={t.qualityIssues} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { qualityIssues: v })} /><MiniNum label="Chậm tiến độ" value={t.delays} min={0} disabled={!taskEditable} onChange={(v) => upTask335(t.id, { delays: v })} /></div>
-                        <div className="mt-2"><input value={t.note || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { note: e.target.value })} placeholder="Nhận xét, khó khăn, kiến nghị..." className="w-full bg-white/60 focus:bg-white border border-slate-200 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 outline-none focus:border-red-400 transition-colors disabled:opacity-60 disabled:cursor-not-allowed" /></div>
-                      </div>); })}</div>
-                    {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}
+                    {isClassic
+                      ? <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
+                      : <p className="text-xs text-indigo-800 mb-3 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5">Nhiệm vụ được <b>gom theo Mục tiêu</b> của cơ quan; mỗi nhiệm vụ ghi rõ <b>Kết quả cần đạt</b> và đếm khách quan (Lỗi chất lượng −25%, Chậm tiến độ −25%). <b>Mục tiêu (OKR) chỉ để định hướng — KHÔNG dùng để tính điểm</b>: điểm vẫn dựa trên số lượng/chất lượng/tiến độ. Không bắt buộc gắn mục tiêu (có thể để "việc thường xuyên").</p>}
+                    {isClassic
+                      ? (<><div className="space-y-3">{(cur.tasks335 || []).map((t, i) => renderTask335Row(t, i))}</div>
+                          {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}</>)
+                      : (<><div className="space-y-3">{renderGroupedTasks()}</div>
+                          {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ (chưa gắn mục tiêu)</button>}</>)}
                     {curC.leader && (
                       <div className="mt-4 rounded-xl border border-red-200 bg-red-50/60 p-3">
                         <p className="text-[11px] font-bold text-red-700 flex items-center gap-1.5 mb-2"><ShieldCheck className="w-3.5 h-3.5" /> Tiêu chí lãnh đạo, quản lý (Điều 7) — Điểm KQ = (a + b + c + d + đ + e) ÷ 6</p>
@@ -1660,6 +1822,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <li><b>KPI là đo lường khách quan</b> — gắn minh chứng (sản phẩm) cho nhiệm vụ trọng số cao; tránh "đếm cho có" bằng việc chia nhỏ nhiệm vụ vụn vặt.</li>
                 <li>Nên có <b>họp hiệu chỉnh</b> giữa các phòng trước khi chốt, tránh nơi chấm chặt nơi chấm lỏng.</li>
               </ul>
+              <div className="mt-2 rounded-xl border border-indigo-200 bg-indigo-50 p-3 text-[13px] text-indigo-900/90 leading-relaxed">
+                <p className="font-bold text-indigo-800 mb-1">Liên kết nhiệm vụ với Mục tiêu (OKR) — chỉ để ĐỊNH HƯỚNG, không để tính điểm</p>
+                <p>Theo thông lệ OKR (Google/John Doerr) và <i>quy luật Goodhart</i> ("khi một thước đo trở thành mục tiêu, nó hết là thước đo tốt"): <b>không nên dùng % đạt OKR để tự sinh ra điểm hay xếp loại cá nhân</b> — làm vậy khiến người ta đặt mục tiêu thấp cho dễ đạt. Vì thế trong các phiên bản Cải tiến/Singapore, nhiệm vụ Nhóm II được <b>gom theo Mục tiêu để nhìn rõ "việc nào phục vụ mục tiêu nào"</b>, nhưng điểm vẫn tính theo <b>số lượng giao/hoàn thành · lỗi chất lượng · chậm tiến độ</b> như cũ. Việc gắn mục tiêu là <b>khuyến khích, không bắt buộc</b> (nhiệm vụ chưa gắn xếp vào "việc thường xuyên"). Ô <b>"Kết quả cần đạt"</b> giúp mô tả rõ sản phẩm/chỉ tiêu của nhiệm vụ, không phải chỉ số để chấm điểm.</p>
+              </div>
             </GB>
 
             <GB icon={Cpu} title="12. Kiến trúc & triển khai (cho Quản trị viên)">

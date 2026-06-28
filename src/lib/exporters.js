@@ -116,7 +116,7 @@ export async function exportWordPhieu(ev) {
       const noCat = !t.catalogName;
       tRows.push(new TableRow({ children: [
         TC(i + 1, { align: C, size: 20 }),
-        TC(noCat ? '(Chưa chọn danh mục — không được tính điểm)' : (t.note ? `${t.catalogName} — ${t.note}` : t.catalogName), { size: 20, italics: noCat, color: noCat ? '9A3412' : undefined }),
+        TC(noCat ? '(Chưa chọn danh mục — không được tính điểm)' : [t.catalogName, t.kr ? `KR: ${t.kr}` : '', t.objTitle ? `Mục tiêu: ${t.objTitle}` : '', t.note || ''].filter(Boolean).join(' — '), { size: 20, italics: noCat, color: noCat ? '9A3412' : undefined }),
         TC(t.assigned, { align: C, size: 20 }),
         TC(t.completed, { align: C, size: 20 }),
         TC(t.qualityIssues, { align: C, size: 20 }),

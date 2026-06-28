@@ -7,9 +7,10 @@ paths:
 
 # Kiến trúc & nơi sửa
 
-> **HAI phiên bản BỘ TIÊU CHÍ** chọn ở Đăng nhập / header: **Cổ điển** (tông đỏ, QĐ 1053) và **Singapore** (tông xanh teal, câu hỏi AIM/ISE/WoG). *(Trước đây từng có 3 bản GIAO DIỆN Cổ điển/Mới/PRO — đã gỡ; nay là 2 bản TIÊU CHÍ dùng chung 1 giao diện. Mã 3 bản cũ còn trong lịch sử git.)*
-> - **`src/main.jsx`** render `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** giữ state `version` ('classic'|'sg') trong `localStorage` (`hdndkpi_version`) và truyền `version`/`onPickVersion` xuống `App`.
-> - **`src/App.jsx`** — toàn bộ ứng dụng: model + UI. Hai bộ tiêu chí `CRITERIA_CLASSIC` + `CRITERIA_SG` (CÙNG id/`max`/thang điểm, chỉ khác câu chữ); biến `CRITERIA` "active" đổi qua `setCriteriaVersion(version)` (gọi đầu render, giống `setCatalogRegistry`). `version` nằm trong deps `computed`.
+> **BA phiên bản BỘ TIÊU CHÍ** chọn ở Đăng nhập / header (`VERSIONS`/`VERSION_THEME`): **Cổ điển** (đỏ, QĐ 1053, câu chữ pháp lý), **Cải tiến** (teal, câu hỏi AIM/ISE/WoG dễ hiểu), **Singapore (cơ quan dân cử)** (tím, thiết kế riêng cho HĐND/ĐBQH). *(Trước đây từng có 3 bản GIAO DIỆN Cổ điển/Mới/PRO — đã gỡ; nay là 3 bản TIÊU CHÍ dùng chung 1 giao diện. Mã bản cũ còn trong lịch sử git.)*
+> - **`src/main.jsx`** render `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** giữ state `version` ('classic'|'improved'|'sg') trong `localStorage` (`hdndkpi_version`) và truyền `version`/`onPickVersion` xuống `App`.
+> - **`src/App.jsx`** — toàn bộ ứng dụng: model + UI. Ba bộ tiêu chí `CRITERIA_CLASSIC` + `CRITERIA_IMPROVED` + `CRITERIA_SG` (CÙNG id/`max`/thang điểm, chỉ khác câu chữ; `CRITERIA_SG` dùng `dancuGroups` cho Mẫu 01/02); biến `CRITERIA` "active" đổi qua `setCriteriaVersion(version)` (gọi đầu render, giống `setCatalogRegistry`). `version` nằm trong deps `computed`.
+> - **Nhóm II (bản Cải tiến/Singapore)**: nhiệm vụ `tasks335[]` có thêm `kr` (Kết quả cần đạt); UI gom theo Mục tiêu (`renderGroupedTasks`/`renderTask335Row`). **OKR chỉ để định hướng — KHÔNG tính vào điểm** (xem changelog: nghiên cứu Google/Doerr/Goodhart).
 
 ## Danh sách file
 - **`src/App.jsx`** — toàn bộ ứng dụng (model + UI). Tabs: Tổng quan · Đánh giá · Năng lực số · Theo dõi CV · Hướng dẫn · Liên hệ · Danh mục (chỉ Quản trị).

@@ -15,8 +15,14 @@ const t = {
   foot: 'text-red-100/70', footWarn: 'text-amber-200',
 };
 
+// 3 phiên bản bộ tiêu chí (đồng bộ với App.jsx) — hiển thị thẻ chọn ở màn đăng nhập.
+const VERSION_CARDS = [
+  { id: 'classic', name: 'Cổ điển', desc: 'Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)', onCls: 'border-red-400 bg-red-50 ring-red-200' },
+  { id: 'improved', name: 'Cải tiến', tag: '(dễ hiểu)', tagCls: 'text-cyan-700', desc: 'Cùng khung điểm, câu hỏi kiểu AIM/ISE; Nhóm II gom theo Mục tiêu', onCls: 'border-cyan-400 bg-cyan-50 ring-cyan-200' },
+  { id: 'sg', name: 'Singapore', tag: '(cơ quan dân cử)', tagCls: 'text-indigo-700', desc: 'Thiết kế riêng cho HĐND / Đoàn ĐBQH', onCls: 'border-indigo-400 bg-indigo-50 ring-indigo-200' },
+];
+
 export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion }) {
-  const isSG = version === 'sg';
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
@@ -73,15 +79,13 @@ export default function Login({ unit, onGuest, onClose, version = 'classic', onP
           {onPickVersion && (
             <div className="mb-4">
               <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Chọn phiên bản bộ tiêu chí đánh giá</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button type="button" onClick={() => onPickVersion('classic')} className={`rounded-xl border p-2.5 text-left transition ${!isSG ? 'border-red-400 bg-red-50 ring-2 ring-red-200' : 'border-slate-200 bg-white/70 hover:border-red-300'}`}>
-                  <span className="block text-[13px] font-bold text-slate-800">Cổ điển</span>
-                  <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)</span>
-                </button>
-                <button type="button" onClick={() => onPickVersion('sg')} className={`rounded-xl border p-2.5 text-left transition ${isSG ? 'border-cyan-400 bg-cyan-50 ring-2 ring-cyan-200' : 'border-slate-200 bg-white/70 hover:border-cyan-300'}`}>
-                  <span className="block text-[13px] font-bold text-slate-800">Singapore <span className="text-[10px] font-semibold text-cyan-700">(thử nghiệm)</span></span>
-                  <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">Cùng khung điểm, câu hỏi dễ hiểu (AIM/ISE)</span>
-                </button>
+              <div className="space-y-2">
+                {VERSION_CARDS.map((v) => { const on = version === v.id; return (
+                  <button key={v.id} type="button" onClick={() => onPickVersion(v.id)} className={`w-full rounded-xl border p-2.5 text-left transition ${on ? `${v.onCls} ring-2` : 'border-slate-200 bg-white/70 hover:border-slate-300'}`}>
+                    <span className="block text-[13px] font-bold text-slate-800">{v.name}{v.tag && <span className={`text-[10px] font-semibold ml-1 ${v.tagCls}`}>{v.tag}</span>}</span>
+                    <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">{v.desc}</span>
+                  </button>
+                ); })}
               </div>
             </div>
           )}
