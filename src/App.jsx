@@ -870,7 +870,7 @@ function seedSonHaPeople() {
   const chuyenVien = (idx, dept, profile, cfg) => mk(`Chuyên viên ${idx} · ${dept.replace('Phòng ', '')}`, dept, 'Chuyên viên', profile, cfg);
   const people = [
     // Mẫu 01 — Lãnh đạo, quản lý 01 (Chánh/Phó Chánh VP)
-    mk('Hà Ngọc Sơn', VP, 'Chánh Văn phòng', 'A', { email: 'chanhvp.demo@thanhhoa.gov.vn', selfNote: 'Chỉ đạo, điều hành toàn diện; hoàn thành vượt mức nhiều nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo, quản lý.' }),
+    mk('Chánh Văn phòng', VP, 'Chánh Văn phòng', 'A', { email: 'chanhvp.demo@thanhhoa.gov.vn', selfNote: 'Chỉ đạo, điều hành toàn diện; hoàn thành vượt mức nhiều nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo, quản lý.' }),
     mk('Lê Thị Hồng', VP, 'Phó Chánh Văn phòng', 'B', { email: 'phochanhvp.demo@thanhhoa.gov.vn', selfNote: 'Phụ trách hành chính - quản trị; cơ bản hoàn thành tốt.', mgrNote: 'Hoàn thành tốt; cần đẩy nhanh một số việc.' }),
   ];
   // Mẫu 02 — Lãnh đạo, quản lý 02 (Trưởng/Phó Trưởng phòng), mỗi phòng 1 Trưởng + 1 Phó
