@@ -15,8 +15,6 @@
 import { useState } from 'react';
 import { Award, Target, ShieldCheck, ClipboardCheck, FileText, Printer, Plus, Trash2, TrendingUp, Users, ChevronDown, AlertTriangle } from 'lucide-react';
 
-const clamp100 = (v, def = 100) => { const n = Number(v); return isFinite(n) ? Math.max(0, Math.min(100, n)) : def; };
-
 // ---------- NHÓM A — TIÊU CHÍ CHUNG (30 điểm), chấm nhị phân ----------
 export const KD_NHOMA = [
   {
@@ -100,13 +98,27 @@ export const KD_TRUC_SAMPLE = {
   ],
 };
 
-// 4 chỉ số KPI của mỗi trục.
-export const KD_KPI_KEYS = [
-  { k: 'A', name: 'A · Số lượng', hint: 'Số lượng sản phẩm/công việc hoàn thành so với kế hoạch (%). Hoàn thành 100% kế hoạch → 100%.' },
-  { k: 'B', name: 'B · Chất lượng', hint: 'Chất lượng sản phẩm đầu ra (%). Trừ khi sản phẩm phải điều chỉnh, bổ sung, sửa đổi nhiều lần, không đạt yêu cầu.' },
-  { k: 'C', name: 'C · Tiến độ', hint: 'Tiến độ hoàn thành (%). Trừ khi chậm tiến độ so với thời hạn được giao.' },
-  { k: 'D', name: 'D · Năng lực lãnh đạo, điều hành', hint: 'Năng lực lãnh đạo, chỉ đạo, điều hành, tổ chức thực hiện nhiệm vụ trong phạm vi phụ trách (%). Trừ khi lĩnh vực/bộ phận phụ trách bị xếp loại không hoàn thành.' },
+// ---------- CÁCH GHI ĐƠN GIẢN: mỗi nhiệm vụ chỉ chọn 1 MỨC ĐỘ HOÀN THÀNH + TẦM QUAN TRỌNG ----------
+// KPI của trục = trung bình có trọng số (%) của các nhiệm vụ (trọng số = hệ số theo tầm quan trọng).
+// Mức độ hoàn thành gói gọn cả số lượng · chất lượng · tiến độ · năng lực điều hành vào 1 lựa chọn dễ hiểu.
+export const KD_MUC = [
+  { k: 'xuatsac', rank: 4, pct: 100, exceed: true, label: 'Hoàn thành xuất sắc, vượt yêu cầu', short: 'Xuất sắc (vượt mức)', tone: 'bg-emerald-50 text-emerald-700 border-emerald-300' },
+  { k: 'tot', rank: 3, pct: 90, label: 'Hoàn thành tốt, đạt yêu cầu, đúng hạn', short: 'Hoàn thành tốt', tone: 'bg-sky-50 text-sky-700 border-sky-300' },
+  { k: 'dat', rank: 2, pct: 75, label: 'Cơ bản hoàn thành (còn thiếu sót nhỏ hoặc hơi chậm)', short: 'Cơ bản hoàn thành', tone: 'bg-teal-50 text-teal-700 border-teal-300' },
+  { k: 'chua', rank: 1, pct: 55, label: 'Chưa hoàn thành, còn hạn chế', short: 'Chưa hoàn thành', tone: 'bg-amber-50 text-amber-700 border-amber-300' },
+  { k: 'khong', rank: 0, pct: 30, fail: true, label: 'Không hoàn thành', short: 'Không hoàn thành', tone: 'bg-rose-50 text-rose-700 border-rose-300' },
 ];
+export const KD_MUC_DEFAULT = 'tot';
+export const mucOf = (k) => KD_MUC.find((m) => m.k === k) || KD_MUC[1];
+
+// Tầm quan trọng → hệ số quy đổi (thay cho việc gõ hệ số bằng tay).
+export const KD_TAM = [
+  { k: 'thuong', heso: 1, label: 'Thường xuyên', short: 'Thường xuyên' },
+  { k: 'quantrong', heso: 1.5, label: 'Quan trọng', short: 'Quan trọng' },
+  { k: 'trongtam', heso: 2, label: 'Trọng tâm, khó, phạm vi rộng', short: 'Trọng tâm' },
+];
+export const KD_TAM_DEFAULT = 'thuong';
+export const tamOf = (k) => KD_TAM.find((x) => x.k === k) || KD_TAM[0];
 
 // ---------- 4 mức xếp loại ----------
 export const KD_GRADES = [
@@ -143,27 +155,30 @@ const aVal = (kd, id, max, which) => {
   return max;
 };
 
-// Tính KPI 1 trục theo Phụ lục 3B: nếu có danh mục sản phẩm → suy A/B/C/D từ hệ số quy đổi;
-// nếu chưa lập danh mục → dùng A/B/C/D nhập tay (mặc định 100).
-//   planQ = Σ(số lượng × hệ số);  A = Σ(HT × hệ số)/planQ;  B/C/D = Σ(HT × hệ số × tỷ lệ chất lượng/tiến độ/lãnh đạo)/planQ.
 const num = (v, def = 0) => { const n = Number(v); return isFinite(n) ? n : def; };
-const rate = (v) => (v === undefined || v === null || v === '' ? 1 : num(v, 100) / 100);
+
+// Lấy danh sách nhiệm vụ của 1 trục; TƯƠNG THÍCH dữ liệu cũ: nếu chỉ có `products`
+// (danh mục 3B kiểu cũ) thì tự quy đổi sang nhiệm vụ đơn giản (name + mức + tầm quan trọng).
+export function trucTasks(d) {
+  if (d && Array.isArray(d.tasks)) return d.tasks;
+  if (d && Array.isArray(d.products)) return d.products.map((p) => {
+    const sl = num(p.soluong, 0), ht = (p.htSL === undefined || p.htSL === null || p.htSL === '') ? sl : num(p.htSL, 0);
+    const r = sl > 0 ? ht / sl : 1; let muc = 'tot';
+    if (ht > sl || num(p.clRate, 100) > 100 || num(p.tdRate, 100) > 100) muc = 'xuatsac';
+    else if (r >= 1) muc = 'tot'; else if (r >= 0.75) muc = 'dat'; else if (r >= 0.5) muc = 'chua'; else muc = 'khong';
+    const heso = num(p.heso, 1);
+    return { id: p.id, name: p.name, sanpham: p.sanpham, muc, tam: heso >= 2 ? 'trongtam' : heso >= 1.5 ? 'quantrong' : 'thuong' };
+  });
+  return [];
+}
+
+// KPI của 1 trục = trung bình có trọng số (%) của các nhiệm vụ. Chưa có nhiệm vụ → mặc định 100 (đủ điểm).
 export function trucKPI(d) {
-  const ps = ((d && d.products) || []).filter((p) => num(p.soluong, 0) > 0);
-  if (ps.length) {
-    let planQ = 0, aQ = 0, bQ = 0, cQ = 0, dQ = 0;
-    ps.forEach((p) => {
-      const heso = num(p.heso, 1) || 1, sl = num(p.soluong, 0);
-      const ht = (p.htSL === undefined || p.htSL === null || p.htSL === '') ? sl : num(p.htSL, 0);
-      planQ += sl * heso; aQ += ht * heso; bQ += ht * heso * rate(p.clRate); cQ += ht * heso * rate(p.tdRate); dQ += ht * heso * rate(p.ldRate);
-    });
-    if (planQ > 0) {
-      const A = aQ / planQ * 100, B = bQ / planQ * 100, C = cQ / planQ * 100, D = dQ / planQ * 100;
-      return { A, B, C, D, kpi: Math.min(100, (A + B + C + D) / 4), hasProducts: true };
-    }
-  }
-  const A = clamp100(d?.A), B = clamp100(d?.B), C = clamp100(d?.C), D = clamp100(d?.D);
-  return { A, B, C, D, kpi: (A + B + C + D) / 4, hasProducts: false };
+  const ts = trucTasks(d).filter((t) => t && t.muc);
+  if (!ts.length) return { kpi: 100, count: 0, exceed: 0, fail: 0, full: true, hasTasks: false };
+  let w = 0, wp = 0, exceed = 0, fail = 0, full = true;
+  ts.forEach((t) => { const m = mucOf(t.muc), h = tamOf(t.tam).heso; w += h; wp += m.pct * h; if (m.exceed) exceed++; if (m.fail) fail++; if (m.rank < 3) full = false; });
+  return { kpi: w ? Math.min(100, wp / w) : 100, count: ts.length, exceed, fail, full, hasTasks: true };
 }
 
 // ---------- Tính điểm 1 cá nhân (đọc person.kd) ----------
@@ -174,25 +189,22 @@ export function computeKD(person) {
   nhomA = Math.min(30, nhomA); nhomASelf = Math.min(30, nhomASelf);
   const truc = kd.truc || {};
   const kpiByTruc = {}; let nhomB = 0;
-  // Thống kê nhiệm vụ (từ danh mục sản phẩm) để áp điều kiện xếp loại Điều 13.
-  let totalTasks = 0, exceedTasks = 0, failTasks = 0;
+  // Thống kê nhiệm vụ (từ mức độ hoàn thành) để áp điều kiện xếp loại Điều 13.
+  let totalTasks = 0, exceedTasks = 0, failTasks = 0, allFull = true;
   KD_TRUC.forEach((t) => {
     const d = truc[t.id] || {};
-    kpiByTruc[t.id] = trucKPI(d).kpi;
-    nhomB += kpiByTruc[t.id] / 100 * t.max;
-    (d.products || []).filter((p) => num(p.soluong, 0) > 0).forEach((p) => {
-      totalTasks++;
-      const sl = num(p.soluong, 0); const ht = (p.htSL === undefined || p.htSL === null || p.htSL === '') ? sl : num(p.htSL, 0);
-      if (ht > sl || rate(p.clRate) > 1 || rate(p.tdRate) > 1) exceedTasks++;   // vượt mức
-      if (sl > 0 && ht < 0.5 * sl) failTasks++;                                  // không hoàn thành (<50% số lượng)
-    });
+    const r = trucKPI(d);
+    kpiByTruc[t.id] = r.kpi;
+    nhomB += r.kpi / 100 * t.max;
+    totalTasks += r.count; exceedTasks += r.exceed; failTasks += r.fail;
+    if (!r.full) allFull = false;                            // có nhiệm vụ chưa hoàn thành 100%
   });
   nhomB = Math.min(70, nhomB);
   const total = nhomA + nhomB;
   const totalSelf = nhomASelf + nhomB;
   const minKpi = Math.min(...KD_TRUC.map((t) => kpiByTruc[t.id]));
-  const full = minKpi >= 100 && nhomA >= 30;                // hoàn thành 100% nhiệm vụ + đủ Nhóm A
-  const under100 = minKpi < 100;                             // có nhiệm vụ hoàn thành dưới 100% (Điều 6.2)
+  const full = allFull && nhomA >= 30;                       // hoàn thành 100% nhiệm vụ + đủ Nhóm A
+  const under100 = !allFull;                                 // có nhiệm vụ hoàn thành dưới 100% (Điều 6.2)
   const exceedRate = totalTasks ? exceedTasks / totalTasks : 0;
   const failRate = totalTasks ? failTasks / totalTasks : 0;
   const disciplined = !!kd.disciplined;
@@ -206,20 +218,23 @@ export function computeKD(person) {
   };
 }
 
-// ---------- Dữ liệu mẫu theo hồ sơ A/B/C/D ----------
+// ---------- Dữ liệu mẫu theo hồ sơ (A/B/C/D = mức năng lực giả định) ----------
 export function defaultKD(profile) {
-  const lv = { A: { a: 100, b: 98, c: 98, d: 96 }, B: { a: 96, b: 90, c: 88, d: 85 }, C: { a: 82, b: 76, c: 74, d: 72 }, D: { a: 64, b: 58, c: 55, d: 60 } }[profile] || { a: 92, b: 88, c: 86, d: 84 };
+  // Mỗi hồ sơ → chuỗi mức độ hoàn thành gán luân phiên cho các nhiệm vụ mẫu.
+  const plan = {
+    A: ['xuatsac', 'xuatsac', 'tot'],
+    B: ['tot', 'tot', 'tot'],
+    C: ['dat', 'tot', 'dat'],
+    D: ['chua', 'khong', 'chua'],
+  }[profile] || ['tot', 'tot', 'tot'];
   const truc = {};
   KD_TRUC.forEach((t) => {
-    const products = (KD_TRUC_SAMPLE[t.id] || []).map((s, k) => {
-      const sl = num(s.soluong, 1); const jj = k % 2 === 0 ? 0 : -3; // biến thiên nhẹ giữa các sản phẩm
-      return {
-        id: `${t.id}s${k + 1}`, ...s,
-        htSL: Math.max(0, Math.round(sl * lv.a / 100)),   // số lượng hoàn thành thực tế
-        clRate: clamp100(lv.b + jj), tdRate: clamp100(lv.c), ldRate: clamp100(lv.d + jj), // % chất lượng/tiến độ/lãnh đạo
-      };
-    });
-    truc[t.id] = { muctieu: '', ketqua: '', products };
+    const tasks = (KD_TRUC_SAMPLE[t.id] || []).map((s, k) => ({
+      id: `${t.id}s${k + 1}`, name: s.name, sanpham: s.sanpham,
+      tam: s.heso >= 2 ? 'trongtam' : s.heso >= 1.5 ? 'quantrong' : 'thuong',
+      muc: plan[k % plan.length],
+    }));
+    truc[t.id] = { note: '', tasks };
   });
   // Chấm điểm số Nhóm A (mặc định = tối đa; hồ sơ thấp trừ điểm vài mục)
   const aMgr = {};
@@ -244,7 +259,6 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
   const setA = (which, id, val, max) => { const key = which === 'self' ? 'aSelf' : 'aMgr'; onPatch({ [key]: { ...(kd[key] || {}), [id]: clampMax(val, max) } }); };
   const setTruc = (id, patch) => onPatch({ truc: { ...(kd.truc || {}), [id]: { ...((kd.truc || {})[id] || {}), ...patch } } });
   const [openA, setOpenA] = useState(null);
-  const [openProd, setOpenProd] = useState(null);
   const [openInd, setOpenInd] = useState(null);
 
   return (
@@ -297,45 +311,26 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
         </div>
       </section>
 
-      {/* NHÓM B — 6 TRỤC */}
+      {/* NHÓM B — 6 TRỤC (cách ghi đơn giản) */}
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm B — Kết quả thực hiện nhiệm vụ (6 trục)</h2><span className="text-amber-300 font-bold text-sm">{c.nhomB.toFixed(2)} / 70</span></div>
         <div className="p-4 space-y-3">
-          <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Mỗi trục: <b>Điểm = KPI% × điểm tối đa</b>, với <b>KPI = (A + B + C + D)/4</b> (A số lượng · B chất lượng · C tiến độ · D năng lực lãnh đạo). Lập <b>danh mục sản phẩm/công việc</b> theo trục (Phụ lục 3B): mỗi việc có <b>hệ số quy đổi</b> theo độ khó/phức tạp; A/B/C/D <b>tự tính</b> từ số lượng hoàn thành và chất lượng/tiến độ/lãnh đạo đã quy đổi. Cá nhân xác định trục giữ vai trò <b>chính</b> (tỷ trọng cao) và trục <b>phối hợp, hỗ trợ</b> (tỷ trọng thấp) theo chức năng, vị trí công tác.</p>
-          {KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const r = trucKPI(d); const diem = r.kpi / 100 * t.max; const products = d.products || []; const openP = openProd === t.id; const openI = openInd === t.id; return (
+          <p className="text-xs text-slate-600 bg-emerald-50 border border-emerald-100 rounded-lg p-2.5">Cách ghi <b>đơn giản</b>: mỗi trục chỉ cần <b>liệt kê các nhiệm vụ trọng tâm đã làm trong quý</b> và chọn <b>Mức độ hoàn thành</b> cho từng việc (kèm <b>Tầm quan trọng</b> nếu cần). Phần mềm <b>tự tính KPI</b> của trục = trung bình có trọng số các mức độ; <b>Điểm = KPI% × điểm tối đa</b>. Không phải nhập hệ số hay tỷ lệ %.</p>
+          {KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const r = trucKPI(d); const diem = r.kpi / 100 * t.max; const tasks = trucTasks(d); const openI = openInd === t.id; return (
             <div key={t.id} className="border border-slate-200 rounded-xl overflow-hidden">
               <div className="bg-slate-50 px-3 py-2.5 flex items-start gap-2">
                 <span className="shrink-0 w-7 h-7 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-sm font-extrabold">{t.code}</span>
-                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-700 leading-snug">Trục {t.code} — {t.name}</p><button onClick={() => setOpenInd(openI ? null : t.id)} className="text-[11px] text-indigo-600 hover:text-indigo-800 mt-0.5 flex items-center gap-1"><ChevronDown className={`w-3 h-3 transition-transform ${openI ? 'rotate-180' : ''}`} /> Chỉ tiêu, nội dung của trục (Phụ lục 1A)</button></div>
-                <div className="shrink-0 text-right"><span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{diem.toFixed(2)}/{t.max}</span><p className="text-[10px] text-slate-500 mt-0.5">KPI {r.kpi.toFixed(0)}%</p></div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-700 leading-snug">Trục {t.code} — {t.name}</p><button onClick={() => setOpenInd(openI ? null : t.id)} className="text-[11px] text-indigo-600 hover:text-indigo-800 mt-0.5 flex items-center gap-1"><ChevronDown className={`w-3 h-3 transition-transform ${openI ? 'rotate-180' : ''}`} /> Gợi ý chỉ tiêu, nội dung của trục</button></div>
+                <div className="shrink-0 text-right"><span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{diem.toFixed(2)}/{t.max}</span><p className="text-[10px] text-slate-500 mt-0.5">KPI {r.kpi.toFixed(0)}%{r.hasTasks ? ` · ${r.count} việc` : ' · mặc định'}</p></div>
               </div>
               {openI && <ul className="px-4 py-2 bg-indigo-50/50 border-t border-indigo-100 list-disc pl-8 text-[11px] text-slate-600 space-y-0.5">{t.indicators.map((x, k) => <li key={k}>{x}</li>)}</ul>}
               <div className="p-3 space-y-2">
-                <div className="grid sm:grid-cols-2 gap-2">
-                  <textarea value={d.muctieu || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { muctieu: e.target.value })} rows={2} placeholder="Mục tiêu, nhiệm vụ đề ra trong quý..." className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50" />
-                  <textarea value={d.ketqua || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { ketqua: e.target.value })} rows={2} placeholder="Kết quả sản phẩm thực tế..." className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50" />
-                </div>
-                {r.hasProducts ? (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {[['A · Số lượng', r.A], ['B · Chất lượng', r.B], ['C · Tiến độ', r.C], ['D · Năng lực LĐ', r.D]].map(([lb, v]) => (
-                      <div key={lb} className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-center"><p className="text-[9px] text-slate-500 leading-tight">{lb}</p><p className="text-sm font-bold text-slate-700">{v.toFixed(0)}%</p></div>
-                    ))}
-                    <p className="col-span-2 sm:col-span-4 text-[10px] text-slate-400">A/B/C/D tự tính từ danh mục sản phẩm bên dưới (theo hệ số quy đổi). Sửa số liệu trong danh mục để cập nhật.</p>
-                  </div>
-                ) : (
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                    {KD_KPI_KEYS.map((kk) => (
-                      <label key={kk.k} className="block" title={kk.hint}><span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">{kk.name} <span className="text-slate-300">ⓘ</span></span>
-                        <div className="mt-0.5 flex items-center gap-1"><input type="number" min="0" max="100" value={d[kk.k] ?? 100} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { [kk.k]: e.target.value })} className="w-full text-xs p-1.5 border border-slate-200 rounded bg-white text-center font-semibold outline-none focus:border-red-400 disabled:bg-slate-50" /><span className="text-[10px] text-slate-400">%</span></div>
-                      </label>
-                    ))}
-                  </div>
-                )}
-                <button onClick={() => setOpenProd(openP ? null : t.id)} className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><ChevronDown className={`w-3.5 h-3.5 transition-transform ${openP ? 'rotate-180' : ''}`} /> Danh mục sản phẩm/công việc của trục ({products.length})</button>
-                {openP && <ProductList products={products} editable={selfEditable || mgrEditable} onChange={(ps) => setTruc(t.id, { products: ps })} />}
+                <TaskList tasks={tasks} editable={selfEditable || mgrEditable} onChange={(ts) => setTruc(t.id, { tasks: ts })} />
+                <textarea value={d.note || d.ketqua || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { note: e.target.value })} rows={2} placeholder="Ghi chú thêm (không bắt buộc): mục tiêu, kết quả nổi bật của trục..." className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50" />
               </div>
             </div>
           ); })}
+          <p className="text-[11px] text-slate-400">Trục chưa liệt kê nhiệm vụ → mặc định đạt tối đa (KPI 100%). Mức <b>Xuất sắc</b> được tính là nhiệm vụ <b>vượt mức</b>; mức <b>Không hoàn thành</b> được tính là nhiệm vụ <b>không hoàn thành</b> — dùng để xét điều kiện xếp loại (Điều 13).</p>
         </div>
       </section>
 
@@ -387,43 +382,28 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
   );
 }
 
-// Ô nhập nhỏ có nhãn (dùng trong danh mục sản phẩm).
-function PF({ label, hint, children }) { return (<label className="block" title={hint}><span className="text-[9px] text-slate-400 block leading-tight">{label}</span>{children}</label>); }
-const pinp = 'mt-0.5 w-full text-[11px] p-1 border border-slate-200 rounded bg-white outline-none focus:border-red-400 disabled:bg-slate-50';
-
-// Danh mục SẢN PHẨM/CÔNG VIỆC của 1 trục (Phụ lục 3B): kế hoạch (số lượng × hệ số quy đổi) và thực tế
-// (số lượng hoàn thành + % chất lượng/tiến độ/năng lực lãnh đạo) → tự suy A/B/C/D của trục.
-function ProductList({ products, editable, onChange }) {
-  const up = (id, patch) => onChange(products.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const add = () => onChange([...products, { id: 'p_' + (products.reduce((m, p) => Math.max(m, +String(p.id).replace(/\D/g, '') || 0), 0) + 1), name: '', captrinh: '', sanpham: 'Báo cáo', soluong: 1, tiendo: '', heso: 1, htSL: 1, clRate: 100, tdRate: 100, ldRate: 100 }]);
-  const del = (id) => onChange(products.filter((p) => p.id !== id));
+// DANH SÁCH NHIỆM VỤ của 1 trục — cách ghi ĐƠN GIẢN: mỗi việc = tên + mức độ hoàn thành + tầm quan trọng.
+function TaskList({ tasks, editable, onChange }) {
+  const up = (id, patch) => onChange(tasks.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  const add = () => onChange([...tasks, { id: 'k_' + (tasks.reduce((m, p) => Math.max(m, +String(p.id).replace(/\D/g, '') || 0), 0) + 1), name: '', muc: KD_MUC_DEFAULT, tam: KD_TAM_DEFAULT }]);
+  const del = (id) => onChange(tasks.filter((p) => p.id !== id));
   return (
-    <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 space-y-2">
-      {products.length === 0 && <p className="text-[11px] text-slate-400 italic px-1">Chưa có sản phẩm/công việc. Thêm để làm căn cứ tự tính A/B/C/D (hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động — công việc chuẩn = 1).</p>}
-      {products.map((p) => { const heso = num(p.heso, 1) || 1, sl = num(p.soluong, 0); const ht = (p.htSL === undefined || p.htSL === '') ? sl : num(p.htSL, 0); const short = ht < sl; return (
-        <div key={p.id} className="bg-white rounded-md border border-slate-200 p-2 space-y-1.5">
-          <div className="flex items-start gap-1.5">
-            <input value={p.name || ''} disabled={!editable} onChange={(e) => up(p.id, { name: e.target.value })} placeholder="Nhiệm vụ theo quý" className="flex-1 text-[11px] font-medium p-1 border border-slate-200 rounded outline-none focus:border-red-400 disabled:bg-slate-50" />
-            <span className="shrink-0 text-[9px] text-slate-400 pt-1">SL quy đổi KH: <b className="text-slate-600">{(sl * heso).toFixed(1)}</b></span>
-            {editable && <button onClick={() => del(p.id)} className="shrink-0 text-rose-400 hover:bg-rose-100 p-0.5 rounded"><Trash2 className="w-3.5 h-3.5" /></button>}
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            <PF label="Cấp trình"><input value={p.captrinh || ''} disabled={!editable} onChange={(e) => up(p.id, { captrinh: e.target.value })} className={pinp} /></PF>
-            <PF label="Sản phẩm"><input value={p.sanpham || ''} disabled={!editable} onChange={(e) => up(p.id, { sanpham: e.target.value })} className={pinp} /></PF>
-            <PF label="Tiến độ"><input value={p.tiendo || ''} disabled={!editable} onChange={(e) => up(p.id, { tiendo: e.target.value })} className={pinp} /></PF>
-            <PF label="Hệ số quy đổi" hint="Theo độ khó, mới, phức tạp, phạm vi tác động. Công việc chuẩn = 1; tờ trình/nghị quyết ≈ 1,5; khó, tác động lớn ≈ 2."><input type="number" min="0" step="0.1" value={p.heso ?? 1} disabled={!editable} onChange={(e) => up(p.id, { heso: e.target.value })} className={`${pinp} text-center font-semibold`} /></PF>
-          </div>
-          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded p-1.5 ${short ? 'bg-amber-50' : 'bg-slate-50'}`}>
-            <PF label="SL giao (định mức)"><input type="number" min="0" value={p.soluong ?? 1} disabled={!editable} onChange={(e) => up(p.id, { soluong: e.target.value })} className={`${pinp} text-center`} /></PF>
-            <PF label="SL hoàn thành" hint="Số lượng thực tế đã hoàn thành, nghiệm thu."><input type="number" min="0" value={p.htSL ?? p.soluong ?? 0} disabled={!editable} onChange={(e) => up(p.id, { htSL: e.target.value })} className={`${pinp} text-center font-semibold ${short ? 'text-amber-700' : ''}`} /></PF>
-            <PF label="Chất lượng %" hint="100% = đạt yêu cầu; giảm khi phải điều chỉnh, sửa đổi nhiều lần; >100% nếu chất lượng nổi trội."><input type="number" min="0" value={p.clRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { clRate: e.target.value })} className={`${pinp} text-center`} /></PF>
-            <PF label="Tiến độ %" hint="100% = đúng hạn; giảm khi chậm tiến độ; >100% nếu hoàn thành sớm, vượt tiến độ."><input type="number" min="0" value={p.tdRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { tdRate: e.target.value })} className={`${pinp} text-center`} /></PF>
-            <PF label="Năng lực lãnh đạo %" hint="100% = tốt; giảm nếu lĩnh vực/bộ phận phụ trách bị xếp loại không hoàn thành."><input type="number" min="0" value={p.ldRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { ldRate: e.target.value })} className={`${pinp} text-center`} /></PF>
-            {short && <p className="col-span-2 sm:col-span-4 text-[10px] text-amber-700">Hoàn thành {ht}/{sl} — chưa đạt định mức số lượng.</p>}
-          </div>
+    <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 space-y-1.5">
+      <div className="hidden sm:flex px-1 text-[10px] font-semibold text-slate-400 gap-1.5"><span className="flex-1">Nhiệm vụ, sản phẩm đã thực hiện</span><span className="w-44 text-center">Mức độ hoàn thành</span><span className="w-28 text-center">Tầm quan trọng</span><span className="w-5" /></div>
+      {tasks.length === 0 && <p className="text-[11px] text-slate-400 italic px-1">Chưa liệt kê nhiệm vụ nào (mặc định đạt tối đa). Bấm “Thêm nhiệm vụ” để ghi công việc đã làm trong quý và chọn mức độ hoàn thành.</p>}
+      {tasks.map((p) => { const m = mucOf(p.muc); return (
+        <div key={p.id} className="bg-white rounded-md border border-slate-200 p-1.5 flex flex-col sm:flex-row sm:items-center gap-1.5">
+          <input value={p.name || ''} disabled={!editable} onChange={(e) => up(p.id, { name: e.target.value })} placeholder="Tên nhiệm vụ / sản phẩm..." className="flex-1 text-xs font-medium p-1.5 border border-slate-200 rounded outline-none focus:border-red-400 disabled:bg-slate-50" />
+          <select value={p.muc || KD_MUC_DEFAULT} disabled={!editable} onChange={(e) => up(p.id, { muc: e.target.value })} className={`sm:w-44 text-xs p-1.5 rounded border font-semibold outline-none focus:ring-1 focus:ring-red-300 disabled:opacity-70 ${m.tone}`}>
+            {KD_MUC.map((x) => <option key={x.k} value={x.k}>{x.short}</option>)}
+          </select>
+          <select value={p.tam || KD_TAM_DEFAULT} disabled={!editable} onChange={(e) => up(p.id, { tam: e.target.value })} className="sm:w-28 text-xs p-1.5 rounded border border-slate-200 bg-white text-slate-600 outline-none focus:border-red-400 disabled:bg-slate-50" title="Tầm quan trọng → trọng số khi tính KPI (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2)">
+            {KD_TAM.map((x) => <option key={x.k} value={x.k}>{x.short}</option>)}
+          </select>
+          {editable ? <button onClick={() => del(p.id)} className="shrink-0 self-end sm:self-auto text-rose-400 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-3.5 h-3.5" /></button> : <span className="w-5" />}
         </div>
       ); })}
-      {editable && <button onClick={add} className="w-full flex items-center justify-center gap-1.5 py-1.5 border border-dashed border-slate-300 rounded-md text-[11px] font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-3.5 h-3.5" /> Thêm sản phẩm/công việc</button>}
+      {editable && <button onClick={add} className="w-full flex items-center justify-center gap-1.5 py-1.5 border border-dashed border-slate-300 rounded-md text-[11px] font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-3.5 h-3.5" /> Thêm nhiệm vụ</button>}
     </div>
   );
 }

@@ -8,7 +8,7 @@ import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
-import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC } from './KiemDiemAppraisal.jsx';
+import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf } from './KiemDiemAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -1245,7 +1245,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       unit, name: cur.name, position: cur.position, department: cur.department,
       quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
       nhomA: curC.nhomA, nhomB: curC.nhomB, total: curC.total,
-      trucs: KD_TRUC.map((t) => ({ code: t.code, name: t.name, max: t.max, kpi: curC.kpiByTruc[t.id] || 0, diem: (curC.kpiByTruc[t.id] || 0) / 100 * t.max, muctieu: (kd.truc || {})[t.id]?.muctieu || '', ketqua: (kd.truc || {})[t.id]?.ketqua || '' })),
+      trucs: KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const kpi = curC.kpiByTruc[t.id] || 0; const done = trucTasks(d).filter((x) => x && x.muc); const ketqua = done.map((x) => `${x.name || '(chưa đặt tên)'} — ${mucOf(x.muc).short}`).join('; '); return { code: t.code, name: t.name, max: t.max, kpi, diem: kpi / 100 * t.max, muctieu: d.note || '', ketqua }; }),
       selfGradeName: kd.selfGrade ? kdGradeInfo(kd.selfGrade).name : '', gradeName: result.name, autoGradeName: kdGradeInfo(curC.autoGrade).name,
       exemptNote: kd.exemptNote || '', selfNote: kd.selfNote || '', mgrNote: kd.mgrNote || '',
       uudiem: kd.uudiem || '', hanche: kd.hanche || '', phuonghuong: kd.phuonghuong || '',
@@ -2151,11 +2151,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-1.5 text-slate-500 text-[13px]">Cột <b>Cấp duyệt</b> mặc định kế thừa cột <b>Tự ĐG</b>; cán bộ mới mặc định đảm bảo tất cả (đủ 30đ).</p>
             </GB>
             <GB icon={Target} title="3. Nhóm B — Kết quả thực hiện nhiệm vụ (70 điểm), theo 6 trục">
-              <p>Điểm mỗi trục = <b>KPI% × điểm tối đa</b>, với <b>KPI = (A + B + C + D)/4</b> (A số lượng · B chất lượng · C tiến độ · D năng lực lãnh đạo, điều hành). Điểm tối đa 6 trục: <b>15 · 10 · 10 · 15 · 10 · 10 = 70</b>.</p>
+              <p>Điểm mỗi trục = <b>KPI% × điểm tối đa</b>. Điểm tối đa 6 trục: <b>15 · 10 · 10 · 15 · 10 · 10 = 70</b>.</p>
+              <p className="mt-1.5 bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 text-[13px]"><b>Cách ghi đơn giản:</b> với mỗi trục, chỉ cần <b>liệt kê các nhiệm vụ trọng tâm đã làm trong quý</b> và chọn <b>Mức độ hoàn thành</b> cho từng việc (Xuất sắc/vượt mức · Hoàn thành tốt · Cơ bản hoàn thành · Chưa hoàn thành · Không hoàn thành), kèm <b>Tầm quan trọng</b> (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2). Phần mềm <b>tự tính KPI</b> của trục = trung bình có trọng số các mức độ. Không phải nhập hệ số hay tỷ lệ %. Trục chưa liệt kê nhiệm vụ thì mặc định đạt tối đa.</p>
               <ul className="list-disc pl-5 space-y-1 mt-1">
                 {KD_TRUC.map((t) => <li key={t.id}><b>Trục {t.code} ({t.max}đ):</b> {t.name}.</li>)}
               </ul>
-              <p className="mt-1.5">Cá nhân xác định trục giữ vai trò <b>chính</b> (tỷ trọng cao) và trục <b>phối hợp, hỗ trợ</b> (tỷ trọng thấp). Có thể lập <b>danh mục sản phẩm/công việc</b> theo từng trục (hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động) làm căn cứ chấm A/B/C/D (Phụ lục 1B/3B).</p>
+              <p className="mt-1.5">Cá nhân xác định trục giữ vai trò <b>chính</b> (đặt nhiệm vụ ở mức Trọng tâm) và trục <b>phối hợp, hỗ trợ</b>. Mức <b>Xuất sắc</b> được tính là nhiệm vụ vượt mức, mức <b>Không hoàn thành</b> là nhiệm vụ không hoàn thành — dùng để xét điều kiện xếp loại (Điều 13).</p>
             </GB>
             <GB icon={ClipboardList} title="4. Xếp loại & quy trình">
               <p>Tổng điểm = Nhóm A + Nhóm B (thang 100). Xếp loại 4 mức: <b>Hoàn thành xuất sắc</b> (≥90 và nổi trội, không thiếu nhiệm vụ) · <b>Hoàn thành tốt</b> (≥70) · <b>Hoàn thành</b> (≥50) · <b>Không hoàn thành</b> (&lt;50).</p>
