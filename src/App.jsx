@@ -1013,9 +1013,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     loadingRef.current = false;
   };
 
-  // Nạp 5 cán bộ mẫu (demo) vào màn hình hiện tại. Khách: chỉ in-memory; quản trị: sẽ tự lưu kỳ này.
+  // Nạp cán bộ mẫu (demo) theo ĐÚNG phiên bản đang chọn: bản SonHa = 20 người, các bản khác = 5 người.
   const loadDemoPeople = () => {
-    const demo = seedDemoPeople();
+    const demo = seedDemoPeople(version);
     setSeedFrom(null);
     setPeople(demo); setCurId(demo[0]?.id ?? null);
     bumpCounters(demo);
@@ -1023,6 +1023,15 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { loadPeriod(period); refreshTrends(); }, []);
+
+  // Khách (demo) đổi phiên bản giữa phiên -> nạp lại bộ dữ liệu mẫu tương ứng (bản SonHa: 20 người).
+  const versionRef = useRef(version);
+  useEffect(() => {
+    if (versionRef.current === version) return; // bỏ qua lần mount đầu
+    versionRef.current = version;
+    if (sessionRef.current === 'guest') loadDemoPeople();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [version]);
 
   // Xác thực: nếu chưa cấu hình máy chủ -> chạy cục bộ (coi như quản trị)
   useEffect(() => {
