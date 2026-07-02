@@ -11,8 +11,9 @@ import App from './App.jsx';
 // Lựa chọn lưu trong localStorage để không phải chọn lại mỗi lần tải trang.
 const KEY = 'hdndkpi_version';
 const VALID = ['classic', 'improved', 'sg', 'sonha'];
+const DEFAULT_VERSION = 'sonha'; // mặc định vào trang là bản Sơn Hà
 const readVersion = () => {
-  try { const v = localStorage.getItem(KEY); return VALID.includes(v) ? v : 'classic'; } catch { return 'classic'; }
+  try { const v = localStorage.getItem(KEY); return VALID.includes(v) ? v : DEFAULT_VERSION; } catch { return DEFAULT_VERSION; }
 };
 
 export default function Root() {
