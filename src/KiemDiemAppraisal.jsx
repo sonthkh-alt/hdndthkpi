@@ -218,6 +218,16 @@ export function computeKD(person) {
   };
 }
 
+// Bảng chi tiết Nhóm A (điểm CẤP DUYỆT từng mục) để xuất phiếu Phụ lục 3A.
+export function kdNhomABreakdown(kd) {
+  kd = kd || {};
+  return KD_NHOMA.map((g) => ({
+    id: g.id, title: g.title, max: g.max,
+    sub: g.items.reduce((s, it) => s + aVal(kd, it.id, it.max, 'mgr'), 0),
+    items: g.items.map((it) => ({ id: it.id, text: it.text, max: it.max, diem: aVal(kd, it.id, it.max, 'mgr') })),
+  }));
+}
+
 // ---------- Dữ liệu mẫu theo hồ sơ (A/B/C/D = mức năng lực giả định) ----------
 export function defaultKD(profile) {
   // Mỗi hồ sơ → chuỗi mức độ hoàn thành gán luân phiên cho các nhiệm vụ mẫu.

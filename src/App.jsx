@@ -8,7 +8,7 @@ import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
-import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf } from './KiemDiemAppraisal.jsx';
+import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown } from './KiemDiemAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -1245,7 +1245,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       unit, name: cur.name, position: cur.position, department: cur.department,
       quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
       nhomA: curC.nhomA, nhomB: curC.nhomB, total: curC.total,
-      trucs: KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const kpi = curC.kpiByTruc[t.id] || 0; const done = trucTasks(d).filter((x) => x && x.muc); const ketqua = done.map((x) => `${x.name || '(chưa đặt tên)'} — ${mucOf(x.muc).short}`).join('; '); return { code: t.code, name: t.name, max: t.max, kpi, diem: kpi / 100 * t.max, muctieu: d.note || '', ketqua }; }),
+      nhomA_groups: kdNhomABreakdown(kd),
+      trucs: KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const kpi = curC.kpiByTruc[t.id] || 0; const done = trucTasks(d).filter((x) => x && x.muc); const ketqua = done.map((x) => `${x.name || '(chưa đặt tên)'} — ${mucOf(x.muc).short}`).join('; '); return { code: t.code, name: t.name, max: t.max, indicators: t.indicators || [], kpi, diem: kpi / 100 * t.max, muctieu: d.note || '', ketqua }; }),
       selfGradeName: kd.selfGrade ? kdGradeInfo(kd.selfGrade).name : '', gradeName: result.name, autoGradeName: kdGradeInfo(curC.autoGrade).name,
       exemptNote: kd.exemptNote || '', selfNote: kd.selfNote || '', mgrNote: kd.mgrNote || '',
       uudiem: kd.uudiem || '', hanche: kd.hanche || '', phuonghuong: kd.phuonghuong || '',
@@ -1257,10 +1258,16 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     const { exportKiemDiemTongHop } = await import('./lib/exporters');
     exportKiemDiemTongHop({
       unit, quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
-      rows: [...computed].sort((a, b) => b.c.total - a.c.total).map(({ p, c }, i) => ({
-        stt: i + 1, name: p.name, position: p.position || p.department || '',
-        nhomA: c.nhomA, nhomB: c.nhomB, total: c.total, gradeName: kdGradeInfo(c.grade).name,
-      })),
+      rows: [...computed].sort((a, b) => b.c.total - a.c.total).map(({ p, c }, i) => {
+        const isTop = c.grade === 'HTXS' || c.grade === 'KHT';
+        const reason = isTop ? [`Tổng điểm ${c.total.toFixed(1)}/100`, ...(c.gradeReasons || [])].join('. ') : '';
+        return {
+          stt: i + 1, name: p.name,
+          posUnit: [p.position, p.department].filter(Boolean).join(' — '),
+          selfGradeName: c.selfGrade ? kdGradeInfo(c.selfGrade).name : kdGradeInfo(c.autoGrade).name,
+          mgrGradeName: kdGradeInfo(c.grade).name, reason, canboNote: '',
+        };
+      }),
     });
   };
   const doExportTracking = async () => {

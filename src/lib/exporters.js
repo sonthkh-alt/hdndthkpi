@@ -311,124 +311,191 @@ export async function exportSGAppraisal(ev) {
 // PHIÊN BẢN KIỂM ĐIỂM (HD 03-HD/TU) — xuất Word
 // ============================================================================
 // Phụ lục 3A — Bản tự đánh giá, xếp loại của cá nhân (cán bộ diện BTV Tỉnh ủy quản lý).
-export async function exportKiemDiemCaNhan(ev) {
+// Khối tiêu đề 2 cột (không viền): trái = cơ quan Đảng; phải = Quốc hiệu Đảng + ngày tháng.
+function kdHeaderTwoCol(unit) {
   const C = AlignmentType.CENTER;
-  const children = [];
-  children.push(P((ev.unit || '').toUpperCase(), { bold: true, size: 24, align: C }));
-  children.push(P('ĐẢNG CỘNG SẢN VIỆT NAM', { bold: true, size: 24, align: C, spacingAfter: 120 }));
-  children.push(P('BẢN TỰ ĐÁNH GIÁ, XẾP LOẠI CỦA CÁ NHÂN', { bold: true, size: 30, align: C }));
-  children.push(P(`Quý ${ev.quarter}, năm ${ev.year}`, { bold: true, size: 26, align: C }));
-  children.push(P('(Cán bộ thuộc diện Ban Thường vụ Tỉnh ủy quản lý)', { italics: true, size: 22, align: C }));
-  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 200 }));
-
-  children.push(P([{ text: 'Họ và tên: ', bold: true }, { text: ev.name || '...' }]));
-  children.push(P([{ text: 'Chức vụ / Vị trí việc làm: ', bold: true }, { text: ev.position || '...' }]));
-  if (ev.department) children.push(P([{ text: 'Đơn vị công tác: ', bold: true }, { text: ev.department }], { spacingAfter: 160 }));
-
-  children.push(P('I. TỰ ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN NHIỆM VỤ', { bold: true, size: 26, spacingAfter: 80 }));
-  children.push(P([{ text: 'A. Nhóm tiêu chí chung: ', bold: true }, { text: `${fmt(ev.nhomA, 1)}/30 điểm` }]));
-  children.push(P([{ text: 'B. Kết quả thực hiện nhiệm vụ (6 trục): ', bold: true }, { text: `${fmt(ev.nhomB, 2)}/70 điểm` }], { spacingAfter: 80 }));
-
-  const rows = [new TableRow({ tableHeader: true, children: [
-    TC('Trục', { bold: true, align: C, shade: 'F2DEDE', width: 5 }),
-    TC('Nội dung trục kết quả · Mục tiêu, nhiệm vụ · Kết quả thực tế', { bold: true, align: C, shade: 'F2DEDE', width: 63 }),
-    TC('KPI (%)', { bold: true, align: C, shade: 'F2DEDE', width: 12 }),
-    TC('Điểm', { bold: true, align: C, shade: 'F2DEDE', width: 10 }),
-    TC('Tối đa', { bold: true, align: C, shade: 'F2DEDE', width: 10 }),
-  ] })];
-  (ev.trucs || []).forEach((t) => {
-    const lines = [`${t.name}`, t.muctieu ? `Mục tiêu: ${t.muctieu}` : '', t.ketqua ? `Kết quả: ${t.ketqua}` : ''].filter(Boolean).join(' — ');
-    rows.push(new TableRow({ children: [
-      TC(t.code, { align: C, bold: true, size: 20 }),
-      TC(lines, { size: 20 }),
-      TC(fmt(t.kpi, 0), { align: C, size: 20 }),
-      TC(fmt(t.diem, 2), { align: C, size: 20 }),
-      TC(t.max, { align: C, size: 20 }),
-    ] }));
-  });
-  rows.push(new TableRow({ children: [
-    TC('', {}), TC('TỔNG (A + B)', { bold: true, align: 'right', size: 20 }), TC('', {}), TC(fmt(ev.total, 1), { align: C, bold: true, size: 20 }), TC('100', { align: C, size: 20 }),
-  ] }));
-  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
-  children.push(P(`Công thức: mỗi trục Điểm = KPI% × điểm tối đa; KPI = (A số lượng + B chất lượng + C tiến độ + D năng lực lãnh đạo)/4.`, { italics: true, size: 20, spacingAfter: 120 }));
-
-  children.push(P('II. TỰ KIỂM ĐIỂM', { bold: true, size: 26, spacingAfter: 40 }));
-  children.push(P([{ text: '1. Ưu điểm, kết quả nổi bật: ', bold: true }, { text: ev.uudiem || '...' }], { spacingAfter: 40 }));
-  children.push(P([{ text: '2. Hạn chế, khuyết điểm và nguyên nhân: ', bold: true }, { text: ev.hanche || '...' }], { spacingAfter: 40 }));
-  children.push(P([{ text: '3. Phương hướng, biện pháp khắc phục kỳ tới: ', bold: true }, { text: ev.phuonghuong || '...' }], { spacingAfter: 80 }));
-
-  children.push(P('III. TỰ ĐỀ XUẤT XẾP LOẠI MỨC CHẤT LƯỢNG', { bold: true, size: 26, spacingAfter: 40 }));
-  children.push(P([{ text: 'Đề xuất theo điểm & điều kiện (Điều 13): ', bold: true }, { text: ev.autoGradeName || '' }]));
-  children.push(P([{ text: 'Cá nhân tự đề xuất xếp loại: ', bold: true }, { text: ev.selfGradeName || '...' }]));
-  if (ev.disciplined) children.push(P([{ text: 'Ghi chú: ', bold: true }, { text: 'Bị kỷ luật (khiển trách trở lên)/suy thoái trong kỳ.' }]));
-  (ev.gradeReasons || []).forEach((r) => children.push(P([{ text: '- ', bold: true }, { text: r }], { size: 22 })));
-  if (ev.exemptNote) children.push(P([{ text: 'Lý do khách quan (nếu hoàn thành dưới 100%): ', bold: true }, { text: ev.exemptNote }]));
-  if (ev.selfNote) children.push(P([{ text: 'Tự nhận xét: ', bold: true }, { text: ev.selfNote }]));
-  children.push(P('', { spacingAfter: 80 }));
-
-  children.push(P('IV. NHẬN XÉT, ĐÁNH GIÁ CỦA CẤP CÓ THẨM QUYỀN', { bold: true, size: 26, spacingAfter: 40 }));
-  children.push(P([{ text: 'Đề xuất/quyết định xếp loại: ', bold: true }, { text: ev.gradeName || '...' }]));
-  children.push(P([{ text: 'Nhận xét: ', bold: true }, { text: ev.mgrNote || '...' }], { spacingAfter: 200 }));
-
-  const signCol = (role, hint) => [P(role, { bold: true, align: C, size: 24 }), P(hint, { italics: true, align: C, size: 20 }), P('', { spacingAfter: 600 })];
   const NB = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
-  children.push(new Table({
+  const left = [P('TỈNH ỦY THANH HÓA', { bold: true, align: C, size: 24 }), P((unit || 'ĐẢNG ỦY ……….').toUpperCase(), { bold: true, align: C, size: 22 }), P('*', { bold: true, align: C, size: 24 })];
+  const right = [P('ĐẢNG CỘNG SẢN VIỆT NAM', { bold: true, align: C, size: 26 }), P('………, ngày …… tháng …… năm ……', { italics: true, align: C, size: 22 })];
+  return new Table({
     width: { size: 100, type: WidthType.PERCENTAGE },
     borders: { ...NB, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
     rows: [new TableRow({ children: [
-      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('CÁ NHÂN TỰ ĐÁNH GIÁ', '(Ký, ghi rõ họ tên)') }),
-      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('XÁC NHẬN CỦA TẬP THỂ LÃNH ĐẠO', '(Ký, ghi rõ họ tên và đóng dấu)') }),
+      new TableCell({ borders: NB, width: { size: 46, type: WidthType.PERCENTAGE }, children: left }),
+      new TableCell({ borders: NB, width: { size: 54, type: WidthType.PERCENTAGE }, children: right }),
     ] })],
-  }));
+  });
+}
 
-  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1000 } } }, children }] });
+// PHỤ LỤC 3A — Bản tự đánh giá, xếp loại của cá nhân (theo đúng biểu mẫu docs/DU/5.Phlc3A.docx).
+export async function exportKiemDiemCaNhan(ev) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
+  const children = [];
+  children.push(P('PHỤ LỤC 3A', { bold: true, align: R, size: 22 }));
+  children.push(kdHeaderTwoCol(ev.unit));
+  children.push(P('BẢN TỰ ĐÁNH GIÁ, XẾP LOẠI CỦA CÁ NHÂN', { bold: true, size: 28, align: C, spacingAfter: 20 }));
+  children.push(P(`Quý ${ev.quarter}, năm ${ev.year}`, { bold: true, size: 26, align: C }));
+  children.push(P('(Cán bộ thuộc diện Ban Thường vụ Tỉnh ủy quản lý)', { italics: true, size: 22, align: C }));
+  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 120 }));
+
+  const dots = '…………………………………………………';
+  children.push(P([{ text: 'Họ và tên: ', bold: true }, { text: (ev.name || '') + ' ' + dots }, { text: '  Ngày sinh: ', bold: true }, { text: '……………' }]));
+  children.push(P([{ text: 'Chức vụ Đảng: ', bold: true }, { text: ev.chucVuDang || dots }]));
+  children.push(P([{ text: 'Chức vụ chính quyền: ', bold: true }, { text: ev.position || dots }]));
+  children.push(P([{ text: 'Chức vụ đoàn thể: ', bold: true }, { text: dots }]));
+  children.push(P([{ text: 'Đơn vị công tác: ', bold: true }, { text: ev.department || ev.unit || dots }], { spacingAfter: 100 }));
+
+  children.push(P('I. Tự đánh giá kết quả thực hiện nhiệm vụ', { bold: true, size: 26, spacingAfter: 20 }));
+  children.push(P('Trên cơ sở nhiệm vụ được giao, cá nhân tự đánh giá về kết quả thực hiện nhiệm vụ theo quý như sau:', { italics: true, size: 22, spacingAfter: 60 }));
+
+  // ---- Bảng A: Nhóm tiêu chí chung (30 điểm) ----
+  const SH = 'F2DEDE';
+  const aRows = [
+    new TableRow({ tableHeader: true, children: [TC('A. NHÓM TIÊU CHÍ CHUNG (30 ĐIỂM)', { bold: true, align: C, shade: SH, span: 7 })] }),
+    new TableRow({ tableHeader: true, children: [
+      TC('TT', { bold: true, align: C, shade: SH, width: 6 }),
+      TC('Tiêu chí / Nội dung', { bold: true, align: C, shade: SH, width: 52 }),
+      TC('Đảm bảo (x)', { bold: true, align: C, shade: SH, width: 8 }),
+      TC('Không đảm bảo (x)', { bold: true, align: C, shade: SH, width: 9 }),
+      TC('Điểm tối đa', { bold: true, align: C, shade: SH, width: 9 }),
+      TC('Điểm đạt', { bold: true, align: C, shade: SH, width: 8 }),
+      TC('Ghi chú', { bold: true, align: C, shade: SH, width: 8 }),
+    ] }),
+  ];
+  (ev.nhomA_groups || []).forEach((g) => {
+    aRows.push(new TableRow({ children: [
+      TC(g.id.replace('A', ''), { align: C, bold: true, size: 20 }),
+      TC(g.title, { bold: true, size: 20 }),
+      TC('', { shade: 'F7F7F7' }), TC('', { shade: 'F7F7F7' }),
+      TC(fmt(g.max, 0), { align: C, bold: true, size: 20 }),
+      TC(fmt(g.sub, 2), { align: C, bold: true, size: 20 }),
+      TC('', {}),
+    ] }));
+    (g.items || []).forEach((it) => {
+      const dam = it.diem >= it.max - 1e-9, khong = it.diem <= 1e-9;
+      aRows.push(new TableRow({ children: [
+        TC(it.id, { align: C, size: 18 }),
+        TC(it.text, { size: 18 }),
+        TC(dam ? 'x' : '', { align: C, size: 20 }),
+        TC(khong ? 'x' : '', { align: C, size: 20 }),
+        TC(String(it.max).replace('.', ','), { align: C, size: 18 }),
+        TC(fmt(it.diem, 2), { align: C, size: 20 }),
+        TC('', {}),
+      ] }));
+    });
+  });
+  aRows.push(new TableRow({ children: [
+    TC('', {}), TC('Tổng (A) =', { bold: true, align: R, size: 20 }), TC('', {}), TC('', {}),
+    TC('30', { align: C, bold: true, size: 20 }), TC(fmt(ev.nhomA, 2), { align: C, bold: true, size: 20 }), TC('', {}),
+  ] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: aRows }));
+  children.push(P('Cách chấm: đảm bảo → tính điểm tối đa; không đảm bảo → 0 điểm.', { italics: true, size: 18, spacingAfter: 80 }));
+
+  // ---- Bảng B: Kết quả thực hiện nhiệm vụ (70 điểm) ----
+  const bRows = [
+    new TableRow({ tableHeader: true, children: [TC('B. KẾT QUẢ THỰC HIỆN NHIỆM VỤ ĐƯỢC GIAO (70 ĐIỂM)', { bold: true, align: C, shade: SH, span: 8 })] }),
+    new TableRow({ tableHeader: true, children: [
+      TC('TT', { bold: true, align: C, shade: SH, width: 4 }),
+      TC('Tiêu chí / Nội dung', { bold: true, align: C, shade: SH, width: 38 }),
+      TC('Mục tiêu, nhiệm vụ đề ra', { bold: true, align: C, shade: SH, width: 16 }),
+      TC('Kết quả sản phẩm thực tế', { bold: true, align: C, shade: SH, width: 16 }),
+      TC('Điểm KPI (%)', { bold: true, align: C, shade: SH, width: 8 }),
+      TC('Điểm tối đa', { bold: true, align: C, shade: SH, width: 6 }),
+      TC('Điểm đạt', { bold: true, align: C, shade: SH, width: 8 }),
+      TC('Ghi chú', { bold: true, align: C, shade: SH, width: 4 }),
+    ] }),
+  ];
+  (ev.trucs || []).forEach((t) => {
+    const noiDung = `Trục (${t.code}) - ${t.name}` + (t.indicators && t.indicators.length ? '. Chỉ tiêu: ' + t.indicators.join('; ') : '');
+    bRows.push(new TableRow({ children: [
+      TC(t.code, { align: C, bold: true, size: 20 }),
+      TC(noiDung, { size: 18 }),
+      TC(t.muctieu || '', { size: 18 }),
+      TC(t.ketqua || '', { size: 18 }),
+      TC(fmt(t.kpi, 0), { align: C, size: 20 }),
+      TC(fmt(t.max, 0), { align: C, size: 20 }),
+      TC(fmt(t.diem, 2), { align: C, bold: true, size: 20 }),
+      TC('', {}),
+    ] }));
+  });
+  bRows.push(new TableRow({ children: [
+    TC('', {}), TC('TỔNG (B) =', { bold: true, align: R, size: 20 }), TC('', {}), TC('', {}), TC('', {}),
+    TC('70', { align: C, bold: true, size: 20 }), TC(fmt(ev.nhomB, 2), { align: C, bold: true, size: 20 }), TC('', {}),
+  ] }));
+  bRows.push(new TableRow({ children: [
+    TC('', {}), TC('TỔNG (A + B) =', { bold: true, align: R, size: 20 }), TC('', {}), TC('', {}), TC('', {}),
+    TC('100', { align: C, bold: true, size: 20 }), TC(fmt(ev.total, 2), { align: C, bold: true, size: 20 }), TC('', {}),
+  ] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: bRows }));
+  children.push(P('Mỗi trục: Điểm đạt = Điểm KPI (%) × Điểm tối đa; KPI = (A số lượng + B chất lượng + C tiến độ + D năng lực lãnh đạo, điều hành)/4.', { italics: true, size: 18, spacingAfter: 80 }));
+
+  // ---- Tự kiểm điểm (tự luận) ----
+  children.push(P('* Tự kiểm điểm, nhận xét của cá nhân:', { bold: true, size: 24, spacingAfter: 20 }));
+  children.push(P([{ text: '- Ưu điểm, kết quả nổi bật: ', bold: true }, { text: ev.uudiem || '…' }]));
+  children.push(P([{ text: '- Hạn chế, khuyết điểm và nguyên nhân: ', bold: true }, { text: ev.hanche || '…' }]));
+  children.push(P([{ text: '- Phương hướng, biện pháp khắc phục kỳ tới: ', bold: true }, { text: ev.phuonghuong || '…' }], { spacingAfter: 100 }));
+
+  // ---- II. Tự đề xuất xếp loại ----
+  children.push(P([{ text: 'II. Tự đề xuất xếp loại mức chất lượng: ', bold: true }, { text: ev.selfGradeName || '……………………………………' }], { size: 26 }));
+  children.push(P('(Theo 04 mức: 1- Hoàn thành xuất sắc nhiệm vụ; 2- Hoàn thành tốt nhiệm vụ; 3- Hoàn thành nhiệm vụ; 4- Không hoàn thành nhiệm vụ)', { italics: true, size: 20, spacingAfter: 40 }));
+  children.push(P('CÁ NHÂN TỰ ĐÁNH GIÁ', { bold: true, align: R, size: 24 }));
+  children.push(P('(Ký, ghi rõ họ tên)', { italics: true, align: R, size: 20, spacingAfter: 400 }));
+
+  // ---- III. Nhận xét, đánh giá của cấp có thẩm quyền ----
+  children.push(P('III. Nhận xét, đánh giá của cấp có thẩm quyền', { bold: true, size: 26, spacingAfter: 20 }));
+  children.push(P([{ text: '- Chấm điểm: ', bold: true }, { text: `${fmt(ev.total, 1)}/100 điểm` + (ev.autoGradeName ? ` (đề xuất theo điều kiện Điều 13: ${ev.autoGradeName})` : '') }]));
+  children.push(P([{ text: '- Đề xuất xếp loại: ', bold: true }, { text: ev.gradeName || '…………………………' }]));
+  children.push(P([{ text: '- Mức độ đáp ứng đối với các mục tiêu, nhiệm vụ then chốt: ', bold: true }, { text: ev.mgrNote || '…' }]));
+  if (ev.disciplined) children.push(P([{ text: '- Ghi chú: ', bold: true }, { text: 'Bị kỷ luật (khiển trách trở lên)/suy thoái trong kỳ.' }], { size: 22 }));
+  (ev.gradeReasons || []).forEach((r) => children.push(P([{ text: '- ', bold: true }, { text: r }], { size: 22 })));
+  if (ev.exemptNote) children.push(P([{ text: '- Lý do khách quan (nếu hoàn thành dưới 100%): ', bold: true }, { text: ev.exemptNote }], { size: 22 }));
+  children.push(P('', { spacingAfter: 120 }));
+  children.push(P('XÁC NHẬN CỦA BAN THƯỜNG VỤ ĐẢNG ỦY TRỰC THUỘC TỈNH ỦY', { bold: true, align: R, size: 22 }));
+  children.push(P('HOẶC TẬP THỂ LÃNH ĐẠO CƠ QUAN, ĐƠN VỊ', { bold: true, align: R, size: 22 }));
+  children.push(P('(Xác lập thời điểm, ký, ghi rõ họ tên và đóng dấu)', { italics: true, align: R, size: 20 }));
+
+  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 900, bottom: 900, left: 1000, right: 900 } } }, children }] });
   const blob = await Packer.toBlob(doc);
   saveAs(blob, `TuDanhGia_KiemDiem_${(ev.name || 'canbo').replace(/\s+/g, '_')}_Quy${ev.quarter}_${ev.year}.docx`);
 }
 
-// Phụ lục 4 — Bảng tổng hợp kết quả đánh giá và đề xuất xếp loại quý (tập thể).
+// PHỤ LỤC 4 — Tổng hợp kết quả đánh giá và đề xuất xếp loại quý (tập thể),
+// theo đúng biểu mẫu docs/DU/7.Phlc4.doc (7 cột, khổ ngang).
 export async function exportKiemDiemTongHop(ev) {
-  const C = AlignmentType.CENTER;
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
   const children = [];
-  children.push(P((ev.unit || '').toUpperCase(), { bold: true, size: 24, align: C }));
-  children.push(P('ĐẢNG CỘNG SẢN VIỆT NAM', { bold: true, size: 24, align: C, spacingAfter: 120 }));
-  children.push(P(`TỔNG HỢP KẾT QUẢ ĐÁNH GIÁ VÀ ĐỀ XUẤT XẾP LOẠI QUÝ ${ev.quarter}, NĂM ${ev.year}`, { bold: true, size: 28, align: C }));
-  children.push(P('ĐỐI VỚI CÁN BỘ THUỘC DIỆN BAN THƯỜNG VỤ TỈNH ỦY QUẢN LÝ', { bold: true, size: 26, align: C }));
-  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 200 }));
+  children.push(P('PHỤ LỤC 4', { bold: true, align: R, size: 22 }));
+  children.push(kdHeaderTwoCol(ev.unit));
+  children.push(P(`TỔNG HỢP KẾT QUẢ ĐÁNH GIÁ VÀ ĐỀ XUẤT XẾP LOẠI QUÝ ${ev.quarter}, NĂM ${ev.year}`, { bold: true, size: 27, align: C }));
+  children.push(P('ĐỐI VỚI CÁN BỘ THUỘC DIỆN BAN THƯỜNG VỤ TỈNH ỦY QUẢN LÝ', { bold: true, size: 25, align: C }));
+  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 160 }));
 
+  const SH = 'F2DEDE';
   const rows = [new TableRow({ tableHeader: true, children: [
-    TC('STT', { bold: true, align: C, shade: 'F2DEDE', width: 6 }),
-    TC('Họ và tên', { bold: true, align: C, shade: 'F2DEDE', width: 30 }),
-    TC('Chức vụ', { bold: true, align: C, shade: 'F2DEDE', width: 30 }),
-    TC('Nhóm A', { bold: true, align: C, shade: 'F2DEDE', width: 9 }),
-    TC('Nhóm B', { bold: true, align: C, shade: 'F2DEDE', width: 9 }),
-    TC('Tổng', { bold: true, align: C, shade: 'F2DEDE', width: 8 }),
-    TC('Đề xuất xếp loại', { bold: true, align: C, shade: 'F2DEDE', width: 18 }),
+    TC('STT', { bold: true, align: C, shade: SH, width: 4 }),
+    TC('Họ và tên', { bold: true, align: C, shade: SH, width: 15 }),
+    TC('Chức vụ, đơn vị công tác', { bold: true, align: C, shade: SH, width: 20 }),
+    TC('Cá nhân tự đề xuất mức xếp loại', { bold: true, align: C, shade: SH, width: 14 }),
+    TC('Cấp có thẩm quyền đề xuất mức xếp loại', { bold: true, align: C, shade: SH, width: 14 }),
+    TC('Tóm tắt căn cứ, cơ sở, lý do trong trường hợp đề xuất mức HTXS hoặc KHTNV hoặc các nội dung khác (nếu có)', { bold: true, align: C, shade: SH, width: 21 }),
+    TC('Đề xuất nội dung liên quan về công tác cán bộ (nếu có)', { bold: true, align: C, shade: SH, width: 12 }),
   ] })];
   (ev.rows || []).forEach((r) => {
     rows.push(new TableRow({ children: [
       TC(r.stt, { align: C, size: 20 }),
       TC(r.name || '', { size: 20 }),
-      TC(r.position || '', { size: 20 }),
-      TC(fmt(r.nhomA, 1), { align: C, size: 20 }),
-      TC(fmt(r.nhomB, 1), { align: C, size: 20 }),
-      TC(fmt(r.total, 1), { align: C, bold: true, size: 20 }),
-      TC(r.gradeName || '', { align: C, size: 20 }),
+      TC(r.posUnit || '', { size: 20 }),
+      TC(r.selfGradeName || '', { align: C, size: 20 }),
+      TC(r.mgrGradeName || '', { align: C, size: 20 }),
+      TC(r.reason || '', { size: 18 }),
+      TC(r.canboNote || '', { size: 18 }),
     ] }));
   });
   children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
   children.push(P('', { spacingAfter: 200 }));
-
-  const signCol = (role, hint) => [P(role, { bold: true, align: C, size: 24 }), P(hint, { italics: true, align: C, size: 20 }), P('', { spacingAfter: 600 })];
-  const NB = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
-  children.push(new Table({
-    width: { size: 100, type: WidthType.PERCENTAGE },
-    borders: { ...NB, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
-    rows: [new TableRow({ children: [
-      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('NGƯỜI LẬP BIỂU', '(Ký, ghi rõ họ tên)') }),
-      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('THỦ TRƯỞNG CƠ QUAN', '(Ký, ghi rõ họ tên và đóng dấu)') }),
-    ] })],
-  }));
+  children.push(P('T/M BAN THƯỜNG VỤ ĐẢNG ỦY TRỰC THUỘC TỈNH ỦY', { bold: true, align: R, size: 22 }));
+  children.push(P('HOẶC TẬP THỂ LÃNH ĐẠO', { bold: true, align: R, size: 22 }));
+  children.push(P('(Xác lập thời điểm, ký, ghi rõ họ tên và đóng dấu)', { italics: true, align: R, size: 20 }));
 
   const doc = new Document({ sections: [{ properties: { page: { size: { orientation: 'landscape' }, margin: { top: 900, bottom: 900, left: 900, right: 900 } } }, children }] });
   const blob = await Packer.toBlob(doc);
