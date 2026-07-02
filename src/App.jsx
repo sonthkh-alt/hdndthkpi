@@ -1112,6 +1112,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
   // SonHa chỉ có 3 module — nếu đang ở tab khác (Năng lực số/Theo dõi CV/Danh mục/Quản trị) thì đưa về Tổng quan.
   useEffect(() => { if (isSonHa && !['dash', 'eval', 'guide'].includes(tab)) setTab('dash'); }, [isSonHa, tab]);
+  // Tab "Quản trị" đã ẩn ở mọi phiên bản — nếu đang ở đó thì đưa về Tổng quan.
+  useEffect(() => { if (tab === 'admin') setTab('dash'); }, [tab]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
@@ -1454,7 +1456,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage && !isSonHa ? [...(isSG ? [] : [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }]), { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage && !isSonHa && !isSG ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
