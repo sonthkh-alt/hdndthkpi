@@ -52,44 +52,51 @@ export const KD_NHOMA = [
 
 // ---------- NHÓM B — 6 TRỤC KẾT QUẢ TRỌNG TÂM (70 điểm) ----------
 export const KD_TRUC = [
-  { id: 't1', code: '1', max: 15, name: 'Thực hiện mục tiêu phát triển kinh tế - xã hội và nhiệm vụ chính trị được giao', hint: 'Tăng trưởng GRDP; thu ngân sách; thu nhập bình quân; giải ngân đầu tư công; giảm nghèo; hài lòng của người dân, doanh nghiệp; hoàn thành nhiệm vụ chính trị được giao.' },
-  { id: 't2', code: '2', max: 10, name: 'Hoàn thiện thể chế, đẩy mạnh phân cấp, phân quyền gắn với kiểm tra, giám sát', hint: 'Ban hành kế hoạch/chương trình hành động; triển khai phân cấp; giám sát phân quyền; tỷ lệ hồ sơ đúng hạn; PAR Index; tiếp dân định kỳ; giải quyết 100% đơn, thư thuộc trách nhiệm.' },
-  { id: 't3', code: '3', max: 10, name: 'Thúc đẩy phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số', hint: 'Triển khai chương trình, đề án chuyển đổi số; ứng dụng KHCN, đổi mới sáng tạo trong quản lý; tỷ lệ dịch vụ công trực tuyến.' },
-  { id: 't4', code: '4', max: 15, name: 'Xây dựng Đảng và hệ thống chính trị trong sạch, vững mạnh; đoàn kết nội bộ; phòng, chống tham nhũng, lãng phí, tiêu cực', hint: 'Xây dựng, củng cố TCCSĐ; kết nạp đảng viên; sinh hoạt, quán triệt định kỳ; sắp xếp, tinh gọn bộ máy, vận hành mô hình chính quyền hiệu năng, hiệu lực, hiệu quả.' },
-  { id: 't5', code: '5', max: 10, name: 'Phát triển văn hóa, con người, bảo đảm an sinh xã hội, nâng cao đời sống Nhân dân', hint: 'Chương trình phát triển văn hóa, con người; trường chuẩn quốc gia; bao phủ BHYT; lao động qua đào tạo, việc làm mới; chính sách người có công, giảm nghèo; nông thôn mới; bảo tồn di sản.' },
-  { id: 't6', code: '6', max: 10, name: 'Củng cố quốc phòng, an ninh, giữ vững ổn định chính trị - xã hội, nâng cao hiệu quả đối ngoại và hội nhập quốc tế', hint: 'Quốc phòng toàn dân, thế trận an ninh nhân dân; an ninh chính trị, TTATXH; tuyển quân, huấn luyện, diễn tập; ATGT, phòng chống tội phạm; đối ngoại, hội nhập; an ninh biên giới, kinh tế, mạng.' },
+  { id: 't1', code: '1', max: 15, name: 'Thực hiện mục tiêu phát triển kinh tế - xã hội và nhiệm vụ chính trị được giao',
+    indicators: ['Tốc độ tăng trưởng kinh tế GRDP', 'Thu ngân sách', 'Thu nhập bình quân đầu người', 'Tỉ lệ giải ngân vốn đầu tư công', 'Giảm tỉ lệ hộ nghèo', 'Mức độ hài lòng của người dân, doanh nghiệp', 'Hoàn thành nhiệm vụ chính trị được giao', 'Các nội dung khác (nếu có)'] },
+  { id: 't2', code: '2', max: 10, name: 'Hoàn thiện thể chế, đẩy mạnh phân cấp, phân quyền gắn với kiểm tra, giám sát',
+    indicators: ['Ban hành kế hoạch, chương trình hành động thực hiện các nghị quyết, chỉ thị, kết luận theo phân cấp', 'Triển khai, quán triệt chính sách phân cấp', 'Giám sát thực hiện phân quyền', 'Tỉ lệ hồ sơ giải quyết đúng hạn', 'Chỉ số cải cách hành chính (PAR Index)', 'Tổ chức tiếp dân định kỳ hằng tháng', 'Giải quyết 100% đơn, thư thuộc trách nhiệm, không để vượt cấp, kéo dài', 'Nội dung khác (nếu có)'] },
+  { id: 't3', code: '3', max: 10, name: 'Thúc đẩy phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số',
+    indicators: ['Triển khai chương trình, đề án chuyển đổi số', 'Ứng dụng khoa học công nghệ, đổi mới sáng tạo trong quản lý hành chính', 'Tỉ lệ dịch vụ công trực tuyến', 'Các nội dung khác (nếu có)'] },
+  { id: 't4', code: '4', max: 15, name: 'Xây dựng Đảng và hệ thống chính trị trong sạch, vững mạnh; giữ gìn đoàn kết, thống nhất nội bộ; phòng, chống tham nhũng, lãng phí, tiêu cực',
+    indicators: ['Xây dựng, củng cố tổ chức cơ sở đảng (thành lập mới, sắp xếp, kiện toàn các tổ chức đảng)', 'Tỷ lệ kết nạp đảng viên mới', 'Triển khai sinh hoạt, quán triệt định kỳ', 'Sắp xếp, tinh gọn tổ chức bộ máy, vận hành mô hình chính quyền hoạt động hiệu năng, hiệu lực, hiệu quả', 'Các nội dung khác (nếu có)'] },
+  { id: 't5', code: '5', max: 10, name: 'Phát triển văn hóa, con người, bảo đảm an sinh xã hội, nâng cao đời sống Nhân dân',
+    indicators: ['Triển khai các chương trình, đề án, phong trào phát triển văn hóa, xây dựng con người và hệ giá trị văn hóa, con người Việt Nam', 'Tỉ lệ trường đạt chuẩn quốc gia, phổ cập giáo dục', 'Tỉ lệ bao phủ bảo hiểm y tế, chất lượng chăm sóc sức khỏe Nhân dân', 'Tỉ lệ lao động qua đào tạo; số việc làm mới', 'Thực hiện chính sách người có công, bảo trợ xã hội, giảm nghèo bền vững', 'Xây dựng nông thôn mới; bảo tồn, phát huy giá trị di sản, bản sắc văn hóa dân tộc', 'Các nội dung khác (nếu có)'] },
+  { id: 't6', code: '6', max: 10, name: 'Củng cố quốc phòng, an ninh, giữ vững ổn định chính trị - xã hội, nâng cao hiệu quả đối ngoại và hội nhập quốc tế',
+    indicators: ['Xây dựng nền quốc phòng toàn dân, thế trận an ninh nhân dân vững chắc', 'Giữ vững an ninh chính trị, trật tự an toàn xã hội; không để hình thành "điểm nóng", bị động, bất ngờ', 'Hoàn thành chỉ tiêu tuyển quân, huấn luyện, diễn tập khu vực phòng thủ', 'Giảm tai nạn giao thông, tệ nạn xã hội; phòng, chống tội phạm, ma túy', 'Triển khai hiệu quả công tác đối ngoại, hợp tác quốc tế, thu hút đầu tư (FDI), xúc tiến thương mại, du lịch', 'Bảo đảm an ninh biên giới, an ninh kinh tế, an ninh mạng, an ninh tôn giáo, dân tộc', 'Các nội dung khác (nếu có)'] },
 ];
 export const KD_TRUC_MAX = KD_TRUC.reduce((s, t) => s + t.max, 0); // = 70
 
-// Mẫu nhiệm vụ/sản phẩm gợi ý theo từng trục (đặc thù cơ quan HĐND / Đoàn ĐBQH) — điền sẵn để chủ động,
-// người dùng chỉnh sửa hoặc bổ sung. heso = hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động (chuẩn = 1).
+// Mẫu DANH MỤC SẢN PHẨM/CÔNG VIỆC theo từng trục (đặc thù cơ quan Văn phòng Đoàn ĐBQH & HĐND tỉnh),
+// dựng theo cấu trúc Phụ lục 3B: Nhiệm vụ · Cấp trình · Sản phẩm · Số lượng · Tiến độ · Hệ số quy đổi.
+// heso = hệ số quy đổi theo độ khó, mới, phức tạp, phạm vi tác động (công việc chuẩn = 1; tờ trình/nghị quyết ≈ 1,5; khó, tác động lớn ≈ 2).
 export const KD_TRUC_SAMPLE = {
   t1: [
-    { name: 'Thẩm tra báo cáo tình hình KT-XH, thu chi ngân sách trình kỳ họp HĐND', sanpham: 'Báo cáo thẩm tra', soluong: 1, heso: 1.5 },
-    { name: 'Giám sát tiến độ giải ngân vốn đầu tư công, các dự án trọng điểm', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.5 },
-    { name: 'Theo dõi, đôn đốc thực hiện nghị quyết HĐND về phát triển KT-XH', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+    { name: 'Thẩm tra báo cáo tình hình KT-XH, dự toán/quyết toán thu chi ngân sách trình kỳ họp HĐND', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo thẩm tra', soluong: 1, tiendo: 'Theo kỳ họp', heso: 1.5 },
+    { name: 'Giám sát tiến độ giải ngân vốn đầu tư công, các dự án trọng điểm', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo giám sát', soluong: 1, tiendo: 'Hằng quý', heso: 1.5 },
+    { name: 'Theo dõi, đôn đốc thực hiện nghị quyết HĐND về phát triển KT-XH', captrinh: 'Lãnh đạo Ban', sanpham: 'Báo cáo', soluong: 1, tiendo: 'Hằng quý', heso: 1 },
   ],
   t2: [
-    { name: 'Thẩm tra dự thảo nghị quyết trình kỳ họp HĐND theo lĩnh vực phụ trách', sanpham: 'Báo cáo thẩm tra', soluong: 2, heso: 1.5 },
-    { name: 'Tổ chức giám sát chuyên đề theo chương trình, kế hoạch', sanpham: 'Báo cáo giám sát chuyên đề', soluong: 1, heso: 2 },
-    { name: 'Tiếp công dân định kỳ, xử lý đơn thư khiếu nại, tố cáo, kiến nghị', sanpham: 'Báo cáo tiếp dân, xử lý đơn thư', soluong: 3, heso: 1 },
+    { name: 'Thẩm tra dự thảo nghị quyết trình kỳ họp HĐND theo lĩnh vực phụ trách', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo thẩm tra', soluong: 2, tiendo: 'Theo kỳ họp', heso: 1.5 },
+    { name: 'Tổ chức giám sát chuyên đề theo chương trình, kế hoạch giám sát', captrinh: 'HĐND tỉnh', sanpham: 'Báo cáo giám sát chuyên đề', soluong: 1, tiendo: 'Theo kế hoạch', heso: 2 },
+    { name: 'Tiếp công dân định kỳ, xử lý đơn thư khiếu nại, tố cáo, kiến nghị của cử tri', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo tiếp dân, xử lý đơn thư', soluong: 3, tiendo: 'Hằng tháng', heso: 1 },
   ],
   t3: [
-    { name: 'Ứng dụng chuyển đổi số trong hoạt động HĐND (họp không giấy, phần mềm quản lý)', sanpham: 'Kế hoạch/Báo cáo', soluong: 1, heso: 1.2 },
-    { name: 'Chỉ đạo số hóa, khai thác dữ liệu phục vụ giám sát, quyết định', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+    { name: 'Ứng dụng chuyển đổi số trong hoạt động HĐND (họp không giấy, phần mềm quản lý văn bản)', captrinh: 'Lãnh đạo Văn phòng', sanpham: 'Kế hoạch/Báo cáo', soluong: 1, tiendo: 'Hằng quý', heso: 1.2 },
+    { name: 'Chỉ đạo số hóa, khai thác dữ liệu phục vụ giám sát, quyết định', captrinh: 'Lãnh đạo Ban', sanpham: 'Báo cáo', soluong: 1, tiendo: 'Hằng quý', heso: 1 },
   ],
   t4: [
-    { name: 'Lãnh đạo, chỉ đạo sinh hoạt cấp ủy, chi bộ định kỳ; quán triệt nghị quyết', sanpham: 'Biên bản/Báo cáo', soluong: 3, heso: 1 },
-    { name: 'Chỉ đạo sắp xếp, kiện toàn tổ chức bộ máy, biên chế theo phân cấp', sanpham: 'Đề án/Tờ trình', soluong: 1, heso: 2 },
-    { name: 'Triển khai công tác phòng, chống tham nhũng, lãng phí, tiêu cực', sanpham: 'Báo cáo', soluong: 1, heso: 1.2 },
+    { name: 'Lãnh đạo, chỉ đạo sinh hoạt cấp ủy, chi bộ định kỳ; quán triệt nghị quyết, chỉ thị', captrinh: 'Đảng ủy/Chi bộ', sanpham: 'Biên bản/Báo cáo', soluong: 3, tiendo: 'Hằng tháng', heso: 1 },
+    { name: 'Chỉ đạo sắp xếp, kiện toàn tổ chức bộ máy, biên chế theo phân cấp', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Đề án/Tờ trình', soluong: 1, tiendo: 'Theo yêu cầu', heso: 2 },
+    { name: 'Triển khai công tác phòng, chống tham nhũng, lãng phí, tiêu cực, thực hành tiết kiệm', captrinh: 'Lãnh đạo Ban', sanpham: 'Báo cáo', soluong: 1, tiendo: 'Hằng quý', heso: 1.2 },
   ],
   t5: [
-    { name: 'Giám sát thực hiện chính sách an sinh xã hội, giảm nghèo bền vững', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.5 },
-    { name: 'Giám sát lĩnh vực giáo dục, y tế, văn hóa, bảo hiểm y tế', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.2 },
+    { name: 'Giám sát thực hiện chính sách an sinh xã hội, giảm nghèo bền vững, người có công', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo giám sát', soluong: 1, tiendo: 'Hằng quý', heso: 1.5 },
+    { name: 'Giám sát lĩnh vực giáo dục, y tế, văn hóa, bảo hiểm y tế', captrinh: 'Lãnh đạo Ban', sanpham: 'Báo cáo giám sát', soluong: 1, tiendo: 'Theo kế hoạch', heso: 1.2 },
   ],
   t6: [
-    { name: 'Giám sát công tác quốc phòng, an ninh, trật tự an toàn xã hội, ATGT', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.2 },
-    { name: 'Tham gia hoạt động đối ngoại, hợp tác của HĐND/Đoàn ĐBQH', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+    { name: 'Giám sát công tác quốc phòng, an ninh, trật tự an toàn xã hội, an toàn giao thông', captrinh: 'Thường trực HĐND tỉnh', sanpham: 'Báo cáo giám sát', soluong: 1, tiendo: 'Hằng quý', heso: 1.2 },
+    { name: 'Tham gia hoạt động đối ngoại, hợp tác của HĐND/Đoàn ĐBQH tỉnh', captrinh: 'Đoàn ĐBQH tỉnh', sanpham: 'Báo cáo', soluong: 1, tiendo: 'Theo kế hoạch', heso: 1 },
   ],
 };
 
@@ -127,6 +134,29 @@ const aVal = (kd, id, max, which) => {
   return max;
 };
 
+// Tính KPI 1 trục theo Phụ lục 3B: nếu có danh mục sản phẩm → suy A/B/C/D từ hệ số quy đổi;
+// nếu chưa lập danh mục → dùng A/B/C/D nhập tay (mặc định 100).
+//   planQ = Σ(số lượng × hệ số);  A = Σ(HT × hệ số)/planQ;  B/C/D = Σ(HT × hệ số × tỷ lệ chất lượng/tiến độ/lãnh đạo)/planQ.
+const num = (v, def = 0) => { const n = Number(v); return isFinite(n) ? n : def; };
+const rate = (v) => (v === undefined || v === null || v === '' ? 1 : num(v, 100) / 100);
+export function trucKPI(d) {
+  const ps = ((d && d.products) || []).filter((p) => num(p.soluong, 0) > 0);
+  if (ps.length) {
+    let planQ = 0, aQ = 0, bQ = 0, cQ = 0, dQ = 0;
+    ps.forEach((p) => {
+      const heso = num(p.heso, 1) || 1, sl = num(p.soluong, 0);
+      const ht = (p.htSL === undefined || p.htSL === null || p.htSL === '') ? sl : num(p.htSL, 0);
+      planQ += sl * heso; aQ += ht * heso; bQ += ht * heso * rate(p.clRate); cQ += ht * heso * rate(p.tdRate); dQ += ht * heso * rate(p.ldRate);
+    });
+    if (planQ > 0) {
+      const A = aQ / planQ * 100, B = bQ / planQ * 100, C = cQ / planQ * 100, D = dQ / planQ * 100;
+      return { A, B, C, D, kpi: Math.min(100, (A + B + C + D) / 4), hasProducts: true };
+    }
+  }
+  const A = clamp100(d?.A), B = clamp100(d?.B), C = clamp100(d?.C), D = clamp100(d?.D);
+  return { A, B, C, D, kpi: (A + B + C + D) / 4, hasProducts: false };
+}
+
 // ---------- Tính điểm 1 cá nhân (đọc person.kd) ----------
 export function computeKD(person) {
   const kd = (person && person.kd) || {};
@@ -136,8 +166,7 @@ export function computeKD(person) {
   const truc = kd.truc || {};
   const kpiByTruc = {}; let nhomB = 0;
   KD_TRUC.forEach((t) => {
-    const d = truc[t.id] || {};
-    const kpi = (clamp100(d.A) + clamp100(d.B) + clamp100(d.C) + clamp100(d.D)) / 4;
+    const kpi = trucKPI(truc[t.id] || {}).kpi;
     kpiByTruc[t.id] = kpi;
     nhomB += kpi / 100 * t.max;
   });
@@ -160,10 +189,16 @@ export function computeKD(person) {
 export function defaultKD(profile) {
   const lv = { A: { a: 100, b: 98, c: 98, d: 96 }, B: { a: 96, b: 90, c: 88, d: 85 }, C: { a: 82, b: 76, c: 74, d: 72 }, D: { a: 64, b: 58, c: 55, d: 60 } }[profile] || { a: 92, b: 88, c: 86, d: 84 };
   const truc = {};
-  KD_TRUC.forEach((t, i) => {
-    const j = (i % 3) - 1; // -1,0,1
-    const products = (KD_TRUC_SAMPLE[t.id] || []).map((s, k) => ({ id: `${t.id}s${k + 1}`, tiendo: '', ...s }));
-    truc[t.id] = { muctieu: '', ketqua: '', A: clamp100(lv.a + j * 2), B: clamp100(lv.b + j), C: clamp100(lv.c - (i % 2)), D: clamp100(lv.d + j), products };
+  KD_TRUC.forEach((t) => {
+    const products = (KD_TRUC_SAMPLE[t.id] || []).map((s, k) => {
+      const sl = num(s.soluong, 1); const jj = k % 2 === 0 ? 0 : -3; // biến thiên nhẹ giữa các sản phẩm
+      return {
+        id: `${t.id}s${k + 1}`, ...s,
+        htSL: Math.max(0, Math.round(sl * lv.a / 100)),   // số lượng hoàn thành thực tế
+        clRate: clamp100(lv.b + jj), tdRate: clamp100(lv.c), ldRate: clamp100(lv.d + jj), // % chất lượng/tiến độ/lãnh đạo
+      };
+    });
+    truc[t.id] = { muctieu: '', ketqua: '', products };
   });
   // Chấm điểm số Nhóm A (mặc định = tối đa; hồ sơ thấp trừ điểm vài mục)
   const aMgr = {};
@@ -186,6 +221,7 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
   const setTruc = (id, patch) => onPatch({ truc: { ...(kd.truc || {}), [id]: { ...((kd.truc || {})[id] || {}), ...patch } } });
   const [openA, setOpenA] = useState(null);
   const [openProd, setOpenProd] = useState(null);
+  const [openInd, setOpenInd] = useState(null);
 
   return (
     <div className="flex-1 space-y-5">
@@ -241,26 +277,36 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm B — Kết quả thực hiện nhiệm vụ (6 trục)</h2><span className="text-amber-300 font-bold text-sm">{c.nhomB.toFixed(2)} / 70</span></div>
         <div className="p-4 space-y-3">
-          <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Mỗi trục: <b>Điểm = KPI% × điểm tối đa</b>, với <b>KPI = (A + B + C + D)/4</b>. Cá nhân xác định trục giữ vai trò <b>chính</b> (tỷ trọng cao) và trục <b>phối hợp, hỗ trợ</b> (tỷ trọng thấp) theo chức năng, vị trí công tác. Có thể lập <b>danh mục sản phẩm/công việc</b> theo từng trục (hệ số quy đổi) để làm căn cứ chấm A/B/C/D.</p>
-          {KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const kpi = c.kpiByTruc[t.id] || 0; const diem = kpi / 100 * t.max; const products = d.products || []; const openP = openProd === t.id; return (
+          <p className="text-xs text-slate-500 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Mỗi trục: <b>Điểm = KPI% × điểm tối đa</b>, với <b>KPI = (A + B + C + D)/4</b> (A số lượng · B chất lượng · C tiến độ · D năng lực lãnh đạo). Lập <b>danh mục sản phẩm/công việc</b> theo trục (Phụ lục 3B): mỗi việc có <b>hệ số quy đổi</b> theo độ khó/phức tạp; A/B/C/D <b>tự tính</b> từ số lượng hoàn thành và chất lượng/tiến độ/lãnh đạo đã quy đổi. Cá nhân xác định trục giữ vai trò <b>chính</b> (tỷ trọng cao) và trục <b>phối hợp, hỗ trợ</b> (tỷ trọng thấp) theo chức năng, vị trí công tác.</p>
+          {KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const r = trucKPI(d); const diem = r.kpi / 100 * t.max; const products = d.products || []; const openP = openProd === t.id; const openI = openInd === t.id; return (
             <div key={t.id} className="border border-slate-200 rounded-xl overflow-hidden">
               <div className="bg-slate-50 px-3 py-2.5 flex items-start gap-2">
                 <span className="shrink-0 w-7 h-7 rounded-lg bg-red-100 text-red-700 flex items-center justify-center text-sm font-extrabold">{t.code}</span>
-                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-700 leading-snug">Trục {t.code} — {t.name}</p><p className="text-[11px] text-slate-400 mt-0.5">Điểm tối đa {t.max}đ · {t.hint}</p></div>
-                <div className="shrink-0 text-right"><span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{diem.toFixed(2)}/{t.max}</span><p className="text-[10px] text-slate-500 mt-0.5">KPI {kpi.toFixed(0)}%</p></div>
+                <div className="flex-1 min-w-0"><p className="text-sm font-semibold text-slate-700 leading-snug">Trục {t.code} — {t.name}</p><button onClick={() => setOpenInd(openI ? null : t.id)} className="text-[11px] text-indigo-600 hover:text-indigo-800 mt-0.5 flex items-center gap-1"><ChevronDown className={`w-3 h-3 transition-transform ${openI ? 'rotate-180' : ''}`} /> Chỉ tiêu, nội dung của trục (Phụ lục 1A)</button></div>
+                <div className="shrink-0 text-right"><span className="text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{diem.toFixed(2)}/{t.max}</span><p className="text-[10px] text-slate-500 mt-0.5">KPI {r.kpi.toFixed(0)}%</p></div>
               </div>
+              {openI && <ul className="px-4 py-2 bg-indigo-50/50 border-t border-indigo-100 list-disc pl-8 text-[11px] text-slate-600 space-y-0.5">{t.indicators.map((x, k) => <li key={k}>{x}</li>)}</ul>}
               <div className="p-3 space-y-2">
                 <div className="grid sm:grid-cols-2 gap-2">
                   <textarea value={d.muctieu || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { muctieu: e.target.value })} rows={2} placeholder="Mục tiêu, nhiệm vụ đề ra trong quý..." className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50" />
                   <textarea value={d.ketqua || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { ketqua: e.target.value })} rows={2} placeholder="Kết quả sản phẩm thực tế..." className="w-full text-xs p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50" />
                 </div>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                  {KD_KPI_KEYS.map((kk) => (
-                    <label key={kk.k} className="block" title={kk.hint}><span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">{kk.name} <span className="text-slate-300">ⓘ</span></span>
-                      <div className="mt-0.5 flex items-center gap-1"><input type="number" min="0" max="100" value={d[kk.k] ?? 100} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { [kk.k]: e.target.value })} className="w-full text-xs p-1.5 border border-slate-200 rounded bg-white text-center font-semibold outline-none focus:border-red-400 disabled:bg-slate-50" /><span className="text-[10px] text-slate-400">%</span></div>
-                    </label>
-                  ))}
-                </div>
+                {r.hasProducts ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {[['A · Số lượng', r.A], ['B · Chất lượng', r.B], ['C · Tiến độ', r.C], ['D · Năng lực LĐ', r.D]].map(([lb, v]) => (
+                      <div key={lb} className="rounded-lg border border-slate-200 bg-slate-50 px-2 py-1.5 text-center"><p className="text-[9px] text-slate-500 leading-tight">{lb}</p><p className="text-sm font-bold text-slate-700">{v.toFixed(0)}%</p></div>
+                    ))}
+                    <p className="col-span-2 sm:col-span-4 text-[10px] text-slate-400">A/B/C/D tự tính từ danh mục sản phẩm bên dưới (theo hệ số quy đổi). Sửa số liệu trong danh mục để cập nhật.</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {KD_KPI_KEYS.map((kk) => (
+                      <label key={kk.k} className="block" title={kk.hint}><span className="text-[10px] font-semibold text-slate-500 flex items-center gap-1">{kk.name} <span className="text-slate-300">ⓘ</span></span>
+                        <div className="mt-0.5 flex items-center gap-1"><input type="number" min="0" max="100" value={d[kk.k] ?? 100} disabled={!selfEditable && !mgrEditable} onChange={(e) => setTruc(t.id, { [kk.k]: e.target.value })} className="w-full text-xs p-1.5 border border-slate-200 rounded bg-white text-center font-semibold outline-none focus:border-red-400 disabled:bg-slate-50" /><span className="text-[10px] text-slate-400">%</span></div>
+                      </label>
+                    ))}
+                  </div>
+                )}
                 <button onClick={() => setOpenProd(openP ? null : t.id)} className="text-[11px] font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"><ChevronDown className={`w-3.5 h-3.5 transition-transform ${openP ? 'rotate-180' : ''}`} /> Danh mục sản phẩm/công việc của trục ({products.length})</button>
                 {openP && <ProductList products={products} editable={selfEditable || mgrEditable} onChange={(ps) => setTruc(t.id, { products: ps })} />}
               </div>
@@ -298,23 +344,42 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
   );
 }
 
-// Danh mục sản phẩm/công việc của 1 trục (Phụ lục 3B) — nhập liệu tùy chọn.
+// Ô nhập nhỏ có nhãn (dùng trong danh mục sản phẩm).
+function PF({ label, hint, children }) { return (<label className="block" title={hint}><span className="text-[9px] text-slate-400 block leading-tight">{label}</span>{children}</label>); }
+const pinp = 'mt-0.5 w-full text-[11px] p-1 border border-slate-200 rounded bg-white outline-none focus:border-red-400 disabled:bg-slate-50';
+
+// Danh mục SẢN PHẨM/CÔNG VIỆC của 1 trục (Phụ lục 3B): kế hoạch (số lượng × hệ số quy đổi) và thực tế
+// (số lượng hoàn thành + % chất lượng/tiến độ/năng lực lãnh đạo) → tự suy A/B/C/D của trục.
 function ProductList({ products, editable, onChange }) {
   const up = (id, patch) => onChange(products.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const add = () => onChange([...products, { id: 'p' + products.length + '_' + (products.reduce((m, p) => Math.max(m, +String(p.id).replace(/\D/g, '') || 0), 0) + 1), name: '', sanpham: '', soluong: 1, heso: 1, tiendo: '' }]);
+  const add = () => onChange([...products, { id: 'p_' + (products.reduce((m, p) => Math.max(m, +String(p.id).replace(/\D/g, '') || 0), 0) + 1), name: '', captrinh: '', sanpham: 'Báo cáo', soluong: 1, tiendo: '', heso: 1, htSL: 1, clRate: 100, tdRate: 100, ldRate: 100 }]);
   const del = (id) => onChange(products.filter((p) => p.id !== id));
   return (
-    <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 space-y-1.5">
-      {products.length === 0 && <p className="text-[11px] text-slate-400 italic px-1">Chưa có sản phẩm/công việc. Thêm để làm căn cứ chấm A/B/C/D (hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động).</p>}
-      {products.map((p) => (
-        <div key={p.id} className="flex flex-wrap items-center gap-1.5 bg-white rounded-md border border-slate-200 p-1.5">
-          <input value={p.name || ''} disabled={!editable} onChange={(e) => up(p.id, { name: e.target.value })} placeholder="Tên nhiệm vụ/sản phẩm" className="flex-1 min-w-[140px] text-[11px] p-1 border border-slate-200 rounded outline-none focus:border-red-400 disabled:bg-slate-50" />
-          <input value={p.sanpham || ''} disabled={!editable} onChange={(e) => up(p.id, { sanpham: e.target.value })} placeholder="Sản phẩm" className="w-24 text-[11px] p-1 border border-slate-200 rounded outline-none focus:border-red-400 disabled:bg-slate-50" />
-          <label className="text-[10px] text-slate-400 flex items-center gap-1">SL<input type="number" min="0" value={p.soluong ?? 1} disabled={!editable} onChange={(e) => up(p.id, { soluong: e.target.value })} className="w-12 text-[11px] p-1 border border-slate-200 rounded text-center outline-none focus:border-red-400 disabled:bg-slate-50" /></label>
-          <label className="text-[10px] text-slate-400 flex items-center gap-1" title="Hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động (công việc chuẩn = 1)">Hệ số<input type="number" min="0" step="0.1" value={p.heso ?? 1} disabled={!editable} onChange={(e) => up(p.id, { heso: e.target.value })} className="w-12 text-[11px] p-1 border border-slate-200 rounded text-center outline-none focus:border-red-400 disabled:bg-slate-50" /></label>
-          {editable && <button onClick={() => del(p.id)} className="text-rose-400 hover:bg-rose-100 p-1 rounded"><Trash2 className="w-3.5 h-3.5" /></button>}
+    <div className="rounded-lg bg-slate-50 border border-slate-200 p-2 space-y-2">
+      {products.length === 0 && <p className="text-[11px] text-slate-400 italic px-1">Chưa có sản phẩm/công việc. Thêm để làm căn cứ tự tính A/B/C/D (hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động — công việc chuẩn = 1).</p>}
+      {products.map((p) => { const heso = num(p.heso, 1) || 1, sl = num(p.soluong, 0); const ht = (p.htSL === undefined || p.htSL === '') ? sl : num(p.htSL, 0); const short = ht < sl; return (
+        <div key={p.id} className="bg-white rounded-md border border-slate-200 p-2 space-y-1.5">
+          <div className="flex items-start gap-1.5">
+            <input value={p.name || ''} disabled={!editable} onChange={(e) => up(p.id, { name: e.target.value })} placeholder="Nhiệm vụ theo quý" className="flex-1 text-[11px] font-medium p-1 border border-slate-200 rounded outline-none focus:border-red-400 disabled:bg-slate-50" />
+            <span className="shrink-0 text-[9px] text-slate-400 pt-1">SL quy đổi KH: <b className="text-slate-600">{(sl * heso).toFixed(1)}</b></span>
+            {editable && <button onClick={() => del(p.id)} className="shrink-0 text-rose-400 hover:bg-rose-100 p-0.5 rounded"><Trash2 className="w-3.5 h-3.5" /></button>}
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
+            <PF label="Cấp trình"><input value={p.captrinh || ''} disabled={!editable} onChange={(e) => up(p.id, { captrinh: e.target.value })} className={pinp} /></PF>
+            <PF label="Sản phẩm"><input value={p.sanpham || ''} disabled={!editable} onChange={(e) => up(p.id, { sanpham: e.target.value })} className={pinp} /></PF>
+            <PF label="Tiến độ"><input value={p.tiendo || ''} disabled={!editable} onChange={(e) => up(p.id, { tiendo: e.target.value })} className={pinp} /></PF>
+            <PF label="Hệ số quy đổi" hint="Theo độ khó, mới, phức tạp, phạm vi tác động. Công việc chuẩn = 1; tờ trình/nghị quyết ≈ 1,5; khó, tác động lớn ≈ 2."><input type="number" min="0" step="0.1" value={p.heso ?? 1} disabled={!editable} onChange={(e) => up(p.id, { heso: e.target.value })} className={`${pinp} text-center font-semibold`} /></PF>
+          </div>
+          <div className={`grid grid-cols-2 sm:grid-cols-4 gap-1.5 rounded p-1.5 ${short ? 'bg-amber-50' : 'bg-slate-50'}`}>
+            <PF label="SL giao (định mức)"><input type="number" min="0" value={p.soluong ?? 1} disabled={!editable} onChange={(e) => up(p.id, { soluong: e.target.value })} className={`${pinp} text-center`} /></PF>
+            <PF label="SL hoàn thành" hint="Số lượng thực tế đã hoàn thành, nghiệm thu."><input type="number" min="0" value={p.htSL ?? p.soluong ?? 0} disabled={!editable} onChange={(e) => up(p.id, { htSL: e.target.value })} className={`${pinp} text-center font-semibold ${short ? 'text-amber-700' : ''}`} /></PF>
+            <PF label="Chất lượng %" hint="100% = đạt yêu cầu; giảm khi phải điều chỉnh, sửa đổi nhiều lần; >100% nếu chất lượng nổi trội."><input type="number" min="0" value={p.clRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { clRate: e.target.value })} className={`${pinp} text-center`} /></PF>
+            <PF label="Tiến độ %" hint="100% = đúng hạn; giảm khi chậm tiến độ; >100% nếu hoàn thành sớm, vượt tiến độ."><input type="number" min="0" value={p.tdRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { tdRate: e.target.value })} className={`${pinp} text-center`} /></PF>
+            <PF label="Năng lực lãnh đạo %" hint="100% = tốt; giảm nếu lĩnh vực/bộ phận phụ trách bị xếp loại không hoàn thành."><input type="number" min="0" value={p.ldRate ?? 100} disabled={!editable} onChange={(e) => up(p.id, { ldRate: e.target.value })} className={`${pinp} text-center`} /></PF>
+            {short && <p className="col-span-2 sm:col-span-4 text-[10px] text-amber-700">Hoàn thành {ht}/{sl} — chưa đạt định mức số lượng.</p>}
+          </div>
         </div>
-      ))}
+      ); })}
       {editable && <button onClick={add} className="w-full flex items-center justify-center gap-1.5 py-1.5 border border-dashed border-slate-300 rounded-md text-[11px] font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-3.5 h-3.5" /> Thêm sản phẩm/công việc</button>}
     </div>
   );
