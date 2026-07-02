@@ -25,6 +25,8 @@ const ORG_UNITS = [
   { dept: 'Phòng Hành chính - Tổ chức - Quản trị', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên', 'Lái xe', 'Bảo vệ', 'Nhân viên phục vụ'] },
 ];
 const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions) || [];
+// Bản Sơn Hà chỉ đánh giá CBCCVC Văn phòng → bỏ HĐND tỉnh, Đoàn ĐBQH tỉnh và các Ban.
+const SONHA_ORG_UNITS = ORG_UNITS.filter((u) => /^(Văn phòng|Phòng )/.test(u.dept));
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
 const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
@@ -1692,7 +1694,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   </div>
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Field label="Họ và tên"><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
-                    <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
+                    <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{(isSonHa ? SONHA_ORG_UNITS : ORG_UNITS).map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
                     <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur(isSonHa ? { position: e.target.value, type: sonhaTypeOf({ position: e.target.value }) } : { position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
                     <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     {canManage && <Field label="Vai trò (quyền truy cập)"><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className="inp"><option value="canbo">Cán bộ — tự đánh giá phần mình</option><option value="truongphong">Trưởng phòng — duyệt trong phòng</option><option value="quantri">Quản trị — toàn quyền</option></select></Field>}
