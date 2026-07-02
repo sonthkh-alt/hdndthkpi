@@ -20,6 +20,7 @@ const VERSION_CARDS = [
   { id: 'classic', name: 'Cổ điển', desc: 'Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)', onCls: 'border-red-400 bg-red-50 ring-red-200' },
   { id: 'improved', name: 'Cải tiến', tag: '(dễ hiểu)', tagCls: 'text-cyan-700', desc: 'Cùng khung điểm, câu hỏi kiểu AIM/ISE; Nhóm II gom theo Mục tiêu', onCls: 'border-cyan-400 bg-cyan-50 ring-cyan-200' },
   { id: 'sg', name: 'Singapore', tag: '(cơ quan dân cử)', tagCls: 'text-indigo-700', desc: 'Thiết kế riêng cho HĐND / Đoàn ĐBQH', onCls: 'border-indigo-400 bg-indigo-50 ring-indigo-200' },
+  { id: 'sonha', name: 'SonHa', tag: '(gọn 3 module)', tagCls: 'text-emerald-700', desc: 'Danh mục VP theo NĐ 335/2025; Đánh giá có liên kết Quản lý văn bản & Import file', onCls: 'border-emerald-400 bg-emerald-50 ring-emerald-200' },
 ];
 
 export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion }) {

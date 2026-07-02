@@ -6,9 +6,11 @@ import App from './App.jsx';
 //  • 'improved' — Cải tiến: cùng khung điểm 30/70 + Điều 8, câu hỏi viết lại theo AIM/ISE/WoG cho dễ hiểu;
 //                 Nhóm II gom theo Mục tiêu + ô "Kết quả cần đạt".
 //  • 'sg'       — Singapore (cơ quan dân cử): bộ tiêu chí thiết kế riêng cho HĐND/Đoàn ĐBQH.
+//  • 'sonha'    — SonHa: bản gọn 3 module (Tổng quan · Đánh giá · Liên hệ & hướng dẫn), danh mục VP theo
+//                 QĐ Danh mục/NĐ 335/2025; Đánh giá để sẵn mục liên kết "Quản lý văn bản" + Import file.
 // Lựa chọn lưu trong localStorage để không phải chọn lại mỗi lần tải trang.
 const KEY = 'hdndkpi_version';
-const VALID = ['classic', 'improved', 'sg'];
+const VALID = ['classic', 'improved', 'sg', 'sonha'];
 const readVersion = () => {
   try { const v = localStorage.getItem(KEY); return VALID.includes(v) ? v : 'classic'; } catch { return 'classic'; }
 };

@@ -299,6 +299,7 @@ CRITERIA_SG.dbqh = { label: CRITERIA_CLASSIC.dbqh.label, mau: 'Mẫu số 02', f
 // computePerson/UI/exporters đều đọc CRITERIA này; App gọi setCriteriaVersion(version) khi render.
 let CRITERIA = CRITERIA_CLASSIC;
 function setCriteriaVersion(v) { CRITERIA = (v === 'improved') ? CRITERIA_IMPROVED : (v === 'sg') ? CRITERIA_SG : CRITERIA_CLASSIC; }
+// Bản 'sonha' dùng Nhóm I theo câu chữ pháp lý (CRITERIA_CLASSIC) + danh mục Nhóm II riêng (SONHA_CATALOG).
 
 // Thứ tự hiển thị nhóm đối tượng (Mẫu 01 → 05)
 const CRITERIA_ORDER = ['hdnd', 'dbqh', 'leader', 'staff', 'contract'];
@@ -308,11 +309,13 @@ const VERSIONS = [
   { id: 'classic', name: 'Cổ điển', desc: 'Theo QĐ 1053-QĐ/TU (câu chữ pháp lý)' },
   { id: 'improved', name: 'Cải tiến', desc: 'Cùng khung điểm, câu hỏi dễ hiểu (AIM/ISE)' },
   { id: 'sg', name: 'Singapore', desc: 'Thiết kế riêng cho cơ quan dân cử (HĐND/ĐBQH)' },
+  { id: 'sonha', name: 'SonHa', desc: 'Gọn 3 module + danh mục VP theo NĐ 335/2025; liên kết Quản lý văn bản & Import file' },
 ];
 const VERSION_THEME = {
   classic: { grad: 'from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]', blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/20', eyebrow: 'text-amber-300', badge: 'bg-amber-400 text-red-900', tabOn: 'bg-white text-red-800 ring-1 ring-amber-300/50', tabOff: 'text-red-100/80 hover:text-white hover:bg-white/10' },
   improved: { grad: 'from-[#0b3b5e] via-[#0e7490] to-[#155e75]', blob1: 'bg-cyan-300/20', blob2: 'bg-teal-400/20', eyebrow: 'text-cyan-200', badge: 'bg-cyan-300 text-cyan-950', tabOn: 'bg-white text-cyan-800 ring-1 ring-cyan-300/50', tabOff: 'text-cyan-100/80 hover:text-white hover:bg-white/10' },
   sg: { grad: 'from-[#3b0764] via-[#6d28d9] to-[#4338ca]', blob1: 'bg-violet-300/20', blob2: 'bg-indigo-400/20', eyebrow: 'text-violet-200', badge: 'bg-violet-300 text-violet-950', tabOn: 'bg-white text-indigo-800 ring-1 ring-violet-300/50', tabOff: 'text-violet-100/80 hover:text-white hover:bg-white/10' },
+  sonha: { grad: 'from-[#064e3b] via-[#047857] to-[#065f46]', blob1: 'bg-emerald-300/20', blob2: 'bg-teal-400/20', eyebrow: 'text-emerald-200', badge: 'bg-emerald-300 text-emerald-950', tabOn: 'bg-white text-emerald-800 ring-1 ring-emerald-300/50', tabOff: 'text-emerald-100/80 hover:text-white hover:bg-white/10' },
 };
 const VERSION_NAME = (v) => (VERSIONS.find((x) => x.id === v) || VERSIONS[0]).name;
 // Màu cho tiến độ Key Result (literal để Tailwind không bị purge).
@@ -356,6 +359,122 @@ const HDND_CATALOG = [
 // Danh mục gộp: dùng để tra hệ số (agg335) và lọc theo nhóm đối tượng (getND335Groups)
 const CATALOG = [...ND335_CATALOG, ...HDND_CATALOG];
 
+// ===== PHIÊN BẢN "SonHa" — Danh mục sản phẩm/công việc theo QĐ Danh mục của VP Đoàn ĐBQH & HĐND tỉnh Thanh Hóa =====
+// (docs/QD_Danh_muc_san_pham_cong_viec_VP_DDBQH_HDND_Thanh_Hoa.docx — Phụ lục I/II).
+// Đơn vị chuẩn = 100 điểm (hệ số 1,0); maxScore = "Điểm" quy đổi (= hệ số × 100) → dùng làm TRỌNG SỐ trong agg335.
+// Ba phần theo NĐ 335/2025: I - Chuyên môn, nghiệp vụ (CMNV) · II - Lãnh đạo, quản lý (LĐQL) · III - Hỗ trợ, phục vụ (HTPV).
+const SH_TYPES_CM = ['staff', 'leader', 'hdnd', 'dbqh']; // CMNV: công chức chuyên môn + lãnh đạo khi trực tiếp làm + đại biểu chuyên trách
+const SH_TYPES_LD = ['leader', 'hdnd', 'dbqh'];          // LĐQL: cán bộ giữ chức vụ lãnh đạo, quản lý
+const SH_TYPES_HT = ['contract'];                        // HTPV: lao động hợp đồng hỗ trợ, phục vụ
+const shLv = (n) => 'N' + Math.min(5, Math.max(1, n));   // nhóm độ phức tạp 1–5 → nhãn N1–N5 (chỉ để hiển thị)
+// Rút gọn: [id, tên, sản phẩm đầu ra, nhóm phức tạp, điểm]
+const _shCM = [
+  // A. Công tác tham mưu, tổng hợp phục vụ hoạt động chung
+  ['SH.CM.A1', 'Xây dựng chương trình, kế hoạch công tác năm của Thường trực HĐND tỉnh, Đoàn ĐBQH tỉnh', '01 chương trình/kế hoạch', 5, 200],
+  ['SH.CM.A2', 'Xây dựng kế hoạch công tác tháng, quý của Văn phòng', '01 kế hoạch', 2, 110],
+  ['SH.CM.A3', 'Báo cáo tuần phục vụ giao ban Thường trực HĐND tỉnh, lãnh đạo Văn phòng', '01 báo cáo', 1, 100],
+  ['SH.CM.A4', 'Báo cáo công tác tháng, quý, 6 tháng, năm của Thường trực HĐND tỉnh, Đoàn ĐBQH tỉnh', '01 báo cáo', 4, 160],
+  ['SH.CM.A5', 'Soạn thảo văn bản hành chính thông thường (đơn vị sản phẩm/công việc chuẩn)', '01 văn bản', 1, 100],
+  ['SH.CM.A6', 'Tham mưu chương trình, nội dung, tài liệu phiên họp thường kỳ của Thường trực HĐND tỉnh', '01 phiên họp', 4, 160],
+  ['SH.CM.A7', 'Ghi biên bản phiên họp, cuộc họp', '01 biên bản', 2, 110],
+  ['SH.CM.A8', 'Dự thảo thông báo kết luận phiên họp', '01 thông báo', 3, 130],
+  // B. Tham mưu, phục vụ kỳ họp HĐND tỉnh
+  ['SH.CM.B1', 'Tham mưu kế hoạch tổ chức kỳ họp; dự kiến chương trình kỳ họp', '01 kỳ họp', 5, 190],
+  ['SH.CM.B2', 'Rà soát, biên tập, tổng hợp hồ sơ, tài liệu trình kỳ họp', '01 nội dung/bộ hồ sơ', 3, 140],
+  ['SH.CM.B3', 'Dự thảo nghị quyết trình kỳ họp', '01 dự thảo nghị quyết', 5, 200],
+  ['SH.CM.B4', 'Tổng hợp ý kiến thảo luận tại tổ, tại hội trường', '01 báo cáo tổng hợp', 4, 170],
+  ['SH.CM.B5', 'Hoàn thiện nghị quyết sau kỳ họp, trình ký chứng thực, phát hành', '01 nghị quyết', 3, 140],
+  ['SH.CM.B6', 'Ghi biên bản kỳ họp', '01 biên bản', 3, 130],
+  // C. Tham mưu, phục vụ giám sát, khảo sát
+  ['SH.CM.C1', 'Tham mưu kế hoạch, đề cương, quyết định thành lập đoàn giám sát chuyên đề', '01 cuộc giám sát', 5, 190],
+  ['SH.CM.C2', 'Tổng hợp báo cáo của cơ quan, đơn vị chịu sự giám sát', '01 báo cáo tổng hợp', 3, 130],
+  ['SH.CM.C3', 'Dự thảo báo cáo kết quả giám sát chuyên đề', '01 báo cáo', 5, 200],
+  ['SH.CM.C4', 'Dự thảo thông báo kết luận, kiến nghị sau giám sát', '01 văn bản', 3, 140],
+  ['SH.CM.C5', 'Theo dõi, đôn đốc, tổng hợp kết quả thực hiện kiến nghị sau giám sát', '01 báo cáo', 3, 140],
+  // D. Tham mưu, phục vụ tiếp xúc cử tri
+  ['SH.CM.D1', 'Xây dựng kế hoạch tiếp xúc cử tri của đại biểu Quốc hội, đại biểu HĐND tỉnh', '01 kế hoạch', 3, 130],
+  ['SH.CM.D2', 'Phục vụ hội nghị tiếp xúc cử tri', '01 hội nghị', 2, 110],
+  ['SH.CM.D3', 'Báo cáo tổng hợp ý kiến, kiến nghị của cử tri trước, sau kỳ họp', '01 báo cáo', 5, 190],
+  ['SH.CM.D4', 'Theo dõi, đôn đốc, tổng hợp kết quả giải quyết kiến nghị của cử tri', '01 báo cáo', 4, 160],
+  // Đ. Công tác tiếp công dân, xử lý đơn thư
+  ['SH.CM.E1', 'Phục vụ tiếp công dân định kỳ của Thường trực HĐND tỉnh, đại biểu QH, đại biểu HĐND tỉnh', '01 buổi tiếp', 2, 110],
+  ['SH.CM.E2', 'Tiếp nhận, phân loại, đề xuất hướng xử lý đơn khiếu nại, tố cáo, kiến nghị, phản ánh', '01 đơn', 1, 90],
+  ['SH.CM.E3', 'Dự thảo văn bản chuyển đơn, hướng dẫn công dân', '01 văn bản', 1, 100],
+  ['SH.CM.E4', 'Theo dõi, đôn đốc việc giải quyết đơn; báo cáo định kỳ công tác tiếp công dân, xử lý đơn thư', '01 báo cáo', 3, 140],
+  // E. Tham mưu, phục vụ hoạt động của Đoàn ĐBQH tỉnh
+  ['SH.CM.F1', 'Kế hoạch tổ chức lấy ý kiến góp ý dự án luật, dự thảo nghị quyết của Quốc hội', '01 kế hoạch', 3, 130],
+  ['SH.CM.F2', 'Báo cáo tổng hợp ý kiến góp ý dự án luật, dự thảo nghị quyết', '01 báo cáo/dự án', 5, 190],
+  ['SH.CM.F3', 'Tham mưu văn bản kiến nghị của Đoàn ĐBQH tỉnh gửi cơ quan có thẩm quyền ở trung ương', '01 văn bản', 4, 160],
+  // G. Nghiệp vụ văn thư, lưu trữ, tài chính, công nghệ thông tin
+  ['SH.CM.G1', 'Tiếp nhận, đăng ký, trình chuyển văn bản đến; phát hành văn bản đi', '10 văn bản', 1, 80],
+  ['SH.CM.G2', 'Lập hồ sơ công việc, nộp lưu hồ sơ điện tử đúng quy định', '01 hồ sơ', 1, 90],
+  ['SH.CM.G3', 'Lập dự toán, thanh quyết toán kinh phí; báo cáo tài chính định kỳ', '01 bộ chứng từ/báo cáo', 3, 130],
+  ['SH.CM.G4', 'Quản trị hạ tầng CNTT, hệ thống họp không giấy; cập nhật dữ liệu điều hành', '01 tháng vận hành', 2, 110],
+];
+const _shCMGroup = (id) => {
+  const s = id.slice('SH.CM.'.length, 'SH.CM.'.length + 1);
+  return ({ A: 'I.A. Tham mưu, tổng hợp phục vụ hoạt động chung', B: 'I.B. Tham mưu, phục vụ kỳ họp HĐND tỉnh', C: 'I.C. Tham mưu, phục vụ giám sát, khảo sát', D: 'I.D. Tham mưu, phục vụ tiếp xúc cử tri', E: 'I.Đ. Tiếp công dân, xử lý đơn thư', F: 'I.E. Phục vụ hoạt động Đoàn ĐBQH tỉnh', G: 'I.G. Văn thư, lưu trữ, tài chính, CNTT' }[s]);
+};
+const _shLD = [
+  ['SH.LD.1', 'Chỉ đạo xây dựng, phê duyệt kế hoạch công tác tháng, quý của cơ quan/đơn vị phụ trách', '01 kế hoạch được phê duyệt', 3, 130],
+  ['SH.LD.2', 'Chủ trì họp giao ban, phân công, giao nhiệm vụ gắn với sản phẩm đầu ra cho tập thể, cá nhân', '01 cuộc họp', 2, 110],
+  ['SH.LD.3', 'Kiểm tra, cho ý kiến, duyệt/ký văn bản, đề án do cấp dưới trình', '01 văn bản/đề án được duyệt', 2, 110],
+  ['SH.LD.4', 'Chỉ đạo giải quyết vướng mắc, vấn đề phát sinh trong phạm vi lĩnh vực phụ trách', '01 vụ việc được giải quyết', 3, 140],
+  ['SH.LD.5', 'Theo dõi, giám sát tiến độ, chất lượng nhiệm vụ của các phòng; đôn đốc, cảnh báo nhiệm vụ chậm', '01 lượt rà soát/báo cáo', 2, 120],
+  ['SH.LD.6', 'Nhận xét, đánh giá, quyết định xếp loại KPI hằng tháng đối với cán bộ, công chức thuộc thẩm quyền', '01 kỳ đánh giá đúng hạn', 3, 130],
+  ['SH.LD.7', 'Đại diện cơ quan làm việc, phối hợp với cơ quan, tổ chức khác theo phân công', '01 cuộc làm việc', 3, 130],
+  ['SH.LD.8', 'Chủ trì sơ kết, tổng kết, rút kinh nghiệm chuyên đề thuộc lĩnh vực phụ trách', '01 hội nghị/báo cáo', 4, 160],
+];
+const _shHT = [
+  ['SH.HT.1', 'Phục vụ hậu cần hội nghị, cuộc họp (phòng họp, tài liệu, nước uống, âm thanh)', '01 cuộc', 1, 80],
+  ['SH.HT.2', 'Lái xe phục vụ lãnh đạo, đoàn công tác bảo đảm an toàn, đúng giờ', '01 chuyến công tác', 1, 90],
+  ['SH.HT.3', 'Trực bảo vệ cơ quan theo ca, bảo đảm an ninh trật tự, phòng cháy chữa cháy', '01 ca trực', 1, 80],
+  ['SH.HT.4', 'Vệ sinh trụ sở, chăm sóc khuôn viên bảo đảm sạch đẹp', '01 ngày công theo định mức', 1, 80],
+  ['SH.HT.5', 'Sửa chữa nhỏ, bảo trì điện, nước, thiết bị văn phòng', '01 vụ việc hoàn thành', 1, 90],
+  ['SH.HT.6', 'Phục vụ lễ tân, khánh tiết, đón tiếp khách', '01 lượt/sự kiện', 1, 90],
+];
+const _shRow = (types, groupFn) => ([id, name, output, cx, pt]) => ({ id, group: typeof groupFn === 'function' ? groupFn(id) : groupFn, name, output, level: shLv(cx), maxScore: pt, hasFactor: true, types });
+const SONHA_CATALOG = [
+  ..._shCM.map(_shRow(SH_TYPES_CM, _shCMGroup)),
+  ..._shLD.map(_shRow(SH_TYPES_LD, 'II. Nhiệm vụ lãnh đạo, quản lý (chỉ đạo, điều hành)')),
+  ..._shHT.map(_shRow(SH_TYPES_HT, 'III. Công việc hỗ trợ, phục vụ')),
+];
+
+// Hai mục "để chờ cấu hình" của bản SonHa (hiển thị đầu tab Đánh giá):
+//  (1) Liên kết hệ thống Quản lý văn bản — tự động lấy số liệu nhiệm vụ giao/văn bản phát hành làm minh chứng.
+//      Endpoint/xác thực sẽ được cấu hình sau (theo Chương III.9 đặc tả yêu cầu phần mềm).
+//  (2) Import file đánh giá — dùng khi không muốn chấm trực tiếp trên web; nhận file theo mẫu ban hành kèm Quyết định.
+function SonHaConnectors({ canEdit = false }) {
+  const [file, setFile] = useState(null);
+  return (
+    <section className="bg-white rounded-2xl shadow-sm border border-emerald-200 overflow-hidden">
+      <div className="bg-gradient-to-r from-emerald-800 to-emerald-700 text-white px-5 py-3.5 flex items-center gap-2">
+        <Link2 className="w-5 h-5 text-emerald-200" />
+        <h2 className="font-bold">Nguồn dữ liệu đánh giá</h2>
+        <span className="ml-auto text-[11px] text-emerald-100/90">Bản SonHa</span>
+      </div>
+      <div className="p-4 grid gap-3 sm:grid-cols-2">
+        {/* (1) Liên kết Quản lý văn bản — để chờ cấu hình */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-1"><Cloud className="w-4 h-4 text-emerald-600" /><p className="font-semibold text-slate-800 text-sm">Liên kết hệ thống Quản lý văn bản</p><span className="ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">Chờ cấu hình</span></div>
+          <p className="text-xs text-slate-500 leading-relaxed flex-1">Tự động lấy số liệu <b>nhiệm vụ được giao qua văn bản</b> và <b>văn bản phát hành</b> (làm minh chứng) để đếm khách quan Nhóm II. Địa chỉ kết nối và xác thực sẽ được cấu hình sau.</p>
+          <button type="button" disabled title="Sẽ cấu hình liên kết sau" className="mt-3 w-full py-2 rounded-lg bg-slate-200 text-slate-500 text-xs font-semibold cursor-not-allowed">Kết nối (sẽ cấu hình sau)</button>
+        </div>
+        {/* (2) Import file đánh giá — nhận file, chờ ban hành mẫu để ánh xạ */}
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 flex flex-col">
+          <div className="flex items-center gap-2 mb-1"><FileSpreadsheet className="w-4 h-4 text-emerald-600" /><p className="font-semibold text-slate-800 text-sm">Import file đánh giá</p><span className="ml-auto shrink-0 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 border border-amber-200">Đang hoàn thiện</span></div>
+          <p className="text-xs text-slate-500 leading-relaxed flex-1">Dùng khi <b>không muốn chấm trực tiếp trên web</b>: tải lên file kết quả đánh giá (Excel/CSV/JSON) theo mẫu ban hành kèm Quyết định để nạp vào phiếu.</p>
+          <label className={`mt-3 w-full flex items-center justify-center gap-2 py-2 rounded-lg border text-xs font-semibold transition-colors ${canEdit ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100 cursor-pointer' : 'bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed'}`}>
+            <FileText className="w-3.5 h-3.5" /><span className="truncate max-w-[180px]">{file ? file.name : 'Chọn file để nhập...'}</span>
+            <input type="file" accept=".xlsx,.xls,.csv,.json" className="hidden" disabled={!canEdit} onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          </label>
+          {file && <p className="mt-2 text-[11px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-2 leading-relaxed">Đã nhận <b>“{file.name}”</b>. Chức năng ánh xạ dữ liệu vào phiếu đánh giá sẽ khả dụng khi mẫu file import được ban hành.</p>}
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ===== Danh mục công việc do QUẢN TRỊ tùy chỉnh (lưu theo kỳ trong state.catalog) =====
 // Đăng ký ở phạm vi module để getND335Groups/agg335 (hàm thuần) tra cứu được mà không phải
 // truyền tham số qua mọi nơi gọi. Mỗi phiên bản gọi setCatalogRegistry(catalog) khi render.
@@ -364,6 +483,10 @@ const LEVEL_SCORE = { N1: 100, N2: 200, N3: 300, N4: 400, N5: 500, 'Hỗ trợ':
 let CUSTOM_CATALOG = [];   // công việc tùy chỉnh (gán theo Nhóm đối tượng qua trường types[])
 let HIDDEN_CATALOG = [];   // id công việc mặc định bị ẩn ("bớt" khỏi danh mục)
 let OVERRIDES = {};        // { [id]: { name?, group?, output?, level?, maxScore?, types? } } ghi đè thông số (cả mặc định lẫn tùy chỉnh)
+// Danh mục NỀN "đang hoạt động" — đổi theo phiên bản: bản 'sonha' dùng SONHA_CATALOG (QĐ Danh mục VP),
+// các bản còn lại dùng CATALOG (ND335 + HĐND). findCatalogItem/getND335Groups/catalogForGuide đọc biến này.
+let ACTIVE_BASE = CATALOG;
+function setBaseCatalog(v) { ACTIVE_BASE = (v === 'sonha') ? SONHA_CATALOG : CATALOG; }
 function setCatalogRegistry(catalog) {
   CUSTOM_CATALOG = (catalog && Array.isArray(catalog.custom)) ? catalog.custom : [];
   HIDDEN_CATALOG = (catalog && Array.isArray(catalog.hidden)) ? catalog.hidden : [];
@@ -386,8 +509,8 @@ const MAU_OF_TYPE = { hdnd: '01', dbqh: '02', leader: '03', staff: '04', contrac
 // Gộp danh mục MẶC ĐỊNH theo nhóm (giữ thứ tự), kèm nhãn "áp dụng cho Mẫu nào" — dùng chung cho tab Hướng dẫn & sổ tay PDF.
 function catalogForGuide() {
   const groups = []; const idx = {};
-  CATALOG.forEach((c) => {
-    const mau = [...new Set(defaultTypesOfId(c.id).map((t) => MAU_OF_TYPE[t]).filter(Boolean))].sort().join(', ');
+  ACTIVE_BASE.forEach((c) => {
+    const mau = [...new Set(effectiveTypes(c).map((t) => MAU_OF_TYPE[t]).filter(Boolean))].sort().join(', ');
     if (!(c.group in idx)) { idx[c.group] = groups.length; groups.push({ group: c.group, items: [] }); }
     groups[idx[c.group]].items.push({ id: c.id, name: c.name, output: c.output, level: c.level, maxScore: c.maxScore, mau });
   });
@@ -402,7 +525,7 @@ function effectiveTypes(c) {
 }
 // Tra 1 mục danh mục theo id (gồm cả mặc định lẫn tùy chỉnh, đã áp ghi đè) — dùng cho tên/hệ số.
 function findCatalogItem(id) {
-  const base = CATALOG.find((c) => c.id === id) || CUSTOM_CATALOG.find((c) => c.id === id);
+  const base = ACTIVE_BASE.find((c) => c.id === id) || CUSTOM_CATALOG.find((c) => c.id === id);
   return base ? applyOverride(base) : null;
 }
 
@@ -546,7 +669,7 @@ function agg335(tasks335, which = 'mgr') {
 
 function getND335Groups(type) {
   // Gộp mặc định + tùy chỉnh, bỏ mục bị ẩn, lọc theo nhóm đối tượng HIỆU LỰC, áp ghi đè thông số.
-  return [...CATALOG, ...CUSTOM_CATALOG]
+  return [...ACTIVE_BASE, ...CUSTOM_CATALOG]
     .filter((c) => !HIDDEN_CATALOG.includes(c.id))
     .filter((c) => effectiveTypes(c).includes(type))
     .map((c) => applyOverride(c));
@@ -697,10 +820,12 @@ function getWeekTitle(dateObj) {
 }
 
 export default function App({ version = 'classic', onPickVersion } = {}) {
-  setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore) trước mọi tính toán & render
+  setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore / SonHa) trước mọi tính toán & render
+  setBaseCatalog(version);     // chọn danh mục Nhóm II nền (SonHa dùng SONHA_CATALOG)
   const isImproved = version === 'improved';
   const isSG = version === 'sg';
-  const isClassic = !isImproved && !isSG;
+  const isSonHa = version === 'sonha';
+  const isClassic = !isImproved && !isSG; // SonHa hưởng cách render Nhóm II kiểu Cổ điển (renderTask335Row)
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
@@ -876,6 +1001,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const upCurSG = (patch) => upPerson(curId, { sg: { ...(cur?.sg || {}), ...patch } });
   // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.
   useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
+  // SonHa chỉ có 3 module — nếu đang ở tab khác (Năng lực số/Theo dõi CV/Danh mục/Quản trị) thì đưa về Tổng quan.
+  useEffect(() => { if (isSonHa && !['dash', 'eval', 'guide'].includes(tab)) setTab('dash'); }, [isSonHa, tab]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
   const overCap = dist.A > Math.floor(dist.B * 0.2);
   const objProgress = (oid) => {
@@ -899,7 +1026,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
-  ];
+  ].filter((t) => !isSonHa || ['dash', 'eval', 'guide'].includes(t.id)); // SonHa chỉ gồm 3 module
   const cfg = cur ? CRITERIA[cur.type] : null;
   const result = isSG ? sgGradeInfo(curC?.grade) : (curC ? gradeClass(curC.grade) : classify(0));
   const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
@@ -1218,7 +1345,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage ? [...(isSG ? [] : [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }]), { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage && !isSonHa ? [...(isSG ? [] : [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }]), { id: 'admin', label: 'Quản trị', icon: ShieldCheck }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -1469,6 +1596,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 </section>
                 {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
                 {!isSG && (<>
+                {isSonHa && <SonHaConnectors canEdit={taskEditable} />}
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Nhóm I — Tiêu chí chung</h2><div className="flex items-center gap-3 text-sm"><span className="text-slate-300">Tự: <b className="text-white">{curC.nself.toFixed(1)}</b></span><span className="text-amber-300 font-bold">Duyệt: {curC.nmgr.toFixed(1)}/30</span></div></div>
                   <div className="px-4 pt-3 flex justify-end gap-2 text-[11px] font-bold text-slate-400 pr-2"><span className="w-16 text-center">TỰ ĐG</span><span className="w-16 text-center text-red-600">CẤP DUYỆT</span></div>
