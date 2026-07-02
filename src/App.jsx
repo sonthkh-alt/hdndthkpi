@@ -1758,7 +1758,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 {isKD && (
                   <section className="bg-gradient-to-br from-rose-50 to-amber-50 border border-rose-200 rounded-2xl p-5">
                     <h2 className="flex items-center gap-2 font-bold text-rose-900"><Award className="w-5 h-5 text-rose-700" /> Phiên bản Kiểm điểm — đánh giá hằng QUÝ ({quarterLabel})</h2>
-                    <p className="text-sm text-rose-900/80 mt-1.5 leading-relaxed">Theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b> của Ban Thường vụ Tỉnh ủy, áp dụng cho <b>cán bộ diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan. Thang 100 = <b>Nhóm A (30đ)</b> tiêu chí chung (chấm nhị phân Đảm bảo/Không) + <b>Nhóm B (70đ)</b> kết quả nhiệm vụ theo <b>6 trục trọng tâm</b>, mỗi trục <b>Điểm = KPI% × điểm tối đa</b>, KPI = (A+B+C+D)/4. Xếp loại 4 mức: HTXS / HTT / HT / Không HT.</p>
+                    <p className="text-sm text-rose-900/80 mt-1.5 leading-relaxed">Theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b> của Ban Thường vụ Tỉnh ủy, áp dụng cho <b>cán bộ diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan. Thang 100 = <b>Nhóm A (30đ)</b> tiêu chí chung (chấm điểm theo thang từng mục) + <b>Nhóm B (70đ)</b> kết quả nhiệm vụ theo <b>6 trục trọng tâm</b>, mỗi trục <b>Điểm = KPI% × điểm tối đa</b>, KPI = (A+B+C+D)/4. Xếp loại 4 mức: HTXS / HTT / HT / Không HT.</p>
                   </section>
                 )}
                 {!selfEditable && !mgrEditable && (
@@ -2078,7 +2078,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <div className={`rounded-xl border p-4 ${isKD ? 'bg-rose-50 border-rose-200' : isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
               <p className={`font-bold mb-1 ${isKD ? 'text-rose-800' : isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {VERSION_NAME(version)}</p>
               <p className="text-sm text-slate-700 leading-relaxed">{isKD
-                ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm nhị phân Đảm bảo/Không) + Nhóm B (70đ, kết quả nhiệm vụ theo 6 trục trọng tâm, mỗi trục Điểm = KPI% × điểm tối đa với KPI = (A+B+C+D)/4). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: bản tự đánh giá cá nhân (Phụ lục 3A) và bảng tổng hợp tập thể (Phụ lục 4).'
+                ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm điểm theo thang từng mục) + Nhóm B (70đ, kết quả nhiệm vụ theo 6 trục trọng tâm, mỗi trục Điểm = KPI% × điểm tối đa với KPI = (A+B+C+D)/4). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: bản tự đánh giá cá nhân (Phụ lục 3A) và bảng tổng hợp tập thể (Phụ lục 4).'
                 : isSG
                 ? 'Mô hình quản lý hiệu suất khu vực công Singapore (THAM KHẢO) — KHÔNG dùng thang 30/70 và Điều 8. Đánh giá theo HAI tầng: (A) Bảng điểm THIẾT CHẾ của cơ quan chấm theo dải màu Xanh/Vàng/Đỏ; (B) Phiếu CÁ NHÂN gồm Kết quả công việc (Work Review) + Năng lực (AIM) + Giá trị (ISE) → Xếp loại A–E, kèm Tiềm năng (CEP). Đại biểu dân cử không chấm điểm cá nhân.'
                 : isImproved
@@ -2140,7 +2140,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-1.5">Chỉ gồm 3 khu vực: <b>Tổng quan</b> (phân bố xếp loại + bảng tổng hợp tập thể — Phụ lục 4), <b>Đánh giá</b> (phiếu cá nhân), <b>Liên hệ & hướng dẫn</b>.</p>
             </GB>
             <GB icon={ShieldCheck} title="2. Nhóm A — Tiêu chí chung (30 điểm)">
-              <p>Gồm 3 nhóm, chấm <b>nhị phân</b>: đánh dấu <b>Đảm bảo</b> = đủ điểm tối đa của mục; bỏ dấu = <b>0 điểm</b>.</p>
+              <p>Gồm 3 nhóm, <b>chấm điểm theo thang điểm từng mục</b> (2 cột Tự ĐG · Cấp duyệt), trừ dần khi chưa đạt; cán bộ mới mặc định đạt tối đa (đủ 30đ).</p>
               <ul className="list-disc pl-5 space-y-1 mt-1">
                 <li><b>Nhóm 1 (10đ):</b> Phẩm chất chính trị, đạo đức, lối sống, thực hiện trách nhiệm nêu gương (9 mục).</li>
                 <li><b>Nhóm 2 (10đ):</b> Tư duy đổi mới, chiến lược, khát vọng cống hiến, dám nghĩ, dám làm (4 mục).</li>

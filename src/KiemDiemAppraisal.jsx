@@ -61,6 +61,38 @@ export const KD_TRUC = [
 ];
 export const KD_TRUC_MAX = KD_TRUC.reduce((s, t) => s + t.max, 0); // = 70
 
+// Mẫu nhiệm vụ/sản phẩm gợi ý theo từng trục (đặc thù cơ quan HĐND / Đoàn ĐBQH) — điền sẵn để chủ động,
+// người dùng chỉnh sửa hoặc bổ sung. heso = hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động (chuẩn = 1).
+export const KD_TRUC_SAMPLE = {
+  t1: [
+    { name: 'Thẩm tra báo cáo tình hình KT-XH, thu chi ngân sách trình kỳ họp HĐND', sanpham: 'Báo cáo thẩm tra', soluong: 1, heso: 1.5 },
+    { name: 'Giám sát tiến độ giải ngân vốn đầu tư công, các dự án trọng điểm', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.5 },
+    { name: 'Theo dõi, đôn đốc thực hiện nghị quyết HĐND về phát triển KT-XH', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+  ],
+  t2: [
+    { name: 'Thẩm tra dự thảo nghị quyết trình kỳ họp HĐND theo lĩnh vực phụ trách', sanpham: 'Báo cáo thẩm tra', soluong: 2, heso: 1.5 },
+    { name: 'Tổ chức giám sát chuyên đề theo chương trình, kế hoạch', sanpham: 'Báo cáo giám sát chuyên đề', soluong: 1, heso: 2 },
+    { name: 'Tiếp công dân định kỳ, xử lý đơn thư khiếu nại, tố cáo, kiến nghị', sanpham: 'Báo cáo tiếp dân, xử lý đơn thư', soluong: 3, heso: 1 },
+  ],
+  t3: [
+    { name: 'Ứng dụng chuyển đổi số trong hoạt động HĐND (họp không giấy, phần mềm quản lý)', sanpham: 'Kế hoạch/Báo cáo', soluong: 1, heso: 1.2 },
+    { name: 'Chỉ đạo số hóa, khai thác dữ liệu phục vụ giám sát, quyết định', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+  ],
+  t4: [
+    { name: 'Lãnh đạo, chỉ đạo sinh hoạt cấp ủy, chi bộ định kỳ; quán triệt nghị quyết', sanpham: 'Biên bản/Báo cáo', soluong: 3, heso: 1 },
+    { name: 'Chỉ đạo sắp xếp, kiện toàn tổ chức bộ máy, biên chế theo phân cấp', sanpham: 'Đề án/Tờ trình', soluong: 1, heso: 2 },
+    { name: 'Triển khai công tác phòng, chống tham nhũng, lãng phí, tiêu cực', sanpham: 'Báo cáo', soluong: 1, heso: 1.2 },
+  ],
+  t5: [
+    { name: 'Giám sát thực hiện chính sách an sinh xã hội, giảm nghèo bền vững', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.5 },
+    { name: 'Giám sát lĩnh vực giáo dục, y tế, văn hóa, bảo hiểm y tế', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.2 },
+  ],
+  t6: [
+    { name: 'Giám sát công tác quốc phòng, an ninh, trật tự an toàn xã hội, ATGT', sanpham: 'Báo cáo giám sát', soluong: 1, heso: 1.2 },
+    { name: 'Tham gia hoạt động đối ngoại, hợp tác của HĐND/Đoàn ĐBQH', sanpham: 'Báo cáo', soluong: 1, heso: 1 },
+  ],
+};
+
 // 4 chỉ số KPI của mỗi trục.
 export const KD_KPI_KEYS = [
   { k: 'A', name: 'A · Số lượng', hint: 'Số lượng sản phẩm/công việc hoàn thành so với kế hoạch (%). Hoàn thành 100% kế hoạch → 100%.' },
@@ -84,19 +116,22 @@ const gradeFromTotal = (total, full) => {
   return 'KHT';
 };
 
-// Đọc trạng thái 1 mục Nhóm A: mgr kế thừa self, mặc định "Đảm bảo" (1) — cán bộ mới mặc định đủ điểm.
-const aOn = (kd, id, which) => {
+// Đọc ĐIỂM 1 mục Nhóm A (chấm điểm số như các phiên bản khác): mgr kế thừa self,
+// mặc định = điểm tối đa của mục (cán bộ mới mặc định đủ điểm, trừ dần khi chấm).
+const has = (x) => x !== undefined && x !== null && x !== '';
+const clampMax = (v, max) => Math.max(0, Math.min(max, Number(v) || 0));
+const aVal = (kd, id, max, which) => {
   const src = (which === 'self' ? kd.aSelf : kd.aMgr) || {};
-  if (src[id] !== undefined) return src[id] ? 1 : 0;
-  if (which === 'mgr') { const s = (kd.aSelf || {})[id]; return s !== undefined ? (s ? 1 : 0) : 1; }
-  return 1;
+  if (has(src[id])) return clampMax(src[id], max);
+  if (which === 'mgr') { const s = (kd.aSelf || {})[id]; return has(s) ? clampMax(s, max) : max; }
+  return max;
 };
 
 // ---------- Tính điểm 1 cá nhân (đọc person.kd) ----------
 export function computeKD(person) {
   const kd = (person && person.kd) || {};
   let nhomA = 0, nhomASelf = 0;
-  KD_NHOMA.forEach((g) => g.items.forEach((it) => { if (aOn(kd, it.id, 'mgr')) nhomA += it.max; if (aOn(kd, it.id, 'self')) nhomASelf += it.max; }));
+  KD_NHOMA.forEach((g) => g.items.forEach((it) => { nhomA += aVal(kd, it.id, it.max, 'mgr'); nhomASelf += aVal(kd, it.id, it.max, 'self'); }));
   nhomA = Math.min(30, nhomA); nhomASelf = Math.min(30, nhomASelf);
   const truc = kd.truc || {};
   const kpiByTruc = {}; let nhomB = 0;
@@ -127,11 +162,13 @@ export function defaultKD(profile) {
   const truc = {};
   KD_TRUC.forEach((t, i) => {
     const j = (i % 3) - 1; // -1,0,1
-    truc[t.id] = { muctieu: '', ketqua: '', A: clamp100(lv.a + j * 2), B: clamp100(lv.b + j), C: clamp100(lv.c - (i % 2)), D: clamp100(lv.d + j), products: [] };
+    const products = (KD_TRUC_SAMPLE[t.id] || []).map((s, k) => ({ id: `${t.id}s${k + 1}`, tiendo: '', ...s }));
+    truc[t.id] = { muctieu: '', ketqua: '', A: clamp100(lv.a + j * 2), B: clamp100(lv.b + j), C: clamp100(lv.c - (i % 2)), D: clamp100(lv.d + j), products };
   });
+  // Chấm điểm số Nhóm A (mặc định = tối đa; hồ sơ thấp trừ điểm vài mục)
   const aMgr = {};
-  if (profile === 'C') aMgr['3.3'] = 0;
-  if (profile === 'D') { aMgr['3.3'] = 0; aMgr['2.2'] = 0; aMgr['3.2'] = 0; }
+  if (profile === 'C') aMgr['3.3'] = 1;              // mục 3.3 (2đ) chỉ đạt 1
+  if (profile === 'D') { aMgr['3.3'] = 0.5; aMgr['2.2'] = 1; aMgr['3.2'] = 1; aMgr['1.5'] = 1; }
   return {
     aSelf: {}, aMgr, truc, selfGrade: '', grade: '',
     selfNote: profile === 'A' ? 'Cơ bản hoàn thành xuất sắc các nhiệm vụ trọng tâm được giao trong quý.' : 'Cơ bản hoàn thành nhiệm vụ được giao trong quý.',
@@ -142,19 +179,10 @@ export function defaultKD(profile) {
 // ============================================================================
 // PHIẾU ĐÁNH GIÁ (tab Đánh giá khi version = kiemdiem)
 // ============================================================================
-function Chk({ on, disabled, onToggle, tone = 'red' }) {
-  const active = tone === 'red' ? 'bg-red-600 border-red-600' : 'bg-emerald-600 border-emerald-600';
-  return (
-    <button type="button" disabled={disabled} onClick={onToggle} className={`w-6 h-6 rounded-md border-2 flex items-center justify-center transition-colors disabled:opacity-50 ${on ? `${active} text-white` : 'bg-white border-slate-300 text-transparent'}`} title={on ? 'Đảm bảo' : 'Không đảm bảo'}>
-      <svg viewBox="0 0 24 24" className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="3"><path d="M5 13l4 4L19 7" /></svg>
-    </button>
-  );
-}
-
 export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatch, onWord }) {
   const kd = person.kd || {};
   const gi = kdGradeInfo(c.grade);
-  const setA = (which, id, val) => { const key = which === 'self' ? 'aSelf' : 'aMgr'; onPatch({ [key]: { ...(kd[key] || {}), [id]: val ? 1 : 0 } }); };
+  const setA = (which, id, val, max) => { const key = which === 'self' ? 'aSelf' : 'aMgr'; onPatch({ [key]: { ...(kd[key] || {}), [id]: clampMax(val, max) } }); };
   const setTruc = (id, patch) => onPatch({ truc: { ...(kd.truc || {}), [id]: { ...((kd.truc || {})[id] || {}), ...patch } } });
   const [openA, setOpenA] = useState(null);
   const [openProd, setOpenProd] = useState(null);
@@ -182,29 +210,30 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
         <div className="px-4 pt-3 flex justify-end gap-2 text-[11px] font-bold text-slate-400 pr-1"><span className="w-14 text-center">TỰ ĐG</span><span className="w-14 text-center text-red-600">CẤP DUYỆT</span></div>
         <div className="p-4 pt-2 space-y-4">
           {KD_NHOMA.map((g) => {
-            const sub = g.items.reduce((s, it) => s + (aOn(kd, it.id, 'mgr') ? it.max : 0), 0);
+            const sub = g.items.reduce((s, it) => s + aVal(kd, it.id, it.max, 'mgr'), 0);
             return (
               <div key={g.id} className="border border-slate-200 rounded-xl overflow-hidden">
                 <div className="bg-slate-50 px-4 py-2.5 flex items-center justify-between gap-2"><p className="text-sm font-semibold text-slate-700">{g.title}</p><span className="shrink-0 text-xs font-bold text-red-700 bg-red-50 px-2 py-1 rounded-md border border-red-100">{sub.toFixed(1)}/{g.max}</span></div>
                 <div className="divide-y divide-slate-100">
-                  {g.items.map((it) => { const sOn = aOn(kd, it.id, 'self'), mOn = aOn(kd, it.id, 'mgr'); const open = openA === it.id; return (
+                  {g.items.map((it) => { const sv = aVal(kd, it.id, it.max, 'self'), mv = aVal(kd, it.id, it.max, 'mgr'); const open = openA === it.id; return (
                     <div key={it.id} className="px-4 py-3">
                       <div className="flex items-start gap-3">
-                        <span className="shrink-0 text-xs font-bold text-slate-400 w-8 pt-1">{it.id}</span>
-                        <button onClick={() => setOpenA(open ? null : it.id)} className="flex-1 text-left text-sm text-slate-600 hover:text-slate-900 flex items-start gap-1"><span className={open ? '' : 'line-clamp-2'}>{it.text}</span><ChevronDown className={`w-4 h-4 shrink-0 text-slate-300 mt-0.5 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
-                        <span className="shrink-0 text-[10px] text-slate-400 pt-1">({it.max}đ)</span>
-                        <div className="shrink-0 flex gap-2 items-center">
-                          <div className="w-14 flex justify-center"><Chk on={sOn} disabled={!selfEditable} onToggle={() => setA('self', it.id, !sOn)} tone="slate" /></div>
-                          <div className="w-14 flex justify-center"><Chk on={mOn} disabled={!mgrEditable} onToggle={() => setA('mgr', it.id, !mOn)} tone="red" /></div>
+                        <span className="shrink-0 text-xs font-bold text-slate-400 w-8 pt-1.5">{it.id}</span>
+                        <button onClick={() => setOpenA(open ? null : it.id)} className="flex-1 text-left text-sm text-slate-600 hover:text-slate-900 flex items-start gap-1 pt-1"><span className={open ? '' : 'line-clamp-2'}>{it.text}</span><ChevronDown className={`w-4 h-4 shrink-0 text-slate-300 mt-0.5 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
+                        <span className="shrink-0 text-[10px] text-slate-400 pt-1.5">/{it.max}đ</span>
+                        <div className="shrink-0 flex gap-2">
+                          <input type="number" min="0" max={it.max} step="0.25" value={sv} disabled={!selfEditable} onChange={(e) => setA('self', it.id, e.target.value, it.max)} className="w-14 text-center text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 text-sm outline-none focus:border-slate-400 disabled:opacity-50 disabled:cursor-not-allowed" />
+                          <input type="number" min="0" max={it.max} step="0.25" value={mv} disabled={!mgrEditable} onChange={(e) => setA('mgr', it.id, e.target.value, it.max)} className="w-14 text-center font-bold text-red-700 bg-red-50 border border-red-200 rounded-lg py-1 text-sm outline-none focus:border-red-400 disabled:opacity-50 disabled:cursor-not-allowed" />
                         </div>
                       </div>
+                      {open && <p className="mt-2 ml-11 text-xs text-slate-500 bg-slate-50 rounded-lg p-2.5 leading-relaxed">Điểm tối đa: {it.max}đ. {it.text}</p>}
                     </div>
                   ); })}
                 </div>
               </div>
             );
           })}
-          <p className="text-[11px] text-slate-400">Chấm nhị phân theo biểu mẫu HD 03: đánh dấu <b>Đảm bảo</b> = đủ điểm tối đa của mục; bỏ dấu = <b>0 điểm</b>. Cột <b>Cấp duyệt</b> mặc định kế thừa cột Tự ĐG; cán bộ mới mặc định đảm bảo tất cả.</p>
+          <p className="text-[11px] text-slate-400">Chấm điểm theo thang điểm của từng mục (tối đa ghi bên phải), trừ dần khi chưa đạt. Cột <b>Cấp duyệt</b> mặc định kế thừa cột <b>Tự ĐG</b>; cán bộ mới mặc định đạt tối đa (đủ 30đ).</p>
         </div>
       </section>
 
