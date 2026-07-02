@@ -352,14 +352,21 @@ export async function exportKiemDiemCaNhan(ev) {
   children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
   children.push(P(`Công thức: mỗi trục Điểm = KPI% × điểm tối đa; KPI = (A số lượng + B chất lượng + C tiến độ + D năng lực lãnh đạo)/4.`, { italics: true, size: 20, spacingAfter: 120 }));
 
-  children.push(P('II. TỰ ĐỀ XUẤT XẾP LOẠI MỨC CHẤT LƯỢNG', { bold: true, size: 26, spacingAfter: 40 }));
-  children.push(P([{ text: 'Đề xuất theo điểm: ', bold: true }, { text: ev.autoGradeName || '' }]));
+  children.push(P('II. TỰ KIỂM ĐIỂM', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P([{ text: '1. Ưu điểm, kết quả nổi bật: ', bold: true }, { text: ev.uudiem || '...' }], { spacingAfter: 40 }));
+  children.push(P([{ text: '2. Hạn chế, khuyết điểm và nguyên nhân: ', bold: true }, { text: ev.hanche || '...' }], { spacingAfter: 40 }));
+  children.push(P([{ text: '3. Phương hướng, biện pháp khắc phục kỳ tới: ', bold: true }, { text: ev.phuonghuong || '...' }], { spacingAfter: 80 }));
+
+  children.push(P('III. TỰ ĐỀ XUẤT XẾP LOẠI MỨC CHẤT LƯỢNG', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P([{ text: 'Đề xuất theo điểm & điều kiện (Điều 13): ', bold: true }, { text: ev.autoGradeName || '' }]));
   children.push(P([{ text: 'Cá nhân tự đề xuất xếp loại: ', bold: true }, { text: ev.selfGradeName || '...' }]));
+  if (ev.disciplined) children.push(P([{ text: 'Ghi chú: ', bold: true }, { text: 'Bị kỷ luật (khiển trách trở lên)/suy thoái trong kỳ.' }]));
+  (ev.gradeReasons || []).forEach((r) => children.push(P([{ text: '- ', bold: true }, { text: r }], { size: 22 })));
   if (ev.exemptNote) children.push(P([{ text: 'Lý do khách quan (nếu hoàn thành dưới 100%): ', bold: true }, { text: ev.exemptNote }]));
   if (ev.selfNote) children.push(P([{ text: 'Tự nhận xét: ', bold: true }, { text: ev.selfNote }]));
   children.push(P('', { spacingAfter: 80 }));
 
-  children.push(P('III. NHẬN XÉT, ĐÁNH GIÁ CỦA CẤP CÓ THẨM QUYỀN', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P('IV. NHẬN XÉT, ĐÁNH GIÁ CỦA CẤP CÓ THẨM QUYỀN', { bold: true, size: 26, spacingAfter: 40 }));
   children.push(P([{ text: 'Đề xuất/quyết định xếp loại: ', bold: true }, { text: ev.gradeName || '...' }]));
   children.push(P([{ text: 'Nhận xét: ', bold: true }, { text: ev.mgrNote || '...' }], { spacingAfter: 200 }));
 

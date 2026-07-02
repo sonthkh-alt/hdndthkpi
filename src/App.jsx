@@ -1248,6 +1248,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       trucs: KD_TRUC.map((t) => ({ code: t.code, name: t.name, max: t.max, kpi: curC.kpiByTruc[t.id] || 0, diem: (curC.kpiByTruc[t.id] || 0) / 100 * t.max, muctieu: (kd.truc || {})[t.id]?.muctieu || '', ketqua: (kd.truc || {})[t.id]?.ketqua || '' })),
       selfGradeName: kd.selfGrade ? kdGradeInfo(kd.selfGrade).name : '', gradeName: result.name, autoGradeName: kdGradeInfo(curC.autoGrade).name,
       exemptNote: kd.exemptNote || '', selfNote: kd.selfNote || '', mgrNote: kd.mgrNote || '',
+      uudiem: kd.uudiem || '', hanche: kd.hanche || '', phuonghuong: kd.phuonghuong || '',
+      disciplined: !!kd.disciplined, gradeReasons: curC.gradeReasons || [],
     });
   };
   // Xuất Bảng tổng hợp kết quả & đề xuất xếp loại quý của tập thể (Phụ lục 4) — bản Kiểm điểm.

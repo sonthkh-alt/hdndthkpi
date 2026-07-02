@@ -116,12 +116,21 @@ export const KD_GRADES = [
   { code: 'KHT', name: 'Không hoàn thành nhiệm vụ', min: 0, soft: 'bg-rose-50 text-rose-700 border-rose-200', cls: 'bg-rose-600', ring: 'text-rose-600', bar: 'bg-rose-500' },
 ];
 export const kdGradeInfo = (code) => KD_GRADES.find((g) => g.code === code) || KD_GRADES[KD_GRADES.length - 1];
-const gradeFromTotal = (total, full) => {
-  if (total >= 90 && full) return 'HTXS';
-  if (total >= 70) return 'HTT';
-  if (total >= 50) return 'HT';
-  return 'KHT';
-};
+// Xếp loại theo Điều 13 QĐ 73-QĐ/TU (điều kiện định lượng), trả về mã mức + lý do.
+function evalKDGrade(total, m) {
+  const reasons = [];
+  if (m.disciplined) { reasons.push('Bị kỷ luật (khiển trách trở lên) trong kỳ → xếp loại Không hoàn thành nhiệm vụ (Điều 13).'); return { code: 'KHT', reasons }; }
+  if (m.failRate > 0.5) { reasons.push(`Trên 50% nhiệm vụ không hoàn thành (đạt dưới 50% số lượng) → Không hoàn thành nhiệm vụ (Điều 13).`); return { code: 'KHT', reasons }; }
+  if (total < 50) { reasons.push('Tổng điểm dưới 50 → Không hoàn thành nhiệm vụ.'); return { code: 'KHT', reasons }; }
+  if (total >= 90 && m.full && m.exceedRate >= 0.30) return { code: 'HTXS', reasons };
+  if (total >= 90) { // đủ điểm nhưng chưa đủ điều kiện HTXS
+    if (!m.full) reasons.push('Chưa hoàn thành 100% nhiệm vụ đúng hạn nên chưa đạt Hoàn thành xuất sắc.');
+    else if (m.exceedRate < 0.30) reasons.push(`Chưa đạt ≥30% nhiệm vụ vượt mức (hiện ${Math.round(m.exceedRate * 100)}%) nên chưa đạt Hoàn thành xuất sắc (Điều 13).`);
+    return { code: 'HTT', reasons };
+  }
+  if (total >= 70) return { code: 'HTT', reasons };
+  return { code: 'HT', reasons };
+}
 
 // Đọc ĐIỂM 1 mục Nhóm A (chấm điểm số như các phiên bản khác): mgr kế thừa self,
 // mặc định = điểm tối đa của mục (cán bộ mới mặc định đủ điểm, trừ dần khi chấm).
@@ -165,22 +174,34 @@ export function computeKD(person) {
   nhomA = Math.min(30, nhomA); nhomASelf = Math.min(30, nhomASelf);
   const truc = kd.truc || {};
   const kpiByTruc = {}; let nhomB = 0;
+  // Thống kê nhiệm vụ (từ danh mục sản phẩm) để áp điều kiện xếp loại Điều 13.
+  let totalTasks = 0, exceedTasks = 0, failTasks = 0;
   KD_TRUC.forEach((t) => {
-    const kpi = trucKPI(truc[t.id] || {}).kpi;
-    kpiByTruc[t.id] = kpi;
-    nhomB += kpi / 100 * t.max;
+    const d = truc[t.id] || {};
+    kpiByTruc[t.id] = trucKPI(d).kpi;
+    nhomB += kpiByTruc[t.id] / 100 * t.max;
+    (d.products || []).filter((p) => num(p.soluong, 0) > 0).forEach((p) => {
+      totalTasks++;
+      const sl = num(p.soluong, 0); const ht = (p.htSL === undefined || p.htSL === null || p.htSL === '') ? sl : num(p.htSL, 0);
+      if (ht > sl || rate(p.clRate) > 1 || rate(p.tdRate) > 1) exceedTasks++;   // vượt mức
+      if (sl > 0 && ht < 0.5 * sl) failTasks++;                                  // không hoàn thành (<50% số lượng)
+    });
   });
   nhomB = Math.min(70, nhomB);
   const total = nhomA + nhomB;
   const totalSelf = nhomASelf + nhomB;
   const minKpi = Math.min(...KD_TRUC.map((t) => kpiByTruc[t.id]));
-  const full = minKpi >= 100 && nhomA >= 30;                // đủ điều kiện xét HTXS (nổi trội, không thiếu nhiệm vụ)
+  const full = minKpi >= 100 && nhomA >= 30;                // hoàn thành 100% nhiệm vụ + đủ Nhóm A
   const under100 = minKpi < 100;                             // có nhiệm vụ hoàn thành dưới 100% (Điều 6.2)
-  const autoGrade = gradeFromTotal(total, full);
-  const grade = kd.grade || autoGrade;                       // cấp có thẩm quyền có thể quyết định khác
+  const exceedRate = totalTasks ? exceedTasks / totalTasks : 0;
+  const failRate = totalTasks ? failTasks / totalTasks : 0;
+  const disciplined = !!kd.disciplined;
+  const g = evalKDGrade(total, { full, exceedRate, failRate, disciplined });
+  const grade = kd.grade || g.code;                          // cấp có thẩm quyền có thể quyết định khác
   return {
     nhomA, nhomASelf, nhomB, kpiByTruc, total, totalMgr: total, totalSelf,
-    minKpi, full, under100, autoGrade, grade, selfGrade: kd.selfGrade || '', has: true,
+    minKpi, full, under100, exceedRate, failRate, disciplined,
+    autoGrade: g.code, gradeReasons: g.reasons, grade, selfGrade: kd.selfGrade || '', has: true,
     exemptNote: kd.exemptNote || '',
   };
 }
@@ -205,7 +226,10 @@ export function defaultKD(profile) {
   if (profile === 'C') aMgr['3.3'] = 1;              // mục 3.3 (2đ) chỉ đạt 1
   if (profile === 'D') { aMgr['3.3'] = 0.5; aMgr['2.2'] = 1; aMgr['3.2'] = 1; aMgr['1.5'] = 1; }
   return {
-    aSelf: {}, aMgr, truc, selfGrade: '', grade: '',
+    aSelf: {}, aMgr, truc, selfGrade: '', grade: '', disciplined: false,
+    uudiem: profile === 'A' ? 'Gương mẫu về phẩm chất chính trị, đạo đức; chủ động, trách nhiệm; hoàn thành xuất sắc các nhiệm vụ trọng tâm được giao trong quý, có sản phẩm chất lượng, vượt tiến độ.' : 'Chấp hành tốt chủ trương, đường lối của Đảng, chính sách pháp luật; hoàn thành các nhiệm vụ được giao trong quý.',
+    hanche: profile === 'C' || profile === 'D' ? 'Một số nhiệm vụ còn chậm tiến độ, chất lượng chưa cao; nguyên nhân do khối lượng công việc lớn, phối hợp chưa chặt chẽ.' : 'Đôi lúc chưa chủ động sắp xếp thời gian cho một số việc; nguyên nhân do phát sinh nhiệm vụ đột xuất.',
+    phuonghuong: 'Tiếp tục nâng cao chất lượng, tiến độ sản phẩm; chủ động phối hợp; khắc phục các hạn chế đã nêu trong quý tới.',
     selfNote: profile === 'A' ? 'Cơ bản hoàn thành xuất sắc các nhiệm vụ trọng tâm được giao trong quý.' : 'Cơ bản hoàn thành nhiệm vụ được giao trong quý.',
     mgrNote: '', exemptNote: '',
   };
@@ -315,14 +339,33 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
         </div>
       </section>
 
+      {/* BẢN TỰ KIỂM ĐIỂM (tự luận — Mẫu 2A/07 QĐ 73) */}
+      <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3 flex items-center gap-2"><ShieldCheck className="w-5 h-5 text-amber-300" /><h2 className="font-bold">Bản tự kiểm điểm</h2></div>
+        <div className="p-4 space-y-3">
+          <p className="text-[11px] text-slate-400">Phần tự luận theo Mẫu 2A/07 (QĐ 73-QĐ/TU): tự đánh giá khái quát kết quả, ưu điểm, hạn chế, nguyên nhân và phương hướng khắc phục trong quý.</p>
+          <label className="block"><span className="text-xs font-semibold text-emerald-700 mb-1 block">1. Ưu điểm, kết quả nổi bật</span><textarea value={kd.uudiem || ''} disabled={!selfEditable} onChange={(e) => onPatch({ uudiem: e.target.value })} rows={3} className="kdta" placeholder="Nêu kết quả, sản phẩm nổi bật; tinh thần trách nhiệm, đổi mới; đóng góp cho tập thể..." /></label>
+          <label className="block"><span className="text-xs font-semibold text-rose-700 mb-1 block">2. Hạn chế, khuyết điểm và nguyên nhân</span><textarea value={kd.hanche || ''} disabled={!selfEditable} onChange={(e) => onPatch({ hanche: e.target.value })} rows={3} className="kdta" placeholder="Nêu hạn chế, khuyết điểm (nếu có) và nguyên nhân chủ quan, khách quan..." /></label>
+          <label className="block"><span className="text-xs font-semibold text-indigo-700 mb-1 block">3. Phương hướng, biện pháp khắc phục kỳ tới</span><textarea value={kd.phuonghuong || ''} disabled={!selfEditable} onChange={(e) => onPatch({ phuonghuong: e.target.value })} rows={2} className="kdta" placeholder="Biện pháp, cam kết khắc phục hạn chế; mục tiêu quý tới..." /></label>
+        </div>
+      </section>
+
       {/* XẾP LOẠI */}
       <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3 flex items-center gap-2"><ClipboardCheck className="w-5 h-5 text-amber-300" /><h2 className="font-bold">Đề xuất & quyết định xếp loại</h2></div>
         <div className="p-4 space-y-3">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="text-xs text-slate-500">Đề xuất theo điểm:</span>
+            <span className="text-xs text-slate-500">Đề xuất theo điểm & điều kiện (Điều 13):</span>
             <span className={`px-2.5 py-1 rounded-full border text-xs font-bold ${kdGradeInfo(c.autoGrade).soft}`}>{kdGradeInfo(c.autoGrade).name}</span>
+            <span className="text-[11px] text-slate-400">Vượt mức {Math.round((c.exceedRate || 0) * 100)}% · Không HT {Math.round((c.failRate || 0) * 100)}%</span>
           </div>
+          <label className="flex items-center gap-2 text-xs text-slate-700 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 w-fit">
+            <input type="checkbox" checked={!!kd.disciplined} disabled={!mgrEditable} onChange={(e) => onPatch({ disciplined: e.target.checked })} className="w-4 h-4 accent-rose-600" />
+            <span>Bị <b>kỷ luật</b> (khiển trách trở lên) hoặc suy thoái trong kỳ — ép xếp loại <b>Không hoàn thành nhiệm vụ</b> (Điều 13).</span>
+          </label>
+          {c.gradeReasons && c.gradeReasons.length > 0 && (
+            <div className="rounded-lg bg-amber-50 border border-amber-200 p-2.5 text-[11px] text-amber-800 space-y-1">{c.gradeReasons.map((r, i) => <p key={i} className="flex items-start gap-1.5"><AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />{r}</p>)}</div>
+          )}
           <label className="flex flex-col gap-1 max-w-md"><span className="text-xs font-semibold text-slate-500">Cá nhân TỰ đề xuất xếp loại</span>
             <select value={kd.selfGrade || ''} disabled={!selfEditable} onChange={(e) => onPatch({ selfGrade: e.target.value })} className="text-sm p-2 border border-slate-200 rounded-lg bg-white outline-none focus:border-red-400 disabled:bg-slate-50"><option value="">— Chọn mức tự đề xuất —</option>{KD_GRADES.map((g) => <option key={g.code} value={g.code}>{g.name}</option>)}</select>
           </label>
@@ -404,6 +447,9 @@ export function KiemDiemDashboard({ computed, onPick, onExportAgg, quarterLabel 
           <h2 className="flex items-center gap-2 font-bold text-slate-800"><TrendingUp className="w-5 h-5 text-red-700" /> Phân bố xếp loại {quarterLabel ? `— ${quarterLabel}` : ''}</h2>
           {onExportAgg && <button onClick={onExportAgg} className="flex items-center gap-2 px-3.5 py-2 bg-red-700 hover:bg-red-800 text-white text-xs font-semibold rounded-lg"><FileText className="w-3.5 h-3.5" /> Xuất Bảng tổng hợp (Phụ lục 4)</button>}
         </div>
+        {dist.HTXS > Math.floor((dist.HTT || 0) * 0.2) && (
+          <div className="mb-3 rounded-lg bg-rose-50 border border-rose-200 p-3 text-[12px] text-rose-800 flex items-start gap-2"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" /><span>Cảnh báo trần tỷ lệ (Điều 13 QĐ 73): đang có <b>{dist.HTXS}</b> "Hoàn thành xuất sắc" trong khi tối đa cho phép là <b>{Math.floor((dist.HTT || 0) * 0.2)}</b> (không quá 20% của {dist.HTT} người "Hoàn thành tốt"; đơn vị có thành tích nổi trội tối đa 25%).</span></div>
+        )}
         <div className="space-y-3">
           {KD_GRADES.map((g) => { const cnt = dist[g.code] || 0; const pct = n ? cnt / n * 100 : 0; return (
             <div key={g.code}><div className="flex justify-between text-xs mb-1"><span className="font-semibold text-slate-600">{g.name}</span><span className="font-bold text-slate-700">{cnt}</span></div><div className="h-3 bg-slate-100 rounded-full overflow-hidden"><div className={`h-full ${g.bar} transition-all`} style={{ width: `${pct}%` }} /></div></div>
