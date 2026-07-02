@@ -8,6 +8,7 @@ import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
+import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC } from './KiemDiemAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -312,12 +313,14 @@ const VERSIONS = [
   { id: 'improved', name: 'Cải tiến', desc: 'Cùng khung điểm, câu hỏi dễ hiểu (AIM/ISE)' },
   { id: 'sg', name: 'Singapore', desc: 'Thiết kế riêng cho cơ quan dân cử (HĐND/ĐBQH)' },
   { id: 'sonha', name: 'SonHa', desc: 'Gọn 3 module + danh mục VP theo NĐ 335/2025; liên kết Quản lý văn bản & Import file' },
+  { id: 'kiemdiem', name: 'Kiểm điểm', desc: 'Đánh giá hằng QUÝ cán bộ diện BTV Tỉnh ủy quản lý — theo HD 03-HD/TU (02/7/2026)' },
 ];
 const VERSION_THEME = {
   classic: { grad: 'from-[#6b1212] via-[#a51c1c] to-[#7f1d1d]', blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/20', eyebrow: 'text-amber-300', badge: 'bg-amber-400 text-red-900', tabOn: 'bg-white text-red-800 ring-1 ring-amber-300/50', tabOff: 'text-red-100/80 hover:text-white hover:bg-white/10' },
   improved: { grad: 'from-[#0b3b5e] via-[#0e7490] to-[#155e75]', blob1: 'bg-cyan-300/20', blob2: 'bg-teal-400/20', eyebrow: 'text-cyan-200', badge: 'bg-cyan-300 text-cyan-950', tabOn: 'bg-white text-cyan-800 ring-1 ring-cyan-300/50', tabOff: 'text-cyan-100/80 hover:text-white hover:bg-white/10' },
   sg: { grad: 'from-[#3b0764] via-[#6d28d9] to-[#4338ca]', blob1: 'bg-violet-300/20', blob2: 'bg-indigo-400/20', eyebrow: 'text-violet-200', badge: 'bg-violet-300 text-violet-950', tabOn: 'bg-white text-indigo-800 ring-1 ring-violet-300/50', tabOff: 'text-violet-100/80 hover:text-white hover:bg-white/10' },
   sonha: { grad: 'from-[#064e3b] via-[#047857] to-[#065f46]', blob1: 'bg-emerald-300/20', blob2: 'bg-teal-400/20', eyebrow: 'text-emerald-200', badge: 'bg-emerald-300 text-emerald-950', tabOn: 'bg-white text-emerald-800 ring-1 ring-emerald-300/50', tabOff: 'text-emerald-100/80 hover:text-white hover:bg-white/10' },
+  kiemdiem: { grad: 'from-[#7f1d1d] via-[#9f1239] to-[#881337]', blob1: 'bg-amber-400/20', blob2: 'bg-rose-500/20', eyebrow: 'text-amber-200', badge: 'bg-amber-300 text-rose-950', tabOn: 'bg-white text-rose-800 ring-1 ring-amber-300/50', tabOff: 'text-rose-100/80 hover:text-white hover:bg-white/10' },
 };
 const VERSION_NAME = (v) => (VERSIONS.find((x) => x.id === v) || VERSIONS[0]).name;
 // Màu cho tiến độ Key Result (literal để Tailwind không bị purge).
@@ -817,6 +820,7 @@ function genTasksFromCat(cat, profile, OKR) {
 // Chọn bộ dữ liệu mẫu theo phiên bản: bản SonHa có bộ 20 cán bộ theo cơ cấu Văn phòng thực tế.
 function seedDemoPeople(version) {
   if (version === 'sonha') return seedSonHaPeople();
+  if (version === 'kiemdiem') return seedKiemDiemPeople();
   const OKR = ['o1', 'o2', 'o3'];
   const mk = (type, name, department, position, email, profile, cfg = {}) => ({
     ...newPerson(name, type), position, department, email, role: 'canbo',
@@ -894,6 +898,35 @@ function seedSonHaPeople() {
   return people;
 }
 
+// Bộ dữ liệu mẫu bản KIỂM ĐIỂM: 13 cán bộ diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan
+// (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban + 4 Phó Trưởng Ban: KTNS/VHXH/Pháp chế/Dân tộc;
+//  Chánh Văn phòng + 2 Phó Chánh Văn phòng). Mỗi người có sẵn person.kd (defaultKD) theo hồ sơ.
+function seedKiemDiemPeople() {
+  const mk = (name, department, position, profile) => {
+    const p = { ...newPerson(name, 'leader'), position, department, role: 'canbo', email: '', kd: defaultKD(profile) };
+    return p;
+  };
+  const BANS = [
+    { dept: 'Ban Kinh tế - Ngân sách', short: 'KTNS' },
+    { dept: 'Ban Văn hóa - Xã hội', short: 'VHXH' },
+    { dept: 'Ban Pháp chế', short: 'Pháp chế' },
+    { dept: 'Ban Dân tộc', short: 'Dân tộc' },
+  ];
+  const people = [
+    mk('Phó Chủ tịch HĐND tỉnh (1)', 'HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'A'),
+    mk('Phó Chủ tịch HĐND tỉnh (2)', 'HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'B'),
+  ];
+  const tpProfiles = ['A', 'B', 'A', 'B'], ppProfiles = ['B', 'B', 'C', 'B'];
+  BANS.forEach((b, i) => {
+    people.push(mk(`Trưởng ${b.dept}`, b.dept, 'Trưởng Ban', tpProfiles[i]));
+    people.push(mk(`Phó Trưởng ${b.dept}`, b.dept, 'Phó Trưởng Ban', ppProfiles[i]));
+  });
+  people.push(mk('Chánh Văn phòng', 'Văn phòng', 'Chánh Văn phòng', 'A'));
+  people.push(mk('Phó Chánh Văn phòng (1)', 'Văn phòng', 'Phó Chánh Văn phòng', 'B'));
+  people.push(mk('Phó Chánh Văn phòng (2)', 'Văn phòng', 'Phó Chánh Văn phòng', 'B'));
+  return people;
+}
+
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
 function bumpIds(people) {
   const ppl = people || [];
@@ -927,7 +960,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const isImproved = version === 'improved';
   const isSG = version === 'sg';
   const isSonHa = version === 'sonha';
-  const isClassic = !isImproved && !isSG; // SonHa hưởng cách render Nhóm II kiểu Cổ điển (renderTask335Row)
+  const isKD = version === 'kiemdiem'; // bản Kiểm điểm — mô hình riêng (computeKD), tách như Singapore
+  const isClassic = !isImproved && !isSG && !isKD; // SonHa hưởng cách render Nhóm II kiểu Cổ điển (renderTask335Row)
+  const QUARTER_OF = (m) => Math.min(4, Math.max(1, Math.ceil((Number(m) || 1) / 3)));
+  const ROMAN = ['I', 'II', 'III', 'IV'];
+  const quarterLabel = `Quý ${ROMAN[QUARTER_OF(period.month) - 1]}/${period.year}`;
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
@@ -1105,15 +1142,16 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
   setCatalogRegistry(catalog); // đồng bộ registry danh mục trước khi tính điểm/đổ dropdown
   // Bản Singapore dùng mô hình riêng (computeSG); 2 bản còn lại dùng khung 30/70 (computePerson).
-  const scoreOf = isSG ? computeSG : computePerson;
+  const scoreOf = isSG ? computeSG : isKD ? computeKD : computePerson;
   const computed = useMemo(() => people.map((p) => ({ p, c: scoreOf(p) })), [people, catalog, version]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || scoreOf(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0, E: 0 }; computed.forEach(({ c }) => { d[c.grade] = (d[c.grade] || 0) + 1; }); return d; }, [computed]);
   const upCurSG = (patch) => upPerson(curId, { sg: { ...(cur?.sg || {}), ...patch } });
+  const upCurKD = (patch) => upPerson(curId, { kd: { ...(cur?.kd || {}), ...patch } });
   // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.
   useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
   // SonHa chỉ có 3 module — nếu đang ở tab khác (Năng lực số/Theo dõi CV/Danh mục/Quản trị) thì đưa về Tổng quan.
-  useEffect(() => { if (isSonHa && !['dash', 'eval', 'guide'].includes(tab)) setTab('dash'); }, [isSonHa, tab]);
+  useEffect(() => { if ((isSonHa || isKD) && !['dash', 'eval', 'guide'].includes(tab)) setTab('dash'); }, [isSonHa, isKD, tab]);
   // Tab "Quản trị" đã ẩn ở mọi phiên bản — nếu đang ở đó thì đưa về Tổng quan.
   useEffect(() => { if (tab === 'admin') setTab('dash'); }, [tab]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
@@ -1139,9 +1177,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
     { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
-  ].filter((t) => !isSonHa || ['dash', 'eval', 'guide'].includes(t.id)); // SonHa chỉ gồm 3 module
+  ].filter((t) => (!isSonHa && !isKD) || ['dash', 'eval', 'guide'].includes(t.id)); // SonHa & Kiểm điểm chỉ gồm 3 module
   const cfg = cur ? CRITERIA[cur.type] : null;
-  const result = isSG ? sgGradeInfo(curC?.grade) : (curC ? gradeClass(curC.grade) : classify(0));
+  const result = isSG ? sgGradeInfo(curC?.grade) : isKD ? kdGradeInfo(curC?.grade) : (curC ? gradeClass(curC.grade) : classify(0));
   const minLv = cur ? MIN_DIGITAL[cur.type] : 0;
   const digPassed = cur ? DIGITAL.filter((d) => (cur.digital[d.id] || 0) >= minLv).length : 0;
 
@@ -1197,6 +1235,30 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       grade: result.code, gradeName: result.name, autoGrade: curC.autoGrade,
       cep: sg.cep || '', strengths: sg.strengths || '', development: sg.development || '', devActions: sg.devActions || '',
       selfComment: sg.selfComment || '', supComment: sg.supComment || '',
+    });
+  };
+  // Xuất Bản tự đánh giá xếp loại quý của cá nhân (Phụ lục 3A) — bản Kiểm điểm.
+  const doKDWord = async () => {
+    const { exportKiemDiemCaNhan } = await import('./lib/exporters');
+    const kd = cur.kd || {};
+    exportKiemDiemCaNhan({
+      unit, name: cur.name, position: cur.position, department: cur.department,
+      quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
+      nhomA: curC.nhomA, nhomB: curC.nhomB, total: curC.total,
+      trucs: KD_TRUC.map((t) => ({ code: t.code, name: t.name, max: t.max, kpi: curC.kpiByTruc[t.id] || 0, diem: (curC.kpiByTruc[t.id] || 0) / 100 * t.max, muctieu: (kd.truc || {})[t.id]?.muctieu || '', ketqua: (kd.truc || {})[t.id]?.ketqua || '' })),
+      selfGradeName: kd.selfGrade ? kdGradeInfo(kd.selfGrade).name : '', gradeName: result.name, autoGradeName: kdGradeInfo(curC.autoGrade).name,
+      exemptNote: kd.exemptNote || '', selfNote: kd.selfNote || '', mgrNote: kd.mgrNote || '',
+    });
+  };
+  // Xuất Bảng tổng hợp kết quả & đề xuất xếp loại quý của tập thể (Phụ lục 4) — bản Kiểm điểm.
+  const doKDAgg = async () => {
+    const { exportKiemDiemTongHop } = await import('./lib/exporters');
+    exportKiemDiemTongHop({
+      unit, quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
+      rows: [...computed].sort((a, b) => b.c.total - a.c.total).map(({ p, c }, i) => ({
+        stt: i + 1, name: p.name, position: p.position || p.department || '',
+        nhomA: c.nhomA, nhomB: c.nhomB, total: c.total, gradeName: kdGradeInfo(c.grade).name,
+      })),
     });
   };
   const doExportTracking = async () => {
@@ -1448,9 +1510,15 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>}
               </div>
             )}
-            <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title="Chọn tháng/năm để xem hoặc nhập kỳ khác">
+            <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title={isKD ? 'Chọn quý/năm' : 'Chọn tháng/năm để xem hoặc nhập kỳ khác'}>
               <CalendarDays className="w-4 h-4 text-amber-300" />
-              <input type="number" min="1" max="12" value={period.month} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, month: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
+              {isKD ? (
+                <select value={QUARTER_OF(period.month)} onChange={(e) => { loadingRef.current = true; const np = { ...period, month: String(Number(e.target.value) * 3) }; setPeriod(np); loadPeriod(np); }} className="bg-white/10 rounded px-1 py-0.5 text-sm text-white outline-none [&>option]:text-slate-800">
+                  {[1, 2, 3, 4].map((q) => <option key={q} value={q}>Quý {ROMAN[q - 1]}</option>)}
+                </select>
+              ) : (
+                <input type="number" min="1" max="12" value={period.month} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, month: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
+              )}
               <span className="text-red-200">/</span>
               <input type="number" value={period.year} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, year: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-16 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
             </div>
@@ -1458,7 +1526,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage && !isSonHa && !isSG ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs, ...(canManage && !isSonHa && !isSG && !isKD ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -1508,6 +1576,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
         {people.length > 0 && tab === 'dash' && (
           <div className="space-y-6">
+            {isKD && <KiemDiemDashboard computed={computed} onPick={(id) => { setCurId(id); setTab('eval'); }} onExportAgg={doKDAgg} quarterLabel={quarterLabel} />}
+            {!isKD && (<>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
               <Stat icon={Users} label="Tổng số cán bộ" value={people.length} color="slate" />
               <Stat icon={TrendingUp} label="Điểm TB cơ quan" value={avg.toFixed(1)} color="red" />
@@ -1642,6 +1712,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </section>
             )}
             </>)}
+            </>)}
           </div>
         )}
 
@@ -1655,7 +1726,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
-                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">{isSG ? 'Điểm tổng hợp (Singapore)' : 'Tổng điểm KPI'}</p>
+                <p className="text-xs text-slate-500 uppercase font-bold tracking-wider mb-2">{isSG ? 'Điểm tổng hợp (Singapore)' : isKD ? `Tổng điểm ${quarterLabel}` : 'Tổng điểm KPI'}</p>
                 <div className={`flex justify-center items-end gap-2 ${isSG ? 'text-indigo-600' : 'text-red-600'}`}><span className="text-4xl font-extrabold leading-none">{curC.totalMgr.toFixed(1)}</span><span className="text-sm font-bold pb-1">/ 100</span></div>
                 <div className="mt-4"><span className={`inline-block px-3 py-1 rounded-full text-xs font-bold border ${result.soft}`}>{isSG ? `${result.code} · ` : ''}{result.name}</span></div>
               </div>
@@ -1684,6 +1755,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                     </div>
                   </section>
                 )}
+                {isKD && (
+                  <section className="bg-gradient-to-br from-rose-50 to-amber-50 border border-rose-200 rounded-2xl p-5">
+                    <h2 className="flex items-center gap-2 font-bold text-rose-900"><Award className="w-5 h-5 text-rose-700" /> Phiên bản Kiểm điểm — đánh giá hằng QUÝ ({quarterLabel})</h2>
+                    <p className="text-sm text-rose-900/80 mt-1.5 leading-relaxed">Theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b> của Ban Thường vụ Tỉnh ủy, áp dụng cho <b>cán bộ diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan. Thang 100 = <b>Nhóm A (30đ)</b> tiêu chí chung (chấm nhị phân Đảm bảo/Không) + <b>Nhóm B (70đ)</b> kết quả nhiệm vụ theo <b>6 trục trọng tâm</b>, mỗi trục <b>Điểm = KPI% × điểm tối đa</b>, KPI = (A+B+C+D)/4. Xếp loại 4 mức: HTXS / HTT / HT / Không HT.</p>
+                  </section>
+                )}
                 {!selfEditable && !mgrEditable && (
                   <div className="bg-slate-100 border border-slate-200 rounded-xl p-3 text-sm text-slate-600 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-slate-400" /> Bạn đang ở chế độ <b>chỉ xem</b> với cán bộ này (không đủ quyền chỉnh sửa).</div>
                 )}
@@ -1707,7 +1784,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                       </div>
                       <p className="text-[11px] text-slate-400 mt-1.5">Bản SonHa gán nhóm đối tượng theo chức vụ đã chọn — không cần chọn nhóm thủ công. Đổi chức vụ ở trên sẽ tự đổi Mẫu.</p>
                     </Field>
-                  ); })() : (
+                  ); })() : isKD ? null : (
                     <Field label="Nhóm đối tượng đánh giá" className="mt-3">
                       <div className="grid sm:grid-cols-3 gap-2">
                         {CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (<button key={k} disabled={!(canManage || mgrEditable || selfEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`}><span className={`text-[11px] font-bold ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</span><p className="text-xs font-medium text-slate-700 leading-snug mt-0.5">{v.label}</p></button>))}
@@ -1716,7 +1793,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   )}
                 </section>
                 {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
-                {!isSG && (<>
+                {isKD && <KiemDiemAppraisal person={cur} c={curC} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurKD} onWord={doKDWord} />}
+                {!isSG && !isKD && (<>
                 {isSonHa && <SonHaConnectors canEdit={taskEditable} />}
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><ClipboardList className="w-5 h-5 text-amber-300" /> Nhóm I — Tiêu chí chung</h2><div className="flex items-center gap-3 text-sm"><span className="text-slate-300">Tự: <b className="text-white">{curC.nself.toFixed(1)}</b></span><span className="text-amber-300 font-bold">Duyệt: {curC.nmgr.toFixed(1)}/30</span></div></div>
@@ -1780,7 +1858,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 </section>
                 </>)}
               </div>
-              {!isSG && (<aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4">
+              {!isSG && !isKD && (<aside className="lg:col-span-1"><div className="lg:sticky lg:top-4 space-y-4">
                 <div className="bg-white rounded-2xl shadow-md border border-slate-200 overflow-hidden">
                   <div className={`${result.cls} text-white text-center py-5`}><p className="text-xs opacity-90 uppercase tracking-wider">Tổng điểm (cấp duyệt)</p><p className="text-5xl font-extrabold mt-1">{curC.totalMgr.toFixed(2)}</p><p className="text-sm opacity-90">Tự đánh giá: {curC.totalSelf.toFixed(2)} / 100</p></div>
                   <div className="p-4 text-center border-b border-slate-100"><span className={`inline-flex items-center gap-2 px-4 py-2 rounded-full border font-bold text-sm ${result.soft}`}><span className="w-7 h-7 rounded-full bg-white/60 flex items-center justify-center font-extrabold">{result.code}</span>{result.name}</span></div>
@@ -1994,12 +2072,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
                 <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Nội dung hiển thị <b>theo đúng phiên bản đang dùng</b>.</p>
               </div>
-              {!isSG && <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>}
+              {!isSG && !isKD && <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>}
             </div>
 
-            <div className={`rounded-xl border p-4 ${isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
-              <p className={`font-bold mb-1 ${isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {VERSION_NAME(version)}</p>
-              <p className="text-sm text-slate-700 leading-relaxed">{isSG
+            <div className={`rounded-xl border p-4 ${isKD ? 'bg-rose-50 border-rose-200' : isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
+              <p className={`font-bold mb-1 ${isKD ? 'text-rose-800' : isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {VERSION_NAME(version)}</p>
+              <p className="text-sm text-slate-700 leading-relaxed">{isKD
+                ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm nhị phân Đảm bảo/Không) + Nhóm B (70đ, kết quả nhiệm vụ theo 6 trục trọng tâm, mỗi trục Điểm = KPI% × điểm tối đa với KPI = (A+B+C+D)/4). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: bản tự đánh giá cá nhân (Phụ lục 3A) và bảng tổng hợp tập thể (Phụ lục 4).'
+                : isSG
                 ? 'Mô hình quản lý hiệu suất khu vực công Singapore (THAM KHẢO) — KHÔNG dùng thang 30/70 và Điều 8. Đánh giá theo HAI tầng: (A) Bảng điểm THIẾT CHẾ của cơ quan chấm theo dải màu Xanh/Vàng/Đỏ; (B) Phiếu CÁ NHÂN gồm Kết quả công việc (Work Review) + Năng lực (AIM) + Giá trị (ISE) → Xếp loại A–E, kèm Tiềm năng (CEP). Đại biểu dân cử không chấm điểm cá nhân.'
                 : isImproved
                 ? 'Cùng khung điểm 100 và điều kiện xếp loại Điều 8 như bản Cổ điển, nhưng câu hỏi Nhóm I viết lại theo hướng dễ hiểu (năng lực AIM, giá trị Liêm chính–Phục vụ–Xuất sắc); Nhóm II gom theo Mục tiêu (OKR) và bổ sung ô "Kết quả cần đạt". Số liệu Nhóm II khớp Nghị định 335/2025/NĐ-CP.'
@@ -2054,7 +2134,41 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             </GB>
             </>)}
 
-            {!isSG && (<>
+            {isKD && (<>
+            <GB icon={Award} title="1. Tổng quan phiên bản Kiểm điểm (HD 03-HD/TU)">
+              <p>Phiên bản dùng để <b>đánh giá định kỳ hằng quý</b> đối với cán bộ lãnh đạo, quản lý <b>diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan Văn phòng Đoàn ĐBQH và HĐND tỉnh (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban và 4 Phó Trưởng Ban KTNS/VHXH/Pháp chế/Dân tộc; Chánh Văn phòng và 2 Phó Chánh Văn phòng), theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b>.</p>
+              <p className="mt-1.5">Chỉ gồm 3 khu vực: <b>Tổng quan</b> (phân bố xếp loại + bảng tổng hợp tập thể — Phụ lục 4), <b>Đánh giá</b> (phiếu cá nhân), <b>Liên hệ & hướng dẫn</b>.</p>
+            </GB>
+            <GB icon={ShieldCheck} title="2. Nhóm A — Tiêu chí chung (30 điểm)">
+              <p>Gồm 3 nhóm, chấm <b>nhị phân</b>: đánh dấu <b>Đảm bảo</b> = đủ điểm tối đa của mục; bỏ dấu = <b>0 điểm</b>.</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                <li><b>Nhóm 1 (10đ):</b> Phẩm chất chính trị, đạo đức, lối sống, thực hiện trách nhiệm nêu gương (9 mục).</li>
+                <li><b>Nhóm 2 (10đ):</b> Tư duy đổi mới, chiến lược, khát vọng cống hiến, dám nghĩ, dám làm (4 mục).</li>
+                <li><b>Nhóm 3 (10đ):</b> Tự phê bình và phê bình, tự soi, tự sửa, khắc phục hạn chế, khuyết điểm (4 mục).</li>
+              </ul>
+              <p className="mt-1.5 text-slate-500 text-[13px]">Cột <b>Cấp duyệt</b> mặc định kế thừa cột <b>Tự ĐG</b>; cán bộ mới mặc định đảm bảo tất cả (đủ 30đ).</p>
+            </GB>
+            <GB icon={Target} title="3. Nhóm B — Kết quả thực hiện nhiệm vụ (70 điểm), theo 6 trục">
+              <p>Điểm mỗi trục = <b>KPI% × điểm tối đa</b>, với <b>KPI = (A + B + C + D)/4</b> (A số lượng · B chất lượng · C tiến độ · D năng lực lãnh đạo, điều hành). Điểm tối đa 6 trục: <b>15 · 10 · 10 · 15 · 10 · 10 = 70</b>.</p>
+              <ul className="list-disc pl-5 space-y-1 mt-1">
+                {KD_TRUC.map((t) => <li key={t.id}><b>Trục {t.code} ({t.max}đ):</b> {t.name}.</li>)}
+              </ul>
+              <p className="mt-1.5">Cá nhân xác định trục giữ vai trò <b>chính</b> (tỷ trọng cao) và trục <b>phối hợp, hỗ trợ</b> (tỷ trọng thấp). Có thể lập <b>danh mục sản phẩm/công việc</b> theo từng trục (hệ số quy đổi theo độ khó, phức tạp, phạm vi tác động) làm căn cứ chấm A/B/C/D (Phụ lục 1B/3B).</p>
+            </GB>
+            <GB icon={ClipboardList} title="4. Xếp loại & quy trình">
+              <p>Tổng điểm = Nhóm A + Nhóm B (thang 100). Xếp loại 4 mức: <b>Hoàn thành xuất sắc</b> (≥90 và nổi trội, không thiếu nhiệm vụ) · <b>Hoàn thành tốt</b> (≥70) · <b>Hoàn thành</b> (≥50) · <b>Không hoàn thành</b> (&lt;50).</p>
+              <p className="mt-1.5 bg-rose-50 border border-rose-100 rounded-lg p-2.5 text-[13px]">Theo HD 03 (Điểm 6.2): hoàn thành <b>dưới 100%</b> nhiệm vụ được giao trong quý thì xếp loại <b>Không hoàn thành nhiệm vụ</b>, trừ trường hợp khách quan, bất khả kháng được cấp có thẩm quyền xác nhận. Tập thể hoàn thành dưới 70% nhiệm vụ → người đứng đầu Không hoàn thành nhiệm vụ.</p>
+              <p className="mt-1.5">Quy trình: cá nhân tự chấm & đề xuất → cấp có thẩm quyền thẩm định, đề xuất → cấp quản lý cán bộ quyết định, phê duyệt. Kết quả hằng quý tích lũy làm căn cứ xếp loại cuối năm.</p>
+            </GB>
+            <GB icon={FileText} title="5. Sản phẩm xuất ra">
+              <ul className="list-disc pl-5 space-y-1">
+                <li><b>Bản tự đánh giá, xếp loại của cá nhân (Phụ lục 3A)</b> — nút "Xuất bản tự đánh giá (Word)" ở cuối phiếu Đánh giá.</li>
+                <li><b>Bảng tổng hợp kết quả & đề xuất xếp loại quý của tập thể (Phụ lục 4)</b> — nút "Xuất Bảng tổng hợp" ở tab Tổng quan.</li>
+              </ul>
+            </GB>
+            </>)}
+
+            {!isSG && !isKD && (<>
             <GB icon={LayoutDashboard} title="1. Năm khu vực (tab) của hệ thống">
               <ul className="list-disc pl-5 space-y-1">
                 <li><b>Tổng quan:</b> Mục tiêu OKR cấp Văn phòng, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A) và xu hướng theo kỳ.</li>

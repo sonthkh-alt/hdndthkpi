@@ -307,6 +307,127 @@ export async function exportSGAppraisal(ev) {
   saveAs(blob, `SG_Appraisal_${(ev.name || 'officer').replace(/\s+/g, '_')}_${ev.month}_${ev.year}.docx`);
 }
 
+// ============================================================================
+// PHIÊN BẢN KIỂM ĐIỂM (HD 03-HD/TU) — xuất Word
+// ============================================================================
+// Phụ lục 3A — Bản tự đánh giá, xếp loại của cá nhân (cán bộ diện BTV Tỉnh ủy quản lý).
+export async function exportKiemDiemCaNhan(ev) {
+  const C = AlignmentType.CENTER;
+  const children = [];
+  children.push(P((ev.unit || '').toUpperCase(), { bold: true, size: 24, align: C }));
+  children.push(P('ĐẢNG CỘNG SẢN VIỆT NAM', { bold: true, size: 24, align: C, spacingAfter: 120 }));
+  children.push(P('BẢN TỰ ĐÁNH GIÁ, XẾP LOẠI CỦA CÁ NHÂN', { bold: true, size: 30, align: C }));
+  children.push(P(`Quý ${ev.quarter}, năm ${ev.year}`, { bold: true, size: 26, align: C }));
+  children.push(P('(Cán bộ thuộc diện Ban Thường vụ Tỉnh ủy quản lý)', { italics: true, size: 22, align: C }));
+  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 200 }));
+
+  children.push(P([{ text: 'Họ và tên: ', bold: true }, { text: ev.name || '...' }]));
+  children.push(P([{ text: 'Chức vụ / Vị trí việc làm: ', bold: true }, { text: ev.position || '...' }]));
+  if (ev.department) children.push(P([{ text: 'Đơn vị công tác: ', bold: true }, { text: ev.department }], { spacingAfter: 160 }));
+
+  children.push(P('I. TỰ ĐÁNH GIÁ KẾT QUẢ THỰC HIỆN NHIỆM VỤ', { bold: true, size: 26, spacingAfter: 80 }));
+  children.push(P([{ text: 'A. Nhóm tiêu chí chung: ', bold: true }, { text: `${fmt(ev.nhomA, 1)}/30 điểm` }]));
+  children.push(P([{ text: 'B. Kết quả thực hiện nhiệm vụ (6 trục): ', bold: true }, { text: `${fmt(ev.nhomB, 2)}/70 điểm` }], { spacingAfter: 80 }));
+
+  const rows = [new TableRow({ tableHeader: true, children: [
+    TC('Trục', { bold: true, align: C, shade: 'F2DEDE', width: 5 }),
+    TC('Nội dung trục kết quả · Mục tiêu, nhiệm vụ · Kết quả thực tế', { bold: true, align: C, shade: 'F2DEDE', width: 63 }),
+    TC('KPI (%)', { bold: true, align: C, shade: 'F2DEDE', width: 12 }),
+    TC('Điểm', { bold: true, align: C, shade: 'F2DEDE', width: 10 }),
+    TC('Tối đa', { bold: true, align: C, shade: 'F2DEDE', width: 10 }),
+  ] })];
+  (ev.trucs || []).forEach((t) => {
+    const lines = [`${t.name}`, t.muctieu ? `Mục tiêu: ${t.muctieu}` : '', t.ketqua ? `Kết quả: ${t.ketqua}` : ''].filter(Boolean).join(' — ');
+    rows.push(new TableRow({ children: [
+      TC(t.code, { align: C, bold: true, size: 20 }),
+      TC(lines, { size: 20 }),
+      TC(fmt(t.kpi, 0), { align: C, size: 20 }),
+      TC(fmt(t.diem, 2), { align: C, size: 20 }),
+      TC(t.max, { align: C, size: 20 }),
+    ] }));
+  });
+  rows.push(new TableRow({ children: [
+    TC('', {}), TC('TỔNG (A + B)', { bold: true, align: 'right', size: 20 }), TC('', {}), TC(fmt(ev.total, 1), { align: C, bold: true, size: 20 }), TC('100', { align: C, size: 20 }),
+  ] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+  children.push(P(`Công thức: mỗi trục Điểm = KPI% × điểm tối đa; KPI = (A số lượng + B chất lượng + C tiến độ + D năng lực lãnh đạo)/4.`, { italics: true, size: 20, spacingAfter: 120 }));
+
+  children.push(P('II. TỰ ĐỀ XUẤT XẾP LOẠI MỨC CHẤT LƯỢNG', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P([{ text: 'Đề xuất theo điểm: ', bold: true }, { text: ev.autoGradeName || '' }]));
+  children.push(P([{ text: 'Cá nhân tự đề xuất xếp loại: ', bold: true }, { text: ev.selfGradeName || '...' }]));
+  if (ev.exemptNote) children.push(P([{ text: 'Lý do khách quan (nếu hoàn thành dưới 100%): ', bold: true }, { text: ev.exemptNote }]));
+  if (ev.selfNote) children.push(P([{ text: 'Tự nhận xét: ', bold: true }, { text: ev.selfNote }]));
+  children.push(P('', { spacingAfter: 80 }));
+
+  children.push(P('III. NHẬN XÉT, ĐÁNH GIÁ CỦA CẤP CÓ THẨM QUYỀN', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P([{ text: 'Đề xuất/quyết định xếp loại: ', bold: true }, { text: ev.gradeName || '...' }]));
+  children.push(P([{ text: 'Nhận xét: ', bold: true }, { text: ev.mgrNote || '...' }], { spacingAfter: 200 }));
+
+  const signCol = (role, hint) => [P(role, { bold: true, align: C, size: 24 }), P(hint, { italics: true, align: C, size: 20 }), P('', { spacingAfter: 600 })];
+  const NB = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { ...NB, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+    rows: [new TableRow({ children: [
+      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('CÁ NHÂN TỰ ĐÁNH GIÁ', '(Ký, ghi rõ họ tên)') }),
+      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('XÁC NHẬN CỦA TẬP THỂ LÃNH ĐẠO', '(Ký, ghi rõ họ tên và đóng dấu)') }),
+    ] })],
+  }));
+
+  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 1000, bottom: 1000, left: 1100, right: 1000 } } }, children }] });
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `TuDanhGia_KiemDiem_${(ev.name || 'canbo').replace(/\s+/g, '_')}_Quy${ev.quarter}_${ev.year}.docx`);
+}
+
+// Phụ lục 4 — Bảng tổng hợp kết quả đánh giá và đề xuất xếp loại quý (tập thể).
+export async function exportKiemDiemTongHop(ev) {
+  const C = AlignmentType.CENTER;
+  const children = [];
+  children.push(P((ev.unit || '').toUpperCase(), { bold: true, size: 24, align: C }));
+  children.push(P('ĐẢNG CỘNG SẢN VIỆT NAM', { bold: true, size: 24, align: C, spacingAfter: 120 }));
+  children.push(P(`TỔNG HỢP KẾT QUẢ ĐÁNH GIÁ VÀ ĐỀ XUẤT XẾP LOẠI QUÝ ${ev.quarter}, NĂM ${ev.year}`, { bold: true, size: 28, align: C }));
+  children.push(P('ĐỐI VỚI CÁN BỘ THUỘC DIỆN BAN THƯỜNG VỤ TỈNH ỦY QUẢN LÝ', { bold: true, size: 26, align: C }));
+  children.push(P('(kèm theo Hướng dẫn số 03-HD/TU, ngày 02/7/2026 của Ban Thường vụ Tỉnh ủy)', { italics: true, size: 20, align: C, spacingAfter: 200 }));
+
+  const rows = [new TableRow({ tableHeader: true, children: [
+    TC('STT', { bold: true, align: C, shade: 'F2DEDE', width: 6 }),
+    TC('Họ và tên', { bold: true, align: C, shade: 'F2DEDE', width: 30 }),
+    TC('Chức vụ', { bold: true, align: C, shade: 'F2DEDE', width: 30 }),
+    TC('Nhóm A', { bold: true, align: C, shade: 'F2DEDE', width: 9 }),
+    TC('Nhóm B', { bold: true, align: C, shade: 'F2DEDE', width: 9 }),
+    TC('Tổng', { bold: true, align: C, shade: 'F2DEDE', width: 8 }),
+    TC('Đề xuất xếp loại', { bold: true, align: C, shade: 'F2DEDE', width: 18 }),
+  ] })];
+  (ev.rows || []).forEach((r) => {
+    rows.push(new TableRow({ children: [
+      TC(r.stt, { align: C, size: 20 }),
+      TC(r.name || '', { size: 20 }),
+      TC(r.position || '', { size: 20 }),
+      TC(fmt(r.nhomA, 1), { align: C, size: 20 }),
+      TC(fmt(r.nhomB, 1), { align: C, size: 20 }),
+      TC(fmt(r.total, 1), { align: C, bold: true, size: 20 }),
+      TC(r.gradeName || '', { align: C, size: 20 }),
+    ] }));
+  });
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+  children.push(P('', { spacingAfter: 200 }));
+
+  const signCol = (role, hint) => [P(role, { bold: true, align: C, size: 24 }), P(hint, { italics: true, align: C, size: 20 }), P('', { spacingAfter: 600 })];
+  const NB = { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } };
+  children.push(new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    borders: { ...NB, insideHorizontal: { style: BorderStyle.NONE }, insideVertical: { style: BorderStyle.NONE } },
+    rows: [new TableRow({ children: [
+      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('NGƯỜI LẬP BIỂU', '(Ký, ghi rõ họ tên)') }),
+      new TableCell({ borders: NB, width: { size: 50, type: WidthType.PERCENTAGE }, children: signCol('THỦ TRƯỞNG CƠ QUAN', '(Ký, ghi rõ họ tên và đóng dấu)') }),
+    ] })],
+  }));
+
+  const doc = new Document({ sections: [{ properties: { page: { size: { orientation: 'landscape' }, margin: { top: 900, bottom: 900, left: 900, right: 900 } } }, children }] });
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `TongHop_KiemDiem_Quy${ev.quarter}_${ev.year}.docx`);
+}
+
 // EXCEL — Bảng kiểm đếm, theo dõi công việc
 export function exportTrackingExcel(people, weekTitle, unit) {
   const aoa = [

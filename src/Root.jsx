@@ -10,7 +10,7 @@ import App from './App.jsx';
 //                 QĐ Danh mục/NĐ 335/2025; Đánh giá để sẵn mục liên kết "Quản lý văn bản" + Import file.
 // Lựa chọn lưu trong localStorage để không phải chọn lại mỗi lần tải trang.
 const KEY = 'hdndkpi_version';
-const VALID = ['classic', 'improved', 'sg', 'sonha'];
+const VALID = ['classic', 'improved', 'sg', 'sonha', 'kiemdiem'];
 const DEFAULT_VERSION = 'sonha'; // mặc định vào trang là bản Sơn Hà
 const readVersion = () => {
   try { const v = localStorage.getItem(KEY); return VALID.includes(v) ? v : DEFAULT_VERSION; } catch { return DEFAULT_VERSION; }
