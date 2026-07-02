@@ -22,7 +22,7 @@ const ORG_UNITS = [
   { dept: 'Phòng Công tác Hội đồng', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
   { dept: 'Phòng Công tác Quốc hội', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
   { dept: 'Phòng Tổng hợp - Thông tin - Dân nguyện', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
-  { dept: 'Phòng Hành chính - Tổ chức - Quản trị', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên'] },
+  { dept: 'Phòng Hành chính - Tổ chức - Quản trị', positions: ['Trưởng phòng', 'Phó Trưởng phòng', 'Chuyên viên', 'Lái xe', 'Bảo vệ', 'Nhân viên phục vụ'] },
 ];
 const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions) || [];
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
@@ -440,6 +440,51 @@ const SONHA_CATALOG = [
   ..._shHT.map(_shRow(SH_TYPES_HT, 'III. Công việc hỗ trợ, phục vụ')),
 ];
 
+// ===== SonHa: Nhóm đối tượng (Mẫu) SUY RA TỪ CHỨC VỤ — không cần chọn nhóm thủ công =====
+// Bản SonHa BỎ Mẫu 01/02 kiểu đại biểu (HĐND/QH). Đánh số lại theo chức vụ tại Văn phòng:
+//  • Mẫu 01 — Cán bộ lãnh đạo, quản lý 01: Chánh/Phó Chánh Văn phòng → Nhóm II chỉ SH.LD (chỉ đạo, điều hành).
+//  • Mẫu 02 — Cán bộ lãnh đạo, quản lý 02: Trưởng/Phó Trưởng phòng → Nhóm II như "lãnh đạo, quản lý" hiện tại (SH.CM + SH.LD).
+//  • Mẫu 03 — Công chức chuyên môn, nghiệp vụ: chuyên viên → SH.CM.
+//  • Mẫu 04 — Lao động hợp đồng hỗ trợ, phục vụ → SH.HT.
+const SONHA_MAU = {
+  ld1: { code: '01', name: 'Cán bộ lãnh đạo, quản lý 01', short: 'Lãnh đạo, quản lý 01', role: 'Chánh, Phó Chánh Văn phòng', type: 'leader' },
+  ld2: { code: '02', name: 'Cán bộ lãnh đạo, quản lý 02', short: 'Lãnh đạo, quản lý 02', role: 'Trưởng, Phó Trưởng phòng', type: 'leader' },
+  staff: { code: '03', name: 'Công chức chuyên môn, nghiệp vụ', short: 'Công chức', role: 'Chuyên viên các phòng', type: 'staff' },
+  contract: { code: '04', name: 'Lao động hợp đồng hỗ trợ, phục vụ', short: 'Hỗ trợ, phục vụ', role: 'Lái xe, bảo vệ, phục vụ, tạp vụ…', type: 'contract' },
+};
+const SONHA_MAU_ORDER = ['ld1', 'ld2', 'staff', 'contract'];
+// Suy Mẫu SonHa từ chức vụ (ưu tiên), sau đó tới nhóm đối tượng gốc.
+function sonhaMauKey(p) {
+  if (!p) return 'staff';
+  const pos = p.position || '';
+  if (/Lái xe|Bảo vệ|phục vụ|tạp vụ|bảo trì|lễ tân|hậu cần/i.test(pos)) return 'contract';
+  if (/Chánh Văn phòng/.test(pos)) return 'ld1';   // khớp cả "Phó Chánh Văn phòng"
+  if (/Trưởng phòng/.test(pos)) return 'ld2';       // khớp cả "Phó Trưởng phòng"
+  if (/Chuyên viên/.test(pos)) return 'staff';
+  if (p.type === 'contract') return 'contract';     // dữ liệu đã gán nhóm hợp đồng nhưng chưa có chức vụ khớp
+  if (p.type === 'leader') return 'ld2';            // lãnh đạo khác (mặc định) → LĐQL 02
+  return 'staff';
+}
+// Nhóm đối tượng GỐC (type) tương ứng — để CRITERIA/công thức (isLeaderPerson) hoạt động nhất quán với chức vụ.
+const sonhaTypeOf = (p) => SONHA_MAU[sonhaMauKey(p)].type;
+// Danh mục Nhóm II của SonHa theo Mẫu (lọc theo tiền tố id).
+function sonhaCatalogFor(mauKey) {
+  if (mauKey === 'ld1') return SONHA_CATALOG.filter((c) => c.id.startsWith('SH.LD.'));
+  if (mauKey === 'ld2') return SONHA_CATALOG.filter((c) => c.id.startsWith('SH.CM.') || c.id.startsWith('SH.LD.'));
+  if (mauKey === 'contract') return SONHA_CATALOG.filter((c) => c.id.startsWith('SH.HT.'));
+  return SONHA_CATALOG.filter((c) => c.id.startsWith('SH.CM.')); // staff (Mẫu 03)
+}
+const sonhaGroupsOf = (p) => sonhaCatalogFor(sonhaMauKey(p));
+
+// ===== SonHa: chế độ THƯỞNG ĐIỂM khi vượt định mức =====
+// Nghiên cứu: NĐ 335/2025 & đặc tả kẹp a,b,c ≤ 100 (không thưởng vượt mức trong thang chính), nhưng coi "≥30% vượt mức"
+// là ĐIỀU KIỆN loại A và cho phép "điểm cộng theo quy chế cơ quan" cho nhiệm vụ vượt định mức/đột xuất (Chương VI.2).
+// Rủi ro Goodhart (khai khống, chọn việc dễ) → thưởng phải NHỎ, có TRẦN, chỉ tính phần vượt ĐÃ được Cấp duyệt nghiệm thu.
+// Đề xuất: +0,1 điểm cho mỗi 1% vượt định mức bình quân (trọng số theo hệ số), TRẦN +5 điểm; tổng vẫn kẹp ≤ 100.
+const SH_BONUS_PER_PCT = 0.1;  // điểm thưởng cho mỗi 1% vượt định mức (bình quân theo trọng số)
+const SH_BONUS_MAX = 5;        // trần điểm thưởng
+const sonhaBonus = (exceedPct) => Math.min(SH_BONUS_MAX, Math.max(0, Number(exceedPct) || 0) * SH_BONUS_PER_PCT);
+
 // Hai mục "để chờ cấu hình" của bản SonHa (hiển thị đầu tab Đánh giá):
 //  (1) Liên kết hệ thống Quản lý văn bản — tự động lấy số liệu nhiệm vụ giao/văn bản phát hành làm minh chứng.
 //      Endpoint/xác thực sẽ được cấu hình sau (theo Chương III.9 đặc tả yêu cầu phần mềm).
@@ -486,7 +531,8 @@ let OVERRIDES = {};        // { [id]: { name?, group?, output?, level?, maxScore
 // Danh mục NỀN "đang hoạt động" — đổi theo phiên bản: bản 'sonha' dùng SONHA_CATALOG (QĐ Danh mục VP),
 // các bản còn lại dùng CATALOG (ND335 + HĐND). findCatalogItem/getND335Groups/catalogForGuide đọc biến này.
 let ACTIVE_BASE = CATALOG;
-function setBaseCatalog(v) { ACTIVE_BASE = (v === 'sonha') ? SONHA_CATALOG : CATALOG; }
+let ACTIVE_VERSION = 'classic'; // phiên bản đang render (để computePerson biết có áp chế độ thưởng SonHa hay không)
+function setBaseCatalog(v) { ACTIVE_VERSION = v || 'classic'; ACTIVE_BASE = (v === 'sonha') ? SONHA_CATALOG : CATALOG; }
 function setCatalogRegistry(catalog) {
   CUSTOM_CATALOG = (catalog && Array.isArray(catalog.custom)) ? catalog.custom : [];
   HIDDEN_CATALOG = (catalog && Array.isArray(catalog.hidden)) ? catalog.hidden : [];
@@ -644,7 +690,7 @@ function agg335(tasks335, which = 'mgr') {
   const valid = (tasks335 || []).filter(t => t.catalogId);
   // Chưa nhập nhiệm vụ nào -> mặc định đạt tối đa 100 (cán bộ mới khởi tạo 100/100, đánh giá trừ dần)
   if (valid.length === 0) return { a: 100, b: 100, c: 100, val: 100 };
-  let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0;
+  let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0, totalExceedScore = 0;
   valid.forEach(t => {
     const cat = findCatalogItem(t.catalogId);
     if (!cat) return;
@@ -659,12 +705,14 @@ function agg335(tasks335, which = 'mgr') {
     totalCompletedScore += cp * w;
     totalQualityScore += cp * w * Math.max(0, 1 - 0.25 * qI);
     totalDelayScore += cp * w * Math.max(0, 1 - 0.25 * dl);
+    totalExceedScore += Math.max(0, cp - as) * w; // phần VƯỢT định mức (trọng số) — dùng cho chế độ thưởng
   });
-  if (totalAssignedScore === 0) return { a: 100, b: 100, c: 100, val: 100 };
+  if (totalAssignedScore === 0) return { a: 100, b: 100, c: 100, val: 100, exceedPct: 0 };
   const a = Math.min(100, (totalCompletedScore / totalAssignedScore) * 100);
   const b = totalCompletedScore > 0 ? (totalQualityScore / totalCompletedScore) * 100 : 100;
   const c = totalCompletedScore > 0 ? (totalDelayScore / totalCompletedScore) * 100 : 100;
-  return { a, b, c, val: (a + b + c) / 3 };
+  const exceedPct = (totalExceedScore / totalAssignedScore) * 100; // % vượt định mức bình quân theo trọng số
+  return { a, b, c, val: (a + b + c) / 3, exceedPct };
 }
 
 function getND335Groups(type) {
@@ -704,14 +752,18 @@ function computePerson(p) {
   const nhomII = (k.val / 100) * 70;            // theo Cấp duyệt (dùng xếp loại chính thức)
   const nhomIISelf = (kSelf.val / 100) * 70;    // theo Tự đánh giá
   const ded = Number(p.deduction || 0);
-  const totalSelf = clamp(nself + nhomIISelf - ded);
-  const totalMgr = clamp(nmgr + nhomII - ded);
+  // Chế độ THƯỞNG vượt định mức — CHỈ áp cho bản SonHa (các bản khác giữ nguyên công thức cũ).
+  const bonusOn = ACTIVE_VERSION === 'sonha';
+  const bonus = bonusOn ? sonhaBonus(k.exceedPct) : 0;
+  const bonusSelf = bonusOn ? sonhaBonus(kSelf.exceedPct) : 0;
+  const totalSelf = clamp(nself + nhomIISelf - ded + bonusSelf);
+  const totalMgr = clamp(nmgr + nhomII - ded + bonus);
   const st = taskStats(p.tasks335, 'mgr');
   const g = evalGradeCode(totalMgr, st, { disciplined: !!p.disciplined, leader });
 
   return {
     nself, nmgr, k, kSelf, leader, st, nhomII, nhomIISelf,
-    totalSelf, totalMgr,
+    totalSelf, totalMgr, bonus, bonusSelf, exceedPct: k.exceedPct || 0,
     grade: g.code, gradeReasons: g.reasons,
   };
 }
@@ -725,7 +777,10 @@ const newPerson = (name, type) => ({ id: pid++, name, position: '', department: 
 //  A = đạt đủ 100% + ≥30% vượt mức · B = đa số đạt, vài việc 70%, không việc nào <50%
 //  C = ~1/3 việc <50% (Điều 8 hạ xuống HTNV) · D = >50% việc <50% (Không hoàn thành nhiệm vụ)
 function genTasksFull(type, profile, OKR) {
-  const cat = getND335Groups(type);
+  return genTasksFromCat(getND335Groups(type), profile, OKR);
+}
+// Sinh nhiệm vụ Nhóm II từ MỘT danh sách danh mục cho trước (dùng cho SonHa: danh mục theo Mẫu/chức vụ).
+function genTasksFromCat(cat, profile, OKR) {
   if (!cat.length) return [newTask335()];
   return cat.map((c, i) => {
     let a = 3, comp = 3, q = 0, d = 0;
@@ -757,7 +812,9 @@ function genTasksFull(type, profile, OKR) {
   });
 }
 
-function seedDemoPeople() {
+// Chọn bộ dữ liệu mẫu theo phiên bản: bản SonHa có bộ 20 cán bộ theo cơ cấu Văn phòng thực tế.
+function seedDemoPeople(version) {
+  if (version === 'sonha') return seedSonHaPeople();
   const OKR = ['o1', 'o2', 'o3'];
   const mk = (type, name, department, position, email, profile, cfg = {}) => ({
     ...newPerson(name, type), position, department, email, role: 'canbo',
@@ -792,6 +849,49 @@ function seedDemoPeople() {
     }),
   ];
 }
+// Bộ dữ liệu mẫu bản SonHa: cơ cấu Văn phòng — 1 Chánh + 1 Phó Chánh + 4 Trưởng phòng + 4 Phó phòng
+// + 8 chuyên viên (mỗi phòng 2) + 2 lao động hỗ trợ = 20 người. Nhóm đối tượng (Mẫu) tự suy theo chức vụ.
+function seedSonHaPeople() {
+  const OKR = ['o1', 'o2', 'o3'];
+  const PHONG = ['Phòng Công tác Hội đồng', 'Phòng Công tác Quốc hội', 'Phòng Tổng hợp - Thông tin - Dân nguyện', 'Phòng Hành chính - Tổ chức - Quản trị'];
+  const mk = (name, department, position, profile, cfg = {}) => {
+    const p = { ...newPerson(name, sonhaTypeOf({ position })), position, department, role: 'canbo',
+      email: cfg.email || '', deduction: cfg.deduction || 0,
+      leadScores: cfg.leadScores || { d: 100, dd: 100, e: 100 },
+      digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
+      selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '' };
+    p.type = sonhaTypeOf(p);
+    // Mỗi cán bộ được giao ~10 nhiệm vụ tiêu biểu trong kỳ (thực tế, không phải toàn bộ danh mục).
+    p.tasks335 = genTasksFromCat(sonhaGroupsOf(p).slice(0, 10), profile, OKR);
+    p.sg = defaultSG(profile, p.type, OKR);
+    return p;
+  };
+  const VP = 'Văn phòng';
+  const chuyenVien = (idx, dept, profile, cfg) => mk(`Chuyên viên ${idx} · ${dept.replace('Phòng ', '')}`, dept, 'Chuyên viên', profile, cfg);
+  const people = [
+    // Mẫu 01 — Lãnh đạo, quản lý 01 (Chánh/Phó Chánh VP)
+    mk('Hà Ngọc Sơn', VP, 'Chánh Văn phòng', 'A', { email: 'chanhvp.demo@thanhhoa.gov.vn', selfNote: 'Chỉ đạo, điều hành toàn diện; hoàn thành vượt mức nhiều nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo, quản lý.' }),
+    mk('Lê Thị Hồng', VP, 'Phó Chánh Văn phòng', 'B', { email: 'phochanhvp.demo@thanhhoa.gov.vn', selfNote: 'Phụ trách hành chính - quản trị; cơ bản hoàn thành tốt.', mgrNote: 'Hoàn thành tốt; cần đẩy nhanh một số việc.' }),
+  ];
+  // Mẫu 02 — Lãnh đạo, quản lý 02 (Trưởng/Phó Trưởng phòng), mỗi phòng 1 Trưởng + 1 Phó
+  const tpProfiles = ['A', 'B', 'B', 'A'], ppProfiles = ['B', 'B', 'C', 'B'];
+  PHONG.forEach((dept, i) => {
+    people.push(mk(`Trưởng phòng ${i + 1}`, dept, 'Trưởng phòng', tpProfiles[i], { selfNote: `Điều hành ${dept}; giao việc gắn sản phẩm đầu ra.`, mgrNote: 'Hoàn thành nhiệm vụ lãnh đạo cấp phòng.' }));
+    people.push(mk(`Phó Trưởng phòng ${i + 1}`, dept, 'Phó Trưởng phòng', ppProfiles[i], { selfNote: `Giúp Trưởng phòng ${dept.replace('Phòng ', '')} triển khai nhiệm vụ chuyên môn.`, mgrNote: 'Hoàn thành nhiệm vụ được phân công.' }));
+  });
+  // Mẫu 03 — Công chức chuyên môn (mỗi phòng 2 chuyên viên)
+  const cvProfiles = ['A', 'B', 'B', 'C', 'B', 'A', 'C', 'B'];
+  let cvIdx = 0;
+  PHONG.forEach((dept) => {
+    people.push(chuyenVien(cvIdx + 1, dept, cvProfiles[cvIdx], {})); cvIdx++;
+    people.push(chuyenVien(cvIdx + 1, dept, cvProfiles[cvIdx], {})); cvIdx++;
+  });
+  // Mẫu 04 — Lao động hợp đồng hỗ trợ, phục vụ (2 người ở Phòng HC-TC-QT)
+  people.push(mk('Nhân viên Lái xe', 'Phòng Hành chính - Tổ chức - Quản trị', 'Lái xe', 'B', { selfNote: 'Phục vụ đưa đón lãnh đạo, đoàn công tác an toàn, đúng giờ.', mgrNote: 'Hoàn thành tốt nhiệm vụ phục vụ.' }));
+  people.push(mk('Nhân viên Bảo vệ', 'Phòng Hành chính - Tổ chức - Quản trị', 'Bảo vệ', 'C', { deduction: 2, selfNote: 'Trực bảo vệ cơ quan theo ca.', mgrNote: 'Hoàn thành nhiệm vụ; nhắc nhở về một ca trực muộn.' }));
+  return people;
+}
+
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
 function bumpIds(people) {
   const ppl = people || [];
@@ -845,7 +945,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       { id: 'kr3b', text: 'Số cuộc giám sát chuyên đề hoàn thành theo kế hoạch năm', target: 8, current: 5, unit: 'cuộc' },
     ] },
   ]);
-  const [people, setPeople] = useState(() => seedDemoPeople());
+  const [people, setPeople] = useState(() => seedDemoPeople(version));
   const [curId, setCurId] = useState(people[0].id);
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
@@ -1205,7 +1305,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   // Render 1 dòng nhiệm vụ Nhóm II (dùng cho cả danh sách phẳng — Cổ điển, và gom theo Mục tiêu — Cải tiến/Singapore).
   const renderTask335Row = (t, i) => { const sc = task335Score(t); const st = statusOf(sc);
     return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
-      <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
+      <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{(isSonHa ? sonhaGroupsOf(cur) : getND335Groups(cur.type)).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{(() => { const over = tCompleted(t, 'mgr') - (Number(t.assigned) || 0); return t.catalogId && over > 0 ? <span className="shrink-0 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300 rounded px-1.5 py-0.5" title={`Hoàn thành vượt định mức được giao ${over} sản phẩm — được xét điểm thưởng`}>▲ vượt +{over}</span> : null; })()}{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
       <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">{isClassic ? '— Liên kết mục tiêu (OKR) —' : '— Việc thường xuyên / chưa gắn mục tiêu —'}</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
       {!isClassic && <div className="mb-2"><div className="flex items-center gap-2"><Target className="w-3.5 h-3.5 text-indigo-400 shrink-0" /><input value={t.kr || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { kr: e.target.value })} placeholder='Kết quả/sản phẩm cần đạt (tiêu chuẩn nghiệm thu) — VD: "10 báo cáo thẩm tra, đúng thể thức, trước ngày 25"' title="Mô tả ngắn 'thế nào là đạt' để người làm và người chấm hiểu giống nhau (SMART: sản phẩm + tiêu chuẩn đo được + hạn). Đây là căn cứ chấm 3 mục Khối lượng/Chất lượng/Tiến độ." className="flex-1 bg-white border border-indigo-200 rounded-lg px-2 py-1.5 text-xs text-slate-700 outline-none focus:border-indigo-400 disabled:opacity-60 disabled:cursor-not-allowed" /></div></div>}
       <div className="bg-white/60 p-2 rounded-lg">
@@ -1584,15 +1684,25 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <div className="grid sm:grid-cols-2 gap-3">
                     <Field label="Họ và tên"><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{ORG_UNITS.map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
-                    <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
+                    <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur(isSonHa ? { position: e.target.value, type: sonhaTypeOf({ position: e.target.value }) } : { position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
                     <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     {canManage && <Field label="Vai trò (quyền truy cập)"><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className="inp"><option value="canbo">Cán bộ — tự đánh giá phần mình</option><option value="truongphong">Trưởng phòng — duyệt trong phòng</option><option value="quantri">Quản trị — toàn quyền</option></select></Field>}
                   </div>
-                  <Field label="Nhóm đối tượng đánh giá" className="mt-3">
-                    <div className="grid sm:grid-cols-3 gap-2">
-                      {CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (<button key={k} disabled={!(canManage || mgrEditable || selfEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`}><span className={`text-[11px] font-bold ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</span><p className="text-xs font-medium text-slate-700 leading-snug mt-0.5">{v.label}</p></button>))}
-                    </div>
-                  </Field>
+                  {isSonHa ? (() => { const mk = sonhaMauKey(cur); const m = SONHA_MAU[mk]; return (
+                    <Field label="Nhóm đối tượng đánh giá (Mẫu) — tự xác định theo chức vụ" className="mt-3">
+                      <div className="rounded-xl border-2 border-emerald-500 bg-emerald-50 p-3 flex items-start gap-3">
+                        <span className="shrink-0 w-11 h-11 rounded-lg bg-emerald-600 text-white flex flex-col items-center justify-center leading-none"><span className="text-[9px] font-semibold">Mẫu</span><span className="text-base font-extrabold">{m.code}</span></span>
+                        <div className="min-w-0"><p className="text-sm font-bold text-emerald-800">{m.name}</p><p className="text-xs text-slate-600 mt-0.5">Chức vụ áp dụng: {m.role}. Kết quả thực hiện nhiệm vụ (Nhóm II) hiển thị đúng danh mục của Mẫu này.</p></div>
+                      </div>
+                      <p className="text-[11px] text-slate-400 mt-1.5">Bản SonHa gán nhóm đối tượng theo chức vụ đã chọn — không cần chọn nhóm thủ công. Đổi chức vụ ở trên sẽ tự đổi Mẫu.</p>
+                    </Field>
+                  ); })() : (
+                    <Field label="Nhóm đối tượng đánh giá" className="mt-3">
+                      <div className="grid sm:grid-cols-3 gap-2">
+                        {CRITERIA_ORDER.map((k) => [k, CRITERIA[k]]).map(([k, v]) => (<button key={k} disabled={!(canManage || mgrEditable || selfEditable)} onClick={() => upCur({ type: k, selfScores: {}, mgrScores: {} })} className={`text-left p-3 rounded-xl border-2 transition-all disabled:opacity-60 disabled:cursor-not-allowed ${cur.type === k ? 'border-red-600 bg-red-50' : 'border-slate-200 hover:border-slate-300'}`}><span className={`text-[11px] font-bold ${cur.type === k ? 'text-red-700' : 'text-slate-400'}`}>{v.mau}</span><p className="text-xs font-medium text-slate-700 leading-snug mt-0.5">{v.label}</p></button>))}
+                      </div>
+                    </Field>
+                  )}
                 </section>
                 {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
                 {!isSG && (<>
@@ -1611,9 +1721,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
                   <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-4">
-                    {taskEditable && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
-                    {isClassic
+                    {taskEditable && !isSonHa && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
+                    {isSonHa && <div className="mb-3 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-xs text-emerald-900/90 leading-relaxed space-y-1"><p><b>Danh mục hiển thị theo Mẫu (chức vụ)</b> của cán bộ. Đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%).</p><p><b>▲ Thưởng vượt định mức:</b> nếu số hoàn thành (cấp duyệt nghiệm thu) lớn hơn định mức, nhiệm vụ được gắn nhãn <b>“vượt”</b> và cộng <b>điểm thưởng</b> — <b>+0,1 điểm cho mỗi 1% vượt</b> bình quân theo trọng số, <b>tối đa +5 điểm</b> (tổng vẫn ≤ 100). Cơ chế nhỏ, có trần để khuyến khích làm nhiều hơn mà không khuyến khích khai khống.</p></div>}
+                    {isClassic && !isSonHa
                       ? <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
+                      : isClassic ? null
                       : <div className="mb-3 bg-indigo-50 border border-indigo-100 rounded-lg p-2.5 text-xs text-indigo-900/90 leading-relaxed space-y-1.5">
                           <p>Nhiệm vụ được <b>gom theo Mục tiêu</b> của cơ quan; mỗi nhiệm vụ ghi rõ <b>Kết quả/sản phẩm cần đạt</b> (tiêu chuẩn nghiệm thu) để hai bên chấm giống nhau.</p>
                           <p><b>Điểm mỗi nhiệm vụ = (Khối lượng + Chất lượng + Tiến độ) ÷ 3</b> — ba mặt bình đẳng: <b>a</b> = SL hoàn thành ÷ SL giao; <b>b</b> = 100% trừ 25% mỗi lần sai sót lớn; <b>c</b> = 100% trừ 25% mỗi lần trễ hạn. Làm nhiều nhưng sai/chậm cũng không đạt cao; đúng – đủ – đúng hạn mới đạt 100%. <span className="text-indigo-700">(Cách tính theo Nghị định 335/2025/NĐ-CP, áp dụng từ 01/01/2026.)</span></p>
@@ -1664,7 +1776,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   {(() => { const sc = gradeFromScore(curC.totalMgr); const rank = { A: 4, B: 3, C: 2, D: 1 }; if (rank[sc] <= rank[curC.grade]) return null; return (
                     <div className="px-4 pt-3"><div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-800 leading-relaxed"><p className="font-bold flex items-center gap-1.5 mb-1"><AlertTriangle className="w-3.5 h-3.5" /> Chênh lệch điểm số và xếp loại</p>Tổng điểm <b>{curC.totalMgr.toFixed(2)}</b> tương ứng mức <b>{GRADES[sc].code} — {GRADES[sc].name}</b> theo ngưỡng điểm, nhưng theo <b>điều kiện định lượng Điều 8</b> chỉ được xếp <b>{result.code} — {result.name}</b>. Điểm số phản ánh khối lượng/chất lượng công việc; xếp loại phản ánh mức độ hoàn thành theo quy định — xem lý do bên dưới.</div></div>
                   ); })()}
-                  <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger /><div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
+                  <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger />{isSonHa && (curC.bonus > 0 || curC.exceedPct > 0) && (<div className="flex justify-between items-center"><span className="text-emerald-700 flex items-center gap-1">▲ Điểm thưởng vượt định mức <span className="text-[10px] text-emerald-500" title="Bình quân vượt định mức theo trọng số">({curC.exceedPct.toFixed(0)}%)</span></span><span className="font-bold text-emerald-700">+ {curC.bonus.toFixed(2)}</span></div>)}<div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
                   {curC.gradeReasons && curC.gradeReasons.length > 0 && (
                     <div className="px-4 pb-4">
                       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
@@ -1797,7 +1909,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                           <label className="text-[11px] font-medium text-slate-500">Danh mục công việc (KPI)</label>
                           <select value={t.catalogId || ''} onChange={(e) => upTracking(t.id, { catalogId: e.target.value })} className="mt-1 w-full text-xs p-1.5 border border-slate-200 rounded outline-none focus:border-indigo-400 bg-white">
                             <option value="">— Chọn danh mục —</option>
-                            {getND335Groups(cur.type).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}
+                            {(isSonHa ? sonhaGroupsOf(cur) : getND335Groups(cur.type)).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}
                           </select>
                         </div>
                         <div>
