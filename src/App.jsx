@@ -964,10 +964,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const isClassic = !isImproved && !isSG && !isKD; // SonHa hưởng cách render Nhóm II kiểu Cổ điển (renderTask335Row)
   const QUARTER_OF = (m) => Math.min(4, Math.max(1, Math.ceil((Number(m) || 1) / 3)));
   const ROMAN = ['I', 'II', 'III', 'IV'];
-  const quarterLabel = `Quý ${ROMAN[QUARTER_OF(period.month) - 1]}/${period.year}`;
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
   const [tab, setTab] = useState('dash');
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
+  const quarterLabel = `Quý ${ROMAN[QUARTER_OF(period.month) - 1]}/${period.year}`; // nhãn quý (bản Kiểm điểm)
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
   const [unit] = useState('Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa');
   const [objectives, setObjectives] = useState([
