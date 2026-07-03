@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
 import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './lib/auth';
+import { readVersionCfg } from './lib/versionCfg';
 
 // Theme màn đăng nhập (tông cổ điển — đỏ/vàng).
 const t = {
@@ -24,7 +25,11 @@ const VERSION_CARDS = [
   { id: 'kiemdiem', name: 'Kiểm điểm', tag: '(hằng quý)', tagCls: 'text-rose-700', desc: 'Cán bộ diện BTV Tỉnh ủy quản lý — theo HD 03-HD/TU (02/7/2026)', onCls: 'border-rose-400 bg-rose-50 ring-rose-200' },
 ];
 
-export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion }) {
+export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion, versionCfg }) {
+  // Màn đăng nhập là TRƯỚC xác thực -> luôn ẩn các phiên bản quản trị đã tắt + áp tên tùy chỉnh.
+  const vc = versionCfg || readVersionCfg();
+  const cards = VERSION_CARDS.filter((v) => !(vc.hidden || []).includes(v.id));
+  const cardName = (v) => (vc.names || {})[v.id] || v.name;
   const [mode, setMode] = useState('password'); // password | link
   const [email, setEmail] = useState(GUEST.email);
   const [password, setPassword] = useState(GUEST.password);
@@ -82,9 +87,9 @@ export default function Login({ unit, onGuest, onClose, version = 'classic', onP
             <div className="mb-4">
               <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Chọn phiên bản bộ tiêu chí đánh giá</p>
               <div className="space-y-2">
-                {VERSION_CARDS.map((v) => { const on = version === v.id; return (
+                {cards.map((v) => { const on = version === v.id; return (
                   <button key={v.id} type="button" onClick={() => onPickVersion(v.id)} className={`w-full rounded-xl border p-2.5 text-left transition ${on ? `${v.onCls} ring-2` : 'border-slate-200 bg-white/70 hover:border-slate-300'}`}>
-                    <span className="block text-[13px] font-bold text-slate-800">{v.name}{v.tag && <span className={`text-[10px] font-semibold ml-1 ${v.tagCls}`}>{v.tag}</span>}</span>
+                    <span className="block text-[13px] font-bold text-slate-800">{cardName(v)}{v.tag && <span className={`text-[10px] font-semibold ml-1 ${v.tagCls}`}>{v.tag}</span>}</span>
                     <span className="block text-[11px] text-slate-500 leading-snug mt-0.5">{v.desc}</span>
                   </button>
                 ); })}

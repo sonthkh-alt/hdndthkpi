@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
+import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
@@ -992,6 +993,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const sessionRef = useRef(undefined);               // bản ref của session để dùng trong hàm async
   const guestSeededRef = useRef(false);               // đã nạp dữ liệu mẫu cho khách chưa
   const [wantLogin, setWantLogin] = useState(false);  // true khi người dùng chủ động bấm Đăng nhập (quản trị)
+  // Cấu hình hiển thị/đổi tên phiên bản (quản trị điều khiển): cache local + nạp bản mới từ Supabase.
+  const [versionCfg, setVersionCfg] = useState(readVersionCfg);
+  const [verCfgOpen, setVerCfgOpen] = useState(false); // mở bảng quản lý phiên bản (quản trị)
+  useEffect(() => { let alive = true; fetchVersionCfg().then((c) => { if (alive) setVersionCfg(c); }); return () => { alive = false; }; }, []);
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -1386,6 +1391,34 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
 
+  // ---- Hiển thị phiên bản theo cấu hình quản trị (ẩn/hiện + đổi tên) ----
+  const vName = (id) => (versionCfg.names || {})[id] || VERSION_NAME(id);
+  const shownVersions = VERSIONS.filter((v) => isAdmin || !versionCfg.hidden.includes(v.id));
+  // Người dùng thường/khách đang đứng ở phiên bản bị ẩn -> tự chuyển về phiên bản hiển thị đầu tiên.
+  useEffect(() => {
+    if (!isAdmin && versionCfg.hidden.includes(version) && onPickVersion) {
+      const first = VERSIONS.find((v) => !versionCfg.hidden.includes(v.id));
+      onPickVersion(first ? first.id : 'sonha');
+    }
+  }, [isAdmin, version, versionCfg, onPickVersion]);
+  const updateVersionCfg = (next) => { setVersionCfg(next); saveVersionCfg(next); };
+  const toggleVersionHidden = (id) => {
+    const hid = versionCfg.hidden.includes(id);
+    const hidden = hid ? versionCfg.hidden.filter((x) => x !== id) : [...versionCfg.hidden, id];
+    if (hidden.length >= VERSIONS.length) return; // không cho ẩn TẤT CẢ phiên bản
+    updateVersionCfg({ ...versionCfg, hidden });
+  };
+  // Đổi tên hiển thị: gõ chỉ cập nhật state; commit=true (khi rời ô) mới lưu Supabase.
+  const renameVersion = (id, name, commit) => {
+    setVersionCfg((c) => {
+      const names = { ...(c.names || {}) };
+      if (name && name.trim()) names[id] = name; else delete names[id];
+      const next = { ...c, names };
+      if (commit) saveVersionCfg(next);
+      return next;
+    });
+  };
+
   // Render 1 dòng nhiệm vụ Nhóm II (dùng cho cả danh sách phẳng — Cổ điển, và gom theo Mục tiêu — Cải tiến/Singapore).
   const renderTask335Row = (t, i) => { const sc = task335Score(t); const st = statusOf(sc);
     return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
@@ -1464,7 +1497,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   }
   // Chỉ hiện màn đăng nhập khi người dùng CHỦ ĐỘNG chọn (mặc định vào thẳng bằng khách)
   if (supabase && wantLogin && (!session || session === 'guest')) {
-    return <Login unit={unit} version={version} onPickVersion={onPickVersion} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
+    return <Login unit={unit} version={version} onPickVersion={onPickVersion} versionCfg={versionCfg} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
@@ -1486,7 +1519,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <div className="flex items-center gap-2 flex-wrap">
                 <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>Hệ thống quản trị OKR / KPI</p>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${th.badge}`}>Bản demo thử nghiệm</span>
-                {!isClassic && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Phiên bản {VERSION_NAME(version)}</span>}
+                {!isClassic && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Phiên bản {vName(version)}</span>}
               </div>
               <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
               <p className="text-white/85 text-xs sm:text-sm mt-0.5">{unit}</p>
@@ -1495,9 +1528,33 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
           <div className="flex items-center gap-2">
             {onPickVersion && (
               <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10" title="Chọn phiên bản bộ tiêu chí đánh giá">
-                {VERSIONS.map((v) => { const on = version === v.id; return (
-                  <button key={v.id} onClick={() => onPickVersion(v.id)} title={v.desc} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${on ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'}`}>{v.name}</button>
+                {shownVersions.map((v) => { const on = version === v.id; const hid = versionCfg.hidden.includes(v.id); return (
+                  <button key={v.id} onClick={() => onPickVersion(v.id)} title={v.desc + (hid ? ' — ĐANG ẨN với người dùng thường (chỉ Quản trị thấy)' : '')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${on ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'} ${hid ? 'opacity-50 line-through decoration-white/60' : ''}`}>{vName(v.id)}</button>
                 ); })}
+              </div>
+            )}
+            {isAdmin && (
+              <div className="relative">
+                <button onClick={() => setVerCfgOpen((o) => !o)} title="Quản lý phiên bản: ẩn/hiện với người dùng, đổi tên (chỉ Quản trị)" className={`flex items-center justify-center p-1.5 rounded-lg border transition-colors ${verCfgOpen ? 'bg-white text-slate-800 border-white' : 'bg-white/10 text-white/80 border-white/25 hover:bg-white/20'}`}>
+                  <Settings className="w-4 h-4" />
+                </button>
+                {verCfgOpen && (
+                  <div className="absolute right-0 top-full mt-2 w-96 max-w-[92vw] bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 text-slate-800">
+                    <p className="text-xs font-bold text-slate-700 mb-0.5 flex items-center gap-1.5"><Settings className="w-3.5 h-3.5 text-slate-400" /> Quản lý phiên bản</p>
+                    <p className="text-[10px] text-slate-400 mb-2">Bật/tắt hiển thị với người dùng thường & khách; đổi tên hiển thị. Áp dụng cho mọi người truy cập.</p>
+                    {VERSIONS.map((v) => { const hid = versionCfg.hidden.includes(v.id); const custom = (versionCfg.names || {})[v.id] || ''; return (
+                      <div key={v.id} className="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0">
+                        <button onClick={() => toggleVersionHidden(v.id)} title={hid ? 'Đang ẨN — bấm để hiển thị lại' : 'Đang HIỆN — bấm để ẩn với người dùng thường'} className={`shrink-0 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border transition-colors ${hid ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
+                          {hid ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}{hid ? 'Ẩn' : 'Hiện'}
+                        </button>
+                        <span className="shrink-0 w-16 text-[10px] text-slate-400 truncate" title={`Tên gốc: ${v.name}`}>{v.name}</span>
+                        <input value={custom} placeholder={v.name} disabled={readOnly} onChange={(e) => renameVersion(v.id, e.target.value, false)} onBlur={(e) => renameVersion(v.id, e.target.value, true)} className="flex-1 min-w-0 text-xs p-1.5 border border-slate-200 rounded-lg outline-none focus:border-slate-400 disabled:bg-slate-50" title="Tên hiển thị mới (bỏ trống = dùng tên gốc)" />
+                        {custom && <button onClick={() => renameVersion(v.id, '', true)} title="Khôi phục tên gốc" className="shrink-0 text-slate-400 hover:text-slate-600 p-1 rounded"><RotateCcw className="w-3.5 h-3.5" /></button>}
+                      </div>
+                    ); })}
+                    <p className="text-[10px] text-slate-400 mt-2">Phiên bản ẩn chỉ Quản trị nhìn thấy (gạch mờ trên thanh chọn). Không thể ẩn tất cả.</p>
+                  </div>
+                )}
               </div>
             )}
             <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${isGuest ? 'bg-amber-500/20 text-amber-100' : (cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100')}`}>
@@ -2045,7 +2102,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
               <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><ShieldCheck className="w-6 h-6 text-blue-700" /> Quản trị hệ thống</h2>
               <p className="text-sm text-slate-500 mt-1">Khu vực dành riêng cho Quản trị viên. Xuất các tài liệu mô tả hệ thống dưới dạng PDF (mở cửa sổ in → chọn “Lưu thành PDF”). Tài liệu hỗ trợ đầy đủ tiếng Việt, có đánh số trang, header/footer và bảng kẻ vằn.</p>
-              <p className="text-sm mt-2 inline-flex items-center gap-2"><span className="font-semibold text-slate-600">Tài liệu xuất tương ứng phiên bản đang dùng:</span> <span className={`text-xs font-bold px-2 py-0.5 rounded border ${isSG ? 'bg-violet-50 text-indigo-700 border-violet-200' : isImproved ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{VERSION_NAME(version)}</span></p>
+              <p className="text-sm mt-2 inline-flex items-center gap-2"><span className="font-semibold text-slate-600">Tài liệu xuất tương ứng phiên bản đang dùng:</span> <span className={`text-xs font-bold px-2 py-0.5 rounded border ${isSG ? 'bg-violet-50 text-indigo-700 border-violet-200' : isImproved ? 'bg-cyan-50 text-cyan-700 border-cyan-200' : 'bg-red-50 text-red-700 border-red-200'}`}>{vName(version)}</span></p>
             </div>
 
             <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 flex items-start justify-between gap-4 flex-wrap">
@@ -2085,7 +2142,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             </div>
 
             <div className={`rounded-xl border p-4 ${isKD ? 'bg-rose-50 border-rose-200' : isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
-              <p className={`font-bold mb-1 ${isKD ? 'text-rose-800' : isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {VERSION_NAME(version)}</p>
+              <p className={`font-bold mb-1 ${isKD ? 'text-rose-800' : isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {vName(version)}</p>
               <p className="text-sm text-slate-700 leading-relaxed">{isKD
                 ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm điểm theo thang từng mục) + Nhóm B (70đ, kết quả nhiệm vụ theo 6 trục trọng tâm, mỗi trục Điểm = KPI% × điểm tối đa với KPI = (A+B+C+D)/4). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: bản tự đánh giá cá nhân (Phụ lục 3A) và bảng tổng hợp tập thể (Phụ lục 4).'
                 : isSG
