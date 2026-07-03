@@ -856,76 +856,85 @@ function seedDemoPeople(version) {
     }),
   ];
 }
-// Bộ dữ liệu mẫu bản SonHa: cơ cấu Văn phòng — 1 Chánh + 1 Phó Chánh + 4 Trưởng phòng + 4 Phó phòng
-// + 8 chuyên viên (mỗi phòng 2) + 2 lao động hỗ trợ = 20 người. Nhóm đối tượng (Mẫu) tự suy theo chức vụ.
+// Bộ dữ liệu bản SonHa (OKR/KPI): danh sách CBCCVC-LĐ Văn phòng theo docs/KPI.docx (25 người,
+// 4 phòng). Nhóm đối tượng (Mẫu) tự suy theo chức vụ; mỗi người có sẵn ~10 nhiệm vụ đã chấm theo hồ sơ.
 function seedSonHaPeople() {
   const OKR = ['o1', 'o2', 'o3'];
-  const PHONG = ['Phòng Công tác Hội đồng', 'Phòng Công tác Quốc hội', 'Phòng Tổng hợp - Thông tin - Dân nguyện', 'Phòng Hành chính - Tổ chức - Quản trị'];
+  const NOTES = {
+    A: { self: 'Chủ động, hoàn thành vượt mức nhiều nhiệm vụ trọng tâm được giao.', mgr: 'Hoàn thành xuất sắc nhiệm vụ; gương mẫu, có sản phẩm nổi trội.' },
+    B: { self: 'Hoàn thành đầy đủ nhiệm vụ được giao, bảo đảm chất lượng, tiến độ.', mgr: 'Hoàn thành tốt nhiệm vụ.' },
+    C: { self: 'Đã cố gắng hoàn thành nhiệm vụ; còn một số việc chậm tiến độ.', mgr: 'Hoàn thành nhiệm vụ; cần nâng chất lượng, tiến độ một số việc.' },
+  };
   const mk = (name, department, position, profile, cfg = {}) => {
+    const n = NOTES[profile] || NOTES.B;
     const p = { ...newPerson(name, sonhaTypeOf({ position })), position, department, role: 'canbo',
       email: cfg.email || '', deduction: cfg.deduction || 0,
       leadScores: cfg.leadScores || { d: 100, dd: 100, e: 100 },
       digital: cfg.digital || { 1: 3, 2: 3, 3: 2, 4: 2, 5: 3, 6: 2, 7: 2, 8: 2 },
-      selfNote: cfg.selfNote || '', mgrNote: cfg.mgrNote || '' };
+      selfNote: cfg.selfNote || n.self, mgrNote: cfg.mgrNote || n.mgr };
     p.type = sonhaTypeOf(p);
     // Mỗi cán bộ được giao ~10 nhiệm vụ tiêu biểu trong kỳ (thực tế, không phải toàn bộ danh mục).
     p.tasks335 = genTasksFromCat(sonhaGroupsOf(p).slice(0, 10), profile, OKR);
     p.sg = defaultSG(profile, p.type, OKR);
     return p;
   };
-  const VP = 'Văn phòng';
-  const chuyenVien = (idx, dept, profile, cfg) => mk(`Chuyên viên ${idx} · ${dept.replace('Phòng ', '')}`, dept, 'Chuyên viên', profile, cfg);
-  const people = [
-    // Mẫu 01 — Lãnh đạo, quản lý 01 (Chánh/Phó Chánh VP)
-    mk('Chánh Văn phòng', VP, 'Chánh Văn phòng', 'A', { email: 'chanhvp.demo@thanhhoa.gov.vn', selfNote: 'Chỉ đạo, điều hành toàn diện; hoàn thành vượt mức nhiều nhiệm vụ trọng tâm.', mgrNote: 'Hoàn thành xuất sắc nhiệm vụ lãnh đạo, quản lý.' }),
-    mk('Lê Thị Hồng', VP, 'Phó Chánh Văn phòng', 'B', { email: 'phochanhvp.demo@thanhhoa.gov.vn', selfNote: 'Phụ trách hành chính - quản trị; cơ bản hoàn thành tốt.', mgrNote: 'Hoàn thành tốt; cần đẩy nhanh một số việc.' }),
-  ];
-  // Mẫu 02 — Lãnh đạo, quản lý 02 (Trưởng/Phó Trưởng phòng), mỗi phòng 1 Trưởng + 1 Phó
-  const tpProfiles = ['A', 'B', 'B', 'A'], ppProfiles = ['B', 'B', 'C', 'B'];
-  PHONG.forEach((dept, i) => {
-    people.push(mk(`Trưởng phòng ${i + 1}`, dept, 'Trưởng phòng', tpProfiles[i], { selfNote: `Điều hành ${dept}; giao việc gắn sản phẩm đầu ra.`, mgrNote: 'Hoàn thành nhiệm vụ lãnh đạo cấp phòng.' }));
-    people.push(mk(`Phó Trưởng phòng ${i + 1}`, dept, 'Phó Trưởng phòng', ppProfiles[i], { selfNote: `Giúp Trưởng phòng ${dept.replace('Phòng ', '')} triển khai nhiệm vụ chuyên môn.`, mgrNote: 'Hoàn thành nhiệm vụ được phân công.' }));
-  });
-  // Mẫu 03 — Công chức chuyên môn (mỗi phòng 2 chuyên viên)
-  const cvProfiles = ['A', 'B', 'B', 'C', 'B', 'A', 'C', 'B'];
-  let cvIdx = 0;
-  PHONG.forEach((dept) => {
-    people.push(chuyenVien(cvIdx + 1, dept, cvProfiles[cvIdx], {})); cvIdx++;
-    people.push(chuyenVien(cvIdx + 1, dept, cvProfiles[cvIdx], {})); cvIdx++;
-  });
-  // Mẫu 04 — Lao động hợp đồng hỗ trợ, phục vụ (2 người ở Phòng HC-TC-QT)
-  people.push(mk('Nhân viên Lái xe', 'Phòng Hành chính - Tổ chức - Quản trị', 'Lái xe', 'B', { selfNote: 'Phục vụ đưa đón lãnh đạo, đoàn công tác an toàn, đúng giờ.', mgrNote: 'Hoàn thành tốt nhiệm vụ phục vụ.' }));
-  people.push(mk('Nhân viên Bảo vệ', 'Phòng Hành chính - Tổ chức - Quản trị', 'Bảo vệ', 'C', { deduction: 2, selfNote: 'Trực bảo vệ cơ quan theo ca.', mgrNote: 'Hoàn thành nhiệm vụ; nhắc nhở về một ca trực muộn.' }));
-  return people;
+  const CTHD = 'Phòng Công tác Hội đồng', CTQH = 'Phòng Công tác Quốc hội',
+    THTT = 'Phòng Tổng hợp - Thông tin - Dân nguyện', HCTC = 'Phòng Hành chính - Tổ chức - Quản trị';
+  // [Họ tên, Phòng, Chức vụ, Hồ sơ đánh giá] — thứ tự theo danh sách docs/KPI.docx.
+  return [
+    ['Ngô Ngọc Quyến', HCTC, 'Phó Trưởng phòng', 'B'],
+    ['Trần Thị Hiền', CTHD, 'Chuyên viên', 'B'],
+    ['Lê Thị Thu Hà', THTT, 'Chuyên viên', 'A'],
+    ['Đào Thùy Linh', CTHD, 'Chuyên viên', 'B'],
+    ['Đinh Lê Trà My', CTHD, 'Chuyên viên', 'C'],
+    ['Đỗ Tuấn Vũ', THTT, 'Phó Trưởng phòng', 'A'],
+    ['Nguyễn Thị Hương Thảo', THTT, 'Chuyên viên', 'B'],
+    ['Nguyễn Lương Chiến', HCTC, 'Chuyên viên', 'B'],
+    ['Lê Thị Hương', HCTC, 'Chuyên viên', 'C'],
+    ['Nguyễn Thị Tâm Phương', THTT, 'Chuyên viên', 'B'],
+    ['Doãn Ngọc Hài', CTHD, 'Chuyên viên', 'B'],
+    ['Nguyễn Tiến Khương', CTHD, 'Trưởng phòng', 'A'],
+    ['Lê Thị Thu Hòa', CTQH, 'Chuyên viên', 'B'],
+    ['Dương Anh Quân', CTQH, 'Phó Trưởng phòng', 'B'],
+    ['Đỗ Thị Quỳnh Trang', HCTC, 'Chuyên viên', 'B'],
+    ['Nguyễn Hữu Chân', HCTC, 'Lái xe', 'B'],
+    ['Nguyễn Văn Từ', HCTC, 'Lái xe', 'B'],
+    ['Vũ Hoàng Quang', HCTC, 'Lái xe', 'B'],
+    ['Nguyễn Thái Dũng', HCTC, 'Lái xe', 'B'],
+    ['Dương Bảo Châu', HCTC, 'Lái xe', 'C'],
+    ['Ngô Văn Tiến', HCTC, 'Lái xe', 'B'],
+    ['Nguyễn Hữu Quyết', HCTC, 'Lái xe', 'B'],
+    ['Nguyễn Thị Thúy Vân', HCTC, 'Nhân viên phục vụ', 'B'],
+    ['Lê Thị Thủy', HCTC, 'Nhân viên phục vụ', 'B'],
+    ['Nguyễn Văn Huy', HCTC, 'Bảo vệ', 'B'],
+  ].map(([name, dept, pos, profile]) => mk(name, dept, pos, profile));
 }
 
-// Bộ dữ liệu mẫu bản KIỂM ĐIỂM: 13 cán bộ diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan
-// (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban + 4 Phó Trưởng Ban: KTNS/VHXH/Pháp chế/Dân tộc;
-//  Chánh Văn phòng + 2 Phó Chánh Văn phòng). Mỗi người có sẵn person.kd (defaultKD) theo hồ sơ.
+// Bộ dữ liệu bản KIỂM ĐIỂM: 15 đồng chí diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan,
+// theo danh sách docs/DU/DU.docx (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban + 4 Phó Trưởng Ban;
+// Phó Trưởng đoàn ĐBQH + ĐBQH chuyên trách; Chánh Văn phòng + 2 Phó Chánh Văn phòng).
+// Mỗi người có sẵn person.kd (defaultKD) theo hồ sơ — đã chấm điểm Nhóm A/B + tự kiểm điểm.
 function seedKiemDiemPeople() {
-  const mk = (name, department, position, profile) => {
-    const p = { ...newPerson(name, 'leader'), position, department, role: 'canbo', email: '', kd: defaultKD(profile) };
-    return p;
-  };
-  const BANS = [
-    { dept: 'Ban Kinh tế - Ngân sách', short: 'KTNS' },
-    { dept: 'Ban Văn hóa - Xã hội', short: 'VHXH' },
-    { dept: 'Ban Pháp chế', short: 'Pháp chế' },
-    { dept: 'Ban Dân tộc', short: 'Dân tộc' },
+  const mk = (name, department, position, profile, email = '') =>
+    ({ ...newPerson(name, 'leader'), position, department, role: 'canbo', email, kd: defaultKD(profile) });
+  const KTNS = 'Ban Kinh tế - Ngân sách', VHXH = 'Ban Văn hóa - Xã hội', PC = 'Ban Pháp chế', DT = 'Ban Dân tộc';
+  return [
+    mk('Lê Tiến Lam', 'HĐND tỉnh', 'Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch Thường trực HĐND tỉnh', 'A'),
+    mk('Nguyễn Quang Hải', 'HĐND tỉnh', 'Tỉnh ủy viên, Phó Chủ tịch HĐND tỉnh', 'B'),
+    mk('Hoàng Anh Tuấn', KTNS, 'Tỉnh ủy viên, Trưởng Ban Kinh tế - Ngân sách HĐND tỉnh', 'B'),
+    mk('Ngô Thị Hồng Hảo', VHXH, 'Tỉnh ủy viên, Trưởng Ban Văn hóa - Xã hội HĐND tỉnh', 'B'),
+    mk('Nguyễn Quốc Hải', PC, 'Trưởng Ban Pháp chế HĐND tỉnh', 'B'),
+    mk('Lương Tiến Thành', DT, 'Trưởng Ban Dân tộc HĐND tỉnh', 'B'),
+    mk('Đỗ Ngọc Duy', KTNS, 'Phó Trưởng Ban Kinh tế - Ngân sách HĐND tỉnh', 'B'),
+    mk('Lê Thị Hương', PC, 'Phó Trưởng Ban Pháp chế HĐND tỉnh', 'B'),
+    mk('Nguyễn Tuấn Tưởng', VHXH, 'Phó Trưởng Ban Văn hóa - Xã hội HĐND tỉnh', 'B'),
+    mk('Cầm Bá Chái', DT, 'Phó Trưởng Ban Dân tộc HĐND tỉnh', 'C'),
+    mk('Lương Thị Hoa', 'Đoàn ĐBQH tỉnh', 'Tỉnh ủy viên, Phó Trưởng đoàn ĐBQH tỉnh', 'B'),
+    mk('Bùi Văn Dũng', 'Đoàn ĐBQH tỉnh', 'Đại biểu Quốc hội chuyên trách tỉnh', 'B'),
+    mk('Trần Mạnh Long', 'Văn phòng', 'Tỉnh ủy viên, Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'A'),
+    mk('Hà Ngọc Sơn', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B', 'sonthkh@gmail.com'),
+    mk('Lê Văn Mạnh', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B'),
   ];
-  const people = [
-    mk('Phó Chủ tịch HĐND tỉnh (1)', 'HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'A'),
-    mk('Phó Chủ tịch HĐND tỉnh (2)', 'HĐND tỉnh', 'Phó Chủ tịch HĐND tỉnh', 'B'),
-  ];
-  const tpProfiles = ['A', 'B', 'A', 'B'], ppProfiles = ['B', 'B', 'C', 'B'];
-  BANS.forEach((b, i) => {
-    people.push(mk(`Trưởng ${b.dept}`, b.dept, 'Trưởng Ban', tpProfiles[i]));
-    people.push(mk(`Phó Trưởng ${b.dept}`, b.dept, 'Phó Trưởng Ban', ppProfiles[i]));
-  });
-  people.push(mk('Chánh Văn phòng', 'Văn phòng', 'Chánh Văn phòng', 'A'));
-  people.push(mk('Phó Chánh Văn phòng (1)', 'Văn phòng', 'Phó Chánh Văn phòng', 'B'));
-  people.push(mk('Phó Chánh Văn phòng (2)', 'Văn phòng', 'Phó Chánh Văn phòng', 'B'));
-  return people;
 }
 
 // Đẩy bộ đếm id vượt qua dữ liệu đã nạp (dùng chung cho cả phiên bản mới)
@@ -1791,6 +1800,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
                 <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-red-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-red-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
                 {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>}
+                {canManage && <button onClick={() => { if (window.confirm(`Thay TOÀN BỘ danh sách cán bộ của kỳ này bằng danh sách theo phiên bản ${vName(version)} (kèm đánh giá sẵn)? Dữ liệu cán bộ hiện tại của kỳ sẽ bị thay thế sau khi bấm Lưu ngay.`)) loadDemoPeople(); }} title="Thay toàn bộ danh sách cán bộ của kỳ bằng danh sách chuẩn theo phiên bản đang chọn (đã chấm điểm sẵn). Nhớ bấm Lưu ngay để ghi lại." className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 text-slate-400 text-xs font-medium hover:bg-amber-50 hover:text-amber-700 transition-colors border-t border-slate-100"><RotateCcw className="w-3.5 h-3.5" /> Nạp lại danh sách cán bộ chuẩn</button>}
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
