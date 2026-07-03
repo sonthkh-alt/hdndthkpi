@@ -1536,11 +1536,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="text-white/85 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap max-w-full">
             {onPickVersion && (
-              <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10" title="Chọn phiên bản bộ tiêu chí đánh giá">
+              <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10 max-w-full overflow-x-auto" title="Chọn phiên bản bộ tiêu chí đánh giá">
                 {shownVersions.map((v) => { const on = version === v.id; const hid = versionCfg.hidden.includes(v.id); return (
-                  <button key={v.id} onClick={() => onPickVersion(v.id)} title={v.desc + (hid ? ' — ĐANG ẨN với người dùng thường (chỉ Quản trị thấy)' : '')} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${on ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'} ${hid ? 'opacity-50 line-through decoration-white/60' : ''}`}>{vName(v.id)}</button>
+                  <button key={v.id} onClick={() => onPickVersion(v.id)} title={v.desc + (hid ? ' — ĐANG ẨN với người dùng thường (chỉ Quản trị thấy)' : '')} className={`shrink-0 text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${on ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'} ${hid ? 'opacity-50 line-through decoration-white/60' : ''}`}>{vName(v.id)}</button>
                 ); })}
               </div>
             )}
@@ -1550,7 +1550,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <Settings className="w-4 h-4" />
                 </button>
                 {verCfgOpen && (
-                  <div className="absolute right-0 top-full mt-2 w-96 max-w-[92vw] bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 text-slate-800">
+                  <div className="fixed inset-x-3 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 sm:max-w-[92vw] max-h-[70vh] overflow-y-auto bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 text-slate-800">
                     <p className="text-xs font-bold text-slate-700 mb-0.5 flex items-center gap-1.5"><Settings className="w-3.5 h-3.5 text-slate-400" /> Quản lý phiên bản</p>
                     <p className="text-[10px] text-slate-400 mb-2">Bật/tắt hiển thị với người dùng thường & khách; đổi tên hiển thị. Áp dụng cho mọi người truy cập.</p>
                     {VERSIONS.map((v) => { const hid = versionCfg.hidden.includes(v.id); const custom = (versionCfg.names || {})[v.id] || ''; return (

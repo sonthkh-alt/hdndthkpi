@@ -86,3 +86,13 @@ body {
 *::-webkit-scrollbar-track { background: transparent; }
 *::-webkit-scrollbar-thumb { background: rgba(127,29,29,.25); border-radius: 999px; border: 2px solid transparent; background-clip: padding-box; }
 *::-webkit-scrollbar-thumb:hover { background: rgba(127,29,29,.45); background-clip: padding-box; }
+
+/* ===== Tối ưu hiển thị trên ĐIỆN THOẠI DI ĐỘNG (tự khớp khung hình thiết bị) ===== */
+/* Không cho trình duyệt tự phóng chữ khi xoay ngang; chặn tràn ngang làm trang rộng hơn màn hình */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+html, body { max-width: 100%; overflow-x: hidden; }
+@media (max-width: 640px) {
+  /* iOS Safari tự PHÓNG TO trang khi chạm vào ô nhập có cỡ chữ < 16px, làm lệch khung hình.
+     Ép cỡ chữ tối thiểu 16px cho ô nhập trên màn hình hẹp để giữ khung vừa khít điện thoại. */
+  input, select, textarea { font-size: 16px !important; }
+}

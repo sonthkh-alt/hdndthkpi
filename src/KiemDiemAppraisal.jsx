@@ -303,7 +303,7 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
                     <div key={it.id} className="px-4 py-3">
                       <div className="flex items-start gap-3">
                         <span className="shrink-0 text-xs font-bold text-slate-400 w-8 pt-1.5">{it.id}</span>
-                        <button onClick={() => setOpenA(open ? null : it.id)} className="flex-1 text-left text-sm text-slate-600 hover:text-slate-900 flex items-start gap-1 pt-1"><span className={open ? '' : 'line-clamp-2'}>{it.text}</span><ChevronDown className={`w-4 h-4 shrink-0 text-slate-300 mt-0.5 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
+                        <button onClick={() => setOpenA(open ? null : it.id)} className="flex-1 min-w-0 text-left text-sm text-slate-600 hover:text-slate-900 flex items-start gap-1 pt-1"><span className={open ? '' : 'line-clamp-2'}>{it.text}</span><ChevronDown className={`w-4 h-4 shrink-0 text-slate-300 mt-0.5 transition-transform ${open ? 'rotate-180' : ''}`} /></button>
                         <span className="shrink-0 text-[10px] text-slate-400 pt-1.5">/{it.max}đ</span>
                         <div className="shrink-0 flex gap-2">
                           <input type="number" min="0" max={it.max} step="0.25" value={sv} disabled={!selfEditable} onChange={(e) => setA('self', it.id, e.target.value, it.max)} className="w-14 text-center text-slate-600 bg-slate-50 border border-slate-200 rounded-lg py-1 text-sm outline-none focus:border-slate-400 disabled:opacity-50 disabled:cursor-not-allowed" />
