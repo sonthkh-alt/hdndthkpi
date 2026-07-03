@@ -38,6 +38,13 @@ create policy "app_state_auth_all" on app_state
   using (auth.role() = 'authenticated')
   with check (auth.role() = 'authenticated');
 
+-- Cho phép MỌI NGƯỜI (kể cả KHÁCH chưa đăng nhập) ĐỌC riêng dòng cấu hình hiển thị
+-- phiên bản (id = 'version_cfg') — để khách cũng nhận thiết lập ẨN/HIỆN & ĐỔI TÊN
+-- phiên bản do Quản trị đặt. Ghi (insert/update) vẫn yêu cầu đăng nhập như trên.
+drop policy if exists "version_cfg_public_read" on app_state;
+create policy "version_cfg_public_read" on app_state
+  for select using (id = 'version_cfg');
+
 -- Khôi phục tạm (mở lại công khai) nếu cần xử lý sự cố:
 --   drop policy if exists "app_state_auth_all" on app_state;
 --   create policy "demo_all" on app_state for all using (true) with check (true);

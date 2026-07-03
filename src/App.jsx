@@ -1190,7 +1190,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     { id: 'eval', label: 'Đánh giá', icon: BarChart3 },
     { id: 'digital', label: 'Năng lực số', icon: Cpu },
     { id: 'tracking', label: 'Theo dõi CV', icon: ClipboardList },
-    { id: 'guide', label: 'Liên hệ & hướng dẫn', icon: BookOpen },
+    { id: 'guide', label: 'Hỗ trợ', icon: BookOpen },
   ].filter((t) => (!isSonHa && !isKD) || ['dash', 'eval', 'guide'].includes(t.id)); // SonHa & Kiểm điểm chỉ gồm 3 module
   const cfg = cur ? CRITERIA[cur.type] : null;
   const result = isSG ? sgGradeInfo(curC?.grade) : isKD ? kdGradeInfo(curC?.grade) : (curC ? gradeClass(curC.grade) : classify(0));
@@ -1568,10 +1568,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 )}
               </div>
             )}
-            <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${isGuest ? 'bg-amber-500/20 text-amber-100' : (cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100')}`}>
-              {isGuest || !cloud.ready ? <CloudOff className="w-3.5 h-3.5" /> : <Cloud className="w-3.5 h-3.5" />}
-              {isGuest ? 'Dùng thử · không lưu' : (cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ')}
-            </span>
+            {!isGuest && (
+              <span className={`flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-lg ${cloud.ready ? 'bg-emerald-500/20 text-emerald-100' : 'bg-amber-500/20 text-amber-100'}`}>
+                {cloud.ready ? <Cloud className="w-3.5 h-3.5" /> : <CloudOff className="w-3.5 h-3.5" />}
+                {cloud.ready ? (cloud.saving ? 'Đang lưu...' : 'Đã kết nối cloud') : 'Chạy cục bộ'}
+              </span>
+            )}
             {!readOnly && (
               <button onClick={handleManualSave} disabled={cloud.saving} className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-colors disabled:opacity-50 border border-blue-500/50">
                 <Save className="w-3.5 h-3.5" /> Lưu ngay
@@ -1614,14 +1616,6 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       )}
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6">
-        {isGuest && (
-          <div className="mb-5 bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <p className="text-sm text-amber-800">Bạn đang dùng <b>tài khoản khách (dùng thử)</b>. Bạn có thể nhập điểm <b>Nhóm I, Nhóm II</b> và xem kết quả hệ thống tự tính, in/xuất báo cáo. Tuy nhiên dữ liệu <b>chỉ lưu tạm trên trình duyệt</b>, <b>KHÔNG lưu vào hệ thống</b> và sẽ mất khi tải lại trang hoặc đóng trình duyệt. Để lưu chính thức, hãy đăng nhập bằng tài khoản được cấp.</p>
-            </div>
-          </div>
-        )}
         {supabase && session && session !== 'local' && isBootstrapAdmin && (
           <div className="mb-5 bg-sky-50 border border-sky-200 rounded-xl p-4 flex items-start gap-3">
             <ShieldCheck className="w-5 h-5 text-sky-600 shrink-0 mt-0.5" />
@@ -2215,7 +2209,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             {isKD && (<>
             <GB icon={Award} title="1. Tổng quan phiên bản Kiểm điểm (HD 03-HD/TU)">
               <p>Phiên bản dùng để <b>đánh giá định kỳ hằng quý</b> đối với cán bộ lãnh đạo, quản lý <b>diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan Văn phòng Đoàn ĐBQH và HĐND tỉnh (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban và 4 Phó Trưởng Ban KTNS/VHXH/Pháp chế/Dân tộc; Chánh Văn phòng và 2 Phó Chánh Văn phòng), theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b>.</p>
-              <p className="mt-1.5">Chỉ gồm 3 khu vực: <b>Tổng quan</b> (phân bố xếp loại + bảng tổng hợp tập thể — Phụ lục 4), <b>Đánh giá</b> (phiếu cá nhân), <b>Liên hệ & hướng dẫn</b>.</p>
+              <p className="mt-1.5">Chỉ gồm 3 khu vực: <b>Tổng quan</b> (phân bố xếp loại + bảng tổng hợp tập thể — Phụ lục 4), <b>Đánh giá</b> (phiếu cá nhân), <b>Hỗ trợ</b>.</p>
             </GB>
             <GB icon={ShieldCheck} title="2. Nhóm A — Tiêu chí chung (30 điểm)">
               <p>Gồm 3 nhóm, <b>chấm điểm theo thang điểm từng mục</b> (2 cột Tự ĐG · Cấp duyệt), trừ dần khi chưa đạt; cán bộ mới mặc định đạt tối đa (đủ 30đ).</p>
@@ -2254,7 +2248,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <li><b>Đánh giá:</b> Nơi chấm điểm từng cán bộ — Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ).</li>
                 <li><b>Năng lực số:</b> Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</li>
                 <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần; <b>đồng bộ từ Google Sheet</b>, <b>thu thập</b> thành nhiệm vụ KPI và <b>xuất bảng PDF</b>.</li>
-                <li><b>Liên hệ & hướng dẫn:</b> Thông tin liên hệ, ô gửi ý kiến và trang hướng dẫn này.</li>
+                <li><b>Hỗ trợ:</b> Thông tin liên hệ, ô gửi ý kiến và trang hướng dẫn này.</li>
               </ul>
             </GB>
 

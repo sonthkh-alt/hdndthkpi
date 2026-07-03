@@ -792,7 +792,7 @@ export function exportGuidePDF(unit, catalogGroups = []) {
         <tr><td><b>Đánh giá</b></td><td>Chấm điểm từng cán bộ: Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ); phê duyệt và xuất phiếu.</td></tr>
         <tr><td><b>Năng lực số</b></td><td>Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</td></tr>
         <tr><td><b>Theo dõi CV</b></td><td>Bảng kiểm đếm công việc theo tuần; đồng bộ từ Google Sheet; thu thập thành nhiệm vụ KPI; xuất bảng PDF.</td></tr>
-        <tr><td><b>Liên hệ & hướng dẫn</b></td><td>Thông tin liên hệ, gửi ý kiến và tài liệu hướng dẫn này.</td></tr>
+        <tr><td><b>Hỗ trợ</b></td><td>Thông tin liên hệ, gửi ý kiến và tài liệu hướng dẫn này.</td></tr>
       </table>
 
       <h2>3. Thang điểm tổng — 100 điểm</h2>
