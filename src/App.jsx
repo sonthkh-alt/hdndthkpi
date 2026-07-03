@@ -1506,10 +1506,12 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
   return (
     <div className="min-h-screen text-slate-800" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
-      <header className={`relative overflow-hidden text-white bg-gradient-to-br ${th.grad}`}>
-        <div className="absolute inset-0 tech-grid pointer-events-none" />
-        <div className={`absolute -top-24 -right-10 w-80 h-80 rounded-full blur-3xl pointer-events-none ${th.blob1}`} />
-        <div className={`absolute -bottom-24 -left-10 w-72 h-72 rounded-full blur-3xl pointer-events-none ${th.blob2}`} />
+      <header className={`relative text-white bg-gradient-to-br ${th.grad}`}>
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute inset-0 tech-grid" />
+          <div className={`absolute -top-24 -right-10 w-80 h-80 rounded-full blur-3xl ${th.blob1}`} />
+          <div className={`absolute -bottom-24 -left-10 w-72 h-72 rounded-full blur-3xl ${th.blob2}`} />
+        </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
             <div className="shrink-0 w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-xl ring-2 ring-amber-300/60 emblem-glow animate-floatY p-1.5">
