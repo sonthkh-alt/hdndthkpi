@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from '
 import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
+import { countVisit } from './lib/visits';
 import { onAuthChange, getSession, signOut } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
@@ -1075,6 +1076,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const [versionCfg, setVersionCfg] = useState(readVersionCfg);
   const [verCfgOpen, setVerCfgOpen] = useState(false); // mở bảng quản lý phiên bản (quản trị)
   useEffect(() => { let alive = true; fetchVersionCfg().then((c) => { if (alive) setVersionCfg(c); }); return () => { alive = false; }; }, []);
+  // Lượt truy cập trang web (đếm toàn cục qua Supabase; null = chưa cấu hình -> ẩn)
+  const [visits, setVisits] = useState(null);
+  useEffect(() => { let alive = true; countVisit().then((n) => { if (alive && n != null) setVisits(n); }); return () => { alive = false; }; }, []);
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -2629,6 +2633,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số • <span className="font-semibold text-slate-500">Phiên bản 2.0</span></p>
         <p className="text-amber-600 font-semibold">⚠ BẢN DEMO THỬ NGHIỆM — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
         <p className="text-amber-600 font-semibold">Phiên bản demo sử dụng nội bộ.</p>
+        {visits != null && (
+          <p className="inline-flex items-center gap-1.5 justify-center"><Eye className="w-3.5 h-3.5" /> Lượt truy cập: <span className="font-semibold text-slate-500">{visits.toLocaleString('vi-VN')}</span></p>
+        )}
       </footer>
       <style>{`.inp{width:100%;background:#fff;border:1px solid #e2e8f0;border-radius:.6rem;padding:.5rem .75rem;font-size:.875rem;outline:none}.inp:focus{border-color:#f87171;box-shadow:0 0 0 3px rgba(254,202,202,.5)}textarea.inp{resize:vertical}@media print{aside,header>div:last-child,button{display:none!important}}`}</style>
     </div>

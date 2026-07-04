@@ -48,3 +48,31 @@ create policy "version_cfg_public_read" on app_state
 -- Khôi phục tạm (mở lại công khai) nếu cần xử lý sự cố:
 --   drop policy if exists "app_state_auth_all" on app_state;
 --   create policy "demo_all" on app_state for all using (true) with check (true);
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 3. BỘ ĐẾM LƯỢT TRUY CẬP TRANG WEB (id = 'visit_counter')
+--  ⚠️ CẦN CHẠY đoạn này trong Supabase Dashboard -> SQL Editor để footer
+--  hiển thị "Lượt truy cập". Hàm security definer chạy với quyền chủ bảng
+--  (bỏ qua RLS) nên KHÁCH chưa đăng nhập cũng cộng đếm được, nhưng chỉ
+--  cộng +1 vào đúng dòng 'visit_counter' — không mở quyền ghi gì khác.
+-- ---------------------------------------------------------------------
+create or replace function visit_hit()
+returns bigint
+language sql
+security definer
+set search_path = public
+as $$
+  insert into app_state (id, data, updated_at)
+  values ('visit_counter', jsonb_build_object('count', 1), now())
+  on conflict (id) do update
+    set data = jsonb_build_object('count', coalesce((app_state.data->>'count')::bigint, 0) + 1),
+        updated_at = now()
+  returning (data->>'count')::bigint;
+$$;
+
+grant execute on function visit_hit() to anon, authenticated;
+
+-- Cho phép mọi người ĐỌC số lượt truy cập (không cần đăng nhập).
+drop policy if exists "visit_counter_public_read" on app_state;
+create policy "visit_counter_public_read" on app_state
+  for select using (id = 'visit_counter');
