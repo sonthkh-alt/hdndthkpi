@@ -2626,7 +2626,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         )}
       </main>
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">
-        <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số</p>
+        <p>Công cụ hỗ trợ quản trị nội bộ • OKR/KPI & Khung năng lực số • <span className="font-semibold text-slate-500">Phiên bản 2.0</span></p>
         <p className="text-amber-600 font-semibold">⚠ BẢN DEMO THỬ NGHIỆM — không chịu trách nhiệm về tính pháp lý và dữ liệu.</p>
         <p className="text-amber-600 font-semibold">Phiên bản demo sử dụng nội bộ.</p>
       </footer>
