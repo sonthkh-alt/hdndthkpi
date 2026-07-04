@@ -801,7 +801,10 @@ function computePerson(p) {
   const kSelf = agg335(p.tasks335, 'self');
   const leader = isLeaderPerson(p);
   // Lãnh đạo, quản lý (Điều 7): Điểm KQ = (a+b+c+d+đ+e)/6. d/đ/e mỗi mục 100% hoặc 50%.
-  if (leader) {
+  // Bản SonHa chấm Nhóm II theo MỨC ĐỘ HOÀN THÀNH (a=b=c=val) — KHÔNG áp công thức d/đ/e
+  // (chất lượng lãnh đạo đã đánh giá ở Nhóm I); giữ Điểm KQ = val cho nhất quán, gọn như bản Kiểm điểm.
+  const leaderFormula = leader && ACTIVE_VERSION !== 'sonha';
+  if (leaderFormula) {
     const ls = p.leadScores || {};
     const d = Number(ls.d ?? 100), dd = Number(ls.dd ?? 100), e = Number(ls.e ?? 100);
     k.d = d; k.dd = dd; k.e = e;
@@ -822,7 +825,7 @@ function computePerson(p) {
   const g = evalGradeCode(totalMgr, st, { disciplined: !!p.disciplined, leader });
 
   return {
-    nself, nmgr, k, kSelf, leader, st, nhomII, nhomIISelf,
+    nself, nmgr, k, kSelf, leader, leaderFormula, st, nhomII, nhomIISelf,
     totalSelf, totalMgr, bonus, bonusSelf, exceedPct: k.exceedPct || 0,
     grade: g.code, gradeReasons: g.reasons,
   };
@@ -1297,7 +1300,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       unit, mau: cfgW?.mau, name: cur.name, position: cur.position, department: cur.department,
       typeLabel: cfgW?.label, month: period.month, year: period.year,
       nhomICriteria, nhomI: curC.nmgr, nhomISelf: curC.nself,
-      tasks, leader: curC.leader, leadScores: curC.leader ? { d: curC.k.d ?? 100, dd: curC.k.dd ?? 100, e: curC.k.e ?? 100 } : null,
+      tasks, leader: curC.leaderFormula, leadScores: curC.leaderFormula ? { d: curC.k.d ?? 100, dd: curC.k.dd ?? 100, e: curC.k.e ?? 100 } : null,
       kpi: curC.k.val.toFixed(1), a: curC.k.a.toFixed(1), b: curC.k.b.toFixed(1), c: curC.k.c.toFixed(1),
       nhomII: curC.nhomII.toFixed(2), deduction: Number(cur.deduction || 0), disciplined: !!cur.disciplined,
       total: curC.totalMgr, totalSelf: curC.totalSelf, cls: result.code, clsName: result.name, gradeReasons: curC.gradeReasons || [],
@@ -2001,7 +2004,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                           {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-red-400 hover:text-red-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ</button>}</>)
                       : (<><div className="space-y-3">{renderGroupedTasks()}</div>
                           {taskEditable && <button onClick={() => upCur({ tasks335: [...(cur.tasks335 || []), newTask335()] })} className="mt-3 w-full flex items-center justify-center gap-2 py-2.5 border-2 border-dashed border-slate-300 rounded-xl text-sm font-medium text-slate-500 hover:border-indigo-400 hover:text-indigo-600"><Plus className="w-4 h-4" /> Thêm nhiệm vụ (chưa gắn mục tiêu)</button>}</>)}
-                    {curC.leader && (
+                    {curC.leaderFormula && (
                       <div className="mt-4 rounded-xl border border-red-200 bg-red-50/60 p-3">
                         <p className="text-[11px] font-bold text-red-700 flex items-center gap-1.5 mb-2"><ShieldCheck className="w-3.5 h-3.5" /> Tiêu chí lãnh đạo, quản lý (Điều 7) — Điểm KQ = (a + b + c + d + đ + e) ÷ 6</p>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
@@ -2017,7 +2020,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                         <p className="text-[10px] text-slate-500 mt-1.5">d: 100% nếu 100% cán bộ thuộc quyền đạt "Hoàn thành nhiệm vụ" trở lên, 50% nếu có người không hoàn thành. đ/e: 100% nếu triển khai tốt/đoàn kết, 50% nếu chậm trễ kéo dài hoặc mất đoàn kết nội bộ (Điều 7 khoản 2).</p>
                       </div>
                     )}
-                    <div className={`mt-4 grid ${curC.leader ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-center`}>{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ...(curC.leader ? [['Lĩnh vực (d)', curC.k.d ?? 100], ['Tổ chức (đ)', curC.k.dd ?? 100], ['Đoàn kết (e)', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (<div key={l} className={`${last ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${last ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>); })}</div>
+                    {isSonHa
+                      ? <div className="mt-4 rounded-lg py-3 border bg-emerald-50 border-emerald-200 text-center"><p className="text-[11px] text-emerald-600">Điểm kết quả nhiệm vụ (Nhóm II) — trung bình có trọng số các mức độ hoàn thành</p><p className="font-extrabold text-emerald-700 text-lg">{Number(curC.k.val).toFixed(1)}%</p></div>
+                      : <div className={`mt-4 grid ${curC.leaderFormula ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-center`}>{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ...(curC.leaderFormula ? [['Lĩnh vực (d)', curC.k.d ?? 100], ['Tổ chức (đ)', curC.k.dd ?? 100], ['Đoàn kết (e)', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (<div key={l} className={`${last ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${last ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>); })}</div>}
                   </div>
                 </section>
 
@@ -2248,7 +2253,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <h2 className="text-xl font-bold text-slate-800 flex items-center gap-2"><BookOpen className="w-6 h-6 text-red-700" /> Hướng dẫn sử dụng & cách tính điểm</h2>
                 <p className="text-sm text-slate-500 mt-1">Tài liệu minh bạch toàn bộ công thức và quy trình. Nội dung hiển thị <b>theo đúng phiên bản đang dùng</b>.</p>
               </div>
-              {!isSG && !isKD && <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>}
+              {!isSG && !isKD && !isSonHa && <button onClick={doExportGuide} title="Mở sổ tay hướng dẫn đầy đủ để in hoặc lưu thành PDF" className="shrink-0 flex items-center gap-2 px-4 py-2.5 bg-red-700 hover:bg-red-800 text-white font-semibold rounded-xl text-sm transition-colors"><FileText className="w-4 h-4" /> Tải sổ tay hướng dẫn (PDF)</button>}
             </div>
 
             <div className={`rounded-xl border p-4 ${isKD ? 'bg-rose-50 border-rose-200' : isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
@@ -2346,14 +2351,15 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             </>)}
 
             {!isSG && !isKD && (<>
-            <GB icon={LayoutDashboard} title="1. Năm khu vực (tab) của hệ thống">
+            <GB icon={LayoutDashboard} title={isSonHa ? '1. Ba khu vực (tab) của hệ thống' : '1. Năm khu vực (tab) của hệ thống'}>
               <ul className="list-disc pl-5 space-y-1">
                 <li><b>Tổng quan:</b> Mục tiêu OKR cấp Văn phòng, phân bố xếp loại, bảng tổng hợp kết quả (Mẫu 1A) và xu hướng theo kỳ.</li>
                 <li><b>Đánh giá:</b> Nơi chấm điểm từng cán bộ — Nhóm I (tiêu chí chung) và Nhóm II (kết quả nhiệm vụ).</li>
-                <li><b>Năng lực số:</b> Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</li>
-                <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần; <b>đồng bộ từ Google Sheet</b>, <b>thu thập</b> thành nhiệm vụ KPI và <b>xuất bảng PDF</b>.</li>
+                {!isSonHa && <li><b>Năng lực số:</b> Tự đánh giá khung năng lực số (chỉ số phụ trợ, không cộng vào điểm tháng).</li>}
+                {!isSonHa && <li><b>Theo dõi CV:</b> Bảng kiểm đếm công việc theo tuần; <b>đồng bộ từ Google Sheet</b>, <b>thu thập</b> thành nhiệm vụ KPI và <b>xuất bảng PDF</b>.</li>}
                 <li><b>Hỗ trợ:</b> Thông tin liên hệ, ô gửi ý kiến và trang hướng dẫn này.</li>
               </ul>
+              {isSonHa && <p className="mt-1.5 text-slate-500 text-[13px]">Bản OKR/KPI gọn 3 khu vực; danh mục công việc và nhóm đối tượng (Mẫu) <b>tự xác định theo chức vụ</b> của cán bộ.</p>}
             </GB>
 
             <GB icon={TrendingUp} title="2. Thang điểm tổng — 100 điểm">
@@ -2373,6 +2379,31 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-2">Mỗi tiêu chí có điểm tối đa riêng; cộng tất cả tiêu chí, <b>giới hạn không quá 30</b>. Nhập điểm ở 2 cột Tự ĐG và Cấp duyệt; hệ thống lấy cột <b>Cấp duyệt</b> để xếp loại chính thức.</p>
             </GB>
 
+            {isSonHa ? (
+            <GB icon={Target} title="4. Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)">
+              <p>Bản OKR/KPI chấm Nhóm II theo <b>cách đơn giản, dễ dùng</b> (giống bản Kiểm điểm): mỗi nhiệm vụ chỉ cần chọn <b>danh mục công việc</b> rồi chọn <b>Mức độ hoàn thành</b> và <b>Tầm quan trọng</b> — không phải nhập số lượng, lỗi, trễ hạn.</p>
+              <div className="mt-2 space-y-1 bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-[13px]">
+                <p className="font-bold text-emerald-800">5 mức độ hoàn thành (quy ra %):</p>
+                <p>• <b>Hoàn thành xuất sắc, vượt yêu cầu</b> = 100% <span className="text-emerald-600">(tính là nhiệm vụ "vượt mức")</span></p>
+                <p>• <b>Hoàn thành tốt, đạt yêu cầu, đúng hạn</b> = 90%</p>
+                <p>• <b>Cơ bản hoàn thành</b> (còn thiếu sót nhỏ hoặc hơi chậm) = 75%</p>
+                <p>• <b>Chưa hoàn thành, còn hạn chế</b> = 55%</p>
+                <p>• <b>Không hoàn thành</b> = 30% <span className="text-rose-600">(tính là nhiệm vụ "không hoàn thành")</span></p>
+              </div>
+              <div className="mt-2 space-y-1 bg-slate-50 border border-slate-200 rounded-lg p-3 text-[13px]">
+                <p><b>Tầm quan trọng</b> → hệ số trọng số: Thường xuyên <b>×1</b> · Quan trọng <b>×1,5</b> · Trọng tâm, khó, phạm vi rộng <b>×2</b>.</p>
+                <p className="pt-1 border-t border-slate-200"><b>Trọng số mỗi nhiệm vụ</b> = hệ số danh mục (theo cấp độ N1–N5) <b>×</b> hệ số tầm quan trọng.</p>
+                <p className="font-bold text-emerald-700">Điểm KPI = trung bình có trọng số (%) của các nhiệm vụ · Điểm Nhóm II = KPI × 70%.</p>
+              </div>
+              <div className="mt-2 bg-amber-50 border border-amber-200 rounded-lg p-3 text-[13px]">
+                <p className="font-bold text-amber-800 mb-1">Ví dụ</p>
+                <p>• NV1 "Thẩm tra nghị quyết" — <b>Trọng tâm (×2)</b>, danh mục hệ số 200 → trọng số 4,0; mức <b>Xuất sắc (100%)</b>.<br/>• NV2 "Soạn thảo văn bản" — <b>Thường (×1)</b>, hệ số 100 → trọng số 1,0; mức <b>Hoàn thành tốt (90%)</b>.<br/>• NV3 "Báo cáo dân nguyện" — <b>Quan trọng (×1,5)</b>, hệ số 100 → trọng số 1,5; mức <b>Cơ bản hoàn thành (75%)</b>.</p>
+                <p className="mt-2">KPI = (100×4,0 + 90×1,0 + 75×1,5) ÷ (4,0+1,0+1,5) = (400+90+112,5) ÷ 6,5 = <b>92,7%</b> → Nhóm II = 92,7% × 70% ≈ <b>64,9 / 70</b>.</p>
+              </div>
+              <p className="mt-2"><b>▲ Thưởng vượt mức:</b> nhiệm vụ đạt mức <b>Xuất sắc</b> được cộng điểm thưởng <b>+0,1 điểm cho mỗi 1% tỷ trọng</b> nhiệm vụ xuất sắc (theo trọng số), <b>tối đa +5 điểm</b> (tổng vẫn ≤ 100).</p>
+              <p className="mt-1.5 text-slate-500 text-[13px]">Cột <b>Cấp duyệt</b> mặc định kế thừa cột <b>Tự đánh giá</b>; cấp có thẩm quyền sửa lại để chốt xếp loại chính thức. Nhiệm vụ <b>chưa chọn danh mục</b> không được tính điểm.</p>
+            </GB>
+            ) : (<>
             <GB icon={Target} title="4. Nhóm II — Kết quả thực hiện nhiệm vụ (tối đa 70 điểm)">
               <p>Chấm bằng <b>đếm khách quan</b>, không cảm tính. Mỗi nhiệm vụ chọn từ <b>danh mục công việc</b> (đã gán sẵn <b>hệ số</b> theo cấp độ), rồi nhập 4 con số: <b>Số lượng giao</b>, <b>Số lượng hoàn thành</b>, <b>Lỗi chất lượng</b>, <b>Chậm tiến độ</b>.</p>
               <p className="mt-2 font-semibold text-slate-700">Hệ thống tự tính 3 tỷ lệ (bình quân theo hệ số của tất cả nhiệm vụ):</p>
@@ -2410,8 +2441,9 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <p>③ <b>"Vượt mức" nghĩa là hoàn thành NHIỀU HƠN số lượng giao</b> (ví dụ giao 4, làm 6). Tỷ lệ Khối lượng a bị chặn tối đa 100% nên vượt mức <b>không cộng thêm điểm</b>, nhưng <b>là điều kiện bắt buộc để đạt loại A</b> (xem mục 7).</p>
               </div>
             </GB>
+            </>)}
 
-            <GB icon={ListChecks} title="4.1 Danh mục công việc Nhóm II (đầy đủ — 52 mục)">
+            <GB icon={ListChecks} title={isSonHa ? '4.1 Danh mục công việc Nhóm II (theo Mẫu/chức vụ)' : '4.1 Danh mục công việc Nhóm II (đầy đủ — 52 mục)'}>
               <p>Mỗi nhiệm vụ Nhóm II được chọn từ danh mục dưới đây (đã gán sẵn <b>cấp độ → hệ số</b> và <b>nhóm đối tượng áp dụng</b> theo Mẫu 01–05). Quản trị có thể thêm/bớt/sửa và gán lại ở tab <b>Danh mục</b>.</p>
               <div className="mt-2 overflow-x-auto rounded-lg border border-slate-200">
                 <table className="w-full text-[11.5px] border-collapse">
@@ -2443,6 +2475,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-2 text-[12px] text-slate-500">Cột <b>Mẫu</b>: 01 = ĐB HĐND chuyên trách · 02 = ĐB Quốc hội chuyên trách · 03 = lãnh đạo, quản lý · 04 = công chức · 05 = lao động hợp đồng.</p>
             </GB>
 
+            {!isSonHa && (
             <GB icon={BarChart3} title="4.2 Ví dụ tính điểm XUYÊN SUỐT (từ nhiệm vụ đến xếp loại)">
               <p className="text-slate-600">Áp dụng đúng công thức tổng quát ở mục 4. Theo dõi từng bước để hiểu cách một con số cuối cùng được hình thành.</p>
 
@@ -2493,6 +2526,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <p>• <b>Bị kỷ luật:</b> tích ô "bị xử lý kỷ luật" → <b>xếp thẳng loại D</b> bất kể điểm, <b>nhưng KHÔNG trừ điểm</b> (tổng điểm giữ nguyên). Đây là lúc xuất hiện cảnh báo "chênh lệch điểm số và xếp loại".</p>
               </div>
             </GB>
+            )}
 
             <GB icon={Link2} title="5. Liên kết mục tiêu (OKR) & Key Results">
               <p><b>OKR = Objective (Mục tiêu định hướng) + Key Results (Kết quả then chốt đo được).</b> Ở tab <b>Tổng quan</b>, mỗi Mục tiêu cấp Văn phòng (gắn với Nghị quyết, chương trình công tác) có <b>2–3 Key Result</b> dạng "hiện tại / chỉ tiêu + đơn vị" — phần mềm tự tính tiến độ %. OKR khát vọng đạt <b>60–70%</b> đã là tốt.</p>
@@ -2512,6 +2546,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               <p className="mt-2"><b>Trần xuất sắc:</b> số "Hoàn thành xuất sắc" (A) không vượt quá <b>20%</b> số "Hoàn thành tốt" (B). Hệ thống cảnh báo ở tab Tổng quan khi vượt trần — tránh cào bằng, giữ tính phân loại thực chất.</p>
               <div className="mt-2 bg-slate-50 border border-slate-200 rounded-lg p-3">
                 <p className="font-semibold text-slate-700 mb-1">Điều kiện định lượng (Điều 8) — hệ thống tự áp dụng ngoài ngưỡng điểm:</p>
+                {isSonHa && <p className="text-[13px] text-emerald-800 bg-emerald-50 border border-emerald-100 rounded-lg p-2.5 mb-2">Ở bản OKR/KPI (chấm theo mức độ): nhiệm vụ đạt mức <b>Xuất sắc</b> được coi là <b>"vượt mức"</b>; nhiệm vụ ở mức <b>Không hoàn thành</b> được coi là <b>"không hoàn thành"</b>. Các điều kiện dưới đây áp dụng theo cách quy đổi đó (không dùng số lượng).</p>}
                 <p className="text-[13px] text-slate-600 mb-1">Cách tính <b>theo từng nhiệm vụ</b>: mỗi nhiệm vụ có tỷ lệ = Số lượng HT ÷ Số lượng giao. Một nhiệm vụ chỉ bị coi là <b>"không hoàn thành" khi đạt dưới 50%</b> số lượng giao; đạt từ 50% đến dưới 100% vẫn là <b>đã hoàn thành</b> (chỉ phần thiếu làm giảm điểm và ảnh hưởng mức Xuất sắc).</p>
                 <ul className="list-disc pl-5 space-y-1">
                   <li><b>Hoàn thành xuất sắc (A):</b> ngoài ≥90 điểm, mọi nhiệm vụ phải <b>đạt đủ 100% số lượng</b> và có <b>≥30% nhiệm vụ vượt mức</b> (HT &gt; giao). Chưa đủ thì hạ xuống Hoàn thành tốt.</li>
@@ -2572,6 +2607,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
               </ol>
             </GB>
 
+            {!isSonHa && (
             <GB icon={Cloud} title="13. Tab Theo dõi CV: đồng bộ Google Sheet, thu thập KPI, xuất PDF">
               <ul className="list-disc pl-5 space-y-1">
                 <li><b>Đồng bộ từ Google Sheet</b> (Quản trị): nạp dữ liệu kiểm đếm mới nhất từ bảng tính Google thành các dòng theo dõi <b>có thể sửa</b>; khớp cán bộ theo tên, bấm lại sẽ cập nhật (không nhân đôi). Dòng nạp có nhãn "từ Google Sheet".</li>
@@ -2579,6 +2615,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 <li><b>Xuất bảng (PDF)</b>: mở cửa sổ bảng theo mẫu hành chính (A4 ngang); bấm "In / Lưu thành PDF" để lưu file hoặc in giấy.</li>
               </ul>
             </GB>
+            )}
             </>)}
           </div>
           </div>
@@ -2657,19 +2694,31 @@ function ContactCard() {
 // ===== Giải thích điều kiện xếp loại (Điều 8) ngay trong tab Đánh giá — để CBCC nắm rõ =====
 function GradeExplain({ c, disciplined, tasks }) {
   if (!c) return null;
+  const sonha = ACTIVE_VERSION === 'sonha'; // bản SonHa chấm theo MỨC ĐỘ HOÀN THÀNH (không dùng số lượng)
   const st = c.st || { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
   const g = gradeClass(c.grade);
   const pct = (v) => `${Number(v).toFixed(0)}%`;
   // Liệt kê đích danh nhiệm vụ để cán bộ biết RÕ chậm/chưa hoàn thành công việc nào.
   const { failed, partial, delayed, uncounted } = taskBreakdown(tasks);
   const nameOf = (t) => { const it = findCatalogItem(t.catalogId); return (it && it.name) || t.note || `[${t.catalogId}]`; };
-  const metrics = [
+  const mucLabel = (t) => mucOf(tMuc(t, 'mgr')).short; // nhãn mức độ (bản SonHa)
+  const metrics = sonha ? [
+    { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
+    { label: 'Hoàn thành tốt trở lên', val: pct(st.doneRate), ok: st.n === 0 ? null : st.doneRate >= 100, hint: 'HTXS cần 100%' },
+    { label: 'Xuất sắc (vượt mức)', val: pct(st.exceedRate), ok: st.n === 0 ? null : st.exceedRate >= 30, hint: 'HTXS ≥ 30%' },
+    { label: 'Không hoàn thành', val: pct(st.failRate), ok: st.n === 0 ? null : st.failRate <= (c.leader ? 30 : 50), hint: c.leader ? 'lãnh đạo ≤ 30%' : '≤ 50%' },
+  ] : [
     { label: 'Số nhiệm vụ', val: String(st.n), ok: null, hint: 'Nhóm II' },
     { label: 'Đạt đủ số lượng', val: pct(st.doneRate), ok: st.n === 0 ? null : st.doneRate >= 100, hint: 'HTXS cần 100%' },
     { label: 'Vượt mức', val: pct(st.exceedRate), ok: st.n === 0 ? null : st.exceedRate >= 30, hint: 'HTXS ≥ 30%' },
     { label: 'Không hoàn thành', val: pct(st.failRate), ok: st.n === 0 ? null : st.failRate <= (c.leader ? 30 : 50), hint: c.leader ? 'lãnh đạo ≤ 30%' : '≤ 50%' },
   ];
-  const levels = [
+  const levels = sonha ? [
+    ['A', '≥ 90 điểm + mọi nhiệm vụ đạt mức "Hoàn thành tốt" trở lên + ≥ 30% nhiệm vụ đạt mức "Xuất sắc (vượt mức)".'],
+    ['B', '70–89 điểm + không có nhiệm vụ nào ở mức "Không hoàn thành".'],
+    ['C', '50–69 điểm; hoặc có nhiệm vụ chưa đạt mức Hoàn thành tốt.'],
+    ['D', 'Dưới 50 điểm; hoặc bị kỷ luật/kết luận suy thoái; hoặc trên 50% nhiệm vụ ở mức "Không hoàn thành" (lãnh đạo: trên 30%).'],
+  ] : [
     ['A', '≥ 90 điểm + đạt đủ 100% số lượng ở mọi nhiệm vụ + ≥ 30% nhiệm vụ vượt mức + đã khắc phục xong hạn chế đã chỉ ra (nếu có).'],
     ['B', '70–89 điểm + không có nhiệm vụ nào không hoàn thành (mọi nhiệm vụ đạt từ 50% số lượng trở lên), đúng hạn, bảo đảm chất lượng.'],
     ['C', '50–69 điểm + không quá ngưỡng nhiệm vụ không hoàn thành; số nhiệm vụ chậm tiến độ không quá 20%.'],
@@ -2689,18 +2738,18 @@ function GradeExplain({ c, disciplined, tasks }) {
             </div>
           ))}
         </div>
-        {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận "đạt đủ 100% số lượng" và "≥ 30% vượt mức" — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
+        {st.n === 0 && <p className="text-xs text-amber-700 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chưa nhập nhiệm vụ Nhóm II nào nên chưa đủ căn cứ xác nhận điều kiện Hoàn thành xuất sắc — vì vậy tạm thời chưa thể đạt mức Hoàn thành xuất sắc. Hãy thêm nhiệm vụ ở mục <b>Nhóm II</b> phía trên.</p>}
         {uncounted > 0 && <p className="text-xs text-amber-800 bg-amber-50 border border-amber-200 rounded-lg p-2.5"><b>{uncounted}</b> nhiệm vụ <b>chưa chọn danh mục công việc</b> nên KHÔNG được tính vào điểm KPI. Hãy chọn danh mục cho các dòng đang đánh dấu "chưa tính điểm" ở mục Nhóm II.</p>}
         {failed.length > 0 && (
           <div className="rounded-lg border border-rose-200 bg-rose-50 p-2.5">
-            <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ KHÔNG hoàn thành — đạt dưới 50% số lượng ({failed.length}/{st.n}):</p>
-            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-rose-700/90 leading-relaxed">{failed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — mới làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+            <p className="text-[11px] font-bold text-rose-700 mb-1">Nhiệm vụ KHÔNG hoàn thành ({failed.length}/{st.n}):</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-rose-700/90 leading-relaxed">{failed.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — {sonha ? mucLabel(t) : `mới làm ${Number(t.completed) || 0}/${Number(t.assigned) || 0}`}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
           </div>
         )}
         {partial.length > 0 && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 p-2.5">
-            <p className="text-[11px] font-bold text-amber-800 mb-1">Nhiệm vụ chưa đạt đủ số lượng — vẫn tính là hoàn thành, chỉ ảnh hưởng mức Hoàn thành xuất sắc ({partial.length}/{st.n}):</p>
-            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-amber-800/90 leading-relaxed">{partial.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — đã làm {Number(t.completed) || 0}/{Number(t.assigned) || 0}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
+            <p className="text-[11px] font-bold text-amber-800 mb-1">{sonha ? `Nhiệm vụ chưa đạt mức Hoàn thành tốt — ảnh hưởng mức Hoàn thành xuất sắc (${partial.length}/${st.n}):` : `Nhiệm vụ chưa đạt đủ số lượng — vẫn tính là hoàn thành, chỉ ảnh hưởng mức Hoàn thành xuất sắc (${partial.length}/${st.n}):`}</p>
+            <ul className="list-disc pl-4 space-y-0.5 text-[11px] text-amber-800/90 leading-relaxed">{partial.map((t, i) => <li key={i}><b>{nameOf(t)}</b> — {sonha ? mucLabel(t) : `đã làm ${Number(t.completed) || 0}/${Number(t.assigned) || 0}`}{t.note ? ` · ${t.note}` : ''}</li>)}</ul>
           </div>
         )}
         {delayed.length > 0 && (
