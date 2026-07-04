@@ -1,0 +1,45 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1200" y2="630" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#7f1d1d"/>
+      <stop offset="0.55" stop-color="#a51c1c"/>
+      <stop offset="1" stop-color="#6b1212"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="630" x2="0" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fbbf24"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.8" cy="0.2" r="0.9">
+      <stop offset="0" stop-color="#fbbf24" stop-opacity="0.20"/>
+      <stop offset="1" stop-color="#fbbf24" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <rect width="1200" height="630" fill="url(#glow)"/>
+
+  <!-- Biểu tượng OKR/KPI (phóng to từ favicon) -->
+  <g transform="translate(120 175) scale(4.4)">
+    <rect x="1" y="1" width="62" height="62" rx="15" fill="#8f1717" stroke="#fbbf24" stroke-opacity="0.55" stroke-width="1.5"/>
+    <g fill="#fff7e6">
+      <rect x="12" y="40" width="8" height="12" rx="2"/>
+      <rect x="24" y="33" width="8" height="19" rx="2"/>
+      <rect x="36" y="26" width="8" height="26" rx="2"/>
+    </g>
+    <path d="M13 42 L27 33 L38 27 L48 18" fill="none" stroke="url(#gold)" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M40.5 16.5 L50 15 L48.5 24.5 Z" fill="url(#gold)"/>
+    <circle cx="47" cy="17" r="9.5" fill="none" stroke="#fbbf24" stroke-width="2.4"/>
+    <circle cx="47" cy="17" r="4.2" fill="#7f1d1d"/>
+    <circle cx="47" cy="17" r="1.7" fill="#fbbf24"/>
+    <circle cx="49" cy="49" r="9" fill="#16a34a" stroke="#fff7e6" stroke-width="2"/>
+    <path d="M45 49 L48 52 L53.5 46" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Chữ -->
+  <g font-family="'Segoe UI', 'Be Vietnam Pro', system-ui, sans-serif">
+    <text x="470" y="238" fill="#fcd34d" font-size="30" font-weight="700" letter-spacing="6">HỆ THỐNG ĐÁNH GIÁ · OKR / KPI</text>
+    <text x="470" y="322" fill="#ffffff" font-size="66" font-weight="800">Đánh giá, xếp loại</text>
+    <text x="470" y="392" fill="#ffffff" font-size="66" font-weight="800">cán bộ, công chức</text>
+    <text x="470" y="452" fill="#fde8c8" font-size="30" font-weight="500">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</text>
+  </g>
+</svg>

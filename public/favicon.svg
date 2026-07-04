@@ -1,0 +1,36 @@
+<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Đánh giá OKR/KPI">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a51c1c"/>
+      <stop offset="1" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="64" x2="64" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#f59e0b"/>
+      <stop offset="1" stop-color="#fcd34d"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Nền huy hiệu bo góc -->
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="url(#bg)"/>
+  <rect x="1.75" y="1.75" width="60.5" height="60.5" rx="14.25" fill="none" stroke="#fbbf24" stroke-opacity="0.5" stroke-width="1.5"/>
+
+  <!-- Biểu đồ cột KPI tăng dần -->
+  <g fill="#fdf3dc">
+    <rect x="11" y="37" width="8.5" height="15" rx="2"/>
+    <rect x="22.75" y="29" width="8.5" height="23" rx="2"/>
+    <rect x="34.5" y="21" width="8.5" height="31" rx="2"/>
+  </g>
+
+  <!-- Mũi tên tăng trưởng hướng tới mục tiêu -->
+  <path d="M12 45 L24 36 L36 26" fill="none" stroke="url(#gold)" stroke-width="3.6" stroke-linecap="round" stroke-linejoin="round"/>
+  <path d="M31 25.5 L38.5 23.5 L37 31 Z" fill="url(#gold)"/>
+
+  <!-- Bia mục tiêu (OKR) -->
+  <circle cx="47.5" cy="16.5" r="9.5" fill="#7f1d1d" stroke="#fbbf24" stroke-width="2.6"/>
+  <circle cx="47.5" cy="16.5" r="4.6" fill="none" stroke="#fbbf24" stroke-width="2.2"/>
+  <circle cx="47.5" cy="16.5" r="1.4" fill="#fcd34d"/>
+
+  <!-- Dấu tích đánh giá -->
+  <circle cx="49.5" cy="49.5" r="8.5" fill="#16a34a" stroke="#fdf3dc" stroke-width="2"/>
+  <path d="M45.6 49.6 L48.4 52.4 L53.6 46.4" fill="none" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
