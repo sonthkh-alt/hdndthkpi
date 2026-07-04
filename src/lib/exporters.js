@@ -102,7 +102,15 @@ export async function exportWordPhieu(ev) {
   children.push(P('II. KẾT QUẢ THỰC HIỆN NHIỆM VỤ (Nhóm II, tối đa 70 điểm)', { bold: true, size: 26, spacingAfter: 80 }));
   const tasks = ev.tasks || [];
   if (tasks.length) {
-    const tRows = [new TableRow({ tableHeader: true, children: [
+    // simpleMode (bản OKR/KPI-SonHa): chấm theo MỨC ĐỘ HOÀN THÀNH + TẦM QUAN TRỌNG thay cho đếm số lượng.
+    const tRows = [new TableRow({ tableHeader: true, children: ev.simpleMode ? [
+      TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
+      TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 44 }),
+      TC('Mức độ hoàn thành (Tự ĐG)', { bold: true, align: C, shade: 'E8EEF7', width: 15 }),
+      TC('Mức độ hoàn thành (Cấp duyệt)', { bold: true, align: C, shade: 'E8EEF7', width: 15 }),
+      TC('Tầm quan trọng', { bold: true, align: C, shade: 'E8EEF7', width: 12 }),
+      TC('Điểm %', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+    ] : [
       TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
       TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 43 }),
       TC('SL giao', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
@@ -114,9 +122,17 @@ export async function exportWordPhieu(ev) {
     ] })];
     tasks.forEach((t, i) => {
       const noCat = !t.catalogName;
-      tRows.push(new TableRow({ children: [
+      const contentCell = TC(noCat ? '(Chưa chọn danh mục — không được tính điểm)' : [t.catalogName, t.kr ? `KR: ${t.kr}` : '', t.objTitle ? `Mục tiêu: ${t.objTitle}` : '', t.note || ''].filter(Boolean).join(' — '), { size: 20, italics: noCat, color: noCat ? '9A3412' : undefined });
+      tRows.push(new TableRow({ children: ev.simpleMode ? [
         TC(i + 1, { align: C, size: 20 }),
-        TC(noCat ? '(Chưa chọn danh mục — không được tính điểm)' : [t.catalogName, t.kr ? `KR: ${t.kr}` : '', t.objTitle ? `Mục tiêu: ${t.objTitle}` : '', t.note || ''].filter(Boolean).join(' — '), { size: 20, italics: noCat, color: noCat ? '9A3412' : undefined }),
+        contentCell,
+        TC(t.mucSelf || '', { align: C, size: 20 }),
+        TC(t.mucMgr || '', { align: C, size: 20 }),
+        TC(t.tamLabel || '', { align: C, size: 20 }),
+        TC(noCat ? '—' : fmt(t.scorePct, 0), { align: C, size: 20 }),
+      ] : [
+        TC(i + 1, { align: C, size: 20 }),
+        contentCell,
         TC(t.assigned, { align: C, size: 20 }),
         TC(t.completed, { align: C, size: 20 }),
         TC(t.qualityIssues, { align: C, size: 20 }),
@@ -130,21 +146,25 @@ export async function exportWordPhieu(ev) {
     children.push(P('(Chưa nhập nhiệm vụ Nhóm II — mặc định đạt tối đa.)', { italics: true, size: 22 }));
   }
   children.push(P('', { spacingAfter: 60 }));
-  // Tỷ lệ a/b/c và (lãnh đạo) d/đ/e
-  children.push(P([
-    { text: 'Tỷ lệ Khối lượng (a) = ', bold: true }, { text: `${ev.a}%; ` },
-    { text: 'Chất lượng (b) = ', bold: true }, { text: `${ev.b}%; ` },
-    { text: 'Tiến độ (c) = ', bold: true }, { text: `${ev.c}%.` },
-  ], { size: 22 }));
-  if (ev.leader && ev.leadScores) {
-    children.push(P([
-      { text: 'Lãnh đạo, quản lý (Điều 7) — Lĩnh vực phụ trách (d) = ', bold: true }, { text: `${fmt(ev.leadScores.d, 0)}%; ` },
-      { text: 'Tổ chức thực hiện (đ) = ', bold: true }, { text: `${fmt(ev.leadScores.dd, 0)}%; ` },
-      { text: 'Đoàn kết, kỷ luật (e) = ', bold: true }, { text: `${fmt(ev.leadScores.e, 0)}%.` },
-    ], { size: 22 }));
-    children.push(P(`Điểm kết quả = (a+b+c+d+đ+e)/6 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+  // Tỷ lệ a/b/c và (lãnh đạo) d/đ/e — simpleMode: KPI là trung bình có trọng số của mức độ hoàn thành.
+  if (ev.simpleMode) {
+    children.push(P(`Điểm KPI = trung bình có trọng số của Mức độ hoàn thành các nhiệm vụ (trọng số = hệ số danh mục × hệ số tầm quan trọng) = ${ev.kpi}%.`, { italics: true, size: 22 }));
   } else {
-    children.push(P(`Điểm kết quả = (a+b+c)/3 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+    children.push(P([
+      { text: 'Tỷ lệ Khối lượng (a) = ', bold: true }, { text: `${ev.a}%; ` },
+      { text: 'Chất lượng (b) = ', bold: true }, { text: `${ev.b}%; ` },
+      { text: 'Tiến độ (c) = ', bold: true }, { text: `${ev.c}%.` },
+    ], { size: 22 }));
+    if (ev.leader && ev.leadScores) {
+      children.push(P([
+        { text: 'Lãnh đạo, quản lý (Điều 7) — Lĩnh vực phụ trách (d) = ', bold: true }, { text: `${fmt(ev.leadScores.d, 0)}%; ` },
+        { text: 'Tổ chức thực hiện (đ) = ', bold: true }, { text: `${fmt(ev.leadScores.dd, 0)}%; ` },
+        { text: 'Đoàn kết, kỷ luật (e) = ', bold: true }, { text: `${fmt(ev.leadScores.e, 0)}%.` },
+      ], { size: 22 }));
+      children.push(P(`Điểm kết quả = (a+b+c+d+đ+e)/6 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+    } else {
+      children.push(P(`Điểm kết quả = (a+b+c)/3 = ${ev.kpi}%.`, { italics: true, size: 22 }));
+    }
   }
   children.push(P(`Điểm Nhóm II quy đổi = ${ev.kpi}% × 70% = ${ev.nhomII} điểm.`, { italics: true, size: 22, spacingAfter: 160 }));
 

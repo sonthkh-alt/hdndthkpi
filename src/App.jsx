@@ -9,7 +9,7 @@ import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
-import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown } from './KiemDiemAppraisal.jsx';
+import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_MUC, KD_TAM, tamOf } from './KiemDiemAppraisal.jsx';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -616,6 +616,18 @@ function taskStats(tasks, which = 'mgr') {
   const n = valid.length;
   if (!n) return { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
   let done = 0, exceed = 0, delay = 0, fail = 0;
+  if (ACTIVE_VERSION === 'sonha') {
+    // Bản SonHa: suy từ MỨC ĐỘ HOÀN THÀNH — hoàn thành = từ mức Tốt trở lên; vượt mức = Xuất sắc;
+    // không hoàn thành = mức Không hoàn thành; "chậm/thiếu" = Cơ bản hoàn thành/Chưa hoàn thành.
+    valid.forEach((t) => {
+      const m = mucOf(tMuc(t, which));
+      if (m.rank >= 3) done++;
+      if (m.exceed) exceed++;
+      if (m.fail) fail++;
+      if (m.rank > 0 && m.rank < 3) delay++;
+    });
+    return { n, doneRate: (done / n) * 100, exceedRate: (exceed / n) * 100, delayRate: (delay / n) * 100, failRate: (fail / n) * 100 };
+  }
   valid.forEach((t) => {
     const as = Number(t.assigned) || 0, cp = tCompleted(t, which);
     const r = as > 0 ? cp / as : 0;
@@ -631,6 +643,15 @@ function taskStats(tasks, which = 'mgr') {
 //  failed: đạt <50% số lượng (không hoàn thành) · partial: 50–99% (chưa đủ) · delayed: có lần chậm · uncounted: chưa chọn danh mục
 function taskBreakdown(tasks, which = 'mgr') {
   const list = (tasks || []).filter((t) => t.catalogId);
+  if (ACTIVE_VERSION === 'sonha') {
+    // Bản SonHa: phân loại theo mức độ hoàn thành (không dùng số lượng).
+    return {
+      failed: list.filter((t) => mucOf(tMuc(t, which)).fail),
+      partial: list.filter((t) => { const m = mucOf(tMuc(t, which)); return m.rank > 0 && m.rank < 3; }),
+      delayed: [],
+      uncounted: (tasks || []).filter((t) => !t.catalogId).length,
+    };
+  }
   const ratio = (t) => { const as = Number(t.assigned) || 0, cp = tCompleted(t, which); return as > 0 ? cp / as : 0; };
   return {
     failed: list.filter((t) => ratio(t) < 0.5),
@@ -683,8 +704,26 @@ const clamp = (v, a = 0, b = 100) => Math.max(a, Math.min(b, v));
 const tCompleted = (t, which) => Number(which === 'self' ? t.completed : (t.mgrCompleted ?? t.completed)) || 0;
 const tQuality = (t, which) => Number(which === 'self' ? t.qualityIssues : (t.mgrQualityIssues ?? t.qualityIssues)) || 0;
 const tDelays = (t, which) => Number(which === 'self' ? t.delays : (t.mgrDelays ?? t.delays)) || 0;
-// Điểm % của 1 nhiệm vụ Nhóm II (đếm khách quan) — dùng cho màu trạng thái & tiến độ OKR. which = 'mgr'(mặc định) | 'self'.
+// ===== Bản SonHa (OKR/KPI): Nhóm II chấm theo MỨC ĐỘ HOÀN THÀNH + TẦM QUAN TRỌNG =====
+// (như Nhóm B bản Kiểm điểm — 1 lựa chọn 5 mức thay cho nhập số lượng/sai sót/trễ hạn;
+//  độ phức tạp công việc đã có HỆ SỐ DANH MỤC làm trọng số, nhân thêm hệ số tầm quan trọng).
+// Đọc mức của 1 nhiệm vụ: cột Cấp duyệt mặc định kế thừa Tự ĐG; dữ liệu cũ nhập
+// số lượng được TỰ QUY ĐỔI sang mức tương đương (tương thích ngược).
+const tMuc = (t, which) => {
+  const raw = which === 'self' ? t.muc : (t.mgrMuc ?? t.muc);
+  if (raw) return raw;
+  const as = Number(t.assigned) || 0; if (!as) return 'tot';
+  const cp = tCompleted(t, which); const r = cp / as;
+  if (cp > as) return 'xuatsac';
+  if (r >= 1) return (tQuality(t, which) > 0 || tDelays(t, which) > 0) ? 'dat' : 'tot';
+  if (r >= 0.75) return 'dat';
+  if (r >= 0.5) return 'chua';
+  return 'khong';
+};
+// Điểm % của 1 nhiệm vụ Nhóm II — dùng cho màu trạng thái & tiến độ OKR. which = 'mgr'(mặc định) | 'self'.
+// Bản SonHa: điểm = % của mức độ hoàn thành; các bản khác: đếm khách quan (a+b+c)/3.
 function task335Score(t, which = 'mgr') {
+  if (ACTIVE_VERSION === 'sonha') return mucOf(tMuc(t, which)).pct;
   const as = Number(t.assigned) || 0;
   if (as === 0) return 0;
   const a = Math.min(100, tCompleted(t, which) / as * 100);
@@ -696,6 +735,21 @@ function agg335(tasks335, which = 'mgr') {
   const valid = (tasks335 || []).filter(t => t.catalogId);
   // Chưa nhập nhiệm vụ nào -> mặc định đạt tối đa 100 (cán bộ mới khởi tạo 100/100, đánh giá trừ dần)
   if (valid.length === 0) return { a: 100, b: 100, c: 100, val: 100 };
+  // Bản SonHa: điểm = trung bình có trọng số của MỨC ĐỘ HOÀN THÀNH từng nhiệm vụ.
+  // Trọng số = hệ số danh mục (độ phức tạp) × hệ số tầm quan trọng (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2).
+  // exceedPct = tỷ trọng nhiệm vụ đạt mức Xuất sắc (vượt yêu cầu) — dùng cho chế độ thưởng.
+  if (ACTIVE_VERSION === 'sonha') {
+    let W = 0, WP = 0, WX = 0;
+    valid.forEach((t) => {
+      const cat = findCatalogItem(t.catalogId); if (!cat) return;
+      const w = ((Number(cat.maxScore) || 100) / 100) * tamOf(t.tam).heso;
+      const m = mucOf(tMuc(t, which));
+      W += w; WP += m.pct * w; if (m.exceed) WX += w;
+    });
+    if (!W) return { a: 100, b: 100, c: 100, val: 100, exceedPct: 0 };
+    const val = WP / W;
+    return { a: val, b: val, c: val, val, exceedPct: (WX / W) * 100 };
+  }
   let totalAssignedScore = 0, totalCompletedScore = 0, totalQualityScore = 0, totalDelayScore = 0, totalExceedScore = 0;
   valid.forEach(t => {
     const cat = findCatalogItem(t.catalogId);
@@ -814,7 +868,15 @@ function genTasksFromCat(cat, profile, OKR) {
       q = (i % 2 === 0) ? 1 : 0;
       d = 1 + (i % 2);
     }
-    return { ...newTask335(), catalogId: c.id, objId: OKR[i % OKR.length], assigned: a, completed: comp, qualityIssues: q, delays: d, note: '' };
+    // Mức độ hoàn thành + tầm quan trọng (bản SonHa chấm theo mức; các bản khác bỏ qua 2 trường này)
+    let muc = 'tot';
+    if (profile === 'A') muc = (i % 5 < 2) ? 'xuatsac' : 'tot';
+    else if (profile === 'B') muc = (i % 4 === 0) ? 'dat' : (i % 5 === 0) ? 'xuatsac' : 'tot';
+    else if (profile === 'C') muc = (i % 3 === 0) ? 'khong' : (i % 3 === 1) ? 'tot' : 'dat';
+    else muc = (i % 4 === 0) ? 'chua' : 'khong';
+    const ms = Number(c.maxScore) || 100;
+    const tam = ms >= 200 ? 'trongtam' : ms >= 150 ? 'quantrong' : 'thuong';
+    return { ...newTask335(), catalogId: c.id, objId: OKR[i % OKR.length], assigned: a, completed: comp, qualityIssues: q, delays: d, note: '', muc, tam };
   });
 }
 
@@ -856,8 +918,9 @@ function seedDemoPeople(version) {
     }),
   ];
 }
-// Bộ dữ liệu bản SonHa (OKR/KPI): danh sách CBCCVC-LĐ Văn phòng theo docs/KPI.docx (25 người,
-// 4 phòng). Nhóm đối tượng (Mẫu) tự suy theo chức vụ; mỗi người có sẵn ~10 nhiệm vụ đã chấm theo hồ sơ.
+// Bộ dữ liệu bản SonHa (OKR/KPI): 3 lãnh đạo Văn phòng (Chánh + 2 Phó Chánh VP) + 25 CBCCVC-LĐ
+// theo docs/KPI.docx (4 phòng) = 28 người. Nhóm đối tượng (Mẫu) tự suy theo chức vụ; mỗi người
+// có sẵn ~10 nhiệm vụ đã chấm theo hồ sơ (mức độ hoàn thành + tầm quan trọng).
 function seedSonHaPeople() {
   const OKR = ['o1', 'o2', 'o3'];
   const NOTES = {
@@ -878,10 +941,13 @@ function seedSonHaPeople() {
     p.sg = defaultSG(profile, p.type, OKR);
     return p;
   };
-  const CTHD = 'Phòng Công tác Hội đồng', CTQH = 'Phòng Công tác Quốc hội',
+  const VP = 'Văn phòng', CTHD = 'Phòng Công tác Hội đồng', CTQH = 'Phòng Công tác Quốc hội',
     THTT = 'Phòng Tổng hợp - Thông tin - Dân nguyện', HCTC = 'Phòng Hành chính - Tổ chức - Quản trị';
-  // [Họ tên, Phòng, Chức vụ, Hồ sơ đánh giá] — thứ tự theo danh sách docs/KPI.docx.
+  // [Họ tên, Phòng, Chức vụ, Hồ sơ đánh giá, email?] — lãnh đạo Văn phòng + danh sách docs/KPI.docx.
   return [
+    ['Trần Mạnh Long', VP, 'Chánh Văn phòng', 'A'],
+    ['Hà Ngọc Sơn', VP, 'Phó Chánh Văn phòng', 'B', 'sonthkh@gmail.com'],
+    ['Lê Văn Mạnh', VP, 'Phó Chánh Văn phòng', 'B'],
     ['Ngô Ngọc Quyến', HCTC, 'Phó Trưởng phòng', 'B'],
     ['Trần Thị Hiền', CTHD, 'Chuyên viên', 'B'],
     ['Lê Thị Thu Hà', THTT, 'Chuyên viên', 'A'],
@@ -907,7 +973,7 @@ function seedSonHaPeople() {
     ['Nguyễn Thị Thúy Vân', HCTC, 'Nhân viên phục vụ', 'B'],
     ['Lê Thị Thủy', HCTC, 'Nhân viên phục vụ', 'B'],
     ['Nguyễn Văn Huy', HCTC, 'Bảo vệ', 'B'],
-  ].map(([name, dept, pos, profile]) => mk(name, dept, pos, profile));
+  ].map(([name, dept, pos, profile, email]) => mk(name, dept, pos, profile, email ? { email } : {}));
 }
 
 // Bộ dữ liệu bản KIỂM ĐIỂM: 15 đồng chí diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan,
@@ -1144,7 +1210,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const cur = people.find((p) => p.id === curId) || people[0] || null;
   const upPerson = (id, patch) => setPeople((ps) => ps.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   // Các trường ảnh hưởng kết quả chấm điểm — khi đổi thì tự GỠ phê duyệt cũ (tránh "đã duyệt" trên dữ liệu đã sửa).
-  const SCORING_KEYS = ['selfScores', 'mgrScores', 'tasks335', 'leadScores', 'deduction', 'disciplined'];
+  const SCORING_KEYS = ['selfScores', 'mgrScores', 'tasks335', 'leadScores', 'deduction', 'disciplined', 'kd', 'sg'];
   const upCur = (patch) => {
     const touchesScore = Object.keys(patch).some((k) => SCORING_KEYS.includes(k));
     const p2 = (touchesScore && cur?.approved && !('approved' in patch)) ? { ...patch, approved: false, approvedBy: '', approvedRole: '', approvedAt: '' } : patch;
@@ -1160,8 +1226,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const computed = useMemo(() => people.map((p) => ({ p, c: scoreOf(p) })), [people, catalog, version]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || scoreOf(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0, E: 0 }; computed.forEach(({ c }) => { d[c.grade] = (d[c.grade] || 0) + 1; }); return d; }, [computed]);
-  const upCurSG = (patch) => upPerson(curId, { sg: { ...(cur?.sg || {}), ...patch } });
-  const upCurKD = (patch) => upPerson(curId, { kd: { ...(cur?.kd || {}), ...patch } });
+  const upCurSG = (patch) => upCur({ sg: { ...(cur?.sg || {}), ...patch } });
+  const upCurKD = (patch) => upCur({ kd: { ...(cur?.kd || {}), ...patch } }); // qua upCur để tự gỡ phê duyệt khi sửa điểm
   // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.
   useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
   // SonHa chỉ có 3 module — nếu đang ở tab khác (Năng lực số/Theo dõi CV/Danh mục/Quản trị) thì đưa về Tổng quan.
@@ -1216,14 +1282,18 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       items: g.items.map((it) => { const self = clamp(sS[it.id] ?? it.max, 0, it.max); return { id: it.id, text: it.text, max: it.max, self, mgr: clamp(mS[it.id] ?? self, 0, it.max) }; }),
     }));
     // Chi tiết Nhóm II: từng nhiệm vụ kèm tên danh mục, tỷ lệ hoàn thành, điểm %.
+    // Bản SonHa (simpleMode): in Mức độ hoàn thành (Tự ĐG/Cấp duyệt) + Tầm quan trọng thay cột số lượng.
     const tasks = (cur.tasks335 || []).map((t) => {
       const cat = t.catalogId ? findCatalogItem(t.catalogId) : null;
       // Phiếu chính thức dùng số liệu CẤP DUYỆT (mgr, mặc định kế thừa Tự ĐG khi chưa sửa).
       const as = Number(t.assigned) || 0, cp = (t.mgrCompleted ?? t.completed) || 0;
       const obj = t.objId ? objectives.find((o) => o.id === t.objId) : null;
-      return { catalogName: cat ? cat.name : '', note: t.note || '', kr: t.kr || '', objTitle: obj ? obj.title : '', assigned: t.assigned, completed: cp, qualityIssues: (t.mgrQualityIssues ?? t.qualityIssues) || 0, delays: (t.mgrDelays ?? t.delays) || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
+      const base = { catalogName: cat ? cat.name : '', note: t.note || '', kr: t.kr || '', objTitle: obj ? obj.title : '', assigned: t.assigned, completed: cp, qualityIssues: (t.mgrQualityIssues ?? t.qualityIssues) || 0, delays: (t.mgrDelays ?? t.delays) || 0, ratioPct: as > 0 ? (cp / as) * 100 : 0, scorePct: t.catalogId ? task335Score(t) : 0 };
+      if (isSonHa) return { ...base, mucSelf: mucOf(tMuc(t, 'self')).short, mucMgr: mucOf(tMuc(t, 'mgr')).short, tamLabel: tamOf(t.tam).short };
+      return base;
     });
     exportWordPhieu({
+      simpleMode: isSonHa,
       unit, mau: cfgW?.mau, name: cur.name, position: cur.position, department: cur.department,
       typeLabel: cfgW?.label, month: period.month, year: period.year,
       nhomICriteria, nhomI: curC.nmgr, nhomISelf: curC.nself,
@@ -1429,7 +1499,40 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   };
 
   // Render 1 dòng nhiệm vụ Nhóm II (dùng cho cả danh sách phẳng — Cổ điển, và gom theo Mục tiêu — Cải tiến/Singapore).
-  const renderTask335Row = (t, i) => { const sc = task335Score(t); const st = statusOf(sc);
+  // Bản SonHa: cách chấm ĐƠN GIẢN như Nhóm B bản Kiểm điểm — chọn Mức độ hoàn thành (Tự ĐG/Cấp duyệt) + Tầm quan trọng.
+  const renderTask335Row = (t, i) => {
+    if (isSonHa) {
+      const mucSelfKey = tMuc(t, 'self'), mucMgrKey = tMuc(t, 'mgr');
+      const mSelf = mucOf(mucSelfKey), mMgr = mucOf(mucMgrKey);
+      const sc = task335Score(t), scSelf = task335Score(t, 'self'); const st = statusOf(sc);
+      return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
+        <div className="flex items-center gap-2 mb-2 flex-wrap">
+          <span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} />
+          <span className="shrink-0 w-6 h-6 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>
+          <select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 min-w-0 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}>
+            <option value="">— Chọn công việc từ danh mục —</option>
+            {sonhaGroupsOf(cur).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}
+          </select>
+          {t.catalogId && mMgr.exceed && <span className="shrink-0 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300 rounded px-1.5 py-0.5" title="Nhiệm vụ hoàn thành xuất sắc, vượt yêu cầu — được tính vào điểm thưởng vượt mức">▲ vượt mức</span>}
+          {t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}
+          {taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}
+        </div>
+        <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-emerald-500 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">— Liên kết mục tiêu (OKR), không bắt buộc —</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
+        <div className="grid sm:grid-cols-3 gap-2">
+          <label className="block"><span className="text-[10px] font-semibold text-slate-500">Tự đánh giá — Mức độ hoàn thành</span>
+            <select value={mucSelfKey} disabled={!selfEditable} onChange={(e) => upTask335(t.id, { muc: e.target.value })} className={`mt-0.5 w-full text-xs p-1.5 rounded-lg border font-semibold outline-none disabled:opacity-60 disabled:cursor-not-allowed ${mSelf.tone}`}>{KD_MUC.map((x) => <option key={x.k} value={x.k}>{x.short}</option>)}</select>
+          </label>
+          <label className="block"><span className="text-[10px] font-semibold text-red-600">Cấp duyệt — Mức độ hoàn thành</span>
+            <select value={mucMgrKey} disabled={!mgrEditable} onChange={(e) => upTask335(t.id, { mgrMuc: e.target.value })} className={`mt-0.5 w-full text-xs p-1.5 rounded-lg border font-semibold outline-none disabled:opacity-60 disabled:cursor-not-allowed ${mMgr.tone}`}>{KD_MUC.map((x) => <option key={x.k} value={x.k}>{x.short}</option>)}</select>
+          </label>
+          <label className="block"><span className="text-[10px] font-semibold text-slate-500">Tầm quan trọng</span>
+            <select value={t.tam || 'thuong'} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { tam: e.target.value })} title="Tầm quan trọng → trọng số khi tính điểm (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2)" className="mt-0.5 w-full text-xs p-1.5 rounded-lg border border-slate-200 bg-white text-slate-600 outline-none disabled:opacity-60 disabled:cursor-not-allowed">{KD_TAM.map((x) => <option key={x.k} value={x.k}>{x.label}</option>)}</select>
+          </label>
+        </div>
+        <p className="mt-2 text-[11px] text-slate-500">Điểm nhiệm vụ: Tự ĐG <b className="text-slate-600">{scSelf.toFixed(0)}%</b> · Cấp duyệt <b className={st.txt}>{sc.toFixed(0)}%</b> · Cột Cấp duyệt mặc định kế thừa Tự đánh giá khi cấp trên chưa sửa.</p>
+      </div>);
+    }
+    const sc = task335Score(t); const st = statusOf(sc);
     return (<div key={t.id} className={`border rounded-xl p-3 ${st.soft} border-slate-200`}>
       <div className="flex items-center gap-2 mb-2"><span className={`shrink-0 w-2.5 h-2.5 rounded-full ${st.dot}`} title={st.label} /><span className="shrink-0 w-6 h-6 rounded-full bg-red-100 text-red-700 flex items-center justify-center text-xs font-bold">{i + 1}</span>{t.srcTrkId != null && <span className="shrink-0 text-[10px] font-bold text-indigo-700 bg-indigo-100 border border-indigo-200 rounded px-1.5 py-0.5" title="Nhiệm vụ được thu thập từ Bảng theo dõi CV">từ Theo dõi CV</span>}<select value={t.catalogId} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { catalogId: e.target.value })} className={`flex-1 bg-white border rounded-lg px-2 py-1.5 text-xs text-slate-700 font-medium outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed ${t.catalogId ? 'border-slate-200' : 'border-amber-300 bg-amber-50'}`}><option value="">— Chọn công việc từ danh mục —</option>{(isSonHa ? sonhaGroupsOf(cur) : getND335Groups(cur.type)).map((c) => (<option key={c.id} value={c.id}>[{c.id}] {c.name}</option>))}</select>{(() => { const over = tCompleted(t, 'mgr') - (Number(t.assigned) || 0); return t.catalogId && over > 0 ? <span className="shrink-0 text-[10px] font-extrabold text-emerald-700 bg-emerald-100 border border-emerald-300 rounded px-1.5 py-0.5" title={`Hoàn thành vượt định mức được giao ${over} sản phẩm — được xét điểm thưởng`}>▲ vượt +{over}</span> : null; })()}{t.catalogId ? <span className={`shrink-0 text-[11px] font-bold ${st.txt}`}>{sc.toFixed(0)}%</span> : <span className="shrink-0 text-[10px] font-bold text-amber-700 bg-amber-100 border border-amber-200 rounded px-1.5 py-0.5" title="Chưa chọn danh mục công việc nên nhiệm vụ này KHÔNG được tính vào điểm KPI">chưa tính điểm</span>}{taskEditable && (cur.tasks335 || []).length > 1 && <button onClick={() => upCur({ tasks335: (cur.tasks335 || []).filter((x) => x.id !== t.id) })} className="shrink-0 text-rose-400 hover:bg-rose-100 p-1.5 rounded-lg"><Trash2 className="w-4 h-4" /></button>}</div>
       <div className="flex items-center gap-2 mb-2"><Link2 className="w-3.5 h-3.5 text-slate-400 shrink-0" /><select value={t.objId || ''} disabled={!taskEditable} onChange={(e) => upTask335(t.id, { objId: e.target.value })} className="flex-1 bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-xs text-slate-600 outline-none focus:border-red-400 disabled:opacity-60 disabled:cursor-not-allowed"><option value="">{isClassic ? '— Liên kết mục tiêu (OKR) —' : '— Việc thường xuyên / chưa gắn mục tiêu —'}</option>{objectives.map((o) => <option key={o.id} value={o.id}>{o.title}</option>)}</select></div>
@@ -1836,7 +1939,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                 {!selfEditable && !mgrEditable && (
                   <div className="bg-slate-100 border border-slate-200 rounded-xl p-3 text-sm text-slate-600 flex items-center gap-2"><ShieldCheck className="w-4 h-4 text-slate-400" /> Bạn đang ở chế độ <b>chỉ xem</b> với cán bộ này (không đủ quyền chỉnh sửa).</div>
                 )}
-                <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
+                {canManage && <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
                   <div className="flex justify-between items-center">
                     <h2 className="flex items-center gap-2 font-bold text-slate-800"><User className="w-5 h-5 text-red-700" /> Thông tin người được đánh giá</h2>
                     {canManage && people.length > 1 && <button onClick={() => { if (!window.confirm(`Xóa cán bộ "${cur.name || '(Chưa tên)'}"? Toàn bộ điểm và nhiệm vụ của kỳ này sẽ mất và không thể hoàn tác.`)) return; setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
@@ -1863,9 +1966,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                       </div>
                     </Field>
                   )}
-                </section>
+                </section>}
                 {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
-                {isKD && <KiemDiemAppraisal person={cur} c={curC} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurKD} onWord={doKDWord} />}
+                {isKD && <KiemDiemAppraisal person={cur} c={curC} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurKD} onWord={doKDWord}
+                  approval={{ approved: !!cur.approved, by: cur.approvedBy, role: cur.approvedRole, at: cur.approvedAt, canApprove: mgrEditable && !isGuest, onToggle: toggleApprove }} />}
                 {!isSG && !isKD && (<>
                 {isSonHa && <SonHaConnectors canEdit={taskEditable} />}
                 <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
@@ -1883,7 +1987,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   <div className="bg-gradient-to-r from-red-800 to-red-700 text-white px-5 py-3.5 flex items-center justify-between"><h2 className="flex items-center gap-2 font-bold"><Target className="w-5 h-5 text-amber-300" /> Nhóm II — Kết quả thực hiện nhiệm vụ</h2><span className="text-amber-300 font-bold text-sm">{curC.nhomII.toFixed(2)} / 70</span></div>
                   <div className="p-4">
                     {taskEditable && !isSonHa && <button onClick={doCollectTracking} className="mb-3 w-full flex items-center justify-center gap-2 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 rounded-lg text-xs font-semibold transition-colors"><RotateCcw className="w-3.5 h-3.5" /> Thu thập nhiệm vụ từ Bảng theo dõi CV</button>}
-                    {isSonHa && <div className="mb-3 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-xs text-emerald-900/90 leading-relaxed space-y-1"><p><b>Danh mục hiển thị theo Mẫu (chức vụ)</b> của cán bộ. Đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%).</p><p><b>▲ Thưởng vượt định mức:</b> nếu số hoàn thành (cấp duyệt nghiệm thu) lớn hơn định mức, nhiệm vụ được gắn nhãn <b>“vượt”</b> và cộng <b>điểm thưởng</b> — <b>+0,1 điểm cho mỗi 1% vượt</b> bình quân theo trọng số, <b>tối đa +5 điểm</b> (tổng vẫn ≤ 100). Cơ chế nhỏ, có trần để khuyến khích làm nhiều hơn mà không khuyến khích khai khống.</p></div>}
+                    {isSonHa && <div className="mb-3 bg-emerald-50 border border-emerald-200 rounded-lg p-2.5 text-xs text-emerald-900/90 leading-relaxed space-y-1"><p><b>Cách chấm đơn giản:</b> mỗi nhiệm vụ chọn từ <b>danh mục theo Mẫu (chức vụ)</b>; cán bộ tự chọn <b>Mức độ hoàn thành</b> (Xuất sắc/vượt mức · Hoàn thành tốt · Cơ bản hoàn thành · Chưa hoàn thành · Không hoàn thành), cấp duyệt chốt lại; kèm <b>Tầm quan trọng</b> (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2). Điểm Nhóm II = <b>trung bình có trọng số</b> các mức độ (trọng số = hệ số danh mục × tầm quan trọng) — không phải nhập số lượng, sai sót hay trễ hạn.</p><p><b>▲ Thưởng vượt mức:</b> nhiệm vụ đạt mức <b>Xuất sắc (vượt yêu cầu)</b> được cộng <b>điểm thưởng</b> — <b>+0,1 điểm cho mỗi 1% tỷ trọng</b> nhiệm vụ xuất sắc, <b>tối đa +5 điểm</b> (tổng vẫn ≤ 100). Cơ chế nhỏ, có trần để khuyến khích làm vượt yêu cầu mà không khuyến khích khai khống.</p></div>}
                     {isClassic && !isSonHa
                       ? <p className="text-xs text-slate-500 mb-3 bg-amber-50 border border-amber-100 rounded-lg p-2.5">Chọn công việc từ danh mục và liên kết mục tiêu (OKR). Đánh giá theo đếm khách quan: Lỗi chất lượng (+1 = −25%), Chậm tiến độ (+1 = −25%). Cách quy đổi theo trọng số xem ở tab Hướng dẫn.</p>
                       : isClassic ? null
@@ -1937,7 +2041,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                   {(() => { const sc = gradeFromScore(curC.totalMgr); const rank = { A: 4, B: 3, C: 2, D: 1 }; if (rank[sc] <= rank[curC.grade]) return null; return (
                     <div className="px-4 pt-3"><div className="rounded-xl border border-rose-200 bg-rose-50 p-3 text-[11px] text-rose-800 leading-relaxed"><p className="font-bold flex items-center gap-1.5 mb-1"><AlertTriangle className="w-3.5 h-3.5" /> Chênh lệch điểm số và xếp loại</p>Tổng điểm <b>{curC.totalMgr.toFixed(2)}</b> tương ứng mức <b>{GRADES[sc].code} — {GRADES[sc].name}</b> theo ngưỡng điểm, nhưng theo <b>điều kiện định lượng Điều 8</b> chỉ được xếp <b>{result.code} — {result.name}</b>. Điểm số phản ánh khối lượng/chất lượng công việc; xếp loại phản ánh mức độ hoàn thành theo quy định — xem lý do bên dưới.</div></div>
                   ); })()}
-                  <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger />{isSonHa && (curC.bonus > 0 || curC.exceedPct > 0) && (<div className="flex justify-between items-center"><span className="text-emerald-700 flex items-center gap-1">▲ Điểm thưởng vượt định mức <span className="text-[10px] text-emerald-500" title="Bình quân vượt định mức theo trọng số">({curC.exceedPct.toFixed(0)}%)</span></span><span className="font-bold text-emerald-700">+ {curC.bonus.toFixed(2)}</span></div>)}<div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
+                  <div className="p-4 space-y-2.5 text-sm"><SumRow label="Nhóm I — Tiêu chí chung" value={`${curC.nmgr.toFixed(2)} / 30`} /><SumRow label="Điểm KPI quy đổi" value={`${curC.k.val.toFixed(1)}%`} /><SumRow label="Nhóm II — Kết quả (× 70%)" value={`${curC.nhomII.toFixed(2)} / 70`} /><SumRow label="Điểm trừ" value={`− ${Number(cur.deduction || 0).toFixed(2)}`} danger />{isSonHa && (curC.bonus > 0 || curC.exceedPct > 0) && (<div className="flex justify-between items-center"><span className="text-emerald-700 flex items-center gap-1">▲ Điểm thưởng vượt mức <span className="text-[10px] text-emerald-500" title="Tỷ trọng nhiệm vụ đạt mức Xuất sắc (vượt yêu cầu) theo trọng số">({curC.exceedPct.toFixed(0)}%)</span></span><span className="font-bold text-emerald-700">+ {curC.bonus.toFixed(2)}</span></div>)}<div className="pt-2 border-t border-slate-100 flex justify-between font-bold text-slate-800"><span>Tổng cộng</span><span className={result.ring}>{curC.totalMgr.toFixed(2)}</span></div></div>
                   {curC.gradeReasons && curC.gradeReasons.length > 0 && (
                     <div className="px-4 pb-4">
                       <div className="rounded-xl border border-amber-200 bg-amber-50 p-3">
@@ -1960,7 +2064,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                       <p className="mt-0.5 leading-snug">Phiếu chính thức cần cấp có thẩm quyền phê duyệt.</p>
                     </div>
                   )}
-                  {mgrEditable && (
+                  {mgrEditable && !isGuest && (
                     cur.approved
                       ? <button onClick={toggleApprove} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Bỏ phê duyệt</button>
                       : <button onClick={doApproveAndWord} className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl"><CheckCircle2 className="w-4 h-4" /> Phê duyệt & xuất phiếu</button>

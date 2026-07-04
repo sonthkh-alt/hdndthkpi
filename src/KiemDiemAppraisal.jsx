@@ -13,7 +13,7 @@
 // tổng hợp kết quả & đề xuất xếp loại quý — Phụ lục 4.
 // ============================================================================
 import { useState } from 'react';
-import { Award, Target, ShieldCheck, ClipboardCheck, FileText, Printer, Plus, Trash2, TrendingUp, Users, ChevronDown, AlertTriangle } from 'lucide-react';
+import { Award, Target, ShieldCheck, ClipboardCheck, FileText, Printer, Plus, Trash2, TrendingUp, Users, ChevronDown, AlertTriangle, CheckCircle2, RotateCcw } from 'lucide-react';
 
 // ---------- NHÓM A — TIÊU CHÍ CHUNG (30 điểm), chấm nhị phân ----------
 export const KD_NHOMA = [
@@ -263,7 +263,7 @@ export function defaultKD(profile) {
 // ============================================================================
 // PHIẾU ĐÁNH GIÁ (tab Đánh giá khi version = kiemdiem)
 // ============================================================================
-export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatch, onWord }) {
+export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatch, onWord, approval }) {
   const kd = person.kd || {};
   const gi = kdGradeInfo(c.grade);
   const setA = (which, id, val, max) => { const key = which === 'self' ? 'aSelf' : 'aMgr'; onPatch({ [key]: { ...(kd[key] || {}), [id]: clampMax(val, max) } }); };
@@ -380,6 +380,27 @@ export function KiemDiemAppraisal({ person, c, selfEditable, mgrEditable, onPatc
           <label className="block"><span className="text-xs font-semibold text-slate-500 mb-1 block">Lý do khách quan, bất khả kháng (nếu hoàn thành dưới 100% nhiệm vụ)</span><textarea value={kd.exemptNote || ''} disabled={!selfEditable && !mgrEditable} onChange={(e) => onPatch({ exemptNote: e.target.value })} rows={2} className="kdta" placeholder="Nêu lý do cụ thể được cấp có thẩm quyền xác nhận..." /></label>
           <label className="block"><span className="text-xs font-semibold text-slate-500 mb-1 block">Cá nhân tự nhận xét, đánh giá kết quả thực hiện nhiệm vụ</span><textarea value={kd.selfNote || ''} disabled={!selfEditable} onChange={(e) => onPatch({ selfNote: e.target.value })} rows={2} className="kdta" /></label>
           <label className="block"><span className="text-xs font-semibold text-slate-500 mb-1 block">Nhận xét, đánh giá của cấp có thẩm quyền</span><textarea value={kd.mgrNote || ''} disabled={!mgrEditable} onChange={(e) => onPatch({ mgrNote: e.target.value })} rows={2} className="kdta" /></label>
+          {/* CẤP PHÊ DUYỆT — trạng thái hiển thị cho mọi người; nút chỉ hiện khi đăng nhập có thẩm quyền */}
+          {approval && (
+            <div className="pt-3 border-t border-slate-100 space-y-2">
+              {approval.approved ? (
+                <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-2.5 text-[12px] text-emerald-800">
+                  <p className="flex items-center gap-1.5 font-semibold"><CheckCircle2 className="w-4 h-4" /> Đã được cấp có thẩm quyền phê duyệt</p>
+                  <p className="mt-0.5 leading-snug">Bởi <b>{approval.by || '—'}</b>{approval.role ? ` (${approval.role})` : ''}{approval.at ? `, ngày ${approval.at}` : ''}.</p>
+                </div>
+              ) : (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-[12px] text-amber-800">
+                  <p className="flex items-center gap-1.5 font-semibold"><AlertTriangle className="w-4 h-4" /> Chưa phê duyệt</p>
+                  <p className="mt-0.5 leading-snug">Bản kiểm điểm chính thức cần cấp có thẩm quyền phê duyệt trước khi tổng hợp báo cáo.</p>
+                </div>
+              )}
+              {approval.canApprove && (
+                approval.approved
+                  ? <button onClick={approval.onToggle} className="w-full flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl"><RotateCcw className="w-4 h-4" /> Bỏ phê duyệt</button>
+                  : <button onClick={approval.onToggle} className="w-full flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold py-2.5 rounded-xl"><CheckCircle2 className="w-4 h-4" /> Phê duyệt bản kiểm điểm</button>
+              )}
+            </div>
+          )}
         </div>
       </section>
 
