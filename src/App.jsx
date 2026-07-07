@@ -968,7 +968,7 @@ function seedDemoPeople(version) {
 }
 // Bộ dữ liệu bản SonHa (OKR/KPI): 3 lãnh đạo Văn phòng (Chánh + 2 Phó Chánh VP) + 25 CBCCVC-LĐ
 // theo docs/KPI.docx (4 phòng) = 28 người. Nhóm đối tượng (Mẫu) tự suy theo chức vụ; mỗi người
-// có sẵn ~10 nhiệm vụ đã chấm theo hồ sơ (mức độ hoàn thành + tầm quan trọng).
+// có sẵn ~10 nhiệm vụ đã chấm theo hồ sơ (số lượng + chất lượng + tiến độ + tầm quan trọng).
 function seedSonHaPeople() {
   const OKR = ['o1', 'o2', 'o3'];
   const NOTES = {
@@ -1333,7 +1333,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
       items: g.items.map((it) => { const self = clamp(sS[it.id] ?? it.max, 0, it.max); return { id: it.id, text: it.text, max: it.max, self, mgr: clamp(mS[it.id] ?? self, 0, it.max) }; }),
     }));
     // Chi tiết Nhóm II: từng nhiệm vụ kèm tên danh mục, tỷ lệ hoàn thành, điểm %.
-    // Bản SonHa (simpleMode): in Mức độ hoàn thành (Tự ĐG/Cấp duyệt) + Tầm quan trọng thay cột số lượng.
+    // Bản SonHa (simpleMode): in Số lượng + Chất lượng + Tiến độ + Tầm quan trọng + Mức độ hoàn thành (suy ra).
     const tasks = (cur.tasks335 || []).map((t) => {
       const cat = t.catalogId ? findCatalogItem(t.catalogId) : null;
       // Phiếu chính thức dùng số liệu CẤP DUYỆT (mgr, mặc định kế thừa Tự ĐG khi chưa sửa).
@@ -1550,7 +1550,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   };
 
   // Render 1 dòng nhiệm vụ Nhóm II (dùng cho cả danh sách phẳng — Cổ điển, và gom theo Mục tiêu — Cải tiến/Singapore).
-  // Bản SonHa: cách chấm ĐƠN GIẢN như Nhóm B bản Kiểm điểm — chọn Mức độ hoàn thành (Tự ĐG/Cấp duyệt) + Tầm quan trọng.
+  // Bản SonHa: chấm theo 3 tiêu chí khách quan (Số lượng + Chất lượng + Tiến độ, cột Tự ĐG/Cấp duyệt) + Tầm quan trọng → suy ra Mức độ hoàn thành.
   const renderTask335Row = (t, i) => {
     if (isSonHa) {
       const rSelf = shTaskResult(t, 'self'), rMgr = shTaskResult(t, 'mgr');
@@ -2097,7 +2097,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
                       </div>
                     )}
                     {isSonHa
-                      ? <div className="mt-4 rounded-lg py-3 border bg-emerald-50 border-emerald-200 text-center"><p className="text-[11px] text-emerald-600">Điểm kết quả nhiệm vụ (Nhóm II) — trung bình có trọng số các mức độ hoàn thành</p><p className="font-extrabold text-emerald-700 text-lg">{Number(curC.k.val).toFixed(1)}%</p></div>
+                      ? <div className="mt-4 rounded-lg py-3 border bg-emerald-50 border-emerald-200 text-center"><p className="text-[11px] text-emerald-600">Điểm kết quả nhiệm vụ (Nhóm II) — trung bình có trọng số kết quả các nhiệm vụ (Số lượng + Chất lượng + Tiến độ)/3</p><p className="font-extrabold text-emerald-700 text-lg">{Number(curC.k.val).toFixed(1)}%</p></div>
                       : <div className={`mt-4 grid ${curC.leaderFormula ? 'grid-cols-3 sm:grid-cols-7' : 'grid-cols-2 sm:grid-cols-4'} gap-2 text-center`}>{[['Khối lượng (a)', curC.k.a], ['Chất lượng (b)', curC.k.b], ['Tiến độ (c)', curC.k.c], ...(curC.leaderFormula ? [['Lĩnh vực (d)', curC.k.d ?? 100], ['Tổ chức (đ)', curC.k.dd ?? 100], ['Đoàn kết (e)', curC.k.e ?? 100]] : []), ['Điểm KQ', curC.k.val]].map(([l, v], idx, arr) => { const last = idx === arr.length - 1; return (<div key={l} className={`${last ? 'bg-red-50 border-red-200 text-red-700' : 'bg-slate-50 border-slate-100 text-slate-700'} rounded-lg py-2 border`}><p className={`text-[11px] ${last ? 'text-red-500' : 'text-slate-500'}`}>{l}</p><p className="font-bold">{Number(v).toFixed(1)}%</p></div>); })}</div>}
                   </div>
                 </section>
@@ -2773,7 +2773,7 @@ function ContactCard() {
 // ===== Giải thích điều kiện xếp loại (Điều 8) ngay trong tab Đánh giá — để CBCC nắm rõ =====
 function GradeExplain({ c, disciplined, tasks }) {
   if (!c) return null;
-  const sonha = ACTIVE_VERSION === 'sonha'; // bản SonHa chấm theo MỨC ĐỘ HOÀN THÀNH (không dùng số lượng)
+  const sonha = ACTIVE_VERSION === 'sonha'; // bản SonHa: Số lượng + Chất lượng + Tiến độ → suy ra Mức độ hoàn thành
   const st = c.st || { n: 0, doneRate: 100, exceedRate: 0, delayRate: 0, failRate: 0 };
   const g = gradeClass(c.grade);
   const pct = (v) => `${Number(v).toFixed(0)}%`;
