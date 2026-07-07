@@ -102,14 +102,17 @@ export async function exportWordPhieu(ev) {
   children.push(P('II. KẾT QUẢ THỰC HIỆN NHIỆM VỤ (Nhóm II, tối đa 70 điểm)', { bold: true, size: 26, spacingAfter: 80 }));
   const tasks = ev.tasks || [];
   if (tasks.length) {
-    // simpleMode (bản OKR/KPI-SonHa): chấm theo MỨC ĐỘ HOÀN THÀNH + TẦM QUAN TRỌNG thay cho đếm số lượng.
+    // simpleMode (bản OKR/KPI-SonHa): chấm theo 3 tiêu chí (Số lượng + Chất lượng + Tiến độ) → suy ra Mức độ hoàn thành.
     const tRows = [new TableRow({ tableHeader: true, children: ev.simpleMode ? [
-      TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
-      TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 44 }),
-      TC('Mức độ hoàn thành (Tự ĐG)', { bold: true, align: C, shade: 'E8EEF7', width: 15 }),
-      TC('Mức độ hoàn thành (Cấp duyệt)', { bold: true, align: C, shade: 'E8EEF7', width: 15 }),
-      TC('Tầm quan trọng', { bold: true, align: C, shade: 'E8EEF7', width: 12 }),
-      TC('Điểm %', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+      TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 4 }),
+      TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 31 }),
+      TC('SL giao', { bold: true, align: C, shade: 'E8EEF7', width: 7 }),
+      TC('Hoàn thành', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+      TC('Chất lượng', { bold: true, align: C, shade: 'E8EEF7', width: 11 }),
+      TC('Tiến độ', { bold: true, align: C, shade: 'E8EEF7', width: 10 }),
+      TC('Tầm quan trọng', { bold: true, align: C, shade: 'E8EEF7', width: 11 }),
+      TC('Mức độ HT', { bold: true, align: C, shade: 'E8EEF7', width: 9 }),
+      TC('Điểm %', { bold: true, align: C, shade: 'E8EEF7', width: 8 }),
     ] : [
       TC('STT', { bold: true, align: C, shade: 'E8EEF7', width: 5 }),
       TC('Nội dung công việc (danh mục Nhóm II)', { bold: true, align: C, shade: 'E8EEF7', width: 43 }),
@@ -126,9 +129,12 @@ export async function exportWordPhieu(ev) {
       tRows.push(new TableRow({ children: ev.simpleMode ? [
         TC(i + 1, { align: C, size: 20 }),
         contentCell,
-        TC(t.mucSelf || '', { align: C, size: 20 }),
-        TC(t.mucMgr || '', { align: C, size: 20 }),
+        TC(t.assigned, { align: C, size: 20 }),
+        TC(t.completed, { align: C, size: 20 }),
+        TC(t.clLabel || '', { align: C, size: 20 }),
+        TC(t.tdLabel || '', { align: C, size: 20 }),
         TC(t.tamLabel || '', { align: C, size: 20 }),
+        TC(noCat ? '—' : (t.mucMgr || ''), { align: C, size: 20 }),
         TC(noCat ? '—' : fmt(t.scorePct, 0), { align: C, size: 20 }),
       ] : [
         TC(i + 1, { align: C, size: 20 }),
@@ -148,7 +154,7 @@ export async function exportWordPhieu(ev) {
   children.push(P('', { spacingAfter: 60 }));
   // Tỷ lệ a/b/c và (lãnh đạo) d/đ/e — simpleMode: KPI là trung bình có trọng số của mức độ hoàn thành.
   if (ev.simpleMode) {
-    children.push(P(`Điểm KPI = trung bình có trọng số của Mức độ hoàn thành các nhiệm vụ (trọng số = hệ số danh mục × hệ số tầm quan trọng) = ${ev.kpi}%.`, { italics: true, size: 22 }));
+    children.push(P(`Kết quả mỗi nhiệm vụ = (Số lượng + Chất lượng + Tiến độ) ÷ 3, từ đó suy ra Mức độ hoàn thành. Điểm KPI Nhóm II = trung bình có trọng số kết quả các nhiệm vụ (trọng số = hệ số danh mục × hệ số tầm quan trọng) = ${ev.kpi}%.`, { italics: true, size: 22 }));
   } else {
     children.push(P([
       { text: 'Tỷ lệ Khối lượng (a) = ', bold: true }, { text: `${ev.a}%; ` },
