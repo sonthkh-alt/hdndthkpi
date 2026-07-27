@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
-import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential, ADMIN, isAdminCredential, resolveLoginEmail } from './lib/auth';
+// Tài khoản quản trị KHÔNG hiển thị trên màn đăng nhập (tránh lộ thông tin) — vẫn đăng nhập được bằng cách gõ tay.
+import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential, isAdminCredential, resolveLoginEmail } from './lib/auth';
 import { readVersionCfg } from './lib/versionCfg';
 
 // Theme màn đăng nhập (tông cổ điển — đỏ/vàng).
@@ -150,14 +151,6 @@ export default function Login({ unit, onGuest, onLocalAdmin, onClose, version = 
                 <button type="button" onClick={() => { setEmail(GUEST.email); setPassword(GUEST.password); if (onGuest) onGuest(); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[13px] font-semibold py-2 rounded-lg transition">
                   <Eye className="w-3.5 h-3.5" /> Vào xem ngay (chỉ xem)
                 </button>
-              </div>
-              <div className="rounded-xl border border-slate-300 bg-slate-50 p-3">
-                <p className="text-[12px] font-bold text-slate-700 flex items-center gap-1.5"><KeyRound className="w-3.5 h-3.5" /> Tài khoản quản trị</p>
-                <p className="text-[12px] text-slate-600 mt-1">Tên đăng nhập: <b>{ADMIN.user}</b> · Mật khẩu: <b>{ADMIN.password}</b></p>
-                <button type="button" onClick={() => { setEmail(ADMIN.user); setPassword(ADMIN.password); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white text-[13px] font-semibold py-2 rounded-lg transition">
-                  <KeyRound className="w-3.5 h-3.5" /> Điền sẵn tài khoản quản trị
-                </button>
-                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">Toàn quyền: quản lý cán bộ, danh mục, chấm điểm. Nếu tài khoản chưa được tạo trên máy chủ, hệ thống chuyển sang <b>quản trị cục bộ</b> — thao tác đầy đủ nhưng dữ liệu chỉ lưu trên máy này.</p>
               </div>
               <button type="submit" disabled={status === 'sending'} className={`w-full flex items-center justify-center gap-2 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg transition ${t.btn}`}>
                 <LogIn className="w-4 h-4" /> {status === 'sending' ? 'Đang đăng nhập...' : 'Đăng nhập'}
