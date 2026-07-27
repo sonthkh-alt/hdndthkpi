@@ -3,7 +3,7 @@ import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldChe
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
-import { onAuthChange, getSession, signOut } from './lib/auth';
+import { onAuthChange, getSession, signOut, ADMIN } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import { deptSummary } from './lib/dash';
@@ -34,7 +34,11 @@ const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions)
 const SONHA_ORG_UNITS = ORG_UNITS.filter((u) => /^(Văn phòng|Phòng )/.test(u.dept));
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
-const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com'];
+const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com', ADMIN.email];
+// Hai phiên làm việc KHÔNG có tài khoản Supabase: 'guest' (khách, chỉ xem) và
+// 'localadmin' (quản trị cục bộ qua admin/Admin123). Cả hai đều dùng dữ liệu mẫu
+// và KHÔNG ghi lên máy chủ (RLS chỉ chấp nhận phiên đăng nhập thật).
+const isLocalSession = (s) => s === 'guest' || s === 'localadmin';
 
 // ===== BỘ TIÊU CHÍ "CỔ ĐIỂN" (theo QĐ 1053-QĐ/TU) — giữ nguyên câu chữ pháp lý =====
 const CRITERIA_CLASSIC = {
@@ -1161,14 +1165,14 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p); // sửa lại ô nhập nếu gõ sai
     loadingRef.current = true;
     setConflict(false); setSeedFrom(null);
-    // Khách (demo): luôn hiển thị sẵn 5 cán bộ mẫu, không nạp dữ liệu máy chủ.
-    if (sessionRef.current === 'guest') {
+    // Khách & quản trị cục bộ: luôn hiển thị sẵn danh sách mẫu, không nạp dữ liệu máy chủ.
+    if (isLocalSession(sessionRef.current)) {
       loadDemoPeople(); guestSeededRef.current = true;
       setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
     }
     const res = await loadState(p);
-    // Trong lúc await, phiên có thể vừa được xác định là KHÁCH -> ưu tiên hiển thị dữ liệu mẫu, bỏ qua dữ liệu máy chủ.
-    if (sessionRef.current === 'guest') {
+    // Trong lúc await, phiên có thể vừa được xác định là cục bộ -> ưu tiên dữ liệu mẫu, bỏ qua dữ liệu máy chủ.
+    if (isLocalSession(sessionRef.current)) {
       loadDemoPeople(); guestSeededRef.current = true;
       setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
     }
@@ -1205,7 +1209,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   useEffect(() => {
     if (versionRef.current === version) return; // bỏ qua lần mount đầu
     versionRef.current = version;
-    if (sessionRef.current === 'guest') loadDemoPeople();
+    if (isLocalSession(sessionRef.current)) loadDemoPeople();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
 
@@ -1216,7 +1220,8 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     (async () => {
       // Mặc định vào thẳng bằng tài khoản KHÁCH (xem/demo) nếu chưa đăng nhập thật
       setSession((await getSession()) || 'guest');
-      unsub = onAuthChange((ns) => setSession(ns || 'guest'));
+      // Đăng xuất/hết phiên: giữ nguyên chế độ quản trị cục bộ nếu đang dùng, ngược lại về khách.
+      unsub = onAuthChange((ns) => setSession(ns || (sessionRef.current === 'localadmin' ? 'localadmin' : 'guest')));
     })();
     return () => unsub();
   }, []);
@@ -1224,13 +1229,13 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   // Đồng bộ sessionRef + tự nạp 5 cán bộ mẫu khi vào bằng tài khoản khách (chỉ một lần/phiên khách).
   useEffect(() => {
     sessionRef.current = session;
-    if (session === 'guest' && !guestSeededRef.current) { guestSeededRef.current = true; loadDemoPeople(); }
-    if (session && session !== 'guest') guestSeededRef.current = false; // đăng nhập thật -> cho phép nạp lại nếu sau này quay về khách
+    if (isLocalSession(session) && !guestSeededRef.current) { guestSeededRef.current = true; loadDemoPeople(); }
+    if (session && !isLocalSession(session)) guestSeededRef.current = false; // đăng nhập thật -> cho phép nạp lại nếu sau này quay về khách
   }, [session]);
 
   useEffect(() => {
     if (!loaded.current || loadingRef.current) return;
-    if (session === 'guest') return; // khách chỉ xem -> không tự lưu
+    if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
       const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
@@ -1254,7 +1259,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   };
 
   const handleManualSave = async () => {
-    if (session === 'guest') return; // khách chỉ xem
+    if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
     const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
@@ -1516,8 +1521,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const myPerson = supabase ? people.find((p) => p.email && myEmail && p.email.toLowerCase() === myEmail.toLowerCase()) : null;
   const myDept = myPerson?.department || '';
   const isGuest = session === 'guest';            // tài khoản khách (dùng thử)
+  // Quản trị CỤC BỘ: đăng nhập bằng admin/Admin123 khi tài khoản chưa được tạo trên Supabase.
+  // Toàn quyền thao tác nhưng KHÔNG có phiên Supabase → RLS chặn ghi, dữ liệu chỉ nằm trên máy này.
+  const isLocalAdmin = session === 'localadmin';
   const readOnly = isGuest;                       // khóa quản trị, lưu trữ, Năng lực số & Theo dõi CV cho khách
-  const role = isGuest ? 'khach' : (!supabase ? 'quantri' : (isBootstrapAdmin ? 'quantri' : (myPerson?.role || 'canbo')));
+  const role = isGuest ? 'khach' : (isLocalAdmin || !supabase ? 'quantri' : (isBootstrapAdmin ? 'quantri' : (myPerson?.role || 'canbo')));
   const isAdmin = role === 'quantri';
   const canManage = isAdmin && !readOnly; // thêm/xóa cán bộ, sửa mục tiêu OKR, đặt vai trò (khách KHÔNG có)
   // Khách (dùng thử) ĐƯỢC chấm điểm Nhóm I/II để xem kết quả tính toán — chỉ lưu tạm trên trình duyệt, không lưu DB.
@@ -1528,19 +1536,34 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const taskEditable = selfEditable || mgrEditable;
 
   // ---- Quản lý cán bộ: nạp hồ sơ lần đầu khi Quản trị mở module (dữ liệu toàn cục, không theo kỳ) ----
+  // Nếu chưa có hồ sơ nào (lần đầu dùng, hoặc phiên cục bộ không đọc được máy chủ) thì
+  // TỰ NẠP SẴN danh sách cán bộ chuẩn để quản trị dùng được ngay; chỉ ghi lên máy chủ khi bấm "Lưu hồ sơ".
   useEffect(() => {
     if (tab !== 'hr' || !isAdmin || hrLoaded.current) return;
     hrLoaded.current = true;
-    setHrData(readHR());
-    fetchHR().then(setHrData).catch(() => { /* giữ bản cache */ });
-  }, [tab, isAdmin]);
+    const fill = async (d) => {
+      if (d.staff && d.staff.length) return d;
+      const { seedStaff, seedDuties, SEED_QUOTA } = await import('./lib/hrSeed');
+      return {
+        ...d,
+        staff: seedStaff(),
+        duties: d.duties && d.duties.length ? d.duties : seedDuties(),
+        quota: d.quota && Object.keys(d.quota).length ? d.quota : { ...SEED_QUOTA },
+      };
+    };
+    const cached = readHR();
+    fill(cached).then(setHrData);
+    if (!isLocalSession(session)) fetchHR().then(fill).then(setHrData).catch(() => { /* giữ bản cache */ });
+  }, [tab, isAdmin, session]);
   const patchHR = (patch) => setHrData((d) => ({ ...d, ...patch }));
   const doSaveHR = async () => {
     if (!canManage) return;
     setHrSaving(true);
     const r = await saveHR(hrData);
     setHrSaving(false);
-    alert(r.ok ? 'Đã lưu hồ sơ cán bộ lên máy chủ.' : 'Chưa lưu được lên máy chủ (kiểm tra kết nối Supabase). Dữ liệu vẫn được giữ trên trình duyệt này.');
+    alert(r.ok ? 'Đã lưu hồ sơ cán bộ lên máy chủ.'
+      : isLocalAdmin ? 'Đang ở chế độ QUẢN TRỊ CỤC BỘ (tài khoản admin chưa được tạo trên máy chủ) — hồ sơ đã lưu trên trình duyệt này, chưa đồng bộ lên máy chủ.'
+        : 'Chưa lưu được lên máy chủ (kiểm tra kết nối Supabase hoặc quyền truy cập). Dữ liệu vẫn được giữ trên trình duyệt này.');
   };
   const doExport2C = async (s) => {
     const { exportLyLich2C } = await import('./lib/export2C');
@@ -1713,11 +1736,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
     return <div className="min-h-screen flex items-center justify-center bg-slate-100 text-slate-500 text-sm">Đang kiểm tra đăng nhập...</div>;
   }
   // Chỉ hiện màn đăng nhập khi người dùng CHỦ ĐỘNG chọn (mặc định vào thẳng bằng khách)
-  if (supabase && wantLogin && (!session || session === 'guest')) {
-    return <Login unit={unit} version={version} onPickVersion={onPickVersion} versionCfg={versionCfg} onGuest={() => setWantLogin(false)} onClose={() => setWantLogin(false)} />;
+  if (supabase && wantLogin && (!session || isLocalSession(session))) {
+    return <Login unit={unit} version={version} onPickVersion={onPickVersion} versionCfg={versionCfg} onGuest={() => setWantLogin(false)} onLocalAdmin={() => { setSession('localadmin'); setWantLogin(false); }} onClose={() => setWantLogin(false)} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
-  if (supabase && session && session !== 'local' && session !== 'guest' && !session.user?.user_metadata?.pw_set) {
+  if (supabase && session && session !== 'local' && !isLocalSession(session) && !session.user?.user_metadata?.pw_set) {
     return <SetPassword unit={unit} email={myEmail} mode="create" onComplete={applyFirstLoginProfile} />;
   }
 
@@ -1790,11 +1813,13 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
             {supabase && session && session !== 'local' && (
               <div className="flex items-center gap-2 bg-red-950/40 rounded-lg px-2.5 py-1.5 border border-red-600/30">
                 <User className="w-3.5 h-3.5 text-amber-300" />
-                <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : myEmail}>{isGuest ? 'Khách' : (myPerson?.name || session.user?.user_metadata?.full_name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
-                {!isGuest && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>}
+                <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : isLocalAdmin ? 'Quản trị cục bộ — dữ liệu chỉ lưu trên máy này' : myEmail}>{isGuest ? 'Khách' : isLocalAdmin ? 'Quản trị (cục bộ)' : (myPerson?.name || session.user?.user_metadata?.full_name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
+                {!isGuest && !isLocalAdmin && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>}
                 {isGuest
                   ? <button onClick={() => setWantLogin(true)} title="Đăng nhập (để chỉnh sửa, lưu dữ liệu)" className="flex items-center gap-1 text-red-200 hover:text-white"><LogIn className="w-3.5 h-3.5" /><span className="text-[11px] font-semibold">Đăng nhập</span></button>
-                  : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>}
+                  : isLocalAdmin
+                    ? <button onClick={() => { setWantLogin(false); setSession('guest'); }} title="Thoát chế độ quản trị cục bộ" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
+                    : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>}
               </div>
             )}
             <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title={isKD ? 'Chọn quý/năm' : 'Chọn tháng/năm để xem hoặc nhập kỳ khác'}>

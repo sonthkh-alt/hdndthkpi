@@ -5,6 +5,22 @@ export const GUEST = { email: 'user@thanhhoa.gov.vn', password: 'password' };
 export const isGuestCredential = (email, password) =>
   (email || '').trim().toLowerCase() === GUEST.email && password === GUEST.password;
 
+// ---------------------------------------------------------------------------
+// Tài khoản QUẢN TRỊ dùng nhanh: gõ "admin" + mật khẩu "Admin123".
+//  • Tên đăng nhập "admin" được ánh xạ sang địa chỉ email ADMIN.email để gọi Supabase.
+//  • Nếu tài khoản đó ĐÃ được tạo trong Supabase Auth → đăng nhập THẬT, lưu được lên máy chủ.
+//  • Nếu chưa tạo (hoặc chưa cấu hình Supabase) → ứng dụng chuyển sang chế độ
+//    "quản trị cục bộ": toàn quyền thao tác nhưng dữ liệu chỉ nằm trên trình duyệt.
+// ⚠️ Mật khẩu này nằm trong mã nguồn chạy ở trình duyệt nên KHÔNG bí mật. Dữ liệu trên
+//    máy chủ vẫn được bảo vệ bằng RLS (chỉ phiên đăng nhập Supabase hợp lệ mới ghi được).
+// ---------------------------------------------------------------------------
+export const ADMIN = { user: 'admin', email: 'admin@thanhhoa.gov.vn', password: 'Admin123' };
+const norm = (s) => (s || '').trim().toLowerCase();
+// Cho phép gõ "admin" thay cho địa chỉ email đầy đủ.
+export const resolveLoginEmail = (input) => (norm(input) === ADMIN.user ? ADMIN.email : (input || '').trim());
+export const isAdminCredential = (email, password) =>
+  [ADMIN.user, ADMIN.email].includes(norm(email)) && password === ADMIN.password;
+
 // Lấy phiên đăng nhập hiện tại (null nếu chưa đăng nhập / chưa cấu hình máy chủ)
 export async function getSession() {
   if (!supabase) return null;

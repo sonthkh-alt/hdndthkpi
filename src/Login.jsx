@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
-import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential } from './lib/auth';
+import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential, ADMIN, isAdminCredential, resolveLoginEmail } from './lib/auth';
 import { readVersionCfg } from './lib/versionCfg';
 
 // Theme màn đăng nhập (tông cổ điển — đỏ/vàng).
@@ -25,7 +25,7 @@ const VERSION_CARDS = [
   { id: 'kiemdiem', name: 'Kiểm điểm', tag: '(hằng quý)', tagCls: 'text-rose-700', desc: 'Cán bộ diện BTV Tỉnh ủy quản lý — theo HD 03-HD/TU (02/7/2026)', onCls: 'border-rose-400 bg-rose-50 ring-rose-200' },
 ];
 
-export default function Login({ unit, onGuest, onClose, version = 'classic', onPickVersion, versionCfg }) {
+export default function Login({ unit, onGuest, onLocalAdmin, onClose, version = 'classic', onPickVersion, versionCfg }) {
   // Màn đăng nhập là TRƯỚC xác thực -> luôn ẩn các phiên bản quản trị đã tắt + áp tên tùy chỉnh.
   const vc = versionCfg || readVersionCfg();
   const cards = VERSION_CARDS.filter((v) => !(vc.hidden || []).includes(v.id));
@@ -41,9 +41,13 @@ export default function Login({ unit, onGuest, onClose, version = 'classic', onP
     if (!email.trim() || !password) return;
     // Tài khoản khách (chỉ xem) -> vào thẳng phía client, không cần Supabase
     if (isGuestCredential(email, password)) { if (onGuest) onGuest(); return; }
+    const adminTry = isAdminCredential(email, password);
     setStatus('sending'); setMsg('');
-    const { error } = await signInWithPassword(email.trim(), password);
+    const { error } = await signInWithPassword(resolveLoginEmail(email), password);
     if (error) {
+      // Tài khoản quản trị dùng nhanh: chưa tạo trên Supabase -> vào chế độ quản trị CỤC BỘ
+      // (toàn quyền thao tác, dữ liệu chỉ lưu trên trình duyệt này).
+      if (adminTry && onLocalAdmin) { onLocalAdmin(); return; }
       setStatus('error');
       setMsg(/invalid login/i.test(error.message || '')
         ? 'Email hoặc mật khẩu không đúng. Nếu là lần đầu, hãy nhận liên kết kích hoạt qua email.'
@@ -146,6 +150,14 @@ export default function Login({ unit, onGuest, onClose, version = 'classic', onP
                 <button type="button" onClick={() => { setEmail(GUEST.email); setPassword(GUEST.password); if (onGuest) onGuest(); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[13px] font-semibold py-2 rounded-lg transition">
                   <Eye className="w-3.5 h-3.5" /> Vào xem ngay (chỉ xem)
                 </button>
+              </div>
+              <div className="rounded-xl border border-slate-300 bg-slate-50 p-3">
+                <p className="text-[12px] font-bold text-slate-700 flex items-center gap-1.5"><KeyRound className="w-3.5 h-3.5" /> Tài khoản quản trị</p>
+                <p className="text-[12px] text-slate-600 mt-1">Tên đăng nhập: <b>{ADMIN.user}</b> · Mật khẩu: <b>{ADMIN.password}</b></p>
+                <button type="button" onClick={() => { setEmail(ADMIN.user); setPassword(ADMIN.password); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-slate-700 hover:bg-slate-800 text-white text-[13px] font-semibold py-2 rounded-lg transition">
+                  <KeyRound className="w-3.5 h-3.5" /> Điền sẵn tài khoản quản trị
+                </button>
+                <p className="text-[11px] text-slate-500 mt-1.5 leading-relaxed">Toàn quyền: quản lý cán bộ, danh mục, chấm điểm. Nếu tài khoản chưa được tạo trên máy chủ, hệ thống chuyển sang <b>quản trị cục bộ</b> — thao tác đầy đủ nhưng dữ liệu chỉ lưu trên máy này.</p>
               </div>
               <button type="submit" disabled={status === 'sending'} className={`w-full flex items-center justify-center gap-2 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg transition ${t.btn}`}>
                 <LogIn className="w-4 h-4" /> {status === 'sending' ? 'Đang đăng nhập...' : 'Đăng nhập'}

@@ -85,7 +85,13 @@ create policy "visit_counter_public_read" on app_state
 --  thường vẫn có thể đọc 'hr_data' nếu gọi thẳng API (giao diện chỉ ẩn tab,
 --  không phải cơ chế bảo mật). Đoạn dưới siết lại: chỉ email Quản trị mới
 --  đọc/ghi được dòng 'hr_data'.
---  👉 Sửa danh sách email trong hai chỗ 'sonthkh@gmail.com' cho khớp thực tế.
+--  👉 Sửa danh sách email trong hai chỗ dưới cho khớp thực tế.
+--  💡 TÀI KHOẢN QUẢN TRỊ "admin / Admin123": ứng dụng ánh xạ tên đăng nhập "admin"
+--     sang email admin@thanhhoa.gov.vn. Muốn tài khoản này LƯU ĐƯỢC LÊN MÁY CHỦ,
+--     hãy tạo user đó trong Supabase Dashboard -> Authentication -> Users -> Add user
+--     (email: admin@thanhhoa.gov.vn, password: Admin123, tick "Auto Confirm User").
+--     Nếu KHÔNG tạo, đăng nhập admin vẫn vào được nhưng ở chế độ "quản trị cục bộ"
+--     (thao tác đầy đủ, dữ liệu chỉ lưu trên trình duyệt của máy đó).
 -- ---------------------------------------------------------------------
 -- Loại 'hr_data' ra khỏi chính sách chung (RLS cộng dồn kiểu OR nên phải sửa
 -- chính sách cũ, thêm chính sách mới là không đủ để siết).
@@ -98,8 +104,8 @@ create policy "app_state_auth_all" on app_state
 drop policy if exists "hr_data_admin_only" on app_state;
 create policy "hr_data_admin_only" on app_state
   for all
-  using (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com'))
-  with check (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com'));
+  using (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com', 'admin@thanhhoa.gov.vn'))
+  with check (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com', 'admin@thanhhoa.gov.vn'));
 
 -- Nếu chưa chạy BƯỚC 4: module Quản lý cán bộ vẫn hoạt động (theo chính sách
 -- BƯỚC 2), nhưng hồ sơ KHÔNG được bảo vệ trước tài khoản đăng nhập khác.
