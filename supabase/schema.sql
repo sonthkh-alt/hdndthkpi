@@ -76,3 +76,30 @@ grant execute on function visit_hit() to anon, authenticated;
 drop policy if exists "visit_counter_public_read" on app_state;
 create policy "visit_counter_public_read" on app_state
   for select using (id = 'visit_counter');
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 4. HỒ SƠ CÁN BỘ (module Quản lý cán bộ, id = 'hr_data')
+--  ⚠️ NÊN CHẠY: hồ sơ cán bộ chứa dữ liệu cá nhân nhạy cảm (ngày sinh, số
+--  CCCD, số sổ BHXH, quan hệ gia đình). Chính sách "app_state_auth_all" ở
+--  BƯỚC 2 cho MỌI tài khoản đã đăng nhập đọc/ghi MỌI dòng — nghĩa là cán bộ
+--  thường vẫn có thể đọc 'hr_data' nếu gọi thẳng API (giao diện chỉ ẩn tab,
+--  không phải cơ chế bảo mật). Đoạn dưới siết lại: chỉ email Quản trị mới
+--  đọc/ghi được dòng 'hr_data'.
+--  👉 Sửa danh sách email trong hai chỗ 'sonthkh@gmail.com' cho khớp thực tế.
+-- ---------------------------------------------------------------------
+-- Loại 'hr_data' ra khỏi chính sách chung (RLS cộng dồn kiểu OR nên phải sửa
+-- chính sách cũ, thêm chính sách mới là không đủ để siết).
+drop policy if exists "app_state_auth_all" on app_state;
+create policy "app_state_auth_all" on app_state
+  for all
+  using (auth.role() = 'authenticated' and id <> 'hr_data')
+  with check (auth.role() = 'authenticated' and id <> 'hr_data');
+
+drop policy if exists "hr_data_admin_only" on app_state;
+create policy "hr_data_admin_only" on app_state
+  for all
+  using (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com'))
+  with check (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com'));
+
+-- Nếu chưa chạy BƯỚC 4: module Quản lý cán bộ vẫn hoạt động (theo chính sách
+-- BƯỚC 2), nhưng hồ sơ KHÔNG được bảo vệ trước tài khoản đăng nhập khác.

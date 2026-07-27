@@ -20,8 +20,16 @@ paths:
 > - **Nhóm II khớp NĐ 335/2025/NĐ-CP** (01/01/2026): (a+b+c)/3, −25%/lần, 70đ. `renderTask335Row` có tooltip định nghĩa (MiniNum `hint`/`note`), `DEDUCT_LABEL` (nhãn mức 0→100%…), ô `exemptNote` (miễn trừ khách quan). GIỮ công thức, chỉ rõ câu chữ.
 > - **OKR (mọi bản)**: `objectives[].krs[]` (Key Results) hiển thị ở tab Tổng quan; helper `krPct`/`objKrGrade`/`addKr`… KR chỉ theo dõi tiến độ cơ quan, không vào điểm cá nhân.
 
+## Module QUẢN LÝ CÁN BỘ (tab `hr` — chỉ Quản trị, mọi phiên bản, lazy-load)
+- **`src/lib/hr.js`** — MODEL + LOGIC THUẦN (không import React/Supabase → chạy/kiểm thử được bằng Node): hồ sơ **Mẫu 2C/TCTW-98** (`newStaff`, 37 mục + bảng `training`/`history`/`family`), `HR_CATEGORY` (dbqh · hdnd · cc · hd), `HR_NGACH` (+`hesoOf`), `nextRaise` (nâng bậc theo chu kỳ 36/24 tháng — TT 08/2013; bậc cuối → vượt khung 5% rồi +1%/năm), `retireAgeMonths`/`retireDate` (**NĐ 135/2020**, nghỉ cuối tháng đủ tuổi), `nextBirthday`, `dutyNextDue`, `headcount`, `buildAlerts` (7 loại: raise/retire/birthday/contract/appoint/duty/headcount; mức `overdue|urgent|soon`), `DEFAULT_LEAD` (ngưỡng báo trước).
+- **`src/lib/hrStore.js`** — đọc/ghi `app_state` id=**`hr_data`** (TOÀN CỤC, không theo kỳ) + cache localStorage. `readHR`/`fetchHR`/`saveHR`/`EMPTY_HR`.
+- **`src/lib/hrSeed.js`** — `seedStaff()` 40 hồ sơ (12 đại biểu QH/HĐND chuyên trách + 28 CBCC-NLĐ Văn phòng; tên/chức vụ/đơn vị thật, phần còn lại là **dữ liệu mô phỏng** sinh tương đối theo ngày hiện tại, cờ `sample`), `SEED_QUOTA`, `seedDuties()`.
+- **`src/CanBoManager.jsx`** — UI 4 khu vực: Nhắc việc · Danh sách cán bộ (mở hồ sơ 2C đầy đủ) · Nhiệm vụ có thời hạn · Biên chế. Props `defaultSub`/`defaultOpenId` để mở sẵn khu vực/hồ sơ.
+- **`src/lib/export2C.js`** — `exportLyLich2C(staff, unit)` xuất Sơ yếu lý lịch 2C ra Word.
+- ⚠️ **Bảo mật:** hồ sơ chứa dữ liệu cá nhân nhạy cảm. Policy `app_state_auth_all` cho MỌI tài khoản đăng nhập đọc mọi dòng → **cần chạy BƯỚC 4 trong `supabase/schema.sql`** để chỉ Quản trị đọc/ghi `hr_data`. Ẩn tab ở giao diện KHÔNG phải cơ chế bảo mật.
+
 ## Danh sách file
-- **`src/App.jsx`** — toàn bộ ứng dụng (model + UI). Tabs: Tổng quan · Đánh giá · Năng lực số · Theo dõi CV · Hướng dẫn · Liên hệ · Danh mục (chỉ Quản trị).
+- **`src/App.jsx`** — toàn bộ ứng dụng (model + UI). Tabs: Tổng quan · Đánh giá · Năng lực số · Theo dõi CV · Hướng dẫn · Liên hệ · Danh mục (chỉ Quản trị) · **Quản lý cán bộ (chỉ Quản trị)**.
 - **`src/Login.jsx`** — đăng nhập (email+mật khẩu, liên kết, tài khoản khách). Tông cổ điển (đỏ/vàng), không còn bộ chọn phiên bản.
 - **`src/SetPassword.jsx`** — tạo mật khẩu lần đầu (kèm Họ tên + Chức vụ) và đổi mật khẩu.
 - **`src/lib/auth.js`** — Supabase Auth: `signInWithPassword`, `signInWithOtp`, `setPassword`, `getSession`, `onAuthChange`, `signOut`, hằng `GUEST`.

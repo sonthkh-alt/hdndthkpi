@@ -11,6 +11,8 @@ const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
 import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_TAM, tamOf } from './KiemDiemAppraisal.jsx';
+const CanBoManager = lazy(() => import('./CanBoManager.jsx'));
+import { fetchHR, saveHR, readHR, EMPTY_HR } from './lib/hrStore';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -1123,6 +1125,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   // Lượt truy cập trang web (đếm toàn cục qua Supabase; null = chưa cấu hình -> ẩn)
   const [visits, setVisits] = useState(null);
   useEffect(() => { let alive = true; countVisit().then((n) => { if (alive && n != null) setVisits(n); }); return () => { alive = false; }; }, []);
+  // Quản lý cán bộ (hồ sơ 2C + nhắc việc) — dữ liệu TOÀN CỤC, không theo kỳ đánh giá.
+  const [hrData, setHrData] = useState(EMPTY_HR);
+  const [hrSaving, setHrSaving] = useState(false);
+  const hrLoaded = useRef(false);
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -1282,7 +1288,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.
   useEffect(() => { if (isSG && tab === 'catalog') setTab('dash'); }, [isSG, tab]);
   // SonHa chỉ có 3 module — nếu đang ở tab khác (Năng lực số/Theo dõi CV/Danh mục/Quản trị) thì đưa về Tổng quan.
-  useEffect(() => { if ((isSonHa || isKD) && !['dash', 'eval', 'guide'].includes(tab)) setTab('dash'); }, [isSonHa, isKD, tab]);
+  useEffect(() => { if ((isSonHa || isKD) && !['dash', 'eval', 'guide', 'hr'].includes(tab)) setTab('dash'); }, [isSonHa, isKD, tab]);
   // Tab "Quản trị" đã ẩn ở mọi phiên bản — nếu đang ở đó thì đưa về Tổng quan.
   useEffect(() => { if (tab === 'admin') setTab('dash'); }, [tab]);
   const avg = computed.length ? computed.reduce((s, x) => s + x.c.totalMgr, 0) / computed.length : 0;
@@ -1520,6 +1526,26 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const selfEditable = cur ? canEditSelfOf(cur) : false;
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
+
+  // ---- Quản lý cán bộ: nạp hồ sơ lần đầu khi Quản trị mở module (dữ liệu toàn cục, không theo kỳ) ----
+  useEffect(() => {
+    if (tab !== 'hr' || !isAdmin || hrLoaded.current) return;
+    hrLoaded.current = true;
+    setHrData(readHR());
+    fetchHR().then(setHrData).catch(() => { /* giữ bản cache */ });
+  }, [tab, isAdmin]);
+  const patchHR = (patch) => setHrData((d) => ({ ...d, ...patch }));
+  const doSaveHR = async () => {
+    if (!canManage) return;
+    setHrSaving(true);
+    const r = await saveHR(hrData);
+    setHrSaving(false);
+    alert(r.ok ? 'Đã lưu hồ sơ cán bộ lên máy chủ.' : 'Chưa lưu được lên máy chủ (kiểm tra kết nối Supabase). Dữ liệu vẫn được giữ trên trình duyệt này.');
+  };
+  const doExport2C = async (s) => {
+    const { exportLyLich2C } = await import('./lib/export2C');
+    await exportLyLich2C(s, unit);
+  };
 
   // ---- Hiển thị phiên bản theo cấu hình quản trị (ẩn/hiện + đổi tên) ----
   const vName = (id) => (versionCfg.names || {})[id] || VERSION_NAME(id);
@@ -1787,7 +1813,10 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative glass-dark border-t border-white/10">
           <div className="max-w-6xl mx-auto px-4 sm:px-6 flex gap-1.5 overflow-x-auto py-2">
-            {[...tabs, ...(canManage && !isSonHa && !isSG && !isKD ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : [])].map((t) => { const Ic = t.icon; const on = tab === t.id;
+            {[...tabs,
+              ...(canManage && !isSonHa && !isSG && !isKD ? [{ id: 'catalog', label: 'Danh mục', icon: ListChecks }] : []),
+              ...(canManage ? [{ id: 'hr', label: 'Quản lý cán bộ', icon: Users }] : []),
+            ].map((t) => { const Ic = t.icon; const on = tab === t.id;
               return (<button key={t.id} onClick={() => setTab(t.id)} className={`flex items-center gap-2 px-3.5 sm:px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all duration-200 ${on ? `${th.tabOn} shadow-lg shadow-black/20` : th.tabOff}`}><Ic className="w-4 h-4" />{t.label}</button>); })}
           </div>
         </div>
@@ -2699,6 +2728,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
 
         {tab === 'catalog' && canManage && !isSG && (
           <CatalogManager catalog={catalog} onChange={setCatalog} />
+        )}
+        {tab === 'hr' && canManage && (
+          <Suspense fallback={<div className="text-center text-sm text-slate-400 py-10">Đang tải module Quản lý cán bộ…</div>}>
+            <CanBoManager data={hrData} onChange={patchHR} onSave={doSaveHR} saving={hrSaving} canEdit={canManage} onExportProfile={doExport2C} />
+          </Suspense>
         )}
       </main>
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">
