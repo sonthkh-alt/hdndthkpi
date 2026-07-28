@@ -13,6 +13,7 @@ import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboa
 import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_TAM, tamOf } from './KiemDiemAppraisal.jsx';
 const CanBoManager = lazy(() => import('./CanBoManager.jsx'));
 import { fetchHR, saveHR, readHR, EMPTY_HR } from './lib/hrStore';
+import { syncStaffFromPeople } from './lib/hr';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -1133,6 +1134,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const [hrData, setHrData] = useState(EMPTY_HR);
   const [hrSaving, setHrSaving] = useState(false);
   const hrLoaded = useRef(false);
+  const peopleRef = useRef([]);   // danh sách cán bộ hiện hành (nguồn đồng bộ cho hồ sơ)
   const loaded = useRef(false);
   const loadingRef = useRef(false);     // đang nạp kỳ -> tạm khóa autosave
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
@@ -1535,26 +1537,25 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
 
-  // ---- Quản lý cán bộ: nạp hồ sơ lần đầu khi Quản trị mở module (dữ liệu toàn cục, không theo kỳ) ----
-  // Nếu chưa có hồ sơ nào (lần đầu dùng, hoặc phiên cục bộ không đọc được máy chủ) thì
-  // TỰ NẠP SẴN danh sách cán bộ chuẩn để quản trị dùng được ngay; chỉ ghi lên máy chủ khi bấm "Lưu hồ sơ".
+  // ---- Quản lý cán bộ: nạp hồ sơ khi Quản trị mở module (dữ liệu toàn cục, không theo kỳ) ----
+  // Danh sách người KHÔNG nhập rời và KHÔNG nạp mẫu: luôn ĐỒNG BỘ từ danh sách cán bộ
+  // đang quản lý ở các module khác (tab Đánh giá). Hồ sơ 2C đã khai được giữ nguyên.
   useEffect(() => {
     if (tab !== 'hr' || !isAdmin || hrLoaded.current) return;
     hrLoaded.current = true;
-    const fill = async (d) => {
-      if (d.staff && d.staff.length) return d;
-      const { seedStaff, seedDuties, SEED_QUOTA } = await import('./lib/hrSeed');
-      return {
-        ...d,
-        staff: seedStaff(),
-        duties: d.duties && d.duties.length ? d.duties : seedDuties(),
-        quota: d.quota && Object.keys(d.quota).length ? d.quota : { ...SEED_QUOTA },
-      };
-    };
-    const cached = readHR();
-    fill(cached).then(setHrData);
-    if (!isLocalSession(session)) fetchHR().then(fill).then(setHrData).catch(() => { /* giữ bản cache */ });
+    const apply = (d) => setHrData({ ...d, staff: syncStaffFromPeople(d.staff, peopleRef.current).staff });
+    apply(readHR());
+    if (!isLocalSession(session)) fetchHR().then(apply).catch(() => { /* giữ bản cache */ });
   }, [tab, isAdmin, session]);
+  // Danh sách cán bộ đổi (thêm/xóa/đổi chức vụ ở tab Đánh giá) -> cập nhật ngay vào hồ sơ.
+  useEffect(() => {
+    peopleRef.current = people;
+    if (tab !== 'hr' || !isAdmin || !hrLoaded.current) return;
+    setHrData((d) => {
+      const r = syncStaffFromPeople(d.staff, people);
+      return (r.added || r.updated || r.detached) ? { ...d, staff: r.staff } : d;
+    });
+  }, [tab, isAdmin, people]);
   const patchHR = (patch) => setHrData((d) => ({ ...d, ...patch }));
   const doSaveHR = async () => {
     if (!canManage) return;
@@ -2756,7 +2757,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         )}
         {tab === 'hr' && canManage && (
           <Suspense fallback={<div className="text-center text-sm text-slate-400 py-10">Đang tải module Quản lý cán bộ…</div>}>
-            <CanBoManager data={hrData} onChange={patchHR} onSave={doSaveHR} saving={hrSaving} canEdit={canManage} onExportProfile={doExport2C} />
+            <CanBoManager data={hrData} people={people} onChange={patchHR} onSave={doSaveHR} saving={hrSaving} canEdit={canManage} onExportProfile={doExport2C} />
           </Suspense>
         )}
       </main>

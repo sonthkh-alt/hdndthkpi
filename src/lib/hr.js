@@ -300,3 +300,94 @@ export const LEVEL_TONE = {
   info: 'bg-slate-50 border-slate-200 text-slate-600',
 };
 
+// ---------------------------------------------------------------- Đồng bộ với hệ thống
+// Hồ sơ cán bộ KHÔNG nhập rời: danh sách người được lấy tự động từ danh sách cán bộ
+// đang quản lý ở các module khác (tab Đánh giá). Module này bổ sung phần hồ sơ 2C.
+
+// Suy đối tượng quản lý từ chức vụ / đơn vị.
+export function inferCategory(p) {
+  const pos = (p?.position || ''), dept = (p?.department || '');
+  if (/Lái xe|Bảo vệ|phục vụ|tạp vụ|bảo trì|lễ tân|hậu cần/i.test(pos)) return 'hd';
+  if (/Quốc hội/i.test(dept) || /đại biểu Quốc hội|Trưởng đoàn ĐBQH/i.test(pos)) return 'dbqh';
+  if (/^HĐND tỉnh$|^Ban /i.test(dept) || /Chủ tịch HĐND|Trưởng Ban|Ủy viên chuyên trách/i.test(pos)) return 'hdnd';
+  return 'cc';
+}
+// Suy ngạch khởi tạo từ chức vụ (quản trị chỉnh lại theo quyết định bổ nhiệm ngạch).
+export function inferNgach(p) {
+  const pos = (p?.position || '');
+  if (/Lái xe|Bảo vệ|phục vụ|tạp vụ|bảo trì|lễ tân/i.test(pos)) return 'HD';
+  if (/Chủ tịch HĐND|Trưởng Ban(?! )|^Trưởng Ban|Chánh Văn phòng|Trưởng đoàn ĐBQH/i.test(pos) && !/Phó/i.test(pos)) return '01.001';
+  if (/Phó|Trưởng phòng|Trưởng Ban|đại biểu Quốc hội/i.test(pos)) return '01.002';
+  if (/Chuyên viên/i.test(pos)) return '01.003';
+  return '01.003';
+}
+// Khóa ghép hồ sơ ↔ cán bộ: ưu tiên email, sau đó "họ tên | đơn vị", cuối cùng là họ tên.
+const keysOf = (x) => {
+  const k = [];
+  const em = (x?.email || '').trim().toLowerCase();
+  const nm = (x?.name || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (em) k.push('e:' + em);
+  if (nm) { k.push('n:' + nm + '|' + (x?.department || '').trim().toLowerCase()); k.push('s:' + nm); }
+  return k;
+};
+
+// Đồng bộ danh sách hồ sơ với danh sách cán bộ của hệ thống.
+//  • Người CHƯA có hồ sơ  -> tạo hồ sơ khung (tên, chức vụ, đơn vị, email, đối tượng, ngạch gợi ý).
+//  • Người ĐÃ có hồ sơ    -> cập nhật chức vụ/đơn vị/email nếu hệ thống đổi; GIỮ NGUYÊN mọi thông tin đã nhập.
+//  • Hồ sơ không còn trong danh sách -> GIỮ LẠI (đánh dấu detached) để không mất dữ liệu đã khai.
+// Trả về { staff, added, updated, detached } — thuần, không sửa mảng đầu vào.
+export function syncStaffFromPeople(staff, people) {
+  const list = Array.isArray(staff) ? staff : [];
+  const src = (Array.isArray(people) ? people : []).filter((p) => p && (p.name || '').trim());
+  const index = new Map();
+  list.forEach((s, i) => keysOf(s).forEach((k) => { if (!index.has(k)) index.set(k, i); }));
+
+  const out = list.map((s) => ({ ...s }));
+  const matched = new Set();
+  let added = 0, updated = 0;
+
+  src.forEach((p) => {
+    const hit = keysOf(p).map((k) => index.get(k)).find((i) => i != null && !matched.has(i));
+    if (hit != null) {
+      matched.add(hit);
+      const s = out[hit];
+      const patch = {};
+      if (p.name && p.name !== s.name) patch.name = p.name;
+      if (p.position && p.position !== s.position) patch.position = p.position;
+      if (p.department && p.department !== s.department) patch.department = p.department;
+      if (p.email && p.email !== s.email) patch.email = p.email;
+      if (s.detached) patch.detached = false;
+      if (Object.keys(patch).length) { Object.assign(s, patch); updated++; }
+      return;
+    }
+    const s = newStaff(p.name);
+    const ngach = inferNgach(p);
+    Object.assign(s, {
+      position: p.position || '', department: p.department || '', email: p.email || '',
+      category: inferCategory(p), ngach, bac: 1, heso: hesoOf(ngach, 1),
+      mainWork: p.position || '', hireAgency: '',
+    });
+    out.push(s); added++;
+  });
+
+  let detached = 0;
+  out.forEach((s, i) => {
+    if (i < list.length && !matched.has(i) && !s.detached) { s.detached = true; detached++; }
+  });
+  return { staff: out, added, updated, detached };
+}
+
+// ---------------------------------------------------------------- Độ đầy đủ hồ sơ
+// Các trường cốt lõi cần có để hồ sơ dùng được cho quản lý nhân sự và nhắc việc.
+export const CORE_FIELDS = [
+  ['birth', 'Ngày sinh'], ['gender', 'Giới tính'], ['hometown', 'Quê quán'],
+  ['residence', 'Hộ khẩu thường trú'], ['idNumber', 'Số căn cước'], ['insuranceNo', 'Số sổ BHXH'],
+  ['phone', 'Điện thoại'], ['eduMajor', 'Trình độ chuyên môn'], ['politics', 'Lý luận chính trị'],
+  ['hireDate', 'Ngày tuyển dụng'], ['salaryDate', 'Ngày hưởng bậc lương'], ['mainWork', 'Công việc được giao'],
+];
+// Tỷ lệ hoàn thiện hồ sơ + danh sách mục còn thiếu (để nhắc quản trị bổ sung).
+export function profileCompleteness(s) {
+  const missing = CORE_FIELDS.filter(([k]) => !String(s?.[k] ?? '').trim()).map(([, lb]) => lb);
+  const pct = Math.round(((CORE_FIELDS.length - missing.length) / CORE_FIELDS.length) * 100);
+  return { pct, missing, done: CORE_FIELDS.length - missing.length, total: CORE_FIELDS.length };
+}
