@@ -1031,6 +1031,19 @@ function seedSonHaPeople() {
   ].map(([name, dept, pos, profile, email]) => mk(name, dept, pos, profile, email ? { email } : {}));
 }
 
+// Đối chiếu dữ liệu ĐÃ LƯU với DANH SÁCH CHÍNH THỐNG của phân hệ: thiếu đồng chí nào thì
+// BỔ SUNG đồng chí đó, giữ nguyên toàn bộ kết quả chấm điểm đã có và KHÔNG xóa ai.
+// Dùng khi mở kỳ lưu từ trước (vd bản OKR/KPI chuẩn có 28 đồng chí, bản lưu cũ mới có 25).
+const normName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+function mergeOfficialPeople(saved, official) {
+  const list = saved || [];
+  const have = new Set(list.map((p) => normName(p.name)));
+  const add = (official || []).filter((p) => p.name && !have.has(normName(p.name)));
+  if (!add.length) return list;
+  let next = Math.max(0, ...list.map((p) => p.id || 0)) + 1;   // id mới, không đụng id đã lưu
+  return [...list, ...add.map((p) => ({ ...p, id: next++ }))];
+}
+
 // Bộ dữ liệu bản KIỂM ĐIỂM: 15 đồng chí diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan,
 // theo danh sách docs/DU/DU.docx (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban + 4 Phó Trưởng Ban;
 // Phó Trưởng đoàn ĐBQH + ĐBQH chuyên trách; Chánh Văn phòng + 2 Phó Chánh Văn phòng).
@@ -1182,10 +1195,12 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     serverTsRef.current = local ? null : res.serverTs;
     const ppl0 = res.state?.people || [];
     if (ppl0.length) {
-      setPeople(ppl0); setCurId(ppl0[0]?.id ?? null); setObjectives(res.state.objectives || []);
+      // Bản lưu cũ thiếu đồng chí nào so với danh sách chính thống thì bổ sung (không mất điểm đã chấm).
+      const ppl = mergeOfficialPeople(ppl0, seedDemoPeople(version));
+      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
-      bumpCounters(ppl0);
+      bumpCounters(ppl);
     } else {
       const others = (await listPeriods(dataNs)).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
