@@ -330,7 +330,8 @@ const D_TINH = { code: 'IX', max: 20, kind: 'deduct', title: 'ĐIỂM TRỪ VÀ 
   { id: 'IX.4', title: 'Chậm gửi báo cáo định kỳ, đột xuất theo yêu cầu của cơ quan có thẩm quyền', per: 1, cap: 5, unitLabel: 'lần' },
   { id: 'IX.5', title: 'Để đơn thư quá hạn xử lý hoặc kiến nghị của cử tri thuộc thẩm quyền không được trả lời trong năm', per: 1, cap: 5, unitLabel: 'trường hợp' },
   { id: 'IX.6', title: 'Tập thể Thường trực HĐND hoặc người đứng đầu bị kỷ luật từ khiển trách trở lên trong năm đánh giá', per: 10, cap: 10, unitLabel: 'trường hợp', sanction: 'noTot', sanctionText: 'Không xếp loại từ mức Tốt trở lên trong năm đánh giá.' },
-  { id: 'IX.7', title: 'Cán bộ, công chức thuộc quyền quản lý bị kỷ luật từ cảnh cáo trở lên hoặc bị truy cứu trách nhiệm hình sự', per: 5, cap: 10, unitLabel: 'trường hợp', sanction: 'noXS', sanctionText: 'Không xếp loại Xuất sắc trong năm đánh giá.' },
+  { id: 'IX.7', title: 'Cán bộ, công chức thuộc quyền quản lý bị kỷ luật từ cảnh cáo trở lên hoặc bị truy cứu trách nhiệm hình sự', per: 5, cap: 10, unitLabel: 'trường hợp', sanction: 'noXS', sanctionText: 'Không xếp loại Xuất sắc trong năm đánh giá.',
+    fixNote: 'Đã chuẩn hóa: cột "Điểm tối đa" của dự thảo ghi −5 nhưng cách chấm ghi "trừ 5,0đ/trường hợp, tối đa trừ 10,0đ". Phần mềm áp mức trần 10,0đ theo cách chấm điểm (nếu để trần 5,0đ thì cụm "tối đa trừ 10,0đ" không có ý nghĩa).' },
   { id: 'IX.8', title: 'Kê khai, cung cấp hồ sơ minh chứng không trung thực nhằm nâng điểm đánh giá', per: 5, cap: 5, unitLabel: 'trường hợp', sanction: 'down1', repeatFlag: true, sanctionText: 'Trừ toàn bộ điểm của tiêu chí liên quan và hạ 01 mức xếp loại; tái phạm thì xếp loại Yếu.' },
 ] };
 
@@ -437,11 +438,13 @@ const G_XA = [
       ]),
     ] },
     { id: 'III.3', max: 6, title: 'Chủ tịch HĐND, đại biểu HĐND tiếp công dân đúng quy định; xử lý, theo dõi kết quả giải quyết đơn thư đúng hạn', subs: [
-      { id: 'III.3.a', max: 3, type: 'minusPlus', per: 0.5, plus: 3, unitLabel: 'kỳ tiếp công dân còn thiếu',
-        pctLabel: 'Tỷ lệ vụ việc được chỉ đạo, theo dõi giải quyết dứt điểm sau tiếp công dân (%)',
-        guide: 'Tổ chức tiếp công dân đủ số kỳ theo quy định (mức đạt yêu cầu): 3,0đ; thiếu mỗi kỳ trừ 0,5đ. Điểm chất lượng (cộng thêm, tối đa 3,0đ): tỷ lệ vụ việc được chỉ đạo, theo dõi giải quyết dứt điểm sau tiếp công dân (không phát sinh đơn thư lại về cùng nội dung trong 12 tháng); Điểm = Tỷ lệ % × 3,0 (làm tròn 0,25đ); trong năm không phát sinh vụ việc thì tính đủ 3,0đ.',
-        draftNote: 'III.3: Dự thảo ghi cả "mức đạt yêu cầu 3,0đ" và "điểm chất lượng cộng thêm tối đa 3,0đ" trong cùng một điểm thành phần tối đa 3,0đ (tiêu chí III.3 tối đa 6,0đ). Phần mềm tính: 3,0 − 0,5 × số kỳ thiếu + tỷ lệ chất lượng × 3,0 và giới hạn không vượt quá 3,0đ. Đề nghị làm rõ khi ban hành chính thức.' },
-      ch('III.3.b', 3, '100% đơn thư được xử lý, chuyển đúng thẩm quyền, đúng hạn và theo dõi kết quả: 3,0đ; còn đơn thư quá hạn: 1,5đ.', [
+      { id: 'III.3.a', max: 1.5, type: 'minus', per: 0.5, unitLabel: 'kỳ tiếp công dân còn thiếu',
+        guide: 'Tổ chức tiếp công dân đủ số kỳ theo quy định (mức đạt yêu cầu): 1,5đ; thiếu mỗi kỳ trừ 0,5đ.',
+        fixNote: 'Đã chuẩn hóa: dự thảo ghi mức đạt yêu cầu 3,0đ và điểm chất lượng cộng thêm tối đa 3,0đ trong cùng một điểm thành phần tối đa 3,0đ. Phần mềm tách thành 1,5đ (đạt yêu cầu) + 1,5đ (chất lượng) — đúng cách viết của tiêu chí I.1 cùng Phụ lục và giữ nguyên tiêu chí III.3 tối đa 6,0đ.' },
+      { id: 'III.3.b', max: 1.5, type: 'ratio', round: 0.25,
+        unitLabel: 'vụ việc được chỉ đạo, theo dõi giải quyết dứt điểm sau tiếp công dân',
+        guide: 'Điểm chất lượng: tỷ lệ vụ việc được chỉ đạo, theo dõi giải quyết dứt điểm sau tiếp công dân (không phát sinh đơn thư lại về cùng nội dung trong 12 tháng). Điểm = Tỷ lệ % × 1,5 (làm tròn 0,25đ). Trong năm không phát sinh vụ việc thì ghi 100% để tính đủ 1,5đ.' },
+      ch('III.3.c', 3, '100% đơn thư được xử lý, chuyển đúng thẩm quyền, đúng hạn và theo dõi kết quả: 3,0đ; còn đơn thư quá hạn: 1,5đ.', [
         o(3, 'Đạt 100%'), o(1.5, 'Còn đơn thư quá hạn'), o(0, 'Chưa đạt'),
       ]),
     ] },
@@ -535,25 +538,28 @@ const G_XA = [
   ] },
 ];
 
+// Đã chuẩn hóa: 04 nội dung của dự thảo cộng lại 13,0đ trong khi nhóm VIII tối đa 10,0đ.
+// Phân bổ lại 4 + 2 + 2 + 2 = 10,0đ, giữ nguyên thứ tự ưu tiên của dự thảo.
 const B_XA = { code: 'VIII', max: 10, kind: 'bonus', title: 'ĐIỂM THƯỞNG ĐỔI MỚI SÁNG TẠO (tối đa 10 điểm)', items: [
-  { id: 'VIII.1', max: 5, title: 'Mô hình, sáng kiến được nhân rộng toàn tỉnh hoặc được Trung ương, báo chí Trung ương giới thiệu', subs: [
-    ch('VIII.1.a', 5, 'Có văn bản của Thường trực HĐND tỉnh chỉ đạo nhân rộng toàn tỉnh hoặc được cơ quan, báo chí Trung ương giới thiệu: 5,0đ. Chỉ tính 01 lần trong năm đánh giá.', [
-      o(5, 'Có văn bản nhân rộng toàn tỉnh / được Trung ương, báo chí TW giới thiệu'), o(0, 'Chưa có'),
-    ]),
+  { id: 'VIII.1', max: 4, title: 'Mô hình, sáng kiến được nhân rộng toàn tỉnh hoặc được Trung ương, báo chí Trung ương giới thiệu', subs: [
+    ch('VIII.1.a', 4, 'Có văn bản của Thường trực HĐND tỉnh chỉ đạo nhân rộng toàn tỉnh hoặc được cơ quan, báo chí Trung ương giới thiệu: 4,0đ. Chỉ tính 01 lần trong năm đánh giá.', [
+      o(4, 'Có văn bản nhân rộng toàn tỉnh / được Trung ương, báo chí TW giới thiệu'), o(0, 'Chưa có'),
+    ], { fixNote: 'Đã chuẩn hóa: 5,0đ → 4,0đ để tổng 04 nội dung của nhóm VIII đúng bằng 10,0đ.' }),
   ] },
-  { id: 'VIII.2', max: 3, title: 'Được biểu dương, khen thưởng về đổi mới, nâng cao chất lượng hoạt động của HĐND', subs: [
-    ch('VIII.2.a', 3, 'Được khen thưởng cấp tỉnh trở lên: 3,0đ; được biểu dương tại hội nghị giao ban của tỉnh: 1,5đ. Chỉ tính mức cao nhất đạt được.', [
-      o(3, 'Khen thưởng cấp tỉnh trở lên'), o(1.5, 'Biểu dương tại hội nghị giao ban của tỉnh'), o(0, 'Không có'),
-    ]),
+  { id: 'VIII.2', max: 2, title: 'Được biểu dương, khen thưởng về đổi mới, nâng cao chất lượng hoạt động của HĐND', subs: [
+    ch('VIII.2.a', 2, 'Được khen thưởng cấp tỉnh trở lên: 2,0đ; được biểu dương tại hội nghị giao ban của tỉnh: 1,0đ. Chỉ tính mức cao nhất đạt được.', [
+      o(2, 'Khen thưởng cấp tỉnh trở lên'), o(1, 'Biểu dương tại hội nghị giao ban của tỉnh'), o(0, 'Không có'),
+    ], { fixNote: 'Đã chuẩn hóa: 3,0đ → 2,0đ (mức biểu dương 1,5đ → 1,0đ) theo phân bổ lại của nhóm VIII.' }),
   ] },
   { id: 'VIII.3', max: 2, title: 'Có giải pháp số hóa, ứng dụng công nghệ do đơn vị chủ động xây dựng, vận hành hiệu quả', subs: [
     ch('VIII.3.a', 2, 'Giải pháp do đơn vị tự xây dựng, đang vận hành và có đánh giá hiệu quả: 2,0đ; đang thí điểm: 1,0đ. Không tính đối với hệ thống, phần mềm do tỉnh trang bị (đã chấm tại nhóm IV).', [
       o(2, 'Tự xây dựng, đang vận hành, có đánh giá hiệu quả'), o(1, 'Đang thí điểm'), o(0, 'Không có'),
     ]),
   ] },
-  { id: 'VIII.4', max: 3, title: 'Ban hành nghị quyết chuyên đề tháo gỡ hiệu quả điểm nghẽn của địa phương, có kết quả chuyển biến cụ thể', subs: [
-    { id: 'VIII.4.a', max: 3, type: 'count', per: 1.5, unitLabel: 'nghị quyết chuyên đề có kết quả đo đếm được',
-      guide: 'Mỗi nghị quyết chuyên đề được ban hành đúng thẩm quyền và có sản phẩm, kết quả đo đếm được (giải phóng mặt bằng, sắp xếp đơn vị hành chính, xây dựng nông thôn mới…): 1,5đ; tối đa 3,0đ. Nghị quyết mang tính hình thức, không có kết quả cụ thể: không tính điểm.' },
+  { id: 'VIII.4', max: 2, title: 'Ban hành nghị quyết chuyên đề tháo gỡ hiệu quả điểm nghẽn của địa phương, có kết quả chuyển biến cụ thể', subs: [
+    { id: 'VIII.4.a', max: 2, type: 'count', per: 1, unitLabel: 'nghị quyết chuyên đề có kết quả đo đếm được',
+      guide: 'Mỗi nghị quyết chuyên đề được ban hành đúng thẩm quyền và có sản phẩm, kết quả đo đếm được (giải phóng mặt bằng, sắp xếp đơn vị hành chính, xây dựng nông thôn mới…): 1,0đ; tối đa 2,0đ. Nghị quyết mang tính hình thức, không có kết quả cụ thể: không tính điểm.',
+      fixNote: 'Đã chuẩn hóa: 1,5đ/nghị quyết (tối đa 3,0đ) → 1,0đ/nghị quyết (tối đa 2,0đ) theo phân bổ lại của nhóm VIII.' },
   ] },
 ] };
 
@@ -563,7 +569,8 @@ const D_XA = { code: 'IX', max: 20, kind: 'deduct', title: 'ĐIỂM TRỪ VÀ CH
   { id: 'IX.3', title: 'Chậm gửi báo cáo định kỳ, đột xuất theo yêu cầu của Thường trực HĐND tỉnh', per: 1, cap: 5, unitLabel: 'lần' },
   { id: 'IX.4', title: 'Để phát sinh khiếu kiện đông người, vượt cấp, điểm nóng về an ninh, trật tự mà có trách nhiệm theo dõi, đôn đốc, giám sát của HĐND cấp xã', per: 5, cap: 5, unitLabel: 'vụ việc', note: 'Chỉ trừ điểm khi xác định được yếu tố trách nhiệm của HĐND.' },
   { id: 'IX.5', title: 'Để đơn thư quá hạn xử lý hoặc kiến nghị của cử tri thuộc thẩm quyền không được trả lời trong năm', per: 1, cap: 5, unitLabel: 'trường hợp' },
-  { id: 'IX.6', title: 'Không thực hiện hoặc thực hiện không nghiêm chỉ đạo, kết luận, kiến nghị của Thường trực HĐND tỉnh', per: 3, cap: 6, unitLabel: 'lần' },
+  { id: 'IX.6', title: 'Không thực hiện hoặc thực hiện không nghiêm chỉ đạo, kết luận, kiến nghị của Thường trực HĐND tỉnh', per: 3, cap: 6, unitLabel: 'lần',
+    fixNote: 'Đã chuẩn hóa: cột "Điểm tối đa" của dự thảo ghi −3 nhưng cách chấm ghi "trừ 3,0đ/lần, tối đa trừ 6,0đ". Phần mềm áp mức trần 6,0đ theo cách chấm điểm.' },
   { id: 'IX.7', title: 'Tập thể Thường trực HĐND hoặc Chủ tịch HĐND cấp xã bị kỷ luật từ khiển trách trở lên trong năm đánh giá', per: 10, cap: 10, unitLabel: 'trường hợp', sanction: 'noTot', sanctionText: 'Không xếp loại từ mức Tốt trở lên trong năm đánh giá.' },
   { id: 'IX.8', title: 'Đại biểu HĐND hoặc công chức tham mưu, phục vụ bị kỷ luật từ cảnh cáo trở lên hoặc bị truy cứu trách nhiệm hình sự', per: 5, cap: 10, unitLabel: 'trường hợp', sanction: 'noXS', sanctionText: 'Không xếp loại Xuất sắc trong năm đánh giá.' },
   { id: 'IX.9', title: 'Kê khai, cung cấp hồ sơ minh chứng không trung thực nhằm nâng điểm đánh giá', per: 5, cap: 5, unitLabel: 'trường hợp', sanction: 'down1', repeatFlag: true, sanctionText: 'Trừ toàn bộ điểm của tiêu chí liên quan và hạ 01 mức xếp loại; tái phạm thì xếp loại Yếu.' },
@@ -597,10 +604,25 @@ const GRADE_ORDER = ['yeu', 'tb', 'kha', 'tot', 'xuatsac'];
 // Tỷ lệ tối đa đơn vị cấp xã được xếp loại Xuất sắc (Điều 6 khoản 2).
 export const QUOTA_XUATSAC = 0.25;
 
-// "Điều kiện về đổi mới sáng tạo" (Điều 6 khoản 1) — dự thảo dẫn chiếu Phụ lục nhưng chưa
-// nêu ngưỡng cụ thể. Phần mềm dùng ngưỡng mặc định dưới đây (theo tỷ lệ điểm nhóm V đạt được)
-// và ghi rõ để đơn vị/Tổ công tác biết; có thể chỉnh khi Quyết định ban hành chính thức.
-export const DK_DMST = { xuatsac: 0.6, tot: 0.4 };
+// "Điều kiện về đổi mới sáng tạo" (Điều 6) — dự thảo dẫn chiếu Phụ lục nhưng chưa nêu ngưỡng.
+// ĐÃ CHUẨN HÓA theo chính câu chữ của nhóm V trong từng Phụ lục:
+//   • Cấp tỉnh: "Trong năm có ít nhất 02 mô hình mới, cách làm hay…" → Xuất sắc cần ≥ 02 mô hình;
+//   • Cấp xã:  "Trong năm có ít nhất 01 mô hình mới, cách làm hay…"  → Xuất sắc cần ≥ 01 mô hình;
+//   • Kèm ngưỡng điểm nhóm V: Xuất sắc ≥ 60%, Tốt ≥ 40% điểm tối đa của nhóm V và có ≥ 01 mô hình.
+export const DK_DMST = {
+  tinh: { xuatsac: 0.6, tot: 0.4, minModels: 2, modelSub: 'V.1.a' },
+  xa: { xuatsac: 0.6, tot: 0.4, minModels: 1, modelSub: 'V.1.a' },
+};
+export const dkDmstOf = (kindId) => DK_DMST[kindId] || DK_DMST.xa;
+
+// Điều 6 — ĐÃ ĐÁNH SỐ LẠI các khoản (dự thảo có khoản 1, 2 rồi nhảy sang 5, 6).
+export const DIEU6 = [
+  { k: 1, text: 'Xếp loại theo tổng điểm và điều kiện đổi mới sáng tạo: Xuất sắc ≥ 90 điểm; Tốt từ 80 đến dưới 90; Khá từ 65 đến dưới 80; Trung bình từ 50 đến dưới 65; Yếu dưới 50.' },
+  { k: 2, text: 'Cấp xã: số đơn vị xếp loại Xuất sắc không vượt quá 25% tổng số đơn vị được đánh giá của từng nhóm đối tượng; vượt tỷ lệ thì lấy từ tổng điểm cao xuống thấp, bằng điểm thì ưu tiên điểm thưởng nhóm VIII, tiếp đến điểm nhóm V; đơn vị đủ điều kiện nhưng không được chọn thì xem xét xếp loại Tốt.' },
+  { k: 3, text: 'Không xếp loại Xuất sắc đối với đơn vị: có nghị quyết bị kết luận ban hành trái pháp luật; có vi phạm bị xử lý trong năm; có cán bộ, công chức, đại biểu thuộc phạm vi quản lý bị kỷ luật từ cảnh cáo trở lên hoặc bị truy cứu trách nhiệm hình sự; địa phương không hoàn thành từ 30% chỉ tiêu kinh tế - xã hội chủ yếu trở lên do nguyên nhân chủ quan mà HĐND không có hoạt động giám sát, chất vấn, giải trình hoặc nghị quyết nhằm tháo gỡ.' },
+  { k: 4, text: 'Đơn vị có tập thể Thường trực HĐND hoặc người đứng đầu bị kỷ luật từ khiển trách trở lên trong năm đánh giá thì không được xếp loại từ mức Tốt trở lên.' },
+  { k: 5, text: 'Kê khai, cung cấp hồ sơ minh chứng không trung thực nhằm nâng điểm: trừ toàn bộ điểm của tiêu chí liên quan, trừ thêm điểm theo nhóm IX và hạ 01 mức xếp loại; tái phạm thì xếp loại Yếu và đề nghị cấp có thẩm quyền xem xét trách nhiệm người đứng đầu.' },
+];
 
 const r2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 const roundTo = (n, step) => Math.round(n / step) * step;
@@ -712,9 +734,16 @@ export function computeTC(kindId, ans = {}, opts = {}) {
   const reasons = [];
   const gV = groups.find((g) => g.code === 'V');
   const dmstRate = gV && gV.max ? gV.score / gV.max : 0;
-  const dk = { ...DK_DMST, ...(opts.dkDmst || {}) };
-  if (idx === 4 && dmstRate < dk.xuatsac) { idx = 3; reasons.push(`Chưa đáp ứng điều kiện đổi mới sáng tạo để xếp loại Xuất sắc (nhóm V đạt ${r2(gV.score)}/${gV.max} = ${Math.round(dmstRate * 100)}%, yêu cầu ≥ ${Math.round(dk.xuatsac * 100)}%).`); }
-  if (idx === 3 && dmstRate < dk.tot) { idx = 2; reasons.push(`Chưa đáp ứng điều kiện đổi mới sáng tạo để xếp loại Tốt (nhóm V đạt ${Math.round(dmstRate * 100)}%, yêu cầu ≥ ${Math.round(dk.tot * 100)}%).`); }
+  const dk = { ...dkDmstOf(kindId), ...(opts.dkDmst || {}) };
+  const models = Number((ans[dk.modelSub] || {}).count || 0); // số mô hình mới, cách làm hay (V.1)
+  if (idx === 4 && (dmstRate < dk.xuatsac || models < dk.minModels)) {
+    idx = 3;
+    reasons.push(`Chưa đáp ứng điều kiện đổi mới sáng tạo để xếp loại Xuất sắc: cần điểm nhóm V ≥ ${Math.round(dk.xuatsac * 100)}% (hiện ${Math.round(dmstRate * 100)}% = ${r2(gV.score)}/${gV.max}) và có ít nhất ${dk.minModels} mô hình mới, cách làm hay (hiện ${models}).`);
+  }
+  if (idx === 3 && (dmstRate < dk.tot || models < 1)) {
+    idx = 2;
+    reasons.push(`Chưa đáp ứng điều kiện đổi mới sáng tạo để xếp loại Tốt: cần điểm nhóm V ≥ ${Math.round(dk.tot * 100)}% (hiện ${Math.round(dmstRate * 100)}%) và có ít nhất 01 mô hình mới, cách làm hay (hiện ${models}).`);
+  }
   if (caps.noXS && idx === 4) { idx = 3; reasons.push('Có vi phạm thuộc trường hợp KHÔNG xếp loại Xuất sắc (Điều 6).'); }
   if (caps.noTot && idx > 2) { idx = 2; reasons.push('Tập thể Thường trực/người đứng đầu bị kỷ luật từ khiển trách trở lên → không xếp loại từ mức Tốt trở lên.'); }
   if (caps.down1 && idx > 0) { idx -= 1; reasons.push('Kê khai, cung cấp hồ sơ minh chứng không trung thực → hạ 01 mức xếp loại.'); }
@@ -724,7 +753,7 @@ export function computeTC(kindId, ans = {}, opts = {}) {
   return {
     kind: kindId, groups, base, bonus, deduct, total,
     grade, gradeName: gradeName(grade), reasons, sanctions, caps,
-    dmstRate: r2(dmstRate * 100),
+    dmstRate: r2(dmstRate * 100), models, dk,
     answered, totalSubs, progress: totalSubs ? Math.round((answered / totalSubs) * 100) : 0,
   };
 }
@@ -741,12 +770,25 @@ export function applyQuotaXuatSac(rows, ratio = QUOTA_XUATSAC) {
   return { picked, over, limit, candidates: cand.length };
 }
 
-// Các điểm chưa rõ trong DỰ THẢO — hiển thị để cơ quan soạn thảo rà lại.
-export const DRAFT_NOTES = [
-  { kind: 'xa', where: 'Phụ lục II — III.3', text: 'Điểm thành phần thứ nhất vừa ghi "mức đạt yêu cầu 3,0đ" vừa ghi "điểm chất lượng cộng thêm tối đa 3,0đ" nhưng cột Điểm thành phần tối đa chỉ 3,0đ (tiêu chí tối đa 6,0đ). Phần mềm tính: 3,0 − 0,5 × số kỳ thiếu + tỷ lệ chất lượng × 3,0, giới hạn ≤ 3,0đ.' },
-  { kind: 'xa', where: 'Phụ lục II — nhóm VIII', text: 'Tổng điểm tối đa của 04 nội dung là 13,0đ nhưng nhóm VIII giới hạn 10,0đ. Phần mềm cộng đủ rồi giới hạn ở 10,0đ.' },
-  { kind: 'tinh', where: 'Phụ lục I — IX.7', text: 'Cột "Điểm tối đa" ghi −5 nhưng cách chấm ghi "trừ 5,0đ/trường hợp, tối đa trừ 10,0đ". Phần mềm áp mức trần theo cách chấm (tối đa trừ 10,0đ).' },
-  { kind: 'xa', where: 'Phụ lục II — IX.6', text: 'Cột "Điểm tối đa" ghi −3 nhưng cách chấm ghi "trừ 3,0đ/lần, tối đa trừ 6,0đ". Phần mềm áp mức trần theo cách chấm (tối đa trừ 6,0đ).' },
-  { kind: 'both', where: 'Điều 6 khoản 1', text: '"Điều kiện về đổi mới sáng tạo" để xếp loại Xuất sắc/Tốt chưa nêu ngưỡng cụ thể trong Phụ lục. Phần mềm tạm dùng: Xuất sắc cần điểm nhóm V ≥ 60% và Tốt cần ≥ 40% điểm tối đa của nhóm V (có thể chỉnh khi ban hành chính thức).' },
-  { kind: 'both', where: 'Điều 6', text: 'Khoản 2 (không xếp loại Xuất sắc) và các khoản tiếp theo được đánh số 5, 6 — thiếu khoản 3, 4. Đề nghị rà lại số thứ tự khoản.' },
+// Những chỗ CHƯA NHẤT QUÁN trong dự thảo đã được CHUẨN HÓA trong phần mềm.
+// Hiển thị công khai trong module để cơ quan soạn thảo đưa vào bản trình ký chính thức.
+export const FIX_NOTES = [
+  { kind: 'xa', where: 'Phụ lục II — III.3 (tiếp công dân)',
+    was: 'Điểm thành phần thứ nhất vừa ghi "mức đạt yêu cầu 3,0đ" vừa ghi "điểm chất lượng cộng thêm tối đa 3,0đ", trong khi cột Điểm thành phần tối đa chỉ 3,0đ và tiêu chí tối đa 6,0đ (cộng đủ sẽ thành 9,0đ).',
+    now: 'Tách thành 02 điểm thành phần: III.3.a tiếp công dân đủ số kỳ 1,5đ (thiếu mỗi kỳ trừ 0,5đ) + III.3.b điểm chất lượng = tỷ lệ % × 1,5đ; giữ III.3.c đơn thư 3,0đ. Tiêu chí III.3 vẫn đúng 6,0đ và theo đúng cách viết của tiêu chí I.1 cùng Phụ lục.' },
+  { kind: 'xa', where: 'Phụ lục II — nhóm VIII (điểm thưởng)',
+    was: '04 nội dung cộng lại 13,0đ (5 + 3 + 2 + 3) trong khi nhóm VIII tối đa 10,0đ.',
+    now: 'Phân bổ lại đúng 10,0đ: VIII.1 = 4,0đ · VIII.2 = 2,0đ (biểu dương 1,0đ) · VIII.3 = 2,0đ · VIII.4 = 2,0đ (1,0đ/nghị quyết chuyên đề). Giữ nguyên thứ tự ưu tiên của dự thảo.' },
+  { kind: 'tinh', where: 'Phụ lục I — IX.7 (cán bộ bị kỷ luật)',
+    was: 'Cột "Điểm tối đa" ghi −5 nhưng cách chấm ghi "trừ 5,0đ/trường hợp, tối đa trừ 10,0đ".',
+    now: 'Thống nhất theo cách chấm điểm: trừ 5,0đ/trường hợp, tối đa trừ 10,0đ (nếu để trần 5,0đ thì cụm "tối đa trừ 10,0đ" không có ý nghĩa). Đề nghị sửa cột Điểm tối đa thành −10.' },
+  { kind: 'xa', where: 'Phụ lục II — IX.6 (không thực hiện chỉ đạo)',
+    was: 'Cột "Điểm tối đa" ghi −3 nhưng cách chấm ghi "trừ 3,0đ/lần, tối đa trừ 6,0đ".',
+    now: 'Thống nhất theo cách chấm điểm: trừ 3,0đ/lần, tối đa trừ 6,0đ. Đề nghị sửa cột Điểm tối đa thành −6.' },
+  { kind: 'both', where: 'Điều 6 — điều kiện đổi mới sáng tạo',
+    was: 'Xếp loại Xuất sắc, Tốt yêu cầu "đáp ứng điều kiện về đổi mới sáng tạo theo quy định" nhưng Phụ lục không nêu ngưỡng cụ thể nào.',
+    now: 'Lượng hóa theo chính câu chữ của nhóm V: Xuất sắc cần điểm nhóm V ≥ 60% điểm tối đa VÀ có ít nhất 02 mô hình mới, cách làm hay (cấp tỉnh) / 01 mô hình (cấp xã); Tốt cần điểm nhóm V ≥ 40% VÀ có ít nhất 01 mô hình. Phần mềm hiển thị rõ chỉ số này trên phiếu.' },
+  { kind: 'both', where: 'Điều 6 — số thứ tự khoản',
+    was: 'Sau khoản 1, 2 thì dự thảo nhảy sang khoản 5, 6 (thiếu khoản 3, 4).',
+    now: 'Đánh số lại liền mạch 5 khoản: (1) mức xếp loại theo điểm; (2) trần 25% Xuất sắc của cấp xã; (3) các trường hợp không xếp loại Xuất sắc; (4) kỷ luật người đứng đầu → không từ Tốt trở lên; (5) kê khai không trung thực → hạ mức, tái phạm xếp loại Yếu.' },
 ];

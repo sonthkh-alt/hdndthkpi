@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import {
   KHUNG, TC_KINDS, TC_TINH_SUBJECTS, computeTC, subScore, allGroups, kindInfo,
-  TC_GRADES, gradeName, applyQuotaXuatSac, QUOTA_XUATSAC, DK_DMST, DRAFT_NOTES,
+  TC_GRADES, gradeName, applyQuotaXuatSac, QUOTA_XUATSAC, dkDmstOf, FIX_NOTES, DIEU6,
 } from './lib/khungTieuChi';
 import {
   readTC, fetchTC, saveTC, saveUnitEval, unitLogin, readUnitSession, writeUnitSession,
@@ -124,9 +124,9 @@ function SubRow({ sub, ans, onChange, readOnly }) {
         )}
       </div>
 
-      {sub.draftNote && (
-        <p className="mt-2 text-[11px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2 py-1.5 flex items-start gap-1.5">
-          <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {sub.draftNote}
+      {sub.fixNote && (
+        <p className="mt-2 text-[11px] text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2 py-1.5 flex items-start gap-1.5">
+          <Info className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {sub.fixNote}
         </p>
       )}
 
@@ -182,6 +182,7 @@ function GroupBlock({ group, comp, ans, onAns, readOnly, defaultOpen }) {
                   <span className="shrink-0 text-lg font-extrabold text-rose-600">{minus ? `-${nf(minus)}` : '0'}</span>
                 </div>
                 <p className="text-[11px] text-slate-500 mt-1">Trừ {nf(it.per)}đ/{it.unitLabel}, tối đa trừ {nf(it.cap)}đ. {it.sanctionText && <b className="text-rose-700">Chế tài: {it.sanctionText}</b>} {it.note}</p>
+                {it.fixNote && <p className="text-[11px] text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2 py-1.5 mt-1.5 flex items-start gap-1.5"><Info className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {it.fixNote}</p>}
                 <div className="mt-2 flex flex-wrap items-center gap-4">
                   <Num value={a.count} disabled={readOnly} onChange={(v) => onAns(it.id, { ...a, count: v })} suffix={`Số ${it.unitLabel}`} />
                   {it.repeatFlag && (
@@ -262,7 +263,8 @@ function ScoreCard({ comp, rec, kind }) {
       )}
       <div className="px-3 pb-3">
         <p className="text-[11px] text-slate-400 leading-snug">
-          Điểm nhóm V (đổi mới sáng tạo) đạt <b className="text-slate-600">{comp.dmstRate}%</b> — điều kiện xếp loại Xuất sắc ≥ {Math.round(DK_DMST.xuatsac * 100)}%, Tốt ≥ {Math.round(DK_DMST.tot * 100)}%.
+          <b className="text-slate-600">Điều kiện đổi mới sáng tạo:</b> điểm nhóm V đạt <b className={comp.dmstRate >= dkDmstOf(kind).xuatsac * 100 ? 'text-emerald-600' : 'text-slate-600'}>{comp.dmstRate}%</b> (Xuất sắc ≥ {Math.round(dkDmstOf(kind).xuatsac * 100)}%, Tốt ≥ {Math.round(dkDmstOf(kind).tot * 100)}%);
+          số mô hình mới, cách làm hay: <b className={comp.models >= dkDmstOf(kind).minModels ? 'text-emerald-600' : 'text-slate-600'}>{comp.models}</b> (Xuất sắc cần ≥ {dkDmstOf(kind).minModels}).
           {kind === 'xa' && <> Số đơn vị xếp loại Xuất sắc không vượt quá {Math.round(QUOTA_XUATSAC * 100)}% tổng số đơn vị được đánh giá.</>}
         </p>
         {rec?.submitted && <p className="mt-2 text-[11px] text-emerald-700 font-semibold flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5" /> Đã gửi kết quả ngày {dmy(rec.submittedAt)}</p>}
@@ -410,20 +412,36 @@ export function KhungView({ kind, onKind }) {
               <div key={it.id} className="rounded-xl border border-slate-200 p-3">
                 <p className="text-[13px] font-semibold text-slate-800">{it.id}. {it.title} {it.max != null && <span className="text-[11px] font-bold text-indigo-600">({it.max}đ)</span>}</p>
                 {it.subs ? it.subs.map((sb) => (
-                  <p key={sb.id} className="mt-1.5 text-[12px] text-slate-600 leading-snug"><b className="text-indigo-600">{sb.id}</b> <span className="text-[11px] font-bold text-slate-500">[{nf(sb.max)}đ]</span> {sb.guide}</p>
+                  <div key={sb.id}>
+                    <p className="mt-1.5 text-[12px] text-slate-600 leading-snug"><b className="text-indigo-600">{sb.id}</b> <span className="text-[11px] font-bold text-slate-500">[{nf(sb.max)}đ]</span> {sb.guide}</p>
+                    {sb.fixNote && <p className="mt-1 text-[11px] text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2 py-1">{sb.fixNote}</p>}
+                  </div>
                 )) : (
-                  <p className="mt-1.5 text-[12px] text-slate-600">Trừ {nf(it.per)}đ/{it.unitLabel}, tối đa trừ {nf(it.cap)}đ. {it.sanctionText}</p>
+                  <>
+                    <p className="mt-1.5 text-[12px] text-slate-600">Trừ {nf(it.per)}đ/{it.unitLabel}, tối đa trừ {nf(it.cap)}đ. {it.sanctionText}</p>
+                    {it.fixNote && <p className="mt-1 text-[11px] text-sky-700 bg-sky-50 border border-sky-200 rounded-lg px-2 py-1">{it.fixNote}</p>}
+                  </>
                 )}
               </div>
             ))}
           </div>
         </div>
       ))}
-      <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-        <p className="text-[13px] font-bold text-amber-800 flex items-center gap-1.5"><AlertTriangle className="w-4 h-4" /> Điểm cần làm rõ trong dự thảo Khung tiêu chí</p>
+      <div className="rounded-2xl border border-slate-200 bg-white p-4">
+        <p className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5"><ClipboardCheck className="w-4 h-4 text-indigo-600" /> Điều 6 — Điều kiện xếp loại (đã đánh số lại liền mạch)</p>
         <ul className="mt-2 space-y-1.5">
-          {DRAFT_NOTES.filter((n) => n.kind === 'both' || n.kind === kind).map((n, i) => (
-            <li key={i} className="text-[12px] text-amber-900 leading-snug">• <b>{n.where}:</b> {n.text}</li>
+          {DIEU6.map((d) => <li key={d.k} className="text-[12px] text-slate-600 leading-snug"><b className="text-slate-800">{d.k}.</b> {d.text}</li>)}
+        </ul>
+      </div>
+      <div className="rounded-2xl border border-sky-200 bg-sky-50 p-4">
+        <p className="text-[13px] font-bold text-sky-800 flex items-center gap-1.5"><Info className="w-4 h-4" /> Nội dung đã chuẩn hóa so với dự thảo (kiến nghị đưa vào bản chính thức)</p>
+        <ul className="mt-2 space-y-2">
+          {FIX_NOTES.filter((n) => n.kind === 'both' || n.kind === kind).map((n, i) => (
+            <li key={i} className="text-[12px] leading-snug">
+              <b className="text-sky-900">{n.where}</b>
+              <p className="text-slate-500 mt-0.5"><span className="font-semibold text-slate-600">Dự thảo:</span> {n.was}</p>
+              <p className="text-sky-800 mt-0.5"><span className="font-semibold">Đã chuẩn hóa:</span> {n.now}</p>
+            </li>
           ))}
         </ul>
       </div>
@@ -682,9 +700,10 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
             <p className="text-[12px] font-bold text-slate-700">Lưu ý bảo mật</p>
             <p className="text-[11px] text-slate-500 leading-relaxed mt-1">Mã truy cập của đơn vị chỉ được lưu dưới dạng chuỗi băm SHA-256 (không lưu bản rõ). Khi đơn vị quên mã, Quản trị bấm “Cấp lại mã”. Để đơn vị lưu được kết quả lên máy chủ, cần chạy BƯỚC 5 trong <code className="bg-white px-1 rounded">supabase/schema.sql</code>.</p>
           </div>
-          <div className="rounded-xl bg-amber-50 border border-amber-200 p-3">
-            <p className="text-[12px] font-bold text-amber-800">Điểm cần làm rõ trong dự thảo</p>
-            <ul className="mt-1 space-y-1">{DRAFT_NOTES.map((n, i) => <li key={i} className="text-[11px] text-amber-900 leading-snug">• <b>{n.where}:</b> {n.text}</li>)}</ul>
+          <div className="rounded-xl bg-sky-50 border border-sky-200 p-3">
+            <p className="text-[12px] font-bold text-sky-800">Nội dung đã chuẩn hóa so với dự thảo</p>
+            <ul className="mt-1 space-y-1.5">{FIX_NOTES.map((n, i) => <li key={i} className="text-[11px] text-sky-900 leading-snug">• <b>{n.where}:</b> {n.now}</li>)}</ul>
+            <p className="text-[10px] text-sky-700 mt-1.5">Chi tiết “dự thảo ghi gì / đã sửa thế nào” xem ở mục <b>Khung tiêu chí</b>.</p>
           </div>
           {saving && <p className="text-[12px] text-slate-500">Đang lưu…</p>}
         </div>
