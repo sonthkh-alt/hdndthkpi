@@ -11,35 +11,64 @@ const n1 = (v) => (Math.round(Number(v || 0) * 10) / 10).toString().replace('.',
 const dmy = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
 
 // ---------------------------------------------------------------------------
-//  A. Kỳ đánh giá OKR/KPI & Kiểm điểm (dòng state_<năm>_<tháng>)
+//  A. Kỳ đánh giá của HAI PHÂN HỆ chấm điểm cán bộ — mỗi phân hệ một kho riêng:
+//      • OKR/KPI cán bộ, công chức   (hằng THÁNG) -> state_<năm>_<tháng>
+//      • Kiểm điểm, xếp loại đảng viên (hằng QUÝ) -> state_kiemdiem_<năm>_<tháng>
 //  App ghi kèm `_summary` (điểm đã tính sẵn) mỗi lần lưu -> máy chủ không phải
 //  dựng lại toàn bộ công thức chấm điểm của giao diện.
 // ---------------------------------------------------------------------------
-export async function periodFacts(wanted) {
-  const list = await listPeriodIds();
-  if (!list.length) return { text: '', meta: null };
+const ROMAN = ['I', 'II', 'III', 'IV'];
+export const PERIOD_MODULES = [
+  {
+    ns: '', route: '/#/okr',
+    title: 'Đánh giá OKR/KPI cán bộ, công chức (chấm hằng tháng)',
+    kyOf: (p) => `tháng ${p.month}/${p.year}`,
+    who: 'cán bộ, công chức, người lao động Văn phòng',
+  },
+  {
+    ns: 'kiemdiem', route: '/#/kiemdiem',
+    title: 'Kiểm điểm, đánh giá, xếp loại đảng viên (chấm hằng quý)',
+    kyOf: (p) => `quý ${ROMAN[Math.max(0, Math.ceil(p.month / 3) - 1)]}/${p.year}`,
+    who: 'cán bộ thuộc diện Ban Thường vụ Tỉnh ủy quản lý',
+  },
+];
 
-  let pick = list[0];
-  if (wanted?.year && wanted?.month) {
-    pick = list.find((p) => p.year === Number(wanted.year) && p.month === Number(wanted.month)) || pick;
+export async function periodFacts(wanted) {
+  const all = await listPeriodIds();          // tất cả phân hệ
+  const parts = [];
+  let meta = null;
+  const modules = [];
+
+  for (const mod of PERIOD_MODULES) {
+    const list = all.filter((p) => p.ns === mod.ns);
+    if (!list.length) continue;
+    let pick = list[0];
+    if (wanted?.year && wanted?.month) {
+      pick = list.find((p) => p.year === Number(wanted.year) && p.month === Number(wanted.month)) || pick;
+    }
+    const r = fmtPeriod(await getRow(pick.id), pick, list, mod);
+    parts.push(r.text);
+    modules.push({ ...mod, meta: r.meta });
+    if (!meta) meta = r.meta;                 // giữ tương thích: meta = kỳ của phân hệ đầu tiên
   }
-  return fmtPeriod(await getRow(pick.id), pick, list);
+  return { text: parts.join('\n\n'), meta, modules };
 }
 
 /** Phần định dạng THUẦN (không đụng mạng) — tách ra để kiểm thử bằng Node. */
-export function fmtPeriod(row, pick, list = []) {
+export function fmtPeriod(row, pick, list = [], mod = PERIOD_MODULES[0]) {
   const st = row?.data || {};
   const sum = st._summary;
-  const others = list.slice(0, 8).map((p) => `${p.month}/${p.year}`).join(', ');
+  const ky = mod.kyOf(pick);
+  const others = list.slice(0, 8).map((p) => mod.kyOf(p)).join(', ');
 
   if (!sum || !Array.isArray(sum.people)) {
     const names = (st.people || []).map((p) => p.name).filter(Boolean);
     return {
-      meta: pick,
-      text: `## Kỳ đánh giá cán bộ ${pick.month}/${pick.year}\n`
+      meta: { ...pick, ky },
+      text: `## ${mod.title} — kỳ ${ky}\n`
         + `Có ${names.length} cán bộ trong danh sách nhưng bản lưu này CHƯA có bảng điểm tóm tắt `
         + `(dữ liệu lưu trước khi hệ thống bổ sung tính năng này). Hãy đề nghị người dùng mở `
-        + `https://hdndthkpi.vercel.app/#/okr rồi bấm "Lưu ngay" một lần để cập nhật.\n`
+        + `https://hdndthkpi.vercel.app${mod.route} rồi bấm "Lưu ngay" một lần để cập nhật.\n`
         + `Danh sách: ${names.join(', ')}\nCác kỳ đã có dữ liệu: ${others}`,
     };
   }
@@ -50,9 +79,9 @@ export function fmtPeriod(row, pick, list = []) {
   const avg = sum.people.length ? sum.people.reduce((s, p) => s + Number(p.mgr || 0), 0) / sum.people.length : 0;
 
   return {
-    meta: pick,
-    text: `## Kỳ đánh giá cán bộ ${pick.month}/${pick.year} (bộ tiêu chí: ${sum.version || '?'}, cập nhật ${dmy(row.updated_at)})\n`
-      + `Đơn vị: ${sum.unit || 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa'}\n`
+    meta: { ...pick, ky },
+    text: `## ${mod.title} — kỳ ${ky} (cập nhật ${dmy(row.updated_at)})\n`
+      + `Đối tượng đánh giá: ${mod.who}. Đơn vị: ${sum.unit || 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa'}\n`
       + `Tổng số: ${sum.people.length} người · điểm trung bình (cấp duyệt): ${n1(avg)}\n`
       + `Cơ cấu xếp loại: ${Object.entries(dist).map(([k, v]) => `${k}: ${v}`).join(' · ')}\n`
       + `Đã phê duyệt: ${sum.people.filter((p) => p.approved).length}/${sum.people.length}\n`
@@ -143,7 +172,8 @@ export function fmtNhanSu(doc) {
 const KW = {
   tc: ['tiêu chí', 'tieu chi', 'xã', 'phường', 'xa,', 'hđnd xã', 'đơn vị', 'don vi', 'hạc thành', 'quota', 'trần 25', 'xuất sắc 25'],
   hr: ['nâng lương', 'nang luong', 'nghỉ hưu', 'nghi huu', 'nhắc việc', 'nhac viec', 'biên chế', 'bien che', 'hồ sơ 2c', 'sinh nhật', 'hợp đồng', 'bổ nhiệm'],
-  kp: ['điểm', 'diem', 'xếp loại', 'xep loai', 'kpi', 'okr', 'cán bộ', 'can bo', 'phê duyệt', 'phe duyet', 'phòng', 'tổng quan', 'trung bình', 'kiểm điểm'],
+  kp: ['điểm', 'diem', 'xếp loại', 'xep loai', 'kpi', 'okr', 'cán bộ', 'can bo', 'phê duyệt', 'phe duyet', 'phòng', 'tổng quan', 'trung bình',
+    'kiểm điểm', 'kiem diem', 'đảng viên', 'dang vien', 'thường vụ', 'thuong vu', 'btv', 'tỉnh ủy', 'tinh uy', 'quý', 'quy i', 'hằng quý'],
 };
 const hit = (q, list) => list.some((k) => q.includes(k));
 

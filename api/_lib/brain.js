@@ -16,6 +16,7 @@ const HELP = `Xin chào! Tôi là trợ lý của Văn phòng Đoàn ĐBQH và H
 Cứ hỏi tôi bằng tiếng Việt bình thường, ví dụ:
 • "Điểm tháng này của đồng chí Hà Ngọc Sơn bao nhiêu?"
 • "Phòng nào có điểm trung bình cao nhất?"
+• "Kết quả kiểm điểm quý này của các đồng chí diện Ban Thường vụ Tỉnh ủy quản lý?"
 • "Còn ai chưa được phê duyệt?"
 • "Phường Hạc Thành xếp loại gì, vì sao chưa đạt Xuất sắc?"
 • "Muốn xếp loại Xuất sắc thì cần điều kiện gì?"
@@ -38,7 +39,9 @@ async function statusText() {
   if (hasStore()) {
     try {
       const p = await periodFacts();
-      lines.push(`Kỳ đánh giá mới nhất: ${p.meta ? `${p.meta.month}/${p.meta.year}` : 'chưa có dữ liệu'}`);
+      if (p.modules?.length) {
+        p.modules.forEach((m) => lines.push(`${m.title}: kỳ mới nhất ${m.meta.ky}`));
+      } else lines.push('Kỳ đánh giá cán bộ: chưa có dữ liệu');
       const t = await tieuChiFacts();
       lines.push(`Tiêu chí HĐND: ${t.meta ? `${t.meta.units} đơn vị, năm ${t.meta.year}` : 'chưa có dữ liệu'}`);
     } catch (e) { lines.push(`Lỗi đọc dữ liệu: ${e.message}`); }
@@ -67,8 +70,9 @@ export async function reply({ text, chatKey, isAdmin = false }) {
       tieuChiFacts().catch(() => ({ text: '' })),
       isAdmin ? nhanSuFacts().catch(() => ({ text: '' })) : Promise.resolve({ text: '' }),
     ]);
+    // Có tới 3 khối số liệu (2 phân hệ chấm điểm + tiêu chí HĐND); telegram.js tự cắt thành nhiều tin.
     const out = parts.map((p) => p.text).filter(Boolean).join('\n\n');
-    return out ? out.slice(0, 3800) : 'Chưa đọc được số liệu nào. Gõ /trangthai để kiểm tra kết nối.';
+    return out ? out.slice(0, 9000) : 'Chưa đọc được số liệu nào. Gõ /trangthai để kiểm tra kết nối.';
   }
 
   if (!hasAI()) {

@@ -46,15 +46,26 @@ export async function putRow(id, data) {
   });
 }
 
-/** Danh sách các kỳ đã có dữ liệu, mới nhất trước. PostgREST đổi '*' thành '%'. */
-export async function listPeriodIds() {
+// Mỗi PHÂN HỆ có kho dữ liệu riêng (xem src/lib/supabase.js):
+//   state_<năm>_<tháng>             -> OKR/KPI cán bộ, công chức (ns = '')
+//   state_kiemdiem_<năm>_<tháng>    -> Kiểm điểm, xếp loại đảng viên (ns = 'kiemdiem')
+//   state_<bộ tiêu chí>_<năm>_<tháng> -> các bản trong Phòng thử nghiệm
+const PERIOD_RE = /^state_(?:([a-z]+)_)?(\d+)_(\d+)$/;
+
+/**
+ * Danh sách các kỳ đã có dữ liệu, mới nhất trước.
+ * @param {string|null} ns  null = TẤT CẢ phân hệ; '' = riêng OKR/KPI; 'kiemdiem' = riêng Kiểm điểm.
+ * PostgREST đổi '*' thành '%'.
+ */
+export async function listPeriodIds(ns = null) {
   const rows = await rest('app_state?id=like.state_*&select=id,updated_at');
   return (rows || [])
     .map((r) => {
-      const m = String(r.id).match(/^state_(\d+)_(\d+)$/);
-      return m ? { id: r.id, year: Number(m[1]), month: Number(m[2]), updated_at: r.updated_at } : null;
+      const m = String(r.id).match(PERIOD_RE);
+      return m ? { id: r.id, ns: m[1] || '', year: Number(m[2]), month: Number(m[3]), updated_at: r.updated_at } : null;
     })
     .filter(Boolean)
+    .filter((p) => ns == null || p.ns === ns)
     .sort((a, b) => (b.year - a.year) || (b.month - a.month));
 }
 

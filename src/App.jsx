@@ -1038,12 +1038,14 @@ function seedSonHaPeople() {
 //    15 đồng chí của bản Kiểm điểm). Người do Quản trị tự thêm KHÔNG bị đụng tới.
 // Nhờ vậy bản OKR/KPI luôn đủ 28 đồng chí, bản Kiểm điểm đủ 15 đồng chí.
 const normName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
+// Khóa nhận dạng gồm CẢ ĐƠN VỊ: cơ quan có hai đồng chí trùng họ tên ở hai đơn vị khác nhau.
+const pKey = (p) => `${normName(p?.name)}|${normName(p?.department)}`;
 let officialNamesCache = null;
 function officialNamesOf(version) {
   if (!officialNamesCache) {
     officialNamesCache = {
-      sonha: new Set(seedSonHaPeople().map((p) => normName(p.name))),
-      kiemdiem: new Set(seedKiemDiemPeople().map((p) => normName(p.name))),
+      sonha: new Set(seedSonHaPeople().map(pKey)),
+      kiemdiem: new Set(seedKiemDiemPeople().map(pKey)),
     };
   }
   const others = new Set();
@@ -1051,12 +1053,12 @@ function officialNamesOf(version) {
   return others;
 }
 function mergeOfficialPeople(saved, official, version) {
-  const mine = new Set((official || []).map((p) => normName(p.name)));
+  const mine = new Set((official || []).map(pKey));
   const others = officialNamesOf(version);
   // Giữ: người của danh sách chính thống + người lạ do Quản trị tự thêm. Bỏ: người của phân hệ khác.
-  const list = (saved || []).filter((p) => { const n = normName(p.name); return mine.has(n) || !others.has(n); });
-  const have = new Set(list.map((p) => normName(p.name)));
-  const add = (official || []).filter((p) => p.name && !have.has(normName(p.name)));
+  const list = (saved || []).filter((p) => { const k = pKey(p); return mine.has(k) || !others.has(k); });
+  const have = new Set(list.map(pKey));
+  const add = (official || []).filter((p) => p.name && !have.has(pKey(p)));
   if (!add.length) return list;
   let next = Math.max(0, ...list.map((p) => p.id || 0)) + 1;   // id mới, không đụng id đã lưu
   return [...list, ...add.map((p) => ({ ...p, id: next++ }))];
@@ -1072,16 +1074,18 @@ function mergeOfficialPeople(saved, official, version) {
 function ensureRoster(staff) {
   const okr = seedSonHaPeople();
   const kd = seedKiemDiemPeople();
-  let out = syncStaffFromPeople(Array.isArray(staff) ? staff : [], okr).staff;
-  out = syncStaffFromPeople(out, kd).staff;      // ghép theo email/tên; chức danh lấy bản đầy đủ của Kiểm điểm
-  const btvNames = new Set(kd.map((p) => normName(p.name)));
-  const official = new Set([...okr, ...kd].map((p) => normName(p.name)));
+  // strict = ghép theo email hoặc "họ tên + đơn vị", KHÔNG ghép chỉ theo họ tên: cơ quan có
+  // hai đồng chí TRÙNG HỌ TÊN ở hai đơn vị khác nhau, ghép nhầm sẽ mất một người.
+  let out = syncStaffFromPeople(Array.isArray(staff) ? staff : [], okr, { strict: true }).staff;
+  out = syncStaffFromPeople(out, kd, { strict: true }).staff;   // chức danh lấy bản đầy đủ của Kiểm điểm
+  const btvKeys = new Set(kd.map(pKey));           // nhận dạng theo họ tên + ĐƠN VỊ
+  const official = new Set([...okr, ...kd].map(pKey));
   return out.map((s) => {
-    const n = normName(s.name);
+    const k = pKey(s);
     return {
       ...s,
-      btv: btvNames.has(n) ? true : !!s.btv,       // 15 đồng chí diện BTV luôn được đánh dấu
-      detached: official.has(n) ? false : s.detached,
+      btv: btvKeys.has(k) ? true : !!s.btv,        // 15 đồng chí diện BTV luôn được đánh dấu
+      detached: official.has(k) ? false : s.detached,
     };
   });
 }

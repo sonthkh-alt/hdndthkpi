@@ -346,12 +346,18 @@ export function inferNgach(p) {
   return '01.003';
 }
 // Khóa ghép hồ sơ ↔ cán bộ: ưu tiên email, sau đó "họ tên | đơn vị", cuối cùng là họ tên.
-const keysOf = (x) => {
+// `strict` = BỎ khóa chỉ-theo-họ-tên. Cần khi gộp danh sách của các đơn vị khác nhau: cơ quan
+// có hai người TRÙNG HỌ TÊN ở hai đơn vị (vd đ/c Lê Thị Hương ở Phòng Hành chính - Tổ chức -
+// Quản trị và đ/c Lê Thị Hương Phó Trưởng Ban Pháp chế) — ghép nhầm sẽ mất một người.
+const keysOf = (x, strict = false) => {
   const k = [];
   const em = (x?.email || '').trim().toLowerCase();
   const nm = (x?.name || '').trim().toLowerCase().replace(/\s+/g, ' ');
   if (em) k.push('e:' + em);
-  if (nm) { k.push('n:' + nm + '|' + (x?.department || '').trim().toLowerCase()); k.push('s:' + nm); }
+  if (nm) {
+    k.push('n:' + nm + '|' + (x?.department || '').trim().toLowerCase());
+    if (!strict) k.push('s:' + nm);
+  }
   return k;
 };
 
@@ -360,18 +366,18 @@ const keysOf = (x) => {
 //  • Người ĐÃ có hồ sơ    -> cập nhật chức vụ/đơn vị/email nếu hệ thống đổi; GIỮ NGUYÊN mọi thông tin đã nhập.
 //  • Hồ sơ không còn trong danh sách -> GIỮ LẠI (đánh dấu detached) để không mất dữ liệu đã khai.
 // Trả về { staff, added, updated, detached } — thuần, không sửa mảng đầu vào.
-export function syncStaffFromPeople(staff, people) {
+export function syncStaffFromPeople(staff, people, { strict = false } = {}) {
   const list = Array.isArray(staff) ? staff : [];
   const src = (Array.isArray(people) ? people : []).filter((p) => p && (p.name || '').trim());
   const index = new Map();
-  list.forEach((s, i) => keysOf(s).forEach((k) => { if (!index.has(k)) index.set(k, i); }));
+  list.forEach((s, i) => keysOf(s, strict).forEach((k) => { if (!index.has(k)) index.set(k, i); }));
 
   const out = list.map((s) => ({ ...s }));
   const matched = new Set();
   let added = 0, updated = 0;
 
   src.forEach((p) => {
-    const hit = keysOf(p).map((k) => index.get(k)).find((i) => i != null && !matched.has(i));
+    const hit = keysOf(p, strict).map((k) => index.get(k)).find((i) => i != null && !matched.has(i));
     if (hit != null) {
       matched.add(hit);
       const s = out[hit];
