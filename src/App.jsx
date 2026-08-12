@@ -1125,7 +1125,6 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; 'guest' = khách mặc định
   const sessionRef = useRef(undefined);               // bản ref của session để dùng trong hàm async
-  const guestSeededRef = useRef(false);               // đã nạp dữ liệu mẫu cho khách chưa
   const [wantLogin, setWantLogin] = useState(!!initialLogin);  // true khi người dùng chủ động bấm Đăng nhập (kể cả từ Trang chủ) (quản trị)
   // Cấu hình hiển thị/đổi tên phiên bản (quản trị điều khiển): cache local + nạp bản mới từ Supabase.
   const [versionCfg, setVersionCfg] = useState(readVersionCfg);
@@ -1173,35 +1172,35 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p); // sửa lại ô nhập nếu gõ sai
     loadingRef.current = true;
     setConflict(false); setSeedFrom(null);
-    // Khách & quản trị cục bộ: luôn hiển thị sẵn danh sách mẫu, không nạp dữ liệu máy chủ.
-    if (isLocalSession(sessionRef.current)) {
-      loadDemoPeople(); guestSeededRef.current = true;
-      setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
-    }
+    // MỘT NGUỒN DỮ LIỆU DUY NHẤT: khách và người đăng nhập đều ĐỌC cùng bản ghi trên
+    // máy chủ, nên hai bên luôn thấy GIỐNG NHAU. Khách chỉ khác ở chỗ KHÔNG được ghi
+    // (autosave/Lưu ngay đã chặn) nên không giữ mốc thời gian khóa lạc quan.
+    // ⚠️ Khách đọc được là nhờ chính sách "state_public_read" (BƯỚC 6, supabase/schema.sql);
+    // chưa chạy SQL đó thì khách rơi về danh sách chính thống dựng sẵn ở bên dưới.
+    const local = isLocalSession(sessionRef.current);
     const res = await loadState(p, dataNs);
-    // Trong lúc await, phiên có thể vừa được xác định là cục bộ -> ưu tiên dữ liệu mẫu, bỏ qua dữ liệu máy chủ.
-    if (isLocalSession(sessionRef.current)) {
-      loadDemoPeople(); guestSeededRef.current = true;
-      setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
-    }
-    serverTsRef.current = res.serverTs;
-    if (res.state) {
-      const ppl = res.state.people || [];
-      setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
+    serverTsRef.current = local ? null : res.serverTs;
+    const ppl0 = res.state?.people || [];
+    if (ppl0.length) {
+      setPeople(ppl0); setCurId(ppl0[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
-      bumpCounters(ppl);
+      bumpCounters(ppl0);
     } else {
       const others = (await listPeriods(dataNs)).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
-      else loadDemoPeople(); // phân hệ chưa có kỳ nào -> hiện sẵn danh sách cán bộ mẫu của ĐÚNG phân hệ
+      // Kỳ đầu tiên của phân hệ -> nạp DANH SÁCH CHÍNH THỐNG của phân hệ đó. Người đăng
+      // nhập thật sẽ được autosave ghi lên máy chủ, thành dữ liệu chính thức dùng chung.
+      else loadDemoPeople();
     }
     setCloud({ ready: !!supabase, saving: false });
     loaded.current = true;
     loadingRef.current = false;
   };
 
-  // Nạp cán bộ mẫu (demo) theo ĐÚNG phiên bản đang chọn: bản SonHa = 20 người, các bản khác = 5 người.
+  // DANH SÁCH CÁN BỘ CHÍNH THỐNG của phân hệ đang mở (Kiểm điểm = 15 đồng chí diện BTV
+  // Tỉnh ủy quản lý, OKR/KPI = CBCCVC-LĐ Văn phòng…). Đây là dữ liệu chuẩn của bản demo,
+  // được coi như dữ liệu thật: hiện cho MỌI người dùng và được ghi lên máy chủ.
   const loadDemoPeople = () => {
     const demo = seedDemoPeople(version);
     setSeedFrom(null);
@@ -1209,15 +1208,12 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     bumpCounters(demo);
   };
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { loadPeriod(period); refreshTrends(); }, []);
-
-  // Khách (demo) đổi phiên bản giữa phiên -> nạp lại bộ dữ liệu mẫu tương ứng (bản SonHa: 20 người).
+  // Đổi bộ tiêu chí giữa phiên (Phòng thử nghiệm) -> nạp lại đúng kho dữ liệu của bản đó.
   const versionRef = useRef(version);
   useEffect(() => {
     if (versionRef.current === version) return; // bỏ qua lần mount đầu
     versionRef.current = version;
-    if (isLocalSession(sessionRef.current)) loadDemoPeople();
+    loadPeriod(period); refreshTrends();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [version]);
 
@@ -1234,11 +1230,17 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     return () => unsub();
   }, []);
 
-  // Đồng bộ sessionRef + tự nạp 5 cán bộ mẫu khi vào bằng tài khoản khách (chỉ một lần/phiên khách).
+  // Đồng bộ sessionRef + NẠP DỮ LIỆU KHI ĐÃ BIẾT PHIÊN (khách hay đăng nhập thật đều
+  // đọc cùng một nguồn). Nạp sau khi biết phiên để tránh: vừa đăng nhập xong, autosave
+  // đã kịp ghi danh sách đang hiển thị ĐÈ LÊN dữ liệu chính thống trên máy chủ.
+  const sessionLoadedRef = useRef(undefined);
   useEffect(() => {
     sessionRef.current = session;
-    if (isLocalSession(session) && !guestSeededRef.current) { guestSeededRef.current = true; loadDemoPeople(); }
-    if (session && !isLocalSession(session)) guestSeededRef.current = false; // đăng nhập thật -> cho phép nạp lại nếu sau này quay về khách
+    if (session === undefined) return;                    // chưa xác định xong -> chờ
+    if (sessionLoadedRef.current === session) return;     // phiên không đổi -> thôi
+    sessionLoadedRef.current = session;
+    loadPeriod(period); refreshTrends();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
 
   useEffect(() => {

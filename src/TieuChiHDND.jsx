@@ -933,7 +933,16 @@ export default function TieuChiHDND({ onHome }) {
       // Đang đăng nhập sẵn bằng tài khoản quản trị (dùng chung phiên với các phân hệ khác)
       const s = await getSession();
       const em = (s?.user?.email || '').toLowerCase();
-      if (alive && em && ADMIN_EMAILS.includes(em)) { setAdmin({ mode: 'server', email: em }); setGuest(false); setView('admin'); }
+      const isAdm = !!em && ADMIN_EMAILS.includes(em);
+      if (alive && isAdm) { setAdmin({ mode: 'server', email: em }); setGuest(false); setView('admin'); }
+      // BẢN DEMO — dữ liệu mẫu được coi như DỮ LIỆU CHÍNH THỐNG: máy chủ chưa có đơn vị
+      // nào thì lần đầu Quản trị (Thường trực HĐND tỉnh) mở module sẽ GHI thẳng bộ đơn vị
+      // mẫu lên máy chủ. Từ đó khách và quản trị cùng đọc một bảng kết quả, không còn cảnh
+      // mỗi bên thấy một danh sách khác nhau.
+      if (alive && isAdm && !(d.units || []).length && (dm.units || []).length) {
+        setRealDoc(dm); setUseDemo(false); useDemoRef.current = false;
+        await saveTC(dm);
+      }
     })();
     return () => { alive = false; };
   }, []);

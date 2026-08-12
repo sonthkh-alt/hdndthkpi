@@ -160,3 +160,21 @@ grant execute on function tc_unit_save(text, text, text, jsonb) to anon, authent
 
 -- Ghi chú: dòng 'tc_data' được TẠO khi Quản trị (Thường trực HĐND tỉnh) đăng nhập
 -- vào module và thêm đơn vị đầu tiên (ghi qua chính sách app_state_auth_all).
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 6. KHÁCH ĐỌC ĐƯỢC BẢNG ĐIỂM CÁC KỲ (id bắt đầu bằng 'state_')
+--  ⚠️ CẦN CHẠY. Đây là BẢN DEMO: dữ liệu trong máy chủ được coi như dữ liệu
+--  chính thống, ai vào xem cũng phải thấy GIỐNG NHAU. Trước đây khách (chưa
+--  đăng nhập) không đọc được 'state_…' nên giao diện phải dựng danh sách mẫu
+--  tại chỗ -> khách và quản trị nhìn thấy hai danh sách khác nhau.
+--
+--  Mở quyền ĐỌC (select), KHÔNG mở quyền ghi: khách vẫn không sửa được gì,
+--  mọi thao tác ghi vẫn phải đăng nhập (chính sách app_state_auth_all).
+--
+--  ⚠️ KHI CHUYỂN SANG DÙNG THẬT: xóa chính sách này (bảng điểm sẽ chỉ dành cho
+--     người đã đăng nhập):  drop policy "state_public_read" on app_state;
+--  Hồ sơ cán bộ 'hr_data' KHÔNG nằm trong diện này (vẫn khóa theo BƯỚC 4).
+-- ---------------------------------------------------------------------
+drop policy if exists "state_public_read" on app_state;
+create policy "state_public_read" on app_state
+  for select using (starts_with(id, 'state_'));

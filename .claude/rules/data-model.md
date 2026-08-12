@@ -28,5 +28,8 @@ Mỗi nhóm có `groups` (Tiêu chí chung Nhóm I, ≤30). `hdnd`/`dbqh` dùng 
 - **Nhóm II** (`agg335`): (a+b+c)/3 × 70%, trọng số = hệ số danh mục. **Lãnh đạo, quản lý** (theo `isLeaderPerson`, Điều 7): **(a+b+c+d+đ+e)/6**, d/đ/e mỗi mục 100%/50% từ `leadScores`. Hệ số/trọng số **ẩn khi chấm** — chỉ giải thích ở tab Hướng dẫn.
 - **Xếp loại theo Điều 8** (`taskStats` + `evalGradeCode`): xét THEO TỪNG nhiệm vụ (r=HT/Giao). Ngưỡng điểm A≥90/B≥70/C≥50/D<50 **kèm điều kiện**: A cần đạt đủ 100% số lượng mọi nhiệm vụ + ≥30% vượt mức; D khi >50% nhiệm vụ không hoàn thành (r<50%; lãnh đạo >30%) hoặc tích "bị kỷ luật". Trần HTXS ≤20% số HTT.
 
+## Nguyên tắc dữ liệu (bản demo)
+**Dữ liệu mẫu = dữ liệu chính thống.** Danh sách cán bộ dựng sẵn (`seedDemoPeople(version)`, `seedTieuChi()`) không phải "dữ liệu tạm cho khách" mà là dữ liệu chuẩn của bản demo: kỳ/đơn vị nào chưa có trên máy chủ thì nạp danh sách này rồi **ghi lên máy chủ** khi có phiên đăng nhập thật. **Khách và người đăng nhập ĐỌC CÙNG MỘT NGUỒN** (policy `state_public_read` + `tc_data_public_read`), khách chỉ khác ở chỗ không được ghi. Không thêm nhánh "khách thì dựng dữ liệu riêng tại chỗ" — đó chính là lỗi từng gây lệch danh sách giữa hai tài khoản.
+
 ## Phân quyền
 Theo email khớp `person.email`: `canbo` / `truongphong` / `quantri` (+ bootstrap admin `sonthkh@gmail.com`); `khach` (`user@thanhhoa.gov.vn`) = dùng thử, **KHÔNG lưu**.
