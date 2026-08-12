@@ -7,6 +7,21 @@ paths:
 
 # Kiến trúc & nơi sửa
 
+## Điều hướng: TRANG CHỦ (Portal) → các PHÂN HỆ
+> `src/main.jsx` → `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** là bộ định tuyến theo **hash**:
+> `#/` (Trang chủ) · `#/okr` (App, bộ tiêu chí `sonha`) · `#/kiemdiem` (App, `kiemdiem`) · **`#/tieuchi`** (module `TieuChiHDND`) ·
+> `#/canbo` (App, tab `hr`) · `#/hotro` (App, tab `guide`) · `#/thunghiem?v=classic|improved|sg` (App, các bản thử nghiệm).
+> - **`src/Portal.jsx`** — trang chủ dạng cổng: thẻ phân hệ có biểu tượng, cơ sở pháp lý, liên hệ, bộ đếm truy cập. Ẩn thẻ theo `versionCfg`.
+> - **`src/lib/modules.js`** — danh mục phân hệ dùng chung (`MODULES`: route/icon/tone/target/tags) + `LEGAL_BASIS`. Thêm phân hệ mới thì khai ở đây.
+> - **`src/App.jsx`** nhận thêm `onHome` (nút 🏠 về Trang chủ ở header) và `initialTab` (tab mở sẵn khi vào từ Trang chủ).
+> - App và module Tiêu chí đều **lazy-load** → trang đầu chỉ tải Portal (~33 kB).
+
+## Module ĐÁNH GIÁ TIÊU CHÍ HĐND (tỉnh · xã, phường) — `#/tieuchi`
+- **`src/lib/khungTieuChi.js`** — LOGIC THUẦN (Node chạy được): `KHUNG.tinh` (Phụ lục I) & `KHUNG.xa` (Phụ lục II) số hóa tới từng **điểm thành phần**; kiểu chấm `choice` (bấm chọn mức, `zeroItem` = mất điểm toàn tiêu chí) · `minus` (trừ theo số lần) · `minusPlus` (trừ + cộng điểm chất lượng) · `ratio` (tỷ lệ % × điểm) · `count` (mỗi đơn vị đạt được N điểm). `computeTC(kind, ans)` → điểm 7 nhóm + thưởng VIII + trừ IX → tổng (0–110) + **xếp loại 5 mức (Điều 6)** + lý do/chế tài; `applyQuotaXuatSac` (**trần 25%** Xuất sắc cấp xã); `DK_DMST` (ngưỡng điều kiện đổi mới sáng tạo — dự thảo chưa nêu, phần mềm tạm đặt 60%/40% điểm nhóm V); `DRAFT_NOTES` (các điểm chưa nhất quán của dự thảo, hiển thị trong app).
+- **`src/lib/tieuChiStore.js`** — `app_state` id=**`tc_data`** `{units[], evals{unitId::năm}, cfg}` + cache localStorage. Đơn vị đăng nhập bằng **mã đơn vị + mã truy cập**; mã truy cập chỉ lưu **băm SHA-256** (`hashPin`); `unitLogin`/`makeUnit`/`parseUnitLines`/`randomPin`; đơn vị ghi phiếu qua RPC **`tc_unit_save`** (⚠ **BƯỚC 5** trong `supabase/schema.sql`), chưa chạy SQL thì chỉ lưu cục bộ.
+- **`src/TieuChiHDND.jsx`** — cổng đăng nhập 2 cửa (Đơn vị · Thường trực/Tổ công tác) · phiếu tự đánh giá (`Phieu`) · bảng điều khiển tỉnh (`AdminBoard`: thống kê, bình xét trần 25%, quản lý đơn vị & tài khoản, cấu hình) · xem khung tiêu chí (`KhungView`). Xuất `exportTieuChiPhieu` (Word) / `exportTieuChiTongHop` (Excel) trong `exporters.js`.
+- Tài liệu nguồn: **`docs/Khung_tieu_chi.docx`**.
+
 > **NĂM phiên bản BỘ TIÊU CHÍ** chọn ở Đăng nhập / header (`VERSIONS`/`VERSION_THEME`): **Cổ điển** (đỏ, QĐ 1053, câu chữ pháp lý), **Cải tiến** (teal, câu hỏi AIM/ISE/WoG dễ hiểu), **Singapore (cơ quan dân cử)** (tím, thiết kế riêng cho HĐND/ĐBQH), **SonHa** (xanh lá, gọn 3 module + danh mục VP theo NĐ 335/2025), **Kiểm điểm** (đỏ đô, đánh giá hằng QUÝ cán bộ diện BTV Tỉnh ủy quản lý theo HD 03-HD/TU). *(Trước đây từng có 3 bản GIAO DIỆN Cổ điển/Mới/PRO — đã gỡ; nay là các bản TIÊU CHÍ dùng chung 1 giao diện. Mã bản cũ còn trong lịch sử git.)*
 > - **Bản 'kiemdiem'** (`isKD`): module riêng **`src/KiemDiemAppraisal.jsx`** (như Singapore), KHÔNG dùng khung 30/70 cũ. Thang 100 = **Nhóm A (30đ, chấm nhị phân)** + **Nhóm B (70đ, 6 trục, Điểm = KPI%×tối đa, KPI=(A+B+C+D)/4)**. `computeKD`/`defaultKD`/`kdGradeInfo`/`KiemDiemAppraisal`/`KiemDiemDashboard`. Dữ liệu `person.kd`. Chu kỳ theo **QUÝ** (header dropdown Quý I–IV → month 3/6/9/12). Xuất Word: `exportKiemDiemCaNhan` (Phụ lục 3A) + `exportKiemDiemTongHop` (Phụ lục 4). Tài liệu nguồn: **`docs/DU/`**. Tab gọn 3 module như SonHa.
 > - **Bản 'sonha'** (`isSonHa`): tabs chỉ **dash/eval/guide** (ẩn Năng lực số/Theo dõi CV/Danh mục/Quản trị + redirect); Nhóm I dùng `CRITERIA_CLASSIC`, Nhóm II dùng **`SONHA_CATALOG`** (48 mục QĐ Danh mục VP: 34 CMNV + 8 LĐQL + 6 HTPV, `types[]` + `maxScore`=điểm quy đổi) qua **`ACTIVE_BASE`/`setBaseCatalog(version)`** (findCatalogItem/getND335Groups/catalogForGuide đọc `ACTIVE_BASE`). Tab Đánh giá có `SonHaConnectors` — 2 mục CHỜ CẤU HÌNH: liên kết hệ thống "Quản lý văn bản" + Import file đánh giá. Tài liệu nguồn của người dùng: thư mục **`docs/`**.

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings, Home } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
@@ -1085,7 +1085,7 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App({ version = 'classic', onPickVersion } = {}) {
+export default function App({ version = 'classic', onPickVersion, onHome, initialTab } = {}) {
   setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore / SonHa) trước mọi tính toán & render
   setBaseCatalog(version);     // chọn danh mục Nhóm II nền (SonHa dùng SONHA_CATALOG)
   const isImproved = version === 'improved';
@@ -1096,7 +1096,7 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
   const QUARTER_OF = (m) => Math.min(4, Math.max(1, Math.ceil((Number(m) || 1) / 3)));
   const ROMAN = ['I', 'II', 'III', 'IV'];
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
-  const [tab, setTab] = useState('dash');
+  const [tab, setTab] = useState(initialTab || 'dash'); // tab mở sẵn khi vào từ Trang chủ (vd: 'hr', 'guide')
   const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
   const quarterLabel = `Quý ${ROMAN[QUARTER_OF(period.month) - 1]}/${period.year}`; // nhãn quý (bản Kiểm điểm)
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
@@ -1755,6 +1755,11 @@ export default function App({ version = 'classic', onPickVersion } = {}) {
         </div>
         <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-6 flex items-center justify-between gap-4 flex-wrap">
           <div className="flex items-center gap-4">
+            {onHome && (
+              <button onClick={onHome} title="Về Trang chủ (chọn phân hệ khác)" className="shrink-0 w-10 h-10 rounded-xl bg-white/10 border border-white/25 hover:bg-white/20 flex items-center justify-center transition-colors">
+                <Home className="w-5 h-5" />
+              </button>
+            )}
             <div className="shrink-0 w-16 h-16 rounded-full bg-white/95 flex items-center justify-center shadow-xl ring-2 ring-amber-300/60 emblem-glow animate-floatY p-1.5">
               <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
             </div>

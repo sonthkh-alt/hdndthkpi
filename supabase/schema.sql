@@ -109,3 +109,54 @@ create policy "hr_data_admin_only" on app_state
 
 -- Nếu chưa chạy BƯỚC 4: module Quản lý cán bộ vẫn hoạt động (theo chính sách
 -- BƯỚC 2), nhưng hồ sơ KHÔNG được bảo vệ trước tài khoản đăng nhập khác.
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 5. MODULE "ĐÁNH GIÁ TIÊU CHÍ HĐND TỈNH, XÃ, PHƯỜNG" (id = 'tc_data')
+--  ⚠️ CẦN CHẠY để HĐND các xã, phường (KHÔNG có tài khoản Supabase) đăng nhập
+--  bằng MÃ ĐƠN VỊ + MÃ TRUY CẬP và lưu được phiếu tự đánh giá lên máy chủ.
+--  Chưa chạy: module vẫn dùng được nhưng phiếu chỉ lưu trên trình duyệt của đơn vị.
+--
+--  Cách bảo vệ: mã truy cập KHÔNG lưu bản rõ — chỉ lưu chuỗi băm SHA-256 của
+--  "mã đơn vị::mã truy cập" trong units[].hash. Vì vậy dòng 'tc_data' có thể cho
+--  đọc công khai (đơn vị cần đọc để đăng nhập và xem phiếu của mình) mà không lộ
+--  mã truy cập. Việc GHI đi qua hàm tc_unit_save: hàm tự kiểm tra chuỗi băm và
+--  CHỈ ghi đè đúng phiếu của đơn vị đó, không cho ghi bất cứ dữ liệu nào khác.
+-- ---------------------------------------------------------------------
+drop policy if exists "tc_data_public_read" on app_state;
+create policy "tc_data_public_read" on app_state
+  for select using (id = 'tc_data');
+
+create or replace function tc_unit_save(p_code text, p_hash text, p_year text, p_record jsonb)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  d jsonb;
+  u jsonb;
+  k text;
+begin
+  select data into d from app_state where id = 'tc_data';
+  if d is null then return false; end if;
+
+  -- Tìm đơn vị theo mã + đối chiếu chuỗi băm mã truy cập
+  select elem into u
+  from jsonb_array_elements(coalesce(d->'units', '[]'::jsonb)) elem
+  where lower(elem->>'code') = lower(p_code)
+    and elem->>'hash' = p_hash
+    and coalesce((elem->>'active')::boolean, true)
+  limit 1;
+  if u is null then return false; end if;
+
+  k := (u->>'id') || '::' || p_year;
+  d := jsonb_set(d, array['evals', k], p_record, true);
+  update app_state set data = d, updated_at = now() where id = 'tc_data';
+  return true;
+end;
+$$;
+
+grant execute on function tc_unit_save(text, text, text, jsonb) to anon, authenticated;
+
+-- Ghi chú: dòng 'tc_data' được TẠO khi Quản trị (Thường trực HĐND tỉnh) đăng nhập
+-- vào module và thêm đơn vị đầu tiên (ghi qua chính sách app_state_auth_all).

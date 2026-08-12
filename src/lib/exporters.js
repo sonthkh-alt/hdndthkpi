@@ -1554,3 +1554,150 @@ export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND t�
 
   openAdminPrint('Phương pháp tính, đánh giá OKR/KPI', adminDocCss('Phương pháp tính, đánh giá OKR/KPI', 'Bản demo nội bộ — không chịu trách nhiệm pháp lý'), html);
 }
+
+// ===========================================================================
+//  MODULE ĐÁNH GIÁ TIÊU CHÍ HĐND (tỉnh / xã, phường)
+//  — Khung tiêu chí nhiệm kỳ 2026-2031 của Thường trực HĐND tỉnh Thanh Hóa.
+// ===========================================================================
+
+// Mô tả mức đã chọn của một "điểm thành phần" để in ra phiếu.
+function tcAnswerText(sub, a = {}) {
+  const t = sub.type || 'choice';
+  if (t === 'choice') return a.sel != null && sub.options?.[a.sel] ? sub.options[a.sel].label : '(chưa chấm)';
+  if (t === 'minus') return a.count == null ? '(chưa chấm)' : `${a.count} ${sub.unitLabel}`;
+  if (t === 'count') return a.count == null ? '(chưa chấm)' : `${a.count} ${sub.unitLabel}`;
+  if (t === 'ratio') return a.pct == null ? '(chưa chấm)' : `${a.pct}% ${sub.unitLabel}`;
+  if (t === 'minusPlus') return a.count == null ? '(chưa chấm)' : `${a.count} ${sub.unitLabel}; chất lượng ${a.pct ?? 0}%`;
+  return '';
+}
+
+// WORD — Phiếu tự đánh giá, xếp loại của một đơn vị HĐND.
+export async function exportTieuChiPhieu(ev) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
+  const { unit, rec, year, comp, khung, kindName, phuluc } = ev;
+  const ans = rec.ans || {};
+  const children = [];
+
+  children.push(P('HỘI ĐỒNG NHÂN DÂN TỈNH THANH HÓA', { bold: true, size: 24, align: C }));
+  children.push(P('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { bold: true, size: 24, align: C }));
+  children.push(P('Độc lập - Tự do - Hạnh phúc', { bold: true, size: 24, align: C, spacingAfter: 200 }));
+  children.push(P('PHIẾU TỰ ĐÁNH GIÁ, XẾP LOẠI KẾT QUẢ HOẠT ĐỘNG', { bold: true, size: 30, align: C }));
+  children.push(P(`${kindName} — Năm ${year}`, { bold: true, size: 26, align: C }));
+  children.push(P(`(Theo ${phuluc} Khung tiêu chí đánh giá, xếp loại HĐND cấp tỉnh, cấp xã tỉnh Thanh Hóa, nhiệm kỳ 2026 - 2031)`, { italics: true, size: 22, align: C, spacingAfter: 200 }));
+
+  children.push(P([{ text: 'Đơn vị được đánh giá: ', bold: true }, { text: unit.name }]));
+  children.push(P([{ text: 'Mã đơn vị: ', bold: true }, { text: unit.code }]));
+  children.push(P([{ text: 'Người lập phiếu: ', bold: true }, { text: rec.contact || '.....................' }, { text: '   Điện thoại/Email: ', bold: true }, { text: rec.phone || '................' }], { spacingAfter: 160 }));
+
+  const head = (t, w, sh = 'E8EEF7') => TC(t, { bold: true, align: C, shade: sh, width: w });
+  const groups = [...khung.groups, khung.bonus];
+  groups.forEach((g) => {
+    const gc = comp.groups.find((x) => x.code === g.code) || { score: 0, items: [] };
+    children.push(P(`${g.code}. ${g.title} (tối đa ${fmt(g.max, 1)} điểm) — đạt ${fmt(gc.score, 2)} điểm`, { bold: true, size: 24, spacingAfter: 60 }));
+    const rows = [new TableRow({ tableHeader: true, children: [
+      head('Tiêu chí / điểm thành phần', 44), head('Điểm tối đa', 9), head('Mức tự chấm', 27), head('Điểm đạt', 9), head('Minh chứng', 11),
+    ] })];
+    g.items.forEach((it) => {
+      const ic = gc.items?.find((x) => x.id === it.id);
+      rows.push(new TableRow({ children: [
+        TC(`${it.id}. ${it.title}`, { bold: true, shade: 'F3F4F6', size: 20 }),
+        TC(fmt(it.max, 1), { bold: true, align: C, shade: 'F3F4F6' }),
+        TC(ic?.zero ? 'Mất điểm toàn tiêu chí' : '', { align: C, shade: 'F3F4F6', size: 20 }),
+        TC(fmt(ic?.score ?? 0, 2), { bold: true, align: C, shade: 'F3F4F6' }),
+        TC('', { shade: 'F3F4F6' }),
+      ] }));
+      it.subs.forEach((sb) => {
+        const a = ans[sb.id] || {};
+        const sc = ic?.subs?.find((x) => x.id === sb.id);
+        rows.push(new TableRow({ children: [
+          TC(sb.id, { size: 20 }),
+          TC(fmt(sb.max, 1), { align: C, size: 20 }),
+          TC(tcAnswerText(sb, a), { size: 20 }),
+          TC(fmt(sc?.score ?? 0, 2), { align: C, size: 20 }),
+          TC([a.proof, a.note].filter(Boolean).join(' — '), { size: 18 }),
+        ] }));
+      });
+    });
+    children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+    children.push(P('', { spacingAfter: 100 }));
+  });
+
+  // Nhóm IX — điểm trừ
+  const dg = comp.groups.find((x) => x.kind === 'deduct');
+  children.push(P(`${khung.deduct.code}. ${khung.deduct.title} — trừ ${fmt(Math.abs(dg?.score || 0), 2)} điểm`, { bold: true, size: 24, spacingAfter: 60 }));
+  const dRows = [new TableRow({ tableHeader: true, children: [head('Nội dung vi phạm', 60, 'FEE2E2'), head('Mức trừ', 12, 'FEE2E2'), head('Số lần', 10, 'FEE2E2'), head('Điểm trừ', 10, 'FEE2E2'), head('Căn cứ', 8, 'FEE2E2')] })];
+  khung.deduct.items.forEach((it) => {
+    const a = ans[it.id] || {};
+    const d = dg?.items?.find((x) => x.id === it.id);
+    dRows.push(new TableRow({ children: [
+      TC(`${it.id}. ${it.title}`, { size: 20 }),
+      TC(`${fmt(it.per, 1)}đ/${it.unitLabel} (tối đa ${fmt(it.cap, 1)}đ)`, { size: 18, align: C }),
+      TC(String(a.count || 0), { align: C }),
+      TC(d?.minus ? `-${fmt(d.minus, 2)}` : '0', { align: C, bold: true }),
+      TC(a.proof || '', { size: 18 }),
+    ] }));
+  });
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: dRows }));
+  children.push(P('', { spacingAfter: 120 }));
+
+  // Tổng hợp
+  children.push(P('TỔNG HỢP KẾT QUẢ', { bold: true, size: 26, spacingAfter: 60 }));
+  const sRows = [new TableRow({ tableHeader: true, children: [head('Nội dung', 60), head('Điểm tối đa', 20), head('Điểm đạt', 20)] })];
+  comp.groups.filter((g) => g.kind === 'main').forEach((g) => {
+    sRows.push(new TableRow({ children: [TC(`Nhóm ${g.code}. ${g.title}`, { size: 20 }), TC(fmt(g.max, 1), { align: C }), TC(fmt(g.score, 2), { align: C })] }));
+  });
+  sRows.push(new TableRow({ children: [TC('CỘNG 07 NHÓM TIÊU CHÍ', { bold: true, align: R, shade: 'E8EEF7' }), TC('100', { bold: true, align: C, shade: 'E8EEF7' }), TC(fmt(comp.base, 2), { bold: true, align: C, shade: 'E8EEF7' })] }));
+  sRows.push(new TableRow({ children: [TC('Cộng điểm thưởng đổi mới sáng tạo (nhóm VIII)', { align: R }), TC('10', { align: C }), TC(`+${fmt(comp.bonus, 2)}`, { align: C })] }));
+  sRows.push(new TableRow({ children: [TC('Trừ điểm vi phạm (nhóm IX)', { align: R }), TC('-20', { align: C }), TC(`-${fmt(comp.deduct, 2)}`, { align: C })] }));
+  sRows.push(new TableRow({ children: [TC('TỔNG ĐIỂM ĐÁNH GIÁ', { bold: true, align: R, shade: 'FEF3C7' }), TC('110', { bold: true, align: C, shade: 'FEF3C7' }), TC(fmt(comp.total, 2), { bold: true, align: C, shade: 'FEF3C7' })] }));
+  sRows.push(new TableRow({ children: [TC('TỰ XẾP LOẠI', { bold: true, align: R, shade: 'DCFCE7' }), TC('', { shade: 'DCFCE7' }), TC(comp.gradeName, { bold: true, align: C, shade: 'DCFCE7' })] }));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: sRows }));
+
+  if (comp.reasons.length || comp.sanctions.length) {
+    children.push(P('Điều kiện xếp loại (Điều 6):', { bold: true, size: 24, spacingAfter: 40 }));
+    [...comp.reasons, ...comp.sanctions].forEach((t) => children.push(P(`- ${t}`, { size: 22 })));
+  }
+  if (rec.selfNote) {
+    children.push(P('Tự đánh giá chung, đề xuất, kiến nghị:', { bold: true, size: 24, spacingAfter: 40 }));
+    children.push(P(rec.selfNote, { size: 24, spacingAfter: 100 }));
+  }
+  if (rec.review?.at) {
+    children.push(P('Ý KIẾN THẨM ĐỊNH CỦA TỔ CÔNG TÁC', { bold: true, size: 24, spacingAfter: 40 }));
+    children.push(P(`Điểm sau thẩm định: ${rec.review.total ?? '(giữ điểm tự chấm)'}   ·   Xếp loại đề xuất: ${rec.review.grade || '(theo điểm)'}`, { size: 24 }));
+    if (rec.review.note) children.push(P(rec.review.note, { size: 24 }));
+    children.push(P(`Người thẩm định: ${rec.review.by || ''}`, { size: 22, spacingAfter: 120 }));
+  }
+
+  children.push(P('', { spacingAfter: 200 }));
+  children.push(P([{ text: 'NGƯỜI LẬP PHIẾU', bold: true }, { text: '                                                                    ' }, { text: 'TM. THƯỜNG TRỰC HĐND', bold: true }], { align: C }));
+  children.push(P([{ text: '(Ký, ghi rõ họ tên)', italics: true }, { text: '                                                                            ' }, { text: 'CHỦ TỊCH', bold: true }], { align: C }));
+
+  const doc = new Document({ sections: [{ properties: { page: { margin: { top: 850, right: 850, bottom: 850, left: 1100 } } }, children }] });
+  const blob = await Packer.toBlob(doc);
+  saveAs(blob, `Phieu_tu_danh_gia_${unit.code}_${year}.docx`);
+}
+
+// EXCEL — Bảng tổng hợp kết quả đánh giá, xếp loại các đơn vị.
+export async function exportTieuChiTongHop({ year, kindName, rows, quotaPicked }) {
+  const gLabels = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII'];
+  const aoa = [
+    ['THƯỜNG TRỰC HỘI ĐỒNG NHÂN DÂN TỈNH THANH HÓA'],
+    [`BẢNG TỔNG HỢP KẾT QUẢ ĐÁNH GIÁ, XẾP LOẠI — ${kindName} — Năm ${year}`],
+    [],
+    ['STT', 'Đơn vị', 'Mã đơn vị', 'Tiến độ (%)', 'Đã gửi', ...gLabels.map((g) => `Nhóm ${g}`), 'Cộng 7 nhóm', 'Thưởng VIII', 'Trừ IX', 'Tự chấm', 'Thẩm định', 'Điểm chính thức', 'Xếp loại', 'Ghi chú'],
+    ...rows.map((r, i) => [
+      i + 1, r.name, r.code, r.progress, r.submitted ? 'x' : '',
+      ...(r.groups || []).slice(0, 7),
+      r.base, r.bonus, r.deduct, r.self, r.review, r.final, r.grade,
+      [r.capped ? 'Đủ điều kiện Xuất sắc nhưng vượt trần 25% → xem xét xếp loại Tốt' : '', r.note].filter(Boolean).join('; '),
+    ]),
+    [],
+    [`Số đơn vị được bình xét Xuất sắc: ${quotaPicked ? quotaPicked.size : 0} (trần 25% theo Điều 6 khoản 2).`],
+  ];
+  const ws = XLSX.utils.aoa_to_sheet(aoa);
+  ws['!cols'] = [{ wch: 5 }, { wch: 32 }, { wch: 14 }, { wch: 10 }, { wch: 8 },
+    ...gLabels.map(() => ({ wch: 8 })), { wch: 12 }, { wch: 11 }, { wch: 9 }, { wch: 10 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 40 }];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Tong hop');
+  XLSX.writeFile(wb, `Tong_hop_tieu_chi_HDND_${year}.xlsx`);
+}
