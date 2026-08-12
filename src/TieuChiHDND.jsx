@@ -626,8 +626,11 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onA
                     return (
                       <tr key={r.u.id} className="border-t border-slate-100 hover:bg-slate-50/60">
                         <td className="px-3 py-2">
-                          <p className="font-semibold text-slate-800 text-[13px]">{r.u.name}</p>
-                          <p className="text-[11px] text-slate-400">{r.u.code}{r.u.active === false && <span className="ml-1 text-rose-500 font-semibold">· đã khóa</span>}</p>
+                          {/* Bấm vào TÊN ĐƠN VỊ cũng mở phiếu tự đánh giá (như nút "Mở phiếu"). */}
+                          <button onClick={() => onOpen(r.u)} title={`Xem phiếu tự đánh giá của ${r.u.name}`} className="text-left group w-full">
+                            <p className="font-semibold text-slate-800 text-[13px] group-hover:text-indigo-700 group-hover:underline">{r.u.name}</p>
+                            <p className="text-[11px] text-slate-400">{r.u.code}{r.u.active === false && <span className="ml-1 text-rose-500 font-semibold">· đã khóa</span>}</p>
+                          </button>
                         </td>
                         <td className="px-3 py-2 text-center">
                           <span className="inline-block w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden align-middle"><span className="block h-full bg-indigo-500" style={{ width: `${r.comp.progress}%` }} /></span>
@@ -713,7 +716,9 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onA
                   {units.length === 0 && <tr><td colSpan={4} className="px-3 py-8 text-center text-slate-400 text-sm">Chưa có đơn vị nào.</td></tr>}
                   {units.map((u) => (
                     <tr key={u.id} className="border-t border-slate-100">
-                      <td className="px-3 py-2 font-semibold text-slate-800 text-[13px]">{u.name}</td>
+                      <td className="px-3 py-2">
+                        <button onClick={() => onOpen(u)} title={`Xem phiếu tự đánh giá của ${u.name}`} className="font-semibold text-slate-800 text-[13px] text-left hover:text-indigo-700 hover:underline">{u.name}</button>
+                      </td>
                       <td className="px-3 py-2 text-center font-mono text-[12px] text-slate-600">{u.code}</td>
                       <td className="px-3 py-2 text-center">
                         <span className={`text-[11px] font-bold px-2 py-0.5 rounded border ${u.active === false ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>{u.active === false ? 'Đã khóa' : 'Hoạt động'}</span>
