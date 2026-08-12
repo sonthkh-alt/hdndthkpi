@@ -1093,6 +1093,10 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const isSonHa = version === 'sonha';
   const isKD = version === 'kiemdiem'; // bản Kiểm điểm — mô hình riêng (computeKD), tách như Singapore
   const isClassic = !isImproved && !isSG && !isKD; // SonHa hưởng cách render Nhóm II kiểu Cổ điển (renderTask335Row)
+  // KHO DỮ LIỆU RIÊNG CHO TỪNG PHÂN HỆ: mỗi bộ tiêu chí có danh sách cán bộ riêng
+  // (Kiểm điểm = 15 đồng chí diện BTV Tỉnh ủy quản lý, OKR/KPI = CBCCVC-LĐ Văn phòng…).
+  // 'sonha' giữ id cũ (ns='') để không mất dữ liệu đã lưu và để bot chat đọc được.
+  const dataNs = version === 'sonha' ? '' : version;
   const QUARTER_OF = (m) => Math.min(4, Math.max(1, Math.ceil((Number(m) || 1) / 3)));
   const ROMAN = ['I', 'II', 'III', 'IV'];
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
@@ -1153,11 +1157,13 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   };
 
   const refreshTrends = async () => {
-    const all = await loadAllPeriods();
+    const all = await loadAllPeriods(dataNs);
+    // Mỗi phân hệ có cách tính điểm riêng -> xu hướng phải dùng đúng hàm chấm của phân hệ đó.
+    const sc = isSG ? computeSG : isKD ? computeKD : computePerson;
     setTrends(all.map(({ year, month, state }) => {
       const ppl = state?.people || [];
       const d = { A: 0, B: 0, C: 0, D: 0 }; let sum = 0;
-      ppl.forEach((p) => { const c = computePerson(p); d[c.grade]++; sum += c.totalMgr; });
+      ppl.forEach((p) => { const c = sc(p); d[c.grade] = (d[c.grade] || 0) + 1; sum += c.totalMgr; });
       return { year, month, dist: d, avg: ppl.length ? sum / ppl.length : 0, count: ppl.length };
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
@@ -1172,7 +1178,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
       loadDemoPeople(); guestSeededRef.current = true;
       setCloud({ ready: !!supabase, saving: false }); loaded.current = true; loadingRef.current = false; return;
     }
-    const res = await loadState(p);
+    const res = await loadState(p, dataNs);
     // Trong lúc await, phiên có thể vừa được xác định là cục bộ -> ưu tiên dữ liệu mẫu, bỏ qua dữ liệu máy chủ.
     if (isLocalSession(sessionRef.current)) {
       loadDemoPeople(); guestSeededRef.current = true;
@@ -1186,9 +1192,9 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
       bumpCounters(ppl);
     } else {
-      const others = (await listPeriods()).filter((o) => !(o.year === p.year && o.month === p.month));
+      const others = (await listPeriods(dataNs)).filter((o) => !(o.year === p.year && o.month === p.month));
       if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
-      // chưa có kỳ nào khác -> giữ nguyên dữ liệu mẫu khởi tạo (lần chạy đầu)
+      else loadDemoPeople(); // phân hệ chưa có kỳ nào -> hiện sẵn danh sách cán bộ mẫu của ĐÚNG phân hệ
     }
     setCloud({ ready: !!supabase, saving: false });
     loaded.current = true;
@@ -1240,7 +1246,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current, dataNs);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
@@ -1251,7 +1257,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const changePeriod = (np) => { setPeriod(np); loadPeriod(np); };
 
   const copyFromPeriod = async (src) => {
-    const res = await loadState({ year: src.year, month: src.month });
+    const res = await loadState({ year: src.year, month: src.month }, dataNs);
     if (!res.state) return;
     const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }));
     setObjectives(res.state.objectives || []);
@@ -1263,7 +1269,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const handleManualSave = async () => {
     if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current, dataNs);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
     else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false }));

@@ -9,16 +9,27 @@ export const supabase = url && key ? createClient(url, key) : null;
 const LOCAL_PREFIX = 'hdndthkpi_state';
 
 // Mỗi kỳ (tháng/năm) lưu thành một bản ghi riêng -> có lịch sử, không ghi đè kỳ khác.
-const periodId = (p) => `state_${p.year}_${p.month}`;
-const localKey = (p) => `${LOCAL_PREFIX}_${p.year}_${p.month}`;
+//
+// ⚠️ MỖI PHÂN HỆ GIỮ KHO DỮ LIỆU RIÊNG qua tham số `ns` (namespace):
+//    ns = ''          -> `state_2026_8`           (OKR/KPI — GIỮ NGUYÊN id cũ để không mất
+//                                                  dữ liệu đã lưu và để bot chat đọc được)
+//    ns = 'kiemdiem'  -> `state_kiemdiem_2026_9`  (Kiểm điểm, xếp loại đảng viên)
+//    ns = 'sg'/'classic'/'improved' -> tương tự (các bản trong Phòng thử nghiệm)
+// Trước đây mọi phân hệ dùng chung một id theo tháng/năm nên phân hệ mở sau ĐÈ LÊN
+// danh sách cán bộ của phân hệ mở trước (Kiểm điểm mất danh sách diện BTV Tỉnh ủy quản lý).
+const nsPart = (ns) => (ns ? `${ns}_` : '');
+const periodId = (p, ns) => `state_${nsPart(ns)}${p.year}_${p.month}`;
+const localKey = (p, ns) => `${LOCAL_PREFIX}_${nsPart(ns)}${p.year}_${p.month}`;
+// Lọc đúng bản ghi của phân hệ: với ns='' phải LOẠI các id có namespace (state_kiemdiem_…).
+const idRe = (ns) => new RegExp(`^state_${nsPart(ns)}(\\d+)_(\\d+)$`);
 
 /**
  * Nạp dữ liệu của một kỳ.
  * Trả về { state, serverTs, migrated } — serverTs dùng cho khóa lạc quan khi lưu.
  */
-export async function loadState(period) {
-  const id = periodId(period);
-  const lkey = localKey(period);
+export async function loadState(period, ns = '') {
+  const id = periodId(period, ns);
+  const lkey = localKey(period, ns);
 
   // 1) Đọc local trước (offline-first)
   let local = null;
@@ -52,7 +63,9 @@ export async function loadState(period) {
     return { state: local, serverTs: data.updated_at };
   }
 
-  // 3) Chưa có bản ghi theo kỳ — di trú dữ liệu cũ (bản 'main') nếu đúng kỳ của nó
+  // 3) Chưa có bản ghi theo kỳ — di trú dữ liệu cũ (bản 'main') nếu đúng kỳ của nó.
+  //    Chỉ áp dụng cho kho mặc định (OKR/KPI); phân hệ khác không dính dữ liệu cũ này.
+  if (ns) return { state: local || null, serverTs: null };
   const { data: legacy } = await supabase
     .from('app_state').select('data').eq('id', 'main').maybeSingle();
   if (legacy?.data) {
@@ -70,10 +83,10 @@ export async function loadState(period) {
  * Lưu dữ liệu của một kỳ với KHÓA LẠC QUAN.
  * lastServerTs = updated_at đã nạp về. Nếu trên máy chủ đã đổi -> trả { conflict:true } (không ghi đè mù).
  */
-export async function saveState(period, state, lastServerTs) {
+export async function saveState(period, state, lastServerTs, ns = '') {
   state._ts = Date.now();
-  const id = periodId(period);
-  const lkey = localKey(period);
+  const id = periodId(period, ns);
+  const lkey = localKey(period, ns);
 
   // Luôn lưu local ngay
   try { localStorage.setItem(lkey, JSON.stringify(state)); } catch (e) { console.warn('saveState local:', e); }
@@ -106,25 +119,27 @@ export async function saveState(period, state, lastServerTs) {
   return { ok: true, serverTs: data[0].updated_at };
 }
 
-/** Liệt kê các kỳ đã có dữ liệu (cho lịch sử). */
-export async function listPeriods() {
+/** Liệt kê các kỳ đã có dữ liệu CỦA PHÂN HỆ `ns` (cho lịch sử). */
+export async function listPeriods(ns = '') {
   if (!supabase) return [];
+  const re = idRe(ns);
   const { data, error } = await supabase
-    .from('app_state').select('id, updated_at').like('id', 'state_%');
+    .from('app_state').select('id, updated_at').like('id', `state_${nsPart(ns)}%`);
   if (error || !data) return [];
   return data
-    .map((r) => { const m = r.id.match(/^state_(\d+)_(\d+)$/); return m ? { year: m[1], month: m[2], updated_at: r.updated_at } : null; })
+    .map((r) => { const m = r.id.match(re); return m ? { year: m[1], month: m[2], updated_at: r.updated_at } : null; })
     .filter(Boolean)
     .sort((a, b) => (Number(b.year) - Number(a.year)) || (Number(b.month) - Number(a.month)));
 }
 
-/** Nạp toàn bộ dữ liệu các kỳ để vẽ xu hướng (quy mô văn phòng nên đủ nhẹ). */
-export async function loadAllPeriods() {
+/** Nạp toàn bộ dữ liệu các kỳ CỦA PHÂN HỆ `ns` để vẽ xu hướng (quy mô văn phòng nên đủ nhẹ). */
+export async function loadAllPeriods(ns = '') {
   if (!supabase) return [];
+  const re = idRe(ns);
   const { data, error } = await supabase
-    .from('app_state').select('id, data').like('id', 'state_%');
+    .from('app_state').select('id, data').like('id', `state_${nsPart(ns)}%`);
   if (error || !data) return [];
   return data
-    .map((r) => { const m = r.id.match(/^state_(\d+)_(\d+)$/); return m ? { year: m[1], month: m[2], state: r.data } : null; })
+    .map((r) => { const m = r.id.match(re); return m ? { year: m[1], month: m[2], state: r.data } : null; })
     .filter(Boolean);
 }
