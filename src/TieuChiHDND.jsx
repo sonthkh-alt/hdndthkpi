@@ -824,8 +824,11 @@ export function Gate({ doc, altDoc, onUnit, onAdmin, onKhung, onGuest, busy }) {
   return (
     <div className="max-w-5xl mx-auto">
       <div className="text-center mb-6">
-        <div className="inline-flex w-16 h-16 rounded-2xl bg-indigo-600 text-white items-center justify-center shadow-lg shadow-indigo-200 mb-3"><Landmark className="w-8 h-8" /></div>
-        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800">Đánh giá, xếp loại HĐND cấp tỉnh, cấp xã</h1>
+        <div className="inline-flex w-20 h-20 rounded-full bg-white items-center justify-center shadow-xl ring-2 ring-indigo-200 p-2 mb-3">
+          <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
+        </div>
+        <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-indigo-500">Hệ thống đánh giá, xếp loại</p>
+        <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">Đánh giá, xếp loại HĐND cấp tỉnh, cấp xã</h1>
         <p className="text-sm text-slate-500 mt-1">Khung tiêu chí nhiệm kỳ 2026 - 2031 · Thường trực HĐND tỉnh Thanh Hóa</p>
       </div>
 
@@ -1064,10 +1067,17 @@ export default function TieuChiHDND({ onHome }) {
       <header className="bg-gradient-to-br from-[#1e1b4b] via-[#3730a3] to-[#1d4ed8] text-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <button onClick={onHome} title="Về trang chủ" className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 flex items-center justify-center"><Home className="w-5 h-5" /></button>
+            <button onClick={onHome} title="Về Trang chủ (chọn phân hệ khác)" className="shrink-0 w-10 h-10 rounded-xl bg-white/10 border border-white/25 hover:bg-white/20 flex items-center justify-center transition-colors"><Home className="w-5 h-5" /></button>
+            <div className="shrink-0 w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg ring-2 ring-white/40 p-1.5">
+              <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
+            </div>
             <div>
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-indigo-200">Hệ thống đánh giá HĐND</p>
-              <h1 className="text-base sm:text-lg font-extrabold leading-tight">Đánh giá tiêu chí HĐND tỉnh, xã, phường</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-indigo-200">Hệ thống đánh giá, xếp loại</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
+              </div>
+              <h1 className="text-base sm:text-xl font-extrabold leading-tight">Đánh giá tiêu chí HĐND tỉnh, xã, phường</h1>
+              <p className="text-white/80 text-[11px] sm:text-xs mt-0.5">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
@@ -1125,13 +1135,10 @@ export default function TieuChiHDND({ onHome }) {
         ) : view === 'admin' && (admin || guest) ? (
           <>
             {guest && (
-              <div className="mb-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-3 flex items-center justify-between gap-3 flex-wrap">
-                <p className="text-[12px] text-indigo-900 leading-snug">
-                  Bạn đang xem kết quả đánh giá ở chế độ <b>khách — chỉ xem</b>. Đơn vị đăng nhập bằng <b>mã đơn vị + mã truy cập</b> để tự chấm điểm;
-                  Thường trực HĐND tỉnh / Tổ công tác đăng nhập để thẩm định và phê duyệt.
-                </p>
-                <button onClick={() => setView('gate')} className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500"><LogIn className="w-3.5 h-3.5" /> Đăng nhập</button>
-              </div>
+              <p className="mb-4 rounded-xl border border-indigo-200 bg-indigo-50 px-3 py-2 text-[12px] text-indigo-900 leading-snug flex items-start gap-2">
+                <Info className="w-4 h-4 shrink-0 mt-0.5" />
+                <span>Đang ở chế độ <b>khách — chỉ xem</b>. Bấm <b>Đăng nhập</b> ở góc trên để đơn vị tự chấm điểm (mã đơn vị + mã truy cập) hoặc để Thường trực HĐND tỉnh / Tổ công tác thẩm định, phê duyệt.</span>
+              </p>
             )}
             <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving} readOnly={guest}
               onImportDemo={useDemo && admin ? importDemo : null}

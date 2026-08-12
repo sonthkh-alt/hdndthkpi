@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye } from 'lucide-react';
+import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye, Home } from 'lucide-react';
 // Tài khoản quản trị KHÔNG hiển thị trên màn đăng nhập (tránh lộ thông tin) — vẫn đăng nhập được bằng cách gõ tay.
 import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential, isAdminCredential, resolveLoginEmail } from './lib/auth';
 import { readVersionCfg } from './lib/versionCfg';
@@ -26,7 +26,7 @@ const VERSION_CARDS = [
   { id: 'kiemdiem', name: 'Kiểm điểm', tag: '(hằng quý)', tagCls: 'text-rose-700', desc: 'Cán bộ diện BTV Tỉnh ủy quản lý — theo HD 03-HD/TU (02/7/2026)', onCls: 'border-rose-400 bg-rose-50 ring-rose-200' },
 ];
 
-export default function Login({ unit, onGuest, onLocalAdmin, onClose, version = 'classic', onPickVersion, versionCfg }) {
+export default function Login({ unit, onGuest, onLocalAdmin, onClose, onHome, version = 'classic', onPickVersion, versionCfg }) {
   // Màn đăng nhập là TRƯỚC xác thực -> luôn ẩn các phiên bản quản trị đã tắt + áp tên tùy chỉnh.
   const vc = versionCfg || readVersionCfg();
   const cards = VERSION_CARDS.filter((v) => !(vc.hidden || []).includes(v.id));
@@ -77,20 +77,26 @@ export default function Login({ unit, onGuest, onLocalAdmin, onClose, version = 
       <div className={`absolute -bottom-32 -left-16 w-96 h-96 rounded-full ${t.blob2} blur-3xl`} />
 
       <div className="relative w-full max-w-md animate-fadeUp">
+        {onHome && (
+          <button type="button" onClick={onHome} className="mb-3 inline-flex items-center gap-1.5 text-[12px] font-semibold text-white/85 hover:text-white bg-white/10 border border-white/25 rounded-lg px-3 py-1.5">
+            <Home className="w-3.5 h-3.5" /> Trang chủ
+          </button>
+        )}
         <div className="text-center mb-6">
           <div className={`inline-flex w-24 h-24 rounded-full ${t.emblem} items-center justify-center shadow-2xl ring-2 ${t.ring} emblem-glow animate-floatY p-2.5 mb-4`}>
             <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
           </div>
-          <p className={`text-[11px] font-semibold tracking-[0.25em] uppercase ${t.eyebrow}`}>Hệ thống quản trị OKR / KPI</p>
+          <p className={`text-[11px] font-semibold tracking-[0.25em] uppercase ${t.eyebrow}`}>Hệ thống đánh giá, xếp loại</p>
           <div className="mt-1.5"><span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.badge}`}>Bản demo thử nghiệm</span></div>
           <h1 className={`text-xl font-extrabold leading-tight mt-1.5 ${t.title}`}>Đánh giá, xếp loại cán bộ, công chức</h1>
           <p className={`text-sm mt-1.5 ${t.unit}`}>{unit || 'Đăng nhập để tiếp tục'}</p>
         </div>
 
         <div className={`rounded-2xl shadow-2xl p-6 text-slate-800 ${t.card}`}>
+          {/* Phân hệ được chọn từ Trang chủ; chỉ "Phòng thử nghiệm" mới cần chọn bộ tiêu chí ở đây. */}
           {onPickVersion && (
             <div className="mb-4">
-              <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Chọn phiên bản bộ tiêu chí đánh giá</p>
+              <p className="text-[11px] font-semibold text-slate-500 mb-1.5">Chọn bộ tiêu chí muốn thử nghiệm</p>
               <div className="space-y-2">
                 {cards.map((v) => { const on = version === v.id; return (
                   <button key={v.id} type="button" onClick={() => onPickVersion(v.id)} className={`w-full rounded-xl border p-2.5 text-left transition ${on ? `${v.onCls} ring-2` : 'border-slate-200 bg-white/70 hover:border-slate-300'}`}>

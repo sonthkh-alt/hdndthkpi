@@ -1085,7 +1085,7 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App({ version = 'classic', onPickVersion, onHome, initialTab, initialLogin } = {}) {
+export default function App({ version = 'classic', onPickVersion, onHome, initialTab, initialLogin, moduleTitle } = {}) {
   setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore / SonHa) trước mọi tính toán & render
   setBaseCatalog(version);     // chọn danh mục Nhóm II nền (SonHa dùng SONHA_CATALOG)
   const isImproved = version === 'improved';
@@ -1738,7 +1738,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   }
   // Chỉ hiện màn đăng nhập khi người dùng CHỦ ĐỘNG chọn (mặc định vào thẳng bằng khách)
   if (supabase && wantLogin && (!session || isLocalSession(session))) {
-    return <Login unit={unit} version={version} onPickVersion={onPickVersion} versionCfg={versionCfg} onGuest={() => setWantLogin(false)} onLocalAdmin={() => { setSession('localadmin'); setWantLogin(false); }} onClose={() => setWantLogin(false)} />;
+    return <Login unit={unit} version={version} onPickVersion={onPickVersion} versionCfg={versionCfg} onHome={onHome} onGuest={() => setWantLogin(false)} onLocalAdmin={() => { setSession('localadmin'); setWantLogin(false); }} onClose={() => setWantLogin(false)} />;
   }
   // Lần đầu đăng nhập (vào bằng liên kết email) mà chưa có mật khẩu -> bắt buộc tạo mật khẩu
   if (supabase && session && session !== 'local' && !isLocalSession(session) && !session.user?.user_metadata?.pw_set) {
@@ -1765,11 +1765,11 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>Hệ thống quản trị OKR / KPI</p>
+                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>Hệ thống đánh giá, xếp loại</p>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${th.badge}`}>Bản demo thử nghiệm</span>
-                {!isClassic && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Phiên bản {vName(version)}</span>}
+                {onPickVersion && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Bộ tiêu chí {vName(version)}</span>}
               </div>
-              <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">Đánh giá, xếp loại cán bộ, công chức</h1>
+              <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">{moduleTitle || 'Đánh giá, xếp loại cán bộ, công chức'}</h1>
               <p className="text-white/85 text-xs sm:text-sm mt-0.5">{unit}</p>
             </div>
           </div>
@@ -1783,13 +1783,13 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
             )}
             {isAdmin && (
               <div className="relative">
-                <button onClick={() => setVerCfgOpen((o) => !o)} title="Quản lý phiên bản: ẩn/hiện với người dùng, đổi tên (chỉ Quản trị)" className={`flex items-center justify-center p-1.5 rounded-lg border transition-colors ${verCfgOpen ? 'bg-white text-slate-800 border-white' : 'bg-white/10 text-white/80 border-white/25 hover:bg-white/20'}`}>
+                <button onClick={() => setVerCfgOpen((o) => !o)} title="Quản lý bộ tiêu chí: ẩn/hiện phân hệ trên Trang chủ, đổi tên (chỉ Quản trị)" className={`flex items-center justify-center p-2 rounded-lg border transition-colors ${verCfgOpen ? 'bg-white text-slate-800 border-white' : 'bg-white/10 text-white/80 border-white/25 hover:bg-white/20'}`}>
                   <Settings className="w-4 h-4" />
                 </button>
                 {verCfgOpen && (
                   <div className="fixed inset-x-3 top-20 sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-96 sm:max-w-[92vw] max-h-[70vh] overflow-y-auto bg-white rounded-xl shadow-2xl border border-slate-200 p-3 z-50 text-slate-800">
-                    <p className="text-xs font-bold text-slate-700 mb-0.5 flex items-center gap-1.5"><Settings className="w-3.5 h-3.5 text-slate-400" /> Quản lý phiên bản</p>
-                    <p className="text-[10px] text-slate-400 mb-2">Bật/tắt hiển thị với người dùng thường & khách; đổi tên hiển thị. Áp dụng cho mọi người truy cập.</p>
+                    <p className="text-xs font-bold text-slate-700 mb-0.5 flex items-center gap-1.5"><Settings className="w-3.5 h-3.5 text-slate-400" /> Quản lý bộ tiêu chí / phân hệ</p>
+                    <p className="text-[10px] text-slate-400 mb-2">Bật/tắt hiển thị thẻ phân hệ trên <b>Trang chủ</b> với người dùng thường & khách; đổi tên hiển thị. Áp dụng cho mọi người truy cập.</p>
                     {VERSIONS.map((v) => { const hid = versionCfg.hidden.includes(v.id); const custom = (versionCfg.names || {})[v.id] || ''; return (
                       <div key={v.id} className="flex items-center gap-2 py-1.5 border-b border-slate-100 last:border-0">
                         <button onClick={() => toggleVersionHidden(v.id)} title={hid ? 'Đang ẨN — bấm để hiển thị lại' : 'Đang HIỆN — bấm để ẩn với người dùng thường'} className={`shrink-0 flex items-center gap-1 text-[10px] font-bold px-2 py-1 rounded-md border transition-colors ${hid ? 'bg-slate-100 text-slate-400 border-slate-200' : 'bg-emerald-50 text-emerald-700 border-emerald-200'}`}>
@@ -1816,20 +1816,26 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
                 <Save className="w-3.5 h-3.5" /> Lưu ngay
               </button>
             )}
+            {/* Khối tài khoản — dùng chung kiểu hiển thị với các phân hệ khác */}
             {supabase && session && session !== 'local' && (
-              <div className="flex items-center gap-2 bg-red-950/40 rounded-lg px-2.5 py-1.5 border border-red-600/30">
-                <User className="w-3.5 h-3.5 text-amber-300" />
-                <span className="text-xs text-red-100 max-w-[180px] truncate" title={isGuest ? 'Tài khoản khách — chỉ xem' : isLocalAdmin ? 'Quản trị cục bộ — dữ liệu chỉ lưu trên máy này' : myEmail}>{isGuest ? 'Khách' : isLocalAdmin ? 'Quản trị (cục bộ)' : (myPerson?.name || session.user?.user_metadata?.full_name || myEmail)}<span className="text-amber-300"> · {ROLE_LABEL[role]}</span></span>
-                {!isGuest && !isLocalAdmin && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="text-red-200 hover:text-white"><KeyRound className="w-3.5 h-3.5" /></button>}
+              <>
+                <span className={`flex items-center gap-1.5 text-[11px] px-2.5 py-1.5 rounded-lg border max-w-[220px] truncate ${isGuest ? 'bg-amber-400/20 border-amber-300/40 text-amber-50' : 'bg-white/10 border-white/20 text-white/90'}`}
+                  title={isGuest ? 'Tài khoản khách — thử chấm điểm được nhưng KHÔNG lưu' : isLocalAdmin ? 'Quản trị cục bộ — dữ liệu chỉ lưu trên máy này' : myEmail}>
+                  <User className="w-3.5 h-3.5 shrink-0" />
+                  {isGuest ? 'Khách · dùng thử' : isLocalAdmin ? 'Quản trị (cục bộ)' : (
+                    <>{myPerson?.name || session.user?.user_metadata?.full_name || myEmail}<span className="opacity-70"> · {ROLE_LABEL[role]}</span></>
+                  )}
+                </span>
+                {!isGuest && !isLocalAdmin && <button onClick={() => setShowChangePw(true)} title="Đổi mật khẩu" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><KeyRound className="w-4 h-4" /></button>}
                 {isGuest
-                  ? <button onClick={() => setWantLogin(true)} title="Đăng nhập (để chỉnh sửa, lưu dữ liệu)" className="flex items-center gap-1 text-red-200 hover:text-white"><LogIn className="w-3.5 h-3.5" /><span className="text-[11px] font-semibold">Đăng nhập</span></button>
+                  ? <button onClick={() => setWantLogin(true)} title="Đăng nhập để chỉnh sửa và lưu dữ liệu" className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white text-slate-800 hover:bg-slate-100"><LogIn className="w-4 h-4" /> Đăng nhập</button>
                   : isLocalAdmin
-                    ? <button onClick={() => { setWantLogin(false); setSession('guest'); }} title="Thoát chế độ quản trị cục bộ" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>
-                    : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="text-red-200 hover:text-white"><LogOut className="w-3.5 h-3.5" /></button>}
-              </div>
+                    ? <button onClick={() => { setWantLogin(false); setSession('guest'); }} title="Thoát chế độ quản trị cục bộ" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogOut className="w-4 h-4" /></button>
+                    : <button onClick={() => { setWantLogin(false); signOut(); }} title="Đăng xuất" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogOut className="w-4 h-4" /></button>}
+              </>
             )}
-            <div className="flex items-center gap-2 bg-red-950/40 rounded-xl px-3 py-2 border border-red-600/30" title={isKD ? 'Chọn quý/năm' : 'Chọn tháng/năm để xem hoặc nhập kỳ khác'}>
-              <CalendarDays className="w-4 h-4 text-amber-300" />
+            <div className="flex items-center gap-2 bg-white/10 rounded-lg px-3 py-1.5 border border-white/20" title={isKD ? 'Chọn quý/năm' : 'Chọn tháng/năm để xem hoặc nhập kỳ khác'}>
+              <CalendarDays className="w-4 h-4" />
               {isKD ? (
                 <select value={QUARTER_OF(period.month)} onChange={(e) => { loadingRef.current = true; const np = { ...period, month: String(Number(e.target.value) * 3) }; setPeriod(np); loadPeriod(np); }} className="bg-white/10 rounded px-1 py-0.5 text-sm text-white outline-none [&>option]:text-slate-800">
                   {[1, 2, 3, 4].map((q) => <option key={q} value={q}>Quý {ROMAN[q - 1]}</option>)}
@@ -1837,7 +1843,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
               ) : (
                 <input type="number" min="1" max="12" value={period.month} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, month: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-11 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
               )}
-              <span className="text-red-200">/</span>
+              <span className="text-white/60">/</span>
               <input type="number" value={period.year} onChange={(e) => { loadingRef.current = true; setPeriod({ ...period, year: e.target.value }); }} onBlur={() => loadPeriod(period)} onKeyDown={(e) => { if (e.key === 'Enter') e.target.blur(); }} className="w-16 bg-white/10 rounded px-1 py-0.5 text-sm text-center text-white outline-none" />
             </div>
           </div>

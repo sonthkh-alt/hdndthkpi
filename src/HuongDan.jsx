@@ -127,10 +127,17 @@ export default function HuongDan({ onHome, onOpenModule }) {
       <header className="bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#334155] text-white print:hidden">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
-            <button onClick={onHome} title="Về trang chủ" className="w-10 h-10 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20 flex items-center justify-center"><Home className="w-5 h-5" /></button>
+            <button onClick={onHome} title="Về Trang chủ (chọn phân hệ khác)" className="shrink-0 w-10 h-10 rounded-xl bg-white/10 border border-white/25 hover:bg-white/20 flex items-center justify-center transition-colors"><Home className="w-5 h-5" /></button>
+            <div className="shrink-0 w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg ring-2 ring-white/30 p-1.5">
+              <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
+            </div>
             <div>
-              <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-300">Hệ thống đánh giá, xếp loại</p>
-              <h1 className="text-base sm:text-lg font-extrabold leading-tight">Hướng dẫn &amp; hỗ trợ sử dụng</h1>
+              <div className="flex items-center gap-2 flex-wrap">
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-300">Hệ thống đánh giá, xếp loại</p>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
+              </div>
+              <h1 className="text-base sm:text-xl font-extrabold leading-tight">Hướng dẫn &amp; hỗ trợ sử dụng</h1>
+              <p className="text-white/70 text-[11px] sm:text-xs mt-0.5">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
             </div>
           </div>
           <button onClick={() => window.print()} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-white/10 border border-white/25 hover:bg-white/20"><Printer className="w-4 h-4" /> In / lưu PDF</button>

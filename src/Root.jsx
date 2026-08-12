@@ -32,7 +32,11 @@ function parseHash() {
   const params = new URLSearchParams(qs || '');
   const v = params.get('v');
   const version = (m.labVersions || []).includes(v) ? v : m.target.version;
-  return { view: 'app', moduleId: m.id, version, tab: m.target.tab || 'dash', login: params.get('login') === '1' };
+  return {
+    view: 'app', moduleId: m.id, version, tab: m.target.tab || 'dash',
+    login: params.get('login') === '1',
+    title: m.title, isLab: m.id === 'lab',
+  };
 }
 
 const Loading = () => (
@@ -82,7 +86,13 @@ export default function Root() {
         ? <TieuChiHDND onHome={goHome} />
         : state.view === 'huongdan'
           ? <HuongDan onHome={goHome} onOpenModule={goRoute} />
-          : <App key={state.moduleId} version={state.version} onPickVersion={pickVersion} onHome={goHome} initialTab={state.tab} initialLogin={state.login} />}
+          : (
+            // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
+            // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
+            <App key={state.moduleId} version={state.version} onHome={goHome}
+              onPickVersion={state.isLab ? pickVersion : undefined}
+              moduleTitle={state.title} initialTab={state.tab} initialLogin={state.login} />
+          )}
     </Suspense>
   );
 }
