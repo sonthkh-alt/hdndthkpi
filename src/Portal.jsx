@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye, Scale,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, ChevronRight,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail,
 } from 'lucide-react';
 import { MODULES, LEGAL_BASIS } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
@@ -98,45 +98,18 @@ export default function Portal({ onOpen }) {
         </div>
       </header>
 
-      {/* ===== Khối giới thiệu ===== */}
-      <section className="relative overflow-hidden text-white bg-gradient-to-br from-[#5c0f0f] via-[#a51c1c] to-[#7f1d1d]">
-        <div className="absolute inset-0 tech-grid opacity-60" />
-        <div className="absolute -top-24 right-0 w-96 h-96 rounded-full bg-amber-400/20 blur-3xl" />
-        <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-rose-500/25 blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
-          <div className="max-w-3xl">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-amber-400 text-red-900">
-              <Sparkles className="w-3 h-3" /> Bản demo thử nghiệm
-            </span>
-            <h1 className="mt-4 text-3xl sm:text-4xl lg:text-[42px] font-extrabold leading-[1.15] aurora-text">
-              Hệ thống đánh giá, xếp loại<br className="hidden sm:block" /> cán bộ, công chức và cơ quan dân cử
-            </h1>
-            <p className="mt-4 text-red-50/90 text-sm sm:text-base leading-relaxed max-w-2xl">
-              Nền tảng dùng chung của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa: đánh giá cán bộ theo OKR/KPI,
-              kiểm điểm xếp loại đảng viên và đánh giá hoạt động của HĐND cấp tỉnh, cấp xã theo Khung tiêu chí.
-              Chọn phân hệ cần dùng ở phía dưới.
-            </p>
-            <div className="mt-6 flex flex-wrap gap-3">
-              {main.slice(0, 2).map((m) => (
-                <button key={m.id} onClick={() => onOpen(m)} className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white text-red-800 hover:bg-amber-50 shadow-lg transition">
-                  {m.short} <ArrowRight className="w-4 h-4" />
-                </button>
-              ))}
-              <a href="#phanhe" className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white/10 border border-white/30 hover:bg-white/20 transition">
-                Xem tất cả phân hệ <ChevronRight className="w-4 h-4" />
-              </a>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* ===== Phân hệ nghiệp vụ ===== */}
-      <main id="phanhe" className="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
-        <div className="flex items-end justify-between gap-4 mb-6">
+      <main id="phanhe" className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
+        <div className="flex items-end justify-between gap-4 mb-6 flex-wrap">
           <div>
-            <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-red-700">Phân hệ nghiệp vụ</p>
-            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1">Chọn phân hệ để bắt đầu</h2>
-            <p className="text-[13px] text-slate-500 mt-1">Bấm vào biểu tượng của phân hệ tương ứng với công việc cần thực hiện.</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-red-700">Phân hệ nghiệp vụ</p>
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-200">
+                <Sparkles className="w-3 h-3" /> Bản demo thử nghiệm
+              </span>
+            </div>
+            <h2 className="text-xl sm:text-2xl font-extrabold text-slate-800 mt-1.5">Chọn phân hệ để bắt đầu</h2>
+            <p className="text-[13px] text-slate-500 mt-1 max-w-2xl">Nền tảng dùng chung của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa. Bấm vào biểu tượng của phân hệ tương ứng với công việc cần thực hiện.</p>
           </div>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">

@@ -860,9 +860,9 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
       </div>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[12px] text-slate-600">Chưa có tài khoản? Vẫn xem được kết quả đánh giá (dữ liệu mô phỏng) và toàn văn Khung tiêu chí — <b>chỉ xem, không chỉnh sửa</b>.</p>
+        <p className="text-[12px] text-slate-600">Chưa có tài khoản? Vẫn xem được kết quả đánh giá của các đơn vị và toàn văn Khung tiêu chí — <b>chỉ xem, không chỉnh sửa</b>.</p>
         <div className="flex items-center gap-2">
-          <button onClick={onGuest} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700"><Eye className="w-3.5 h-3.5" /> Xem dữ liệu demo</button>
+          <button onClick={onGuest} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700"><Eye className="w-3.5 h-3.5" /> ← Quay lại xem kết quả</button>
           <button onClick={onKhung} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"><ListChecks className="w-3.5 h-3.5" /> Xem Khung tiêu chí</button>
         </div>
       </div>
@@ -876,9 +876,11 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
 export default function TieuChiHDND({ onHome }) {
   const [doc, setDoc] = useState(readTC);
   const [syncing, setSyncing] = useState(true); // đang đồng bộ bản mới từ máy chủ (vẫn hiển thị ngay bản cache)
-  const [view, setView] = useState('gate');      // gate | phieu | admin | khung
+  // Mặc định vào thẳng BẢNG KẾT QUẢ ở chế độ khách (chỉ xem) để thấy ngay dữ liệu;
+  // đăng nhập chỉ cần khi đơn vị muốn chấm điểm hoặc Thường trực muốn thẩm định, phê duyệt.
+  const [view, setView] = useState('admin');     // gate | phieu | admin | khung
   const [admin, setAdmin] = useState(null);      // { mode:'server'|'local', email }
-  const [guest, setGuest] = useState(false);     // khách xem dữ liệu demo — KHÔNG chỉnh sửa được
+  const [guest, setGuest] = useState(true);      // khách xem dữ liệu — KHÔNG chỉnh sửa được
   const [unitSess, setUnitSess] = useState(readUnitSession);
   const [openUnitId, setOpenUnitId] = useState(null); // quản trị đang mở phiếu đơn vị nào
   const [draft, setDraft] = useState(null);
@@ -901,20 +903,24 @@ export default function TieuChiHDND({ onHome }) {
       if (!(d.units || []).length) d = await seedTieuChi(d.cfg?.year);
       if (!alive) return;
       setDoc(d); setSyncing(false);
+      // Đang đăng nhập sẵn bằng tài khoản quản trị (dùng chung phiên với các phân hệ khác)
       const s = await getSession();
       const em = (s?.user?.email || '').toLowerCase();
-      if (alive && em && ADMIN_EMAILS.includes(em)) { setAdmin({ mode: 'server', email: em }); setView((v) => (v === 'gate' ? 'admin' : v)); }
+      if (alive && em && ADMIN_EMAILS.includes(em)) { setAdmin({ mode: 'server', email: em }); setGuest(false); setView('admin'); }
     })();
     return () => { alive = false; };
   }, []);
 
-  // Khôi phục phiên đơn vị đã đăng nhập trước đó
+  // Khôi phục phiên đơn vị đã đăng nhập trước đó (chỉ làm 1 lần khi mở module)
+  const bootedRef = useRef(false);
   useEffect(() => {
-    if (syncing || !unitSess || view !== 'gate') return;
+    if (syncing || bootedRef.current) return;
+    bootedRef.current = true;
+    if (!unitSess) return;
     const u = (doc.units || []).find((x) => x.id === unitSess.unitId);
-    if (u && u.hash === unitSess.hash && u.active !== false) setView('phieu');
+    if (u && u.hash === unitSess.hash && u.active !== false) { setGuest(false); setView('phieu'); }
     else { writeUnitSession(null); setUnitSess(null); }
-  }, [syncing, unitSess, doc.units, view]);
+  }, [syncing, unitSess, doc.units]);
 
   const activeUnit = useMemo(() => {
     const id = (admin || guest) && openUnitId ? openUnitId : unitSess?.unitId;
@@ -987,9 +993,9 @@ export default function TieuChiHDND({ onHome }) {
     setDoc(d); await persistDoc(d);
   };
 
-  const logoutUnit = () => { writeUnitSession(null); setUnitSess(null); setView('gate'); setDraft(null); };
-  const logoutAdmin = () => { setAdmin(null); setOpenUnitId(null); setView('gate'); };
-  const logoutGuest = () => { setGuest(false); setOpenUnitId(null); setView('gate'); };
+  const logoutUnit = () => { writeUnitSession(null); setUnitSess(null); setGuest(true); setView('admin'); setDraft(null); };
+  const logoutAdmin = () => { setAdmin(null); setOpenUnitId(null); setGuest(true); setView('admin'); };
+  const logoutGuest = () => { setOpenUnitId(null); setView('gate'); }; // khách bấm Đăng nhập
 
   // Khách chỉ XEM; đơn vị không sửa được khi đã gửi hoặc đợt đánh giá đã đóng.
   const readOnly = guest || (!admin && (!!draft?.submitted || doc.cfg?.open === false));
@@ -1026,7 +1032,7 @@ export default function TieuChiHDND({ onHome }) {
               <>
                 <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border ${view === 'admin' ? 'bg-white text-indigo-800 border-white' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>Kết quả đánh giá</button>
                 <span className="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400/20 border border-amber-300/40 text-amber-50">Khách · chỉ xem</span>
-                <button onClick={logoutGuest} title="Thoát chế độ xem, đăng nhập" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogIn className="w-4 h-4" /></button>
+                <button onClick={logoutGuest} title="Đăng nhập để chấm điểm / thẩm định, phê duyệt" className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white text-indigo-800 hover:bg-indigo-50"><LogIn className="w-4 h-4" /> Đăng nhập</button>
               </>
             )}
             <button onClick={() => setView('khung')} className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border ${view === 'khung' ? 'bg-white text-indigo-800 border-white' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>Khung tiêu chí</button>
@@ -1037,8 +1043,8 @@ export default function TieuChiHDND({ onHome }) {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {view === 'gate' ? (
           <Gate doc={doc} busy={saving}
-            onUnit={(u, hash) => { const s = { unitId: u.id, code: u.code, hash, at: today() }; writeUnitSession(s); setUnitSess(s); setView('phieu'); }}
-            onAdmin={(mode, email) => { setAdmin({ mode, email }); setView('admin'); }}
+            onUnit={(u, hash) => { const s = { unitId: u.id, code: u.code, hash, at: today() }; writeUnitSession(s); setUnitSess(s); setGuest(false); setOpenUnitId(null); setView('phieu'); }}
+            onAdmin={(mode, email) => { setAdmin({ mode, email }); setGuest(false); setView('admin'); }}
             onGuest={() => { setGuest(true); setView('admin'); }}
             onKhung={() => setView('khung')} />
         ) : view === 'khung' ? (
@@ -1046,9 +1052,22 @@ export default function TieuChiHDND({ onHome }) {
             <button onClick={() => setView(admin || guest ? 'admin' : unitSess ? 'phieu' : 'gate')} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Quay lại</button>
             <KhungView kind={khungKind} onKind={setKhungKind} />
           </>
+        ) : syncing && !(doc.units || []).length ? (
+          <p className="text-center text-slate-400 text-sm py-16">Đang nạp dữ liệu đánh giá…</p>
         ) : view === 'admin' && (admin || guest) ? (
-          <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving} readOnly={guest}
-            onApprove={approveUnits} onOpen={(u) => { setOpenUnitId(u.id); setView('phieu'); }} />
+          <>
+            {guest && (
+              <div className="mb-4 rounded-2xl border border-indigo-200 bg-indigo-50 p-3 flex items-center justify-between gap-3 flex-wrap">
+                <p className="text-[12px] text-indigo-900 leading-snug">
+                  Bạn đang xem kết quả đánh giá ở chế độ <b>khách — chỉ xem</b>. Đơn vị đăng nhập bằng <b>mã đơn vị + mã truy cập</b> để tự chấm điểm;
+                  Thường trực HĐND tỉnh / Tổ công tác đăng nhập để thẩm định và phê duyệt.
+                </p>
+                <button onClick={() => setView('gate')} className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold px-3 py-2 rounded-lg bg-indigo-600 text-white hover:bg-indigo-500"><LogIn className="w-3.5 h-3.5" /> Đăng nhập</button>
+              </div>
+            )}
+            <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving} readOnly={guest}
+              onApprove={approveUnits} onOpen={(u) => { setOpenUnitId(u.id); setView('phieu'); }} />
+          </>
         ) : view === 'phieu' && activeUnit && draft ? (
           <>
             {(admin || guest) && <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Về bảng kết quả</button>}
