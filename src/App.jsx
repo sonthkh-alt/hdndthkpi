@@ -1240,7 +1240,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
     const t = setTimeout(async () => {
-      const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
+      const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current);
       if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
       else if (res.conflict) setConflict(true);
       setCloud((c) => ({ ...c, saving: false }));
@@ -1263,7 +1263,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const handleManualSave = async () => {
     if (isLocalSession(session)) return; // khách / quản trị cục bộ -> không ghi lên máy chủ
     setCloud((c) => ({ ...c, saving: true }));
-    const res = await saveState(period, { people, objectives, catalog, instKpi, period }, serverTsRef.current);
+    const res = await saveState(period, { people, objectives, catalog, instKpi, period, _summary: summaryRef.current }, serverTsRef.current);
     if (res.ok) { serverTsRef.current = res.serverTs; setConflict(false); }
     else if (res.conflict) setConflict(true);
     setCloud((c) => ({ ...c, saving: false }));
@@ -1290,6 +1290,21 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const computed = useMemo(() => people.map((p) => ({ p, c: scoreOf(p) })), [people, catalog, version]);
   const curC = cur ? (computed.find((x) => x.p.id === curId)?.c || scoreOf(cur)) : null;
   const dist = useMemo(() => { const d = { A: 0, B: 0, C: 0, D: 0, E: 0 }; computed.forEach(({ c }) => { d[c.grade] = (d[c.grade] || 0) + 1; }); return d; }, [computed]);
+  // Bảng điểm ĐÃ TÍNH — ghi kèm mỗi lần lưu (khóa `_summary`) để các dịch vụ phía máy chủ
+  // (bot chat Telegram/Zalo trong thư mục api/) đọc được kết quả mà không phải dựng lại
+  // toàn bộ công thức chấm điểm của giao diện. Không ảnh hưởng việc hiển thị.
+  const summaryRef = useRef(null);
+  summaryRef.current = {
+    ts: Date.now(), version, unit,
+    people: computed.map(({ p, c }) => ({
+      name: p.name || '', position: p.position || '', department: p.department || '', type: p.type,
+      self: Math.round((c.totalSelf || 0) * 10) / 10,
+      mgr: Math.round((c.totalMgr || 0) * 10) / 10,
+      grade: c.grade,
+      gradeLabel: (isSG ? sgGradeInfo(c.grade) : isKD ? kdGradeInfo(c.grade) : gradeClass(c.grade))?.name || c.grade,
+      approved: !!p.approved,
+    })),
+  };
   const upCurSG = (patch) => upCur({ sg: { ...(cur?.sg || {}), ...patch } });
   const upCurKD = (patch) => upCur({ kd: { ...(cur?.kd || {}), ...patch } }); // qua upCur để tự gỡ phê duyệt khi sửa điểm
   // Tab "Danh mục" không áp dụng cho bản Singapore (không dùng Nhóm II) -> tự chuyển về Tổng quan.

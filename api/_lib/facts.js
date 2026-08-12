@@ -1,0 +1,163 @@
+// ============================================================================
+//  GOM SỐ LIỆU THẬT của hệ thống thành văn bản gọn để nạp cho AI trả lời.
+//  Nguyên tắc: chỉ đưa vào những gì cần cho câu trả lời, KHÔNG đưa dữ liệu
+//  cá nhân nhạy cảm (CCCD, BHXH, quan hệ gia đình trong hồ sơ 2C).
+// ============================================================================
+import { getRow, listPeriodIds } from './store.js';
+import { computeTC, applyQuotaXuatSac, gradeName, kindInfo } from '../../src/lib/khungTieuChi.js';
+import { buildAlerts, DEFAULT_LEAD } from '../../src/lib/hr.js';
+
+const n1 = (v) => (Math.round(Number(v || 0) * 10) / 10).toString().replace('.', ',');
+const dmy = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
+
+// ---------------------------------------------------------------------------
+//  A. Kỳ đánh giá OKR/KPI & Kiểm điểm (dòng state_<năm>_<tháng>)
+//  App ghi kèm `_summary` (điểm đã tính sẵn) mỗi lần lưu -> máy chủ không phải
+//  dựng lại toàn bộ công thức chấm điểm của giao diện.
+// ---------------------------------------------------------------------------
+export async function periodFacts(wanted) {
+  const list = await listPeriodIds();
+  if (!list.length) return { text: '', meta: null };
+
+  let pick = list[0];
+  if (wanted?.year && wanted?.month) {
+    pick = list.find((p) => p.year === Number(wanted.year) && p.month === Number(wanted.month)) || pick;
+  }
+  return fmtPeriod(await getRow(pick.id), pick, list);
+}
+
+/** Phần định dạng THUẦN (không đụng mạng) — tách ra để kiểm thử bằng Node. */
+export function fmtPeriod(row, pick, list = []) {
+  const st = row?.data || {};
+  const sum = st._summary;
+  const others = list.slice(0, 8).map((p) => `${p.month}/${p.year}`).join(', ');
+
+  if (!sum || !Array.isArray(sum.people)) {
+    const names = (st.people || []).map((p) => p.name).filter(Boolean);
+    return {
+      meta: pick,
+      text: `## Kỳ đánh giá cán bộ ${pick.month}/${pick.year}\n`
+        + `Có ${names.length} cán bộ trong danh sách nhưng bản lưu này CHƯA có bảng điểm tóm tắt `
+        + `(dữ liệu lưu trước khi hệ thống bổ sung tính năng này). Hãy đề nghị người dùng mở `
+        + `https://hdndthkpi.vercel.app/#/okr rồi bấm "Lưu ngay" một lần để cập nhật.\n`
+        + `Danh sách: ${names.join(', ')}\nCác kỳ đã có dữ liệu: ${others}`,
+    };
+  }
+
+  const rows = sum.people.map((p) =>
+    `- ${p.name} | ${p.position || ''} | ${p.department || ''} | tự đánh giá ${n1(p.self)} | cấp duyệt ${n1(p.mgr)} | xếp loại ${p.gradeLabel || p.grade} | ${p.approved ? 'đã phê duyệt' : 'chưa phê duyệt'}`);
+  const dist = sum.people.reduce((a, p) => { const k = p.gradeLabel || p.grade; a[k] = (a[k] || 0) + 1; return a; }, {});
+  const avg = sum.people.length ? sum.people.reduce((s, p) => s + Number(p.mgr || 0), 0) / sum.people.length : 0;
+
+  return {
+    meta: pick,
+    text: `## Kỳ đánh giá cán bộ ${pick.month}/${pick.year} (bộ tiêu chí: ${sum.version || '?'}, cập nhật ${dmy(row.updated_at)})\n`
+      + `Đơn vị: ${sum.unit || 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa'}\n`
+      + `Tổng số: ${sum.people.length} người · điểm trung bình (cấp duyệt): ${n1(avg)}\n`
+      + `Cơ cấu xếp loại: ${Object.entries(dist).map(([k, v]) => `${k}: ${v}`).join(' · ')}\n`
+      + `Đã phê duyệt: ${sum.people.filter((p) => p.approved).length}/${sum.people.length}\n`
+      + `Bảng điểm (họ tên | chức vụ | phòng | tự đánh giá | cấp duyệt | xếp loại | phê duyệt):\n${rows.join('\n')}\n`
+      + `Các kỳ khác đã có dữ liệu: ${others}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+//  B. Đánh giá tiêu chí HĐND tỉnh, xã, phường (dòng tc_data)
+//  khungTieuChi.js là logic THUẦN nên máy chủ tính lại được y hệt giao diện.
+// ---------------------------------------------------------------------------
+export async function tieuChiFacts() {
+  const row = await getRow('tc_data');
+  return fmtTieuChi(row?.data);
+}
+
+/** Phần định dạng THUẦN — tính lại điểm bằng chính khungTieuChi.js của giao diện. */
+export function fmtTieuChi(doc) {
+  if (!doc || !Array.isArray(doc.units) || !doc.units.length) return { text: '', meta: null };
+
+  const year = String(doc.cfg?.year || new Date().getFullYear());
+  const evals = doc.evals || {};
+  const scored = doc.units.map((u) => {
+    const rec = evals[`${u.id}::${year}`];
+    if (!rec) return { u, rec: null, c: null };
+    return { u, rec, c: computeTC(u.kind || 'xa', rec.ans || {}) };
+  });
+
+  // Trần 25% Xuất sắc chỉ áp cho cấp xã, phường (Điều 6 khoản 2).
+  const xa = scored.filter((s) => s.c && (s.u.kind || 'xa') === 'xa');
+  const quota = applyQuotaXuatSac(xa.map((s) => ({
+    id: s.u.id, total: s.c.total, bonus: s.c.bonus,
+    groupV: (s.c.groups.find((g) => g.code === 'V') || {}).score || 0, grade: s.c.grade,
+  })));
+
+  const line = (s) => {
+    if (!s.c) return `- ${s.u.name} (${kindInfo(s.u.kind || 'xa').short || s.u.kind}) | chưa chấm phiếu`;
+    const official = quota.over.includes(s.u.id) ? 'tot' : s.c.grade;
+    const note = quota.over.includes(s.u.id) ? ' (đủ điểm Xuất sắc nhưng vượt trần 25% nên xếp Tốt)' : '';
+    const st = s.rec.approved ? 'đã phê duyệt' : s.rec.submitted ? 'đã gửi, chờ phê duyệt' : 'đang làm dở';
+    return `- ${s.u.name} | tổng ${n1(s.c.total)}đ (7 nhóm ${n1(s.c.base)} + thưởng ${n1(s.c.bonus)} − trừ ${n1(s.c.deduct)}) | xếp loại ${gradeName(official)}${note} | khai báo ${s.c.progress}% | ${st}`;
+  };
+
+  const done = scored.filter((s) => s.c);
+  const avg = done.length ? done.reduce((a, s) => a + s.c.total, 0) / done.length : 0;
+
+  return {
+    meta: { year, units: doc.units.length },
+    text: `## Đánh giá tiêu chí HĐND năm ${year} (Khung tiêu chí nhiệm kỳ 2026-2031)\n`
+      + `${doc.units.length} đơn vị, ${done.length} đơn vị đã chấm phiếu, điểm trung bình ${n1(avg)}/110.\n`
+      + `Trần Xuất sắc cấp xã: tối đa ${quota.limit} đơn vị (25%), có ${quota.candidates} đơn vị đủ điểm.\n`
+      + `${doc.cfg?.demo ? '⚠️ Đây là DỮ LIỆU MÔ PHỎNG dùng để trình diễn, không phải số liệu chính thức.\n' : ''}`
+      + `Kết quả từng đơn vị:\n${scored.map(line).join('\n')}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+//  C. Nhắc việc nhân sự (dòng hr_data) — CHỈ cho người hỏi là Quản trị.
+//  Không đưa CCCD/BHXH/quan hệ gia đình vào ngữ cảnh của AI.
+// ---------------------------------------------------------------------------
+export async function nhanSuFacts() {
+  const row = await getRow('hr_data');
+  return fmtNhanSu(row?.data);
+}
+
+/** Phần định dạng THUẦN — dùng lại buildAlerts của giao diện. */
+export function fmtNhanSu(doc) {
+  if (!doc || !Array.isArray(doc.staff) || !doc.staff.length) return { text: '', meta: null };
+
+  const alerts = buildAlerts(doc.staff, doc.duties || [], doc.quota || {}, { ...DEFAULT_LEAD, ...(doc.lead || {}) });
+  const lv = { overdue: 'QUÁ HẠN', urgent: 'KHẨN', soon: 'sắp tới', info: 'theo dõi' };
+  const top = alerts.slice(0, 25).map((a) =>
+    `- [${lv[a.level] || a.level}] ${a.who}: ${a.title}${a.date ? ` (${dmy(a.date)}${a.days != null ? `, còn ${a.days} ngày` : ''})` : ''}`);
+
+  return {
+    meta: { staff: doc.staff.length, alerts: alerts.length },
+    text: `## Nhắc việc nhân sự (chỉ Quản trị được xem)\n`
+      + `${doc.staff.length} hồ sơ cán bộ · ${alerts.length} việc cần theo dõi `
+      + `(quá hạn ${alerts.filter((a) => a.level === 'overdue').length}, khẩn ${alerts.filter((a) => a.level === 'urgent').length}).\n`
+      + `${top.join('\n')}${alerts.length > 25 ? `\n… và ${alerts.length - 25} việc khác.` : ''}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
+//  Chọn nạp phần nào theo câu hỏi — tránh nhồi hết dữ liệu vào mỗi lượt chat.
+// ---------------------------------------------------------------------------
+const KW = {
+  tc: ['tiêu chí', 'tieu chi', 'xã', 'phường', 'xa,', 'hđnd xã', 'đơn vị', 'don vi', 'hạc thành', 'quota', 'trần 25', 'xuất sắc 25'],
+  hr: ['nâng lương', 'nang luong', 'nghỉ hưu', 'nghi huu', 'nhắc việc', 'nhac viec', 'biên chế', 'bien che', 'hồ sơ 2c', 'sinh nhật', 'hợp đồng', 'bổ nhiệm'],
+  kp: ['điểm', 'diem', 'xếp loại', 'xep loai', 'kpi', 'okr', 'cán bộ', 'can bo', 'phê duyệt', 'phe duyet', 'phòng', 'tổng quan', 'trung bình', 'kiểm điểm'],
+};
+const hit = (q, list) => list.some((k) => q.includes(k));
+
+export async function gatherFacts(question, { isAdmin = false } = {}) {
+  const q = String(question || '').toLowerCase();
+  const wantTC = hit(q, KW.tc);
+  const wantHR = isAdmin && hit(q, KW.hr);
+  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR); // mặc định nạp kỳ đánh giá
+
+  const jobs = [];
+  if (wantKP) jobs.push(periodFacts().catch((e) => ({ text: `(Không đọc được kỳ đánh giá: ${e.message})` })));
+  if (wantTC) jobs.push(tieuChiFacts().catch((e) => ({ text: `(Không đọc được tiêu chí HĐND: ${e.message})` })));
+  if (wantHR) jobs.push(nhanSuFacts().catch((e) => ({ text: `(Không đọc được dữ liệu nhân sự: ${e.message})` })));
+
+  const parts = (await Promise.all(jobs)).map((r) => r.text).filter(Boolean);
+  return parts.join('\n\n');
+}

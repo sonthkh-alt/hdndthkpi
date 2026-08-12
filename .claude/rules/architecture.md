@@ -47,6 +47,17 @@ paths:
 - **`src/lib/export2C.js`** — `exportLyLich2C(staff, unit)` xuất Sơ yếu lý lịch 2C ra Word.
 - ⚠️ **Bảo mật:** hồ sơ chứa dữ liệu cá nhân nhạy cảm. Policy `app_state_auth_all` cho MỌI tài khoản đăng nhập đọc mọi dòng → **cần chạy BƯỚC 4 trong `supabase/schema.sql`** để chỉ Quản trị đọc/ghi `hr_data`. Ẩn tab ở giao diện KHÔNG phải cơ chế bảo mật.
 
+## TRỢ LÝ CHAT (Telegram / Zalo) — thư mục `api/`
+> Hướng dẫn cài đặt cho người dùng: **`docs/BOT-CHAT.md`**. Chỉ chạy trên Vercel (hàm `api/` không chạy khi `npm run dev`).
+- **`api/telegram.js`** — webhook Telegram. `GET` = xem tình trạng, `GET ?setup=<TELEGRAM_WEBHOOK_SECRET>` = tự đăng ký webhook. `POST` kiểm tra tiêu đề `x-telegram-bot-api-secret-token`, lọc **danh sách trắng** `TELEGRAM_ALLOWED_IDS`, cắt tin >4096 ký tự, LUÔN trả 200 (tránh Telegram gửi lại vòng lặp).
+- **`api/_lib/brain.js`** — "bộ não" DÙNG CHUNG (Telegram hôm nay, Zalo OA sau này): lệnh nhanh `/help` `/solieu` `/quen` `/trangthai`, còn lại ghép `SYSTEM_PROMPT` + `KNOWLEDGE` + số liệu thật rồi gọi AI.
+- **`api/_lib/facts.js`** — gom SỐ LIỆU THẬT. `fmtPeriod`/`fmtTieuChi`/`fmtNhanSu` là hàm THUẦN (tách khỏi phần đọc mạng để kiểm thử bằng Node). Tiêu chí HĐND **tính lại tại chỗ bằng chính `src/lib/khungTieuChi.js`** nên không lệch giao diện; nhân sự dùng `buildAlerts` của `src/lib/hr.js` và CHỈ trả cho Quản trị. `gatherFacts` chọn nạp phần nào theo từ khóa trong câu hỏi.
+- **`api/_lib/knowledge.js`** — hiểu biết TĨNH về hệ thống (5 phân hệ, cách tính điểm từng phân hệ, phân quyền, mốc thời gian, cơ sở pháp lý) + `SYSTEM_PROMPT`. ⚠️ KHÔNG được ghi mật khẩu quản trị vào đây (có test chặn).
+- **`api/_lib/ai.js`** — bộ nối đa nhà cung cấp: `ANTHROPIC_API_KEY` | `GEMINI_API_KEY` | `OPENAI_API_KEY` (tự nhận, ép bằng `AI_PROVIDER`/`AI_MODEL`).
+- **`api/_lib/store.js`** — đọc/ghi `app_state` qua REST bằng `SUPABASE_SERVICE_ROLE_KEY` (bỏ qua RLS, KHÔNG có tiền tố `VITE_`); trí nhớ hội thoại ở dòng **`bot_memory`** (10 lượt, quên sau 2 ngày).
+- **`App.jsx` ghi kèm `_summary`** vào mỗi lần lưu kỳ (`{ts, version, unit, people:[{name,position,department,type,self,mgr,grade,gradeLabel,approved}]}`, dựng từ `computed` qua `summaryRef`) — để máy chủ đọc được ĐIỂM ĐÃ TÍNH mà không phải dựng lại công thức của giao diện. Dữ liệu lưu trước thay đổi này chưa có khóa đó → bot nhắc mở app bấm "Lưu ngay".
+- **`vercel.json`** — chỉ đặt `maxDuration: 60` cho `api/*.js` (một lượt hỏi AI có thể mất >10s).
+
 ## Danh sách file
 - **`src/App.jsx`** — toàn bộ ứng dụng (model + UI). Tabs: Tổng quan · Đánh giá · Năng lực số · Theo dõi CV · Hướng dẫn · Liên hệ · Danh mục (chỉ Quản trị) · **Quản lý cán bộ (chỉ Quản trị)**.
 - **`src/Login.jsx`** — đăng nhập (email+mật khẩu, liên kết, tài khoản khách). Tông cổ điển (đỏ/vàng), không còn bộ chọn phiên bản.
@@ -56,6 +67,7 @@ paths:
 - **`src/lib/exporters.js`** — Lazy-load các thư viện nặng. Gồm: `exportExcel1A` (Mẫu 1A); `exportWordPhieu(ev)` — **phiếu Word đầy đủ** (bảng Nhóm I từng tiêu chí Tự ĐG/Cấp duyệt, bảng Nhóm II từng nhiệm vụ, d/đ/e lãnh đạo, tổng hợp + xếp loại + Điều 8, nhận xét, trạng thái phê duyệt + 2 khối chữ ký); `exportTrackingPDF` (bảng theo dõi, cửa sổ in); `exportGuidePDF(unit, catalogGroups)` — **sổ tay hướng dẫn PDF** (cửa sổ in, A4 dọc: bìa + mục lục + 14 mục + Phụ lục A bảng 52 danh mục + Phụ lục B ví dụ xuyên suốt). `App.jsx` truyền `catalogForGuide()` (gộp 52 mục theo nhóm + nhãn Mẫu).
 - **`src/lib/nd335.js`** — `ND335_CATALOG` (danh mục công việc, có hệ số) + `CRITERIA_335`. ⚠️ Phần catalog cũ từng bị **lỗi mã hóa**; danh mục MỚI nên định nghĩa trong `App.jsx` (UTF-8 chuẩn) rồi gộp.
 - **`api/kiemdem.js`** — Vercel Serverless Function: proxy đọc Google Sheet công khai (CSV) → JSON (tránh CORS). Chỉ chạy trên Vercel.
+- **`api/telegram.js` + `api/_lib/`** — **TRỢ LÝ CHAT** (xem mục dưới).
 - **`supabase/schema.sql`** — bảng `app_state` (lưu theo kỳ) + ghi chú RLS.
 
 > ⚠️ Tài liệu nguồn trong repo `335-cp.signed.pdf`, `So-tay-danh-gia-cong-chuc.pdf` là **PDF scan, không trích được text**. NĐ335 + Sổ tay đầy đủ đã được người dùng cung cấp dạng văn bản trong phiên làm việc (đối chiếu để dựng bản PRO).

@@ -1,0 +1,93 @@
+// ============================================================================
+//  ĐỌC / GHI Supabase từ PHÍA MÁY CHỦ (Vercel Serverless Function).
+//  Dùng cho bot chat (Telegram / Zalo) — KHÔNG chạy trong trình duyệt.
+//
+//  ⚠️ Cần biến môi trường SUPABASE_SERVICE_ROLE_KEY (Supabase -> Settings -> API).
+//     Khóa này BỎ QUA RLS nên TUYỆT ĐỐI không đặt tên có tiền tố VITE_
+//     (biến VITE_ sẽ bị nhúng vào mã tải về trình duyệt).
+//  Gọi REST trực tiếp bằng fetch để hàm này không phụ thuộc @supabase/supabase-js.
+// ============================================================================
+const BASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+
+export const hasStore = () => !!(BASE && KEY);
+export const isServiceKey = () => !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+async function rest(path, init = {}) {
+  if (!hasStore()) throw new Error('Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.');
+  const r = await fetch(`${BASE.replace(/\/+$/, '')}/rest/v1/${path}`, {
+    ...init,
+    headers: {
+      apikey: KEY, Authorization: `Bearer ${KEY}`,
+      'Content-Type': 'application/json', ...(init.headers || {}),
+    },
+  });
+  if (!r.ok) throw new Error(`Supabase ${r.status}: ${(await r.text()).slice(0, 300)}`);
+  const txt = await r.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+/** Đọc một dòng app_state theo id. Trả { data, updated_at } hoặc null. */
+export async function getRow(id) {
+  const rows = await rest(`app_state?id=eq.${encodeURIComponent(id)}&select=data,updated_at`);
+  return (rows && rows[0]) || null;
+}
+
+/** Ghi đè một dòng app_state (upsert). */
+export async function putRow(id, data) {
+  await rest('app_state', {
+    method: 'POST',
+    headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+    body: JSON.stringify({ id, data, updated_at: new Date().toISOString() }),
+  });
+}
+
+/** Danh sách các kỳ đã có dữ liệu, mới nhất trước. PostgREST đổi '*' thành '%'. */
+export async function listPeriodIds() {
+  const rows = await rest('app_state?id=like.state_*&select=id,updated_at');
+  return (rows || [])
+    .map((r) => {
+      const m = String(r.id).match(/^state_(\d+)_(\d+)$/);
+      return m ? { id: r.id, year: Number(m[1]), month: Number(m[2]), updated_at: r.updated_at } : null;
+    })
+    .filter(Boolean)
+    .sort((a, b) => (b.year - a.year) || (b.month - a.month));
+}
+
+// ---------------------------------------------------------------------------
+//  TRÍ NHỚ HỘI THOẠI của bot — một dòng app_state id='bot_memory'.
+//  Serverless không giữ được biến giữa các lần gọi nên phải lưu ra cơ sở dữ liệu.
+// ---------------------------------------------------------------------------
+const MEM_ID = 'bot_memory';
+const MEM_TTL = 2 * 24 * 60 * 60 * 1000; // quên hội thoại im lặng quá 2 ngày
+const MEM_TURNS = 10;                    // giữ 10 lượt gần nhất mỗi cuộc trò chuyện
+
+export async function loadTurns(chatKey) {
+  try {
+    const row = await getRow(MEM_ID);
+    const c = row?.data?.chats?.[chatKey];
+    if (!c || Date.now() - (c.at || 0) > MEM_TTL) return [];
+    return Array.isArray(c.turns) ? c.turns : [];
+  } catch { return []; }
+}
+
+export async function saveTurns(chatKey, turns) {
+  try {
+    const row = await getRow(MEM_ID);
+    const chats = { ...(row?.data?.chats || {}) };
+    chats[chatKey] = { at: Date.now(), turns: turns.slice(-MEM_TURNS) };
+    for (const k of Object.keys(chats)) {
+      if (Date.now() - (chats[k].at || 0) > MEM_TTL) delete chats[k];
+    }
+    await putRow(MEM_ID, { chats });
+  } catch { /* quên được thì thôi, không chặn việc trả lời */ }
+}
+
+export async function clearTurns(chatKey) {
+  try {
+    const row = await getRow(MEM_ID);
+    const chats = { ...(row?.data?.chats || {}) };
+    delete chats[chatKey];
+    await putRow(MEM_ID, { chats });
+  } catch { /* bỏ qua */ }
+}
