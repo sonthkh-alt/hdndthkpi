@@ -10,7 +10,7 @@ import {
 } from './lib/khungTieuChi';
 import {
   readTC, fetchTC, saveTC, saveUnitEval, unitLogin, readUnitSession, writeUnitSession,
-  evalKey, makeUnit, parseUnitLines, randomPin, hashPin,
+  evalKey, makeUnit, parseUnitLines, randomPin, hashPin, EMPTY_TC,
 } from './lib/tieuChiStore';
 import { seedTieuChi, DEMO_PIN } from './lib/tieuChiSeed';
 import { supabase } from './lib/supabase';
@@ -479,7 +479,7 @@ export function KhungView({ kind, onKind }) {
 // ---------------------------------------------------------------------------
 //  BẢNG ĐIỀU KHIỂN (Thường trực HĐND tỉnh / Tổ công tác)
 // ---------------------------------------------------------------------------
-export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onApprove }) {
+export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onApprove, onImportDemo }) {
   const year = doc.cfg.year;
   const [kind, setKind] = useState('xa');
   const [q, setQ] = useState('');
@@ -568,12 +568,19 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onA
       {tab === 'kq' && (
         <>
           {isDemo && (
-            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 flex items-start gap-2">
-              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
-              <p className="text-[12px] text-amber-900 leading-snug">
-                <b>Dữ liệu mô phỏng phục vụ trình diễn.</b> Tên đơn vị, điểm số, hồ sơ minh chứng đều là số liệu giả lập, không phải kết quả thật.
-                {!readOnly && <> Quản trị có thể xóa từng đơn vị mẫu ở thẻ <b>Đơn vị &amp; tài khoản</b> rồi nhập danh sách thật.</>}
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 flex items-start justify-between gap-3 flex-wrap">
+              <p className="flex-1 min-w-[260px] text-[12px] text-amber-900 leading-snug flex items-start gap-2">
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+                <span>
+                  <b>Dữ liệu mô phỏng phục vụ trình diễn.</b> Tên đơn vị, điểm số, hồ sơ minh chứng đều là số liệu giả lập, không phải kết quả thật.
+                  {onImportDemo && <> Mọi thao tác ở đây chỉ nằm trên trình duyệt.</>}
+                </span>
               </p>
+              {onImportDemo && !readOnly && (
+                <button onClick={onImportDemo} className="shrink-0 flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-amber-600 text-white hover:bg-amber-500">
+                  <FileDown className="w-3.5 h-3.5" /> Nạp dữ liệu mẫu vào hệ thống thật
+                </button>
+              )}
             </div>
           )}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -774,8 +781,9 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onA
 // ---------------------------------------------------------------------------
 //  CỔNG ĐĂNG NHẬP MODULE
 // ---------------------------------------------------------------------------
-export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
-  const demoUnits = (doc.units || []).filter((u) => u.demo);
+export function Gate({ doc, altDoc, onUnit, onAdmin, onKhung, onGuest, busy }) {
+  // Gợi ý mã đơn vị mẫu: lấy từ bộ dữ liệu đang xem hoặc bộ còn lại (mẫu/thật).
+  const demoUnits = [...(doc.units || []), ...((altDoc && altDoc.units) || [])].filter((u) => u.demo);
   const [code, setCode] = useState('');
   const [pin, setPin] = useState('');
   const [err, setErr] = useState('');
@@ -785,13 +793,16 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
 
   const submitUnit = async (e) => {
     e.preventDefault(); setErr('');
-    const r = await unitLogin(doc, code, pin);
+    let r = await unitLogin(doc, code, pin);
+    let fromAlt = false;
+    // Không thấy ở bộ dữ liệu đang xem → thử bộ còn lại (vd: gõ mã đơn vị mẫu khi đang xem dữ liệu thật).
+    if (!r.ok && altDoc) { const r2 = await unitLogin(altDoc, code, pin); if (r2.ok) { r = r2; fromAlt = true; } }
     if (!r.ok) {
       setErr(r.reason === 'no-unit' ? 'Không tìm thấy mã đơn vị. Vui lòng kiểm tra lại hoặc liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh.'
         : r.reason === 'locked' ? 'Tài khoản đơn vị đang bị khóa.' : 'Mã truy cập không đúng.');
       return;
     }
-    onUnit(r.unit, r.hash);
+    onUnit(r.unit, r.hash, fromAlt);
   };
   const submitAdmin = async (e) => {
     e.preventDefault(); setAErr('');
@@ -874,7 +885,18 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
 //  MODULE CHÍNH
 // ---------------------------------------------------------------------------
 export default function TieuChiHDND({ onHome }) {
-  const [doc, setDoc] = useState(readTC);
+  // HAI BỘ DỮ LIỆU TÁCH RIÊNG:
+  //  • realDoc — dữ liệu THẬT (máy chủ / cache), là nơi lưu kết quả chính thức;
+  //  • demoDoc — dữ liệu MẪU (mô phỏng 10 xã, phường + 4 đơn vị cấp tỉnh), chỉ nằm trên
+  //    trình duyệt để xem thử và thao tác thử; không bao giờ ghi đè dữ liệu thật.
+  // Người dùng chuyển qua lại bằng nút "Dữ liệu mẫu / Dữ liệu thật" trên thanh trên.
+  const [realDoc, setRealDoc] = useState(readTC);
+  const [demoDoc, setDemoDoc] = useState(null);
+  const [useDemo, setUseDemo] = useState(false);
+  const useDemoRef = useRef(false);
+  useDemoRef.current = useDemo;
+  const doc = (useDemo ? demoDoc : realDoc) || EMPTY_TC;
+  const setDoc = useCallback((d) => { if (useDemoRef.current) setDemoDoc(d); else setRealDoc(d); }, []);
   const [syncing, setSyncing] = useState(true); // đang đồng bộ bản mới từ máy chủ (vẫn hiển thị ngay bản cache)
   // Mặc định vào thẳng BẢNG KẾT QUẢ ở chế độ khách (chỉ xem) để thấy ngay dữ liệu;
   // đăng nhập chỉ cần khi đơn vị muốn chấm điểm hoặc Thường trực muốn thẩm định, phê duyệt.
@@ -897,12 +919,14 @@ export default function TieuChiHDND({ onHome }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      let d = await fetchTC();
-      // Chưa có đơn vị nào (lần đầu chạy / chưa cấu hình máy chủ) → nạp DỮ LIỆU MẪU
-      // để xem thử ngay. Dữ liệu mẫu chỉ nằm trên trình duyệt cho tới khi Quản trị bấm lưu.
-      if (!(d.units || []).length) d = await seedTieuChi(d.cfg?.year);
+      const d = await fetchTC();
+      const dm = await seedTieuChi(d.cfg?.year);   // luôn dựng sẵn bộ dữ liệu mẫu
       if (!alive) return;
-      setDoc(d); setSyncing(false);
+      setRealDoc(d); setDemoDoc(dm);
+      // Dữ liệu thật còn quá ít (chưa triển khai thật) → mở bằng DỮ LIỆU MẪU cho dễ hình dung.
+      const useD = (d.units || []).length < 3;
+      setUseDemo(useD); useDemoRef.current = useD;
+      setSyncing(false);
       // Đang đăng nhập sẵn bằng tài khoản quản trị (dùng chung phiên với các phân hệ khác)
       const s = await getSession();
       const em = (s?.user?.email || '').toLowerCase();
@@ -917,10 +941,15 @@ export default function TieuChiHDND({ onHome }) {
     if (syncing || bootedRef.current) return;
     bootedRef.current = true;
     if (!unitSess) return;
-    const u = (doc.units || []).find((x) => x.id === unitSess.unitId);
-    if (u && u.hash === unitSess.hash && u.active !== false) { setGuest(false); setView('phieu'); }
-    else { writeUnitSession(null); setUnitSess(null); }
-  }, [syncing, unitSess, doc.units]);
+    const inReal = (realDoc.units || []).find((x) => x.id === unitSess.unitId);
+    const inDemo = ((demoDoc && demoDoc.units) || []).find((x) => x.id === unitSess.unitId);
+    const u = inReal || inDemo;
+    if (u && u.hash === unitSess.hash && u.active !== false) {
+      const toDemo = !inReal;                    // phiên thuộc bộ dữ liệu nào thì mở đúng bộ đó
+      useDemoRef.current = toDemo; setUseDemo(toDemo);
+      setGuest(false); setView('phieu');
+    } else { writeUnitSession(null); setUnitSess(null); }
+  }, [syncing, unitSess, realDoc.units, demoDoc]);
 
   const activeUnit = useMemo(() => {
     const id = (admin || guest) && openUnitId ? openUnitId : unitSess?.unitId;
@@ -935,7 +964,9 @@ export default function TieuChiHDND({ onHome }) {
     setDirty(false); setMsg('');
   }, [activeUnit, year, doc.evals]);
 
+  const DEMO_MSG = 'Đang thao tác trên DỮ LIỆU MẪU — thay đổi chỉ nằm trên trình duyệt, không ghi vào dữ liệu thật.';
   const persistDoc = useCallback(async (d) => {
+    if (useDemoRef.current) { setDemoDoc(d); setMsg(DEMO_MSG); return; }
     setSaving(true);
     const r = await saveTC(d);
     setSaving(false);
@@ -954,6 +985,7 @@ export default function TieuChiHDND({ onHome }) {
     setDraft(rec); setDirty(false); setSaving(true);
     const d = { ...docRef.current, evals: { ...docRef.current.evals, [evalKey(activeUnit.id, year)]: rec } };
     setDoc(d);
+    if (useDemoRef.current) { setMsg(DEMO_MSG); setSaving(false); return; } // dữ liệu mẫu: không ghi lên máy chủ
     if (admin) {
       const r = await saveTC(d);
       setMsg(r.ok ? '' : 'Chưa lưu được lên máy chủ — dữ liệu đang giữ trên máy này.');
@@ -993,6 +1025,32 @@ export default function TieuChiHDND({ onHome }) {
     setDoc(d); await persistDoc(d);
   };
 
+  // Chuyển giữa dữ liệu mẫu và dữ liệu thật: đóng phiếu đang mở, quay về bảng kết quả.
+  const switchSource = (toDemo) => {
+    if (toDemo === useDemo) return;
+    if (dirty && !window.confirm('Phiếu đang mở có thay đổi chưa lưu. Vẫn chuyển?')) return;
+    useDemoRef.current = toDemo;
+    setUseDemo(toDemo); setOpenUnitId(null); setDraft(null); setDirty(false); setMsg('');
+    setView(view === 'khung' ? 'khung' : 'admin');
+    if (!admin) { setGuest(true); writeUnitSession(null); setUnitSess(null); }
+  };
+
+  // Quản trị đưa dữ liệu mẫu vào hệ thống thật (bỏ qua đơn vị đã tồn tại) rồi lưu.
+  const importDemo = async () => {
+    if (!admin || !demoDoc) return;
+    if (!window.confirm(`Nạp ${demoDoc.units.length} đơn vị mẫu (kèm phiếu tự đánh giá) vào DỮ LIỆU THẬT? Dùng để trình diễn; có thể xóa từng đơn vị sau.`)) return;
+    const have = new Set((realDoc.units || []).map((u) => String(u.name || '').toLowerCase()));
+    const add = demoDoc.units.filter((u) => !have.has(u.name.toLowerCase()));
+    const evals = { ...realDoc.evals };
+    add.forEach((u) => { const k = evalKey(u.id, year); if (demoDoc.evals[k]) evals[k] = demoDoc.evals[k]; });
+    const d = { ...realDoc, units: [...(realDoc.units || []), ...add], evals };
+    useDemoRef.current = false; setUseDemo(false); setRealDoc(d); setOpenUnitId(null); setDraft(null);
+    setSaving(true);
+    const r = await saveTC(d);
+    setSaving(false);
+    setMsg(r.ok ? '' : 'Đã nạp vào máy này nhưng chưa lưu được lên máy chủ (kiểm tra đăng nhập/Supabase).');
+  };
+
   const logoutUnit = () => { writeUnitSession(null); setUnitSess(null); setGuest(true); setView('admin'); setDraft(null); };
   const logoutAdmin = () => { setAdmin(null); setOpenUnitId(null); setGuest(true); setView('admin'); };
   const logoutGuest = () => { setOpenUnitId(null); setView('gate'); }; // khách bấm Đăng nhập
@@ -1015,6 +1073,12 @@ export default function TieuChiHDND({ onHome }) {
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-[11px] px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/20">Năm đánh giá: <b>{year}</b></span>
             {syncing && <span className="text-[11px] px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/20 text-indigo-100">Đang đồng bộ…</span>}
+            {!syncing && (
+              <div className="flex items-center rounded-lg overflow-hidden border border-white/25 bg-white/10" title="Chuyển giữa dữ liệu mô phỏng (xem thử) và dữ liệu thật của các đơn vị">
+                <button onClick={() => switchSource(true)} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${useDemo ? 'bg-amber-300 text-amber-950' : 'text-white/80 hover:bg-white/10'}`}>Dữ liệu mẫu ({(demoDoc?.units || []).length})</button>
+                <button onClick={() => switchSource(false)} className={`text-[11px] font-semibold px-2.5 py-1.5 transition-colors ${!useDemo ? 'bg-white text-slate-800' : 'text-white/80 hover:bg-white/10'}`}>Dữ liệu thật ({(realDoc?.units || []).length})</button>
+              </div>
+            )}
             {admin && (
               <>
                 <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border ${view === 'admin' ? 'bg-white text-indigo-800 border-white' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>Bảng điều khiển</button>
@@ -1042,8 +1106,12 @@ export default function TieuChiHDND({ onHome }) {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
         {view === 'gate' ? (
-          <Gate doc={doc} busy={saving}
-            onUnit={(u, hash) => { const s = { unitId: u.id, code: u.code, hash, at: today() }; writeUnitSession(s); setUnitSess(s); setGuest(false); setOpenUnitId(null); setView('phieu'); }}
+          <Gate doc={doc} altDoc={useDemo ? realDoc : demoDoc} busy={saving}
+            onUnit={(u, hash, fromAlt) => {
+              if (fromAlt) { const toDemo = !useDemo; useDemoRef.current = toDemo; setUseDemo(toDemo); }
+              const s = { unitId: u.id, code: u.code, hash, at: today() };
+              writeUnitSession(s); setUnitSess(s); setGuest(false); setOpenUnitId(null); setView('phieu');
+            }}
             onAdmin={(mode, email) => { setAdmin({ mode, email }); setGuest(false); setView('admin'); }}
             onGuest={() => { setGuest(true); setView('admin'); }}
             onKhung={() => setView('khung')} />
@@ -1066,6 +1134,7 @@ export default function TieuChiHDND({ onHome }) {
               </div>
             )}
             <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving} readOnly={guest}
+              onImportDemo={useDemo && admin ? importDemo : null}
               onApprove={approveUnits} onOpen={(u) => { setOpenUnitId(u.id); setView('phieu'); }} />
           </>
         ) : view === 'phieu' && activeUnit && draft ? (

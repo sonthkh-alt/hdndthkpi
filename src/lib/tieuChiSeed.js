@@ -109,6 +109,7 @@ export async function seedTieuChi(year = String(new Date().getFullYear())) {
   for (let i = 0; i < rows.length; i++) {
     const r = rows[i];
     const { unit } = await makeUnit({ name: r.name, kind: r.kind, pin: DEMO_PIN, contact: 'Chánh Văn phòng HĐND (mô phỏng)', phone: '02373.000.000' });
+    unit.id = `demo-${r.kind}-${i + 1}`; // mã cố định để phiên đăng nhập thử không mất khi tải lại trang
     unit.demo = true;
     units.push(unit);
 
