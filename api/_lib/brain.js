@@ -32,7 +32,7 @@ Xem đầy đủ trên web: ${SITE}
 
 async function statusText() {
   const lines = [
-    `Kết nối cơ sở dữ liệu: ${hasStore() ? (isServiceKey() ? '✅ có (khóa service role)' : '⚠️ có nhưng dùng khóa anon — có thể không đọc được kỳ đánh giá') : '❌ chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY'}`,
+    `Kết nối cơ sở dữ liệu: ${hasStore() ? (isServiceKey() ? '✅ có (khóa bí mật)' : '⚠️ có nhưng dùng khóa công khai (anon) — có thể không đọc được kỳ đánh giá') : '❌ chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY'}`,
     `Bộ não AI: ${hasAI() ? `✅ ${provider()} · mô hình ${modelName()}` : '❌ chưa khai khóa API của AI'}`,
   ];
   if (hasStore()) {

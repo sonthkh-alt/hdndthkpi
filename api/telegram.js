@@ -6,7 +6,7 @@
 //    TELEGRAM_ALLOWED_IDS      (bắt buộc) danh sách ID Telegram được phép hỏi, cách nhau dấu phẩy
 //    TELEGRAM_ADMIN_IDS        (nên có)   ID được xem thêm số liệu nhân sự; bỏ trống thì lấy ID đầu tiên ở trên
 //    TELEGRAM_WEBHOOK_SECRET   (nên có)   chuỗi bí mật tự đặt, dùng để đăng ký và kiểm tra webhook
-//    SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY   để đọc số liệu
+//    SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (hoặc SUPABASE_SECRET_KEY)   để đọc số liệu
 //    ANTHROPIC_API_KEY | GEMINI_API_KEY | OPENAI_API_KEY   khóa AI (chọn 1)
 //
 //  ĐĂNG KÝ WEBHOOK: mở trình duyệt tới

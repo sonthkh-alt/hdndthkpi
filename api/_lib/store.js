@@ -2,16 +2,20 @@
 //  ĐỌC / GHI Supabase từ PHÍA MÁY CHỦ (Vercel Serverless Function).
 //  Dùng cho bot chat (Telegram / Zalo) — KHÔNG chạy trong trình duyệt.
 //
-//  ⚠️ Cần biến môi trường SUPABASE_SERVICE_ROLE_KEY (Supabase -> Settings -> API).
+//  ⚠️ Cần KHÓA BÍ MẬT của Supabase (Project Settings -> API Keys). Chấp nhận cả hai
+//     cách đặt tên, khai tên nào cũng được:
+//       SUPABASE_SERVICE_ROLE_KEY  — tên cũ, giá trị JWT 'eyJ...' ở tab Legacy API keys
+//       SUPABASE_SECRET_KEY        — tên mới Supabase gợi ý, giá trị 'sb_secret_...'
 //     Khóa này BỎ QUA RLS nên TUYỆT ĐỐI không đặt tên có tiền tố VITE_
 //     (biến VITE_ sẽ bị nhúng vào mã tải về trình duyệt).
 //  Gọi REST trực tiếp bằng fetch để hàm này không phụ thuộc @supabase/supabase-js.
 // ============================================================================
 const BASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+const KEY = SECRET || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
 export const hasStore = () => !!(BASE && KEY);
-export const isServiceKey = () => !!process.env.SUPABASE_SERVICE_ROLE_KEY;
+export const isServiceKey = () => !!SECRET;
 
 async function rest(path, init = {}) {
   if (!hasStore()) throw new Error('Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.');

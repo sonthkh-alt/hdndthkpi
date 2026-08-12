@@ -40,7 +40,7 @@ Vercel → dự án `hdndthkpi` → **Settings → Environment Variables**, thê
 | `TELEGRAM_ADMIN_IDS` | ID được xem thêm số liệu nhân sự (bỏ trống = lấy ID đầu tiên ở trên) | nên có |
 | `TELEGRAM_WEBHOOK_SECRET` | chuỗi bí mật tự đặt, ví dụ `hdnd-2026-abc123` | nên có |
 | `SUPABASE_URL` | Supabase → Settings → API → Project URL | ✅ |
-| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Settings → API → **service_role** | ✅ |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → **API Keys** → *Secret keys* (chuỗi `sb_secret_...`). Bản cũ: tab *Legacy API keys* → **service_role**. Muốn dùng đúng tên Supabase gợi ý thì đặt `SUPABASE_SECRET_KEY`, bot nhận cả hai | ✅ |
 | `ANTHROPIC_API_KEY` *(hoặc `GEMINI_API_KEY` / `OPENAI_API_KEY`)* | khóa AI | ✅ |
 
 > ⚠️ **Không** đặt tiền tố `VITE_` cho các biến này. Biến có `VITE_` sẽ bị nhúng vào mã
