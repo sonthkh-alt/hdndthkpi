@@ -1031,12 +1031,30 @@ function seedSonHaPeople() {
   ].map(([name, dept, pos, profile, email]) => mk(name, dept, pos, profile, email ? { email } : {}));
 }
 
-// Đối chiếu dữ liệu ĐÃ LƯU với DANH SÁCH CHÍNH THỐNG của phân hệ: thiếu đồng chí nào thì
-// BỔ SUNG đồng chí đó, giữ nguyên toàn bộ kết quả chấm điểm đã có và KHÔNG xóa ai.
-// Dùng khi mở kỳ lưu từ trước (vd bản OKR/KPI chuẩn có 28 đồng chí, bản lưu cũ mới có 25).
+// Đối chiếu dữ liệu ĐÃ LƯU với DANH SÁCH CHÍNH THỐNG của phân hệ:
+//  • thiếu đồng chí nào thì BỔ SUNG đồng chí đó (giữ nguyên kết quả chấm điểm đã có);
+//  • LOẠI những người thuộc danh sách chính thống của PHÂN HỆ KHÁC lọt sang — di chứng từ
+//    thời các phân hệ còn dùng chung một bản ghi theo tháng/năm (vd bản OKR/KPI bị lẫn
+//    15 đồng chí của bản Kiểm điểm). Người do Quản trị tự thêm KHÔNG bị đụng tới.
+// Nhờ vậy bản OKR/KPI luôn đủ 28 đồng chí, bản Kiểm điểm đủ 15 đồng chí.
 const normName = (s) => String(s || '').trim().toLowerCase().replace(/\s+/g, ' ');
-function mergeOfficialPeople(saved, official) {
-  const list = saved || [];
+let officialNamesCache = null;
+function officialNamesOf(version) {
+  if (!officialNamesCache) {
+    officialNamesCache = {
+      sonha: new Set(seedSonHaPeople().map((p) => normName(p.name))),
+      kiemdiem: new Set(seedKiemDiemPeople().map((p) => normName(p.name))),
+    };
+  }
+  const others = new Set();
+  Object.entries(officialNamesCache).forEach(([v, set]) => { if (v !== version) set.forEach((n) => others.add(n)); });
+  return others;
+}
+function mergeOfficialPeople(saved, official, version) {
+  const mine = new Set((official || []).map((p) => normName(p.name)));
+  const others = officialNamesOf(version);
+  // Giữ: người của danh sách chính thống + người lạ do Quản trị tự thêm. Bỏ: người của phân hệ khác.
+  const list = (saved || []).filter((p) => { const n = normName(p.name); return mine.has(n) || !others.has(n); });
   const have = new Set(list.map((p) => normName(p.name)));
   const add = (official || []).filter((p) => p.name && !have.has(normName(p.name)));
   if (!add.length) return list;
@@ -1196,7 +1214,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     const ppl0 = res.state?.people || [];
     if (ppl0.length) {
       // Bản lưu cũ thiếu đồng chí nào so với danh sách chính thống thì bổ sung (không mất điểm đã chấm).
-      const ppl = mergeOfficialPeople(ppl0, seedDemoPeople(version));
+      const ppl = mergeOfficialPeople(ppl0, seedDemoPeople(version), version);
       setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
