@@ -13,7 +13,7 @@ import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboa
 import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_TAM, tamOf } from './KiemDiemAppraisal.jsx';
 const CanBoManager = lazy(() => import('./CanBoManager.jsx'));
 import { fetchHR, saveHR, readHR, EMPTY_HR } from './lib/hrStore';
-import { syncStaffFromPeople } from './lib/hr';
+import { syncStaffFromPeople, syncPeopleFromStaff, staffForModule } from './lib/hr';
 
 const ROLE_LABEL = { canbo: 'Cán bộ', truongphong: 'Trưởng phòng', quantri: 'Quản trị', khach: 'Dùng thử' };
 // Cơ cấu tổ chức: Phòng/Bộ phận và các chức vụ tương ứng (dùng chung cho cả 3 phiên bản)
@@ -1062,6 +1062,30 @@ function mergeOfficialPeople(saved, official, version) {
   return [...list, ...add.map((p) => ({ ...p, id: next++ }))];
 }
 
+// DANH SÁCH CÁN BỘ GỐC CỦA CẢ HỆ THỐNG (hồ sơ 2C) — gộp hai phân hệ làm một:
+//   28 cán bộ, công chức, người lao động Văn phòng (OKR/KPI hằng tháng)
+// + 15 đồng chí diện Ban Thường vụ Tỉnh ủy quản lý (Kiểm điểm hằng quý)
+// − 3 đồng chí lãnh đạo Văn phòng có mặt ở cả hai danh sách  = 40 hồ sơ.
+// Trường `btv` đánh dấu diện BTV Tỉnh ủy quản lý để tách danh sách giữa hai phân hệ.
+// Chạy được trên hồ sơ RỖNG (dựng mới) lẫn hồ sơ đã có (bổ sung người còn thiếu, GIỮ NGUYÊN
+// mọi thông tin 2C đã khai) — cần thiết vì hồ sơ lưu từ trước có thể mới có một phần.
+function ensureRoster(staff) {
+  const okr = seedSonHaPeople();
+  const kd = seedKiemDiemPeople();
+  let out = syncStaffFromPeople(Array.isArray(staff) ? staff : [], okr).staff;
+  out = syncStaffFromPeople(out, kd).staff;      // ghép theo email/tên; chức danh lấy bản đầy đủ của Kiểm điểm
+  const btvNames = new Set(kd.map((p) => normName(p.name)));
+  const official = new Set([...okr, ...kd].map((p) => normName(p.name)));
+  return out.map((s) => {
+    const n = normName(s.name);
+    return {
+      ...s,
+      btv: btvNames.has(n) ? true : !!s.btv,       // 15 đồng chí diện BTV luôn được đánh dấu
+      detached: official.has(n) ? false : s.detached,
+    };
+  });
+}
+
 // Bộ dữ liệu bản KIỂM ĐIỂM: 15 đồng chí diện Ban Thường vụ Tỉnh ủy quản lý tại cơ quan,
 // theo danh sách docs/DU/DU.docx (2 Phó Chủ tịch HĐND tỉnh; 4 Trưởng Ban + 4 Phó Trưởng Ban;
 // Phó Trưởng đoàn ĐBQH + ĐBQH chuyên trách; Chánh Văn phòng + 2 Phó Chánh Văn phòng).
@@ -1180,6 +1204,28 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const [showChangePw, setShowChangePw] = useState(false);
   const [sheetSync, setSheetSync] = useState({ at: null, busy: false }); // đồng bộ Google Sheet
 
+  // ---- Danh sách cán bộ của phân hệ được LẤY TỪ HỒ SƠ 2C (nguồn duy nhất) ----
+  // Hai phân hệ nghiệp vụ không tự thêm/xóa/sửa thông tin cán bộ nữa — chỉ chấm điểm.
+  const rosterManaged = isSonHa || isKD;
+  const openHR = () => { window.location.hash = '#/canbo'; };
+  const hrStaffRef = useRef([]);          // hồ sơ 2C mới nhất (chỉ Quản trị đọc được)
+  hrStaffRef.current = hrData?.staff || [];
+  // Tạo người mới cho phân hệ khi hồ sơ 2C có thêm cán bộ.
+  const personFromStaff = (s) => {
+    const p = { ...newPerson(s.name || 'Cán bộ mới', 'staff'), position: s.position || '', department: s.department || '', email: s.email || '' };
+    p.type = isSonHa ? sonhaTypeOf(p) : isKD ? 'leader' : p.type;
+    if (isKD) p.kd = defaultKD('B');
+    return p;
+  };
+  // Áp danh sách hồ sơ 2C vào danh sách của phân hệ (giữ nguyên mọi điểm đã chấm).
+  // Chỉ áp cho 2 phân hệ nghiệp vụ và khi đã đọc được hồ sơ; Phòng thử nghiệm giữ nguyên.
+  const applyRoster = (ppl) => {
+    const staff = hrStaffRef.current;
+    if (!(isSonHa || isKD) || !staff.length) return ppl;
+    if (!staffForModule(staff, version).length) return ppl;   // chưa có ai trong phạm vi -> đừng xóa trắng
+    return syncPeopleFromStaff(ppl, staff, version, personFromStaff);
+  };
+
   const bumpCounters = (ppl) => {
     pid = Math.max(pid, 0, ...ppl.map((p) => p.id || 0)) + 1;
     t335Id = Math.max(t335Id, 0, ...ppl.flatMap((p) => (p.tasks335 || []).map((t) => t.id || 0))) + 1;
@@ -1213,8 +1259,9 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     serverTsRef.current = local ? null : res.serverTs;
     const ppl0 = res.state?.people || [];
     if (ppl0.length) {
-      // Bản lưu cũ thiếu đồng chí nào so với danh sách chính thống thì bổ sung (không mất điểm đã chấm).
-      const ppl = mergeOfficialPeople(ppl0, seedDemoPeople(version), version);
+      // Bản lưu cũ thiếu đồng chí nào so với danh sách chính thống thì bổ sung (không mất điểm đã chấm),
+      // rồi chốt lại theo hồ sơ 2C nếu đọc được (hồ sơ 2C là danh sách cán bộ duy nhất của hệ thống).
+      const ppl = applyRoster(mergeOfficialPeople(ppl0, seedDemoPeople(version), version));
       setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
@@ -1235,7 +1282,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   // Tỉnh ủy quản lý, OKR/KPI = CBCCVC-LĐ Văn phòng…). Đây là dữ liệu chuẩn của bản demo,
   // được coi như dữ liệu thật: hiện cho MỌI người dùng và được ghi lên máy chủ.
   const loadDemoPeople = () => {
-    const demo = seedDemoPeople(version);
+    const demo = applyRoster(seedDemoPeople(version));
     setSeedFrom(null);
     setPeople(demo); setCurId(demo[0]?.id ?? null);
     bumpCounters(demo);
@@ -1593,25 +1640,28 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const mgrEditable = cur ? canEditMgrOf(cur) : false;
   const taskEditable = selfEditable || mgrEditable;
 
-  // ---- Quản lý cán bộ: nạp hồ sơ khi Quản trị mở module (dữ liệu toàn cục, không theo kỳ) ----
-  // Danh sách người KHÔNG nhập rời và KHÔNG nạp mẫu: luôn ĐỒNG BỘ từ danh sách cán bộ
-  // đang quản lý ở các module khác (tab Đánh giá). Hồ sơ 2C đã khai được giữ nguyên.
+  // ---- Quản lý cán bộ (hồ sơ 2C) = DANH SÁCH CÁN BỘ DUY NHẤT CỦA CẢ HỆ THỐNG ----
+  // Hai phân hệ OKR/KPI và Kiểm điểm KHÔNG quản lý người riêng nữa: danh sách của mỗi
+  // phân hệ được lấy ra từ hồ sơ 2C theo trường "Thuộc diện BTV Tỉnh ủy quản lý"
+  // (Kiểm điểm) và theo đơn vị Văn phòng (OKR/KPI) — xem staffForModule trong lib/hr.js.
+  // Hồ sơ 2C chứa dữ liệu cá nhân nên chỉ Quản trị đọc được (RLS BƯỚC 4); người dùng khác
+  // đọc danh sách đã được đồng bộ sẵn trong bản ghi của kỳ.
   useEffect(() => {
-    if (tab !== 'hr' || !isAdmin || hrLoaded.current) return;
+    if (!isAdmin || hrLoaded.current) return;
     hrLoaded.current = true;
-    const apply = (d) => setHrData({ ...d, staff: syncStaffFromPeople(d.staff, peopleRef.current).staff });
+    // DANH SÁCH GỐC: 28 cán bộ Văn phòng + 15 đồng chí diện BTV Tỉnh ủy quản lý
+    // (3 đồng chí lãnh đạo Văn phòng có ở cả hai danh sách nên tổng còn 40 hồ sơ).
+    const apply = (d) => setHrData({ ...d, staff: ensureRoster(d.staff) });
     apply(readHR());
     if (!isLocalSession(session)) fetchHR().then(apply).catch(() => { /* giữ bản cache */ });
-  }, [tab, isAdmin, session]);
-  // Danh sách cán bộ đổi (thêm/xóa/đổi chức vụ ở tab Đánh giá) -> cập nhật ngay vào hồ sơ.
+  }, [isAdmin, session]);
+  useEffect(() => { peopleRef.current = people; }, [people]);
+  // Hồ sơ 2C đổi (thêm người, đổi diện BTV, đổi đơn vị…) -> cập nhật danh sách của phân hệ.
   useEffect(() => {
-    peopleRef.current = people;
-    if (tab !== 'hr' || !isAdmin || !hrLoaded.current) return;
-    setHrData((d) => {
-      const r = syncStaffFromPeople(d.staff, people);
-      return (r.added || r.updated || r.detached) ? { ...d, staff: r.staff } : d;
-    });
-  }, [tab, isAdmin, people]);
+    if (!hrStaffRef.current.length) return;
+    setPeople((ps) => { const n = applyRoster(ps); return n === ps ? ps : n; });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hrData.staff, version]);
   const patchHR = (patch) => setHrData((d) => ({ ...d, ...patch }));
   const doSaveHR = async () => {
     if (!canManage) return;
@@ -1941,10 +1991,14 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-8 text-center max-w-xl mx-auto">
             <Users className="w-10 h-10 text-slate-300 mx-auto mb-3" />
             <h2 className="font-bold text-slate-800 text-lg">Kỳ tháng {period.month}/{period.year} chưa có dữ liệu</h2>
-            <p className="text-sm text-slate-500 mt-1 mb-5">Bắt đầu bằng cách sao chép danh sách cán bộ từ kỳ gần nhất (giữ người, đặt lại điểm) hoặc thêm cán bộ mới.</p>
+            <p className="text-sm text-slate-500 mt-1 mb-5">{rosterManaged
+              ? 'Danh sách cán bộ của phân hệ này lấy từ module Quản lý cán bộ (hồ sơ 2C). Hãy sao chép từ kỳ gần nhất, hoặc mở Quản lý cán bộ để bổ sung cán bộ.'
+              : 'Bắt đầu bằng cách sao chép danh sách cán bộ từ kỳ gần nhất (giữ người, đặt lại điểm) hoặc thêm cán bộ mới.'}</p>
             <div className="flex flex-col sm:flex-row gap-2 justify-center">
               {!readOnly && seedFrom && <button onClick={() => copyFromPeriod(seedFrom)} className="flex items-center justify-center gap-2 bg-red-700 hover:bg-red-800 text-white font-semibold px-4 py-2.5 rounded-xl text-sm"><Users className="w-4 h-4" /> Sao chép cán bộ từ kỳ {seedFrom.month}/{seedFrom.year}</button>}
-              {!readOnly && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ mới</button>}
+              {!readOnly && (rosterManaged
+                ? <button onClick={openHR} className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm"><Users className="w-4 h-4" /> Mở Quản lý cán bộ (hồ sơ 2C)</button>
+                : <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople([np]); setCurId(np.id); }} className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-4 py-2.5 rounded-xl text-sm"><UserPlus className="w-4 h-4" /> Thêm cán bộ mới</button>)}
             </div>
           </div>
         )}
@@ -2097,8 +2151,14 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
                 <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-red-50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-red-100 text-red-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-red-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
-                {canManage && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>}
-                {canManage && <button onClick={() => { if (window.confirm(`Thay TOÀN BỘ danh sách cán bộ của kỳ này bằng danh sách theo phiên bản ${vName(version)} (kèm đánh giá sẵn)? Dữ liệu cán bộ hiện tại của kỳ sẽ bị thay thế sau khi bấm Lưu ngay.`)) loadDemoPeople(); }} title="Thay toàn bộ danh sách cán bộ của kỳ bằng danh sách chuẩn theo phiên bản đang chọn (đã chấm điểm sẵn). Nhớ bấm Lưu ngay để ghi lại." className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 text-slate-400 text-xs font-medium hover:bg-amber-50 hover:text-amber-700 transition-colors border-t border-slate-100"><RotateCcw className="w-3.5 h-3.5" /> Nạp lại danh sách cán bộ chuẩn</button>}
+                {canManage && !rosterManaged && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>}
+                {canManage && !rosterManaged && <button onClick={() => { if (window.confirm(`Thay TOÀN BỘ danh sách cán bộ của kỳ này bằng danh sách theo phiên bản ${vName(version)} (kèm đánh giá sẵn)? Dữ liệu cán bộ hiện tại của kỳ sẽ bị thay thế sau khi bấm Lưu ngay.`)) loadDemoPeople(); }} title="Thay toàn bộ danh sách cán bộ của kỳ bằng danh sách chuẩn theo phiên bản đang chọn (đã chấm điểm sẵn). Nhớ bấm Lưu ngay để ghi lại." className="w-full flex items-center justify-center gap-2 py-2.5 bg-slate-50 text-slate-400 text-xs font-medium hover:bg-amber-50 hover:text-amber-700 transition-colors border-t border-slate-100"><RotateCcw className="w-3.5 h-3.5" /> Nạp lại danh sách cán bộ chuẩn</button>}
+                {rosterManaged && (
+                  <div className="px-4 py-3 bg-slate-50 border-t border-slate-100">
+                    <p className="text-[11px] text-slate-500 leading-snug">Danh sách lấy từ <b>hồ sơ 2C</b> — {isKD ? 'cán bộ thuộc diện BTV Tỉnh ủy quản lý' : 'cán bộ, công chức, người lao động Văn phòng'}.</p>
+                    {canManage && <button onClick={openHR} className="mt-1.5 text-[11px] font-semibold text-red-700 hover:underline flex items-center gap-1"><Users className="w-3.5 h-3.5" /> Thêm, sửa cán bộ ở Quản lý cán bộ</button>}
+                  </div>
+                )}
               </div>
 
               <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 text-center">
@@ -2143,13 +2203,19 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
                 {canManage && <section className="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 lg:p-6 space-y-4">
                   <div className="flex justify-between items-center">
                     <h2 className="flex items-center gap-2 font-bold text-slate-800"><User className="w-5 h-5 text-red-700" /> Thông tin người được đánh giá</h2>
-                    {canManage && people.length > 1 && <button onClick={() => { if (!window.confirm(`Xóa cán bộ "${cur.name || '(Chưa tên)'}"? Toàn bộ điểm và nhiệm vụ của kỳ này sẽ mất và không thể hoàn tác.`)) return; setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
+                    {canManage && !rosterManaged && people.length > 1 && <button onClick={() => { if (!window.confirm(`Xóa cán bộ "${cur.name || '(Chưa tên)'}"? Toàn bộ điểm và nhiệm vụ của kỳ này sẽ mất và không thể hoàn tác.`)) return; setPeople((ps) => ps.filter((p) => p.id !== cur.id)); setCurId(people.find(p => p.id !== cur.id).id); }} className="text-slate-400 hover:text-rose-500 flex items-center gap-1 text-sm font-medium"><Trash2 className="w-4 h-4" /> Xóa cán bộ</button>}
+                    {canManage && rosterManaged && <button onClick={openHR} className="text-slate-400 hover:text-red-700 flex items-center gap-1 text-sm font-medium"><Users className="w-4 h-4" /> Sửa ở hồ sơ 2C</button>}
                   </div>
+                  {rosterManaged && (
+                    <p className="rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[12px] text-slate-600 leading-snug">
+                      Họ tên, đơn vị, chức vụ lấy từ <b>hồ sơ 2C</b> ở module <b>Quản lý cán bộ</b> — sửa ở đó để cả hệ thống cùng đổi. Ở đây chỉ chấm điểm.
+                    </p>
+                  )}
                   <div className="grid sm:grid-cols-2 gap-3">
-                    <Field label="Họ và tên"><input value={cur.name} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
-                    <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{(isSonHa ? SONHA_ORG_UNITS : ORG_UNITS).map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
-                    <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={!(canManage || mgrEditable)} onChange={(e) => upCur(isSonHa ? { position: e.target.value, type: sonhaTypeOf({ position: e.target.value }) } : { position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
-                    <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={!canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
+                    <Field label="Họ và tên"><input value={cur.name} disabled={rosterManaged || !(canManage || mgrEditable)} onChange={(e) => upCur({ name: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
+                    <Field label="Phòng / Bộ phận"><select value={cur.department || ''} disabled={rosterManaged || !(canManage || mgrEditable)} onChange={(e) => upCur({ department: e.target.value, position: '' })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn phòng / bộ phận —</option>{(isSonHa ? SONHA_ORG_UNITS : ORG_UNITS).map((u) => <option key={u.dept} value={u.dept}>{u.dept}</option>)}</select></Field>
+                    <Field label="Chức vụ / Vị trí việc làm"><select value={cur.position || ''} disabled={rosterManaged || !(canManage || mgrEditable)} onChange={(e) => upCur(isSonHa ? { position: e.target.value, type: sonhaTypeOf({ position: e.target.value }) } : { position: e.target.value })} className="inp disabled:bg-slate-50 disabled:text-slate-500"><option value="">— Chọn chức vụ —</option>{posOptions(cur.department).map((p) => <option key={p} value={p}>{p}</option>)}{cur.position && !posOptions(cur.department).includes(cur.position) && <option value={cur.position}>{cur.position}</option>}</select></Field>
+                    <Field label="Email đăng nhập (để cán bộ tự đánh giá)"><input value={cur.email || ''} disabled={rosterManaged || !canManage} onChange={(e) => upCur({ email: e.target.value })} placeholder="ten@coquan.gov.vn" className="inp disabled:bg-slate-50 disabled:text-slate-500" /></Field>
                     {canManage && <Field label="Vai trò (quyền truy cập)"><select value={cur.role || 'canbo'} onChange={(e) => upCur({ role: e.target.value })} className="inp"><option value="canbo">Cán bộ — tự đánh giá phần mình</option><option value="truongphong">Trưởng phòng — duyệt trong phòng</option><option value="quantri">Quản trị — toàn quyền</option></select></Field>}
                   </div>
                   {isSonHa ? (() => { const mk = sonhaMauKey(cur); const m = SONHA_MAU[mk]; return (
@@ -2310,7 +2376,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="p-4 bg-slate-50 border-b border-slate-100"><h2 className="font-semibold text-slate-800 flex items-center gap-2"><Users className="w-4 h-4 text-slate-400" /> Danh sách cán bộ</h2></div>
                 <div className="divide-y divide-slate-100 max-h-[500px] overflow-y-auto">{people.map((p) => (<button key={p.id} onClick={() => setCurId(p.id)} className={`w-full text-left px-4 py-3 flex items-start gap-3 transition-colors ${curId === p.id ? 'bg-amber-50/50' : 'hover:bg-slate-50'}`}><div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${curId === p.id ? 'bg-amber-100 text-amber-600' : 'bg-slate-100 text-slate-400'}`}><User className="w-4 h-4" /></div><div><p className={`text-sm font-medium ${curId === p.id ? 'text-amber-700' : 'text-slate-700'}`}>{p.name || '(Chưa tên)'}</p><p className="text-[11px] text-slate-400 mt-0.5">{p.position || CRITERIA[p.type].label}</p></div></button>))}</div>
-                {(!readOnly || isGuest) && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>}
+                {(!readOnly || isGuest) && !rosterManaged && <button onClick={() => { const np = newPerson('Cán bộ mới', 'staff'); setPeople(ps => [...ps, np]); setCurId(np.id); }} className="w-full flex items-center justify-center gap-2 py-3 bg-slate-50 text-slate-500 text-sm font-medium hover:bg-slate-100 hover:text-slate-700 transition-colors border-t border-slate-100"><UserPlus className="w-4 h-4" /> Thêm cán bộ</button>}
               </div>
             </aside>
             <div className="flex-1 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">

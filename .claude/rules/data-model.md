@@ -28,6 +28,14 @@ Mỗi nhóm có `groups` (Tiêu chí chung Nhóm I, ≤30). `hdnd`/`dbqh` dùng 
 - **Nhóm II** (`agg335`): (a+b+c)/3 × 70%, trọng số = hệ số danh mục. **Lãnh đạo, quản lý** (theo `isLeaderPerson`, Điều 7): **(a+b+c+d+đ+e)/6**, d/đ/e mỗi mục 100%/50% từ `leadScores`. Hệ số/trọng số **ẩn khi chấm** — chỉ giải thích ở tab Hướng dẫn.
 - **Xếp loại theo Điều 8** (`taskStats` + `evalGradeCode`): xét THEO TỪNG nhiệm vụ (r=HT/Giao). Ngưỡng điểm A≥90/B≥70/C≥50/D<50 **kèm điều kiện**: A cần đạt đủ 100% số lượng mọi nhiệm vụ + ≥30% vượt mức; D khi >50% nhiệm vụ không hoàn thành (r<50%; lãnh đạo >30%) hoặc tích "bị kỷ luật". Trần HTXS ≤20% số HTT.
 
+## Danh sách cán bộ = MỘT MỐI (hồ sơ 2C)
+Module **Quản lý cán bộ** (`hr_data.staff`) là danh sách cán bộ DUY NHẤT của hệ thống (**40 hồ sơ**). Hai phân hệ đánh giá KHÔNG tự thêm/sửa/xóa người, chỉ chấm điểm:
+- **Kiểm điểm** (`#/kiemdiem`) = hồ sơ có cờ **`btv`** (*Thuộc diện BTV Tỉnh ủy quản lý*) → **15**.
+- **OKR/KPI** (`#/okr`) = hồ sơ thuộc **Văn phòng** (`isVanPhong`: đơn vị "Văn phòng" hoặc "Phòng …") → **28**.
+- 3 đồng chí lãnh đạo Văn phòng nằm ở **cả hai** (tháng chấm KPI, quý kiểm điểm).
+
+Hàm ở `src/lib/hr.js`: `HR_BTV`/`btvOf` · `isVanPhong` · `staffForModule(staff, version)` · `syncPeopleFromStaff(people, staff, version, makePerson)` (2C → danh sách phân hệ, **giữ nguyên điểm đã chấm**) · `syncStaffFromPeople` (chiều cũ, dùng trong `ensureRoster` của `App.jsx` để bảo đảm hồ sơ luôn đủ 40). ⚠️ `hr_data` chỉ Quản trị đọc được (RLS BƯỚC 4) nên người dùng khác đọc danh sách đã đồng bộ sẵn trong bản ghi của kỳ.
+
 ## Nguyên tắc dữ liệu (bản demo)
 **Dữ liệu mẫu = dữ liệu chính thống.** Danh sách cán bộ dựng sẵn (`seedDemoPeople(version)`, `seedTieuChi()`) không phải "dữ liệu tạm cho khách" mà là dữ liệu chuẩn của bản demo: kỳ/đơn vị nào chưa có trên máy chủ thì nạp danh sách này rồi **ghi lên máy chủ** khi có phiên đăng nhập thật. **Khách và người đăng nhập ĐỌC CÙNG MỘT NGUỒN** (policy `state_public_read` + `tc_data_public_read`), khách chỉ khác ở chỗ không được ghi. Không thêm nhánh "khách thì dựng dữ liệu riêng tại chỗ" — đó chính là lỗi từng gây lệch danh sách giữa hai tài khoản.
 

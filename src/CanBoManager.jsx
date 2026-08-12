@@ -5,7 +5,7 @@ import {
   RefreshCw, ShieldCheck, Briefcase, GraduationCap, Landmark, HeartPulse, Info, ChevronRight,
 } from 'lucide-react';
 import {
-  HR_CATEGORY, catOf, HR_NGACH, ngachOf, hesoOf, HR_GENDER, HR_REPEAT,
+  HR_CATEGORY, catOf, HR_BTV, HR_NGACH, ngachOf, hesoOf, HR_GENDER, HR_REPEAT,
   newStaff, newTraining, newHistory, newFamily, newDuty,
   buildAlerts, ALERT_META, headcount, nextRaise, retireDate, nextBirthday,
   profileCompleteness, fmtD, daysTo, ageAt, addMonths, toDate, DEFAULT_LEAD,
@@ -48,6 +48,7 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
   const [q, setQ] = useState('');
   const [fCat, setFCat] = useState('');
   const [fDept, setFDept] = useState('');
+  const [fBtv, setFBtv] = useState('');   // lọc theo diện BTV Tỉnh ủy quản lý
   const [fType, setFType] = useState('');
   const [openId, setOpenId] = useState(defaultOpenId);
 
@@ -70,8 +71,10 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
     if (kw && !`${s.name} ${s.position} ${s.department} ${s.email}`.toLowerCase().includes(kw)) return false;
     if (fCat && s.category !== fCat) return false;
     if (fDept && s.department !== fDept) return false;
+    if (fBtv && String(!!s.btv) !== fBtv) return false;
     return true;
   });
+  const btvCount = staff.filter((s) => s.btv).length;
   const openStaff = staff.find((s) => s.id === openId) || null;
 
   const counts = { overdue: alerts.filter((a) => a.level === 'overdue').length, urgent: alerts.filter((a) => a.level === 'urgent').length, soon: alerts.filter((a) => a.level === 'soon').length };
@@ -216,6 +219,11 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
               <option value="">Tất cả đơn vị</option>
               {depts.map((d) => <option key={d} value={d}>{d}</option>)}
             </select>
+            <select value={fBtv} onChange={(e) => setFBtv(e.target.value)} title="Diện quản lý cán bộ — tách danh sách giữa phân hệ Kiểm điểm và OKR/KPI" className="px-2.5 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-600 outline-none focus:border-slate-400">
+              <option value="">Tất cả diện quản lý</option>
+              <option value="true">{HR_BTV[0].label} ({btvCount})</option>
+              <option value="false">{HR_BTV[1].label} ({staff.length - btvCount})</option>
+            </select>
             {canEdit && <button onClick={() => { const s = newStaff('Cán bộ mới'); onChange({ staff: [...staff, s] }); setOpenId(s.id); }} title="Thêm hồ sơ cho người không có trong danh sách đánh giá" className="flex items-center gap-1.5 px-3 py-2 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-700 transition"><UserPlus className="w-3.5 h-3.5" /> Thêm</button>}
           </div>
 
@@ -259,6 +267,7 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
                         <p className="text-xs text-slate-700 leading-snug">{s.position || '—'}</p>
                         <p className="text-[11px] text-slate-400">{s.department || '—'}</p>
                         <span className={`inline-block mt-0.5 text-[9px] font-bold px-1.5 py-0.5 rounded border ${c.tone}`}>{c.short}</span>
+                        {s.btv && <span title={HR_BTV[0].label} className="inline-block mt-0.5 ml-1 text-[9px] font-bold px-1.5 py-0.5 rounded border bg-rose-50 text-rose-700 border-rose-200">Diện BTV Tỉnh ủy</span>}
                       </td>
                       <td className="px-2 py-2.5 text-center">
                         <p className="text-xs text-slate-700">{ng.name}</p>
@@ -435,8 +444,14 @@ function Delta({ v, on }) {
 function NumIn({ v, disabled, onChange }) {
   return <input type="number" min="0" value={v} disabled={disabled} onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))} className="w-16 bg-white border border-slate-200 rounded-lg px-1 py-1 text-xs text-center font-semibold text-slate-700 outline-none focus:border-slate-400 disabled:bg-slate-50" />;
 }
-function L({ label, children }) {
-  return (<label className="block"><span className="text-[10px] font-semibold text-slate-500 block mb-0.5">{label}</span>{children}</label>);
+function L({ label, children, hint }) {
+  return (
+    <label className="block">
+      <span className="text-[10px] font-semibold text-slate-500 block mb-0.5">{label}</span>
+      {children}
+      {hint && <span className="block text-[10px] text-slate-400 mt-0.5 leading-snug">{hint}</span>}
+    </label>
+  );
 }
 function Badge({ icon: Icon, tone, title, main, sub }) {
   const map = { emerald: 'bg-emerald-50 border-emerald-200 text-emerald-800', amber: 'bg-amber-50 border-amber-200 text-amber-800', pink: 'bg-pink-50 border-pink-200 text-pink-800' };
@@ -535,6 +550,11 @@ function StaffDrawer({ s, canEdit, onPatch, onDelete, onExport, onClose }) {
             <Card title="Tuyển dụng, chức vụ, công việc (mục 10–13)">
               <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
                 <L label="Đối tượng quản lý"><select value={s.category} disabled={!canEdit} onChange={(e) => onPatch({ category: e.target.value })} className="inp2">{HR_CATEGORY.map((x) => <option key={x.k} value={x.k}>{x.label}</option>)}</select></L>
+                <L label="Diện quản lý cán bộ" hint="Chọn “Thuộc diện BTV Tỉnh ủy quản lý” thì đồng chí này có mặt trong phân hệ Kiểm điểm, xếp loại đảng viên (hằng quý).">
+                  <select value={s.btv ? 'true' : 'false'} disabled={!canEdit} onChange={(e) => onPatch({ btv: e.target.value === 'true' })} className="inp2">
+                    {HR_BTV.map((x) => <option key={String(x.k)} value={String(x.k)}>{x.label}</option>)}
+                  </select>
+                </L>
                 <L label="12. Chức vụ (chính quyền)">{T('position')}</L>
                 <L label="Đơn vị công tác">{T('department')}</L>
                 <L label="10. Nghề nghiệp khi được tuyển dụng">{T('jobWhenHired')}</L>

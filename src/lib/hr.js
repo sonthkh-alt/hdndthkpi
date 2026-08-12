@@ -107,8 +107,32 @@ export const newStaff = (name = '') => ({
   selfHistory: '', family: [], // { id, relation, name, birth, info }
   economy: '', remark: '',
   active: true, note: '',
+  btv: false,     // true = THUỘC DIỆN BAN THƯỜNG VỤ TỈNH ỦY QUẢN LÝ (xem HR_BTV bên dưới)
   sample: false,  // true = dữ liệu mô phỏng, cần cập nhật theo hồ sơ gốc
 });
+
+// Diện quản lý cán bộ — trường này TÁCH DANH SÁCH giữa hai phân hệ đánh giá:
+//  • Kiểm điểm, xếp loại đảng viên (hằng quý) → chỉ cán bộ THUỘC diện BTV Tỉnh ủy quản lý.
+//  • OKR/KPI (hằng tháng) → cán bộ, công chức, người lao động của Văn phòng (xem isVanPhong).
+// Ba đồng chí lãnh đạo Văn phòng thuộc CẢ HAI danh sách: hằng tháng chấm KPI với tư cách
+// cán bộ Văn phòng, hằng quý kiểm điểm với tư cách cán bộ diện BTV Tỉnh ủy quản lý.
+export const HR_BTV = [
+  { k: true, label: 'Thuộc diện BTV Tỉnh ủy quản lý', short: 'Diện BTV Tỉnh ủy' },
+  { k: false, label: 'Không thuộc diện BTV Tỉnh ủy quản lý', short: 'Không thuộc diện' },
+];
+export const btvOf = (s) => (s?.btv ? HR_BTV[0] : HR_BTV[1]);
+
+// Cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng
+// trực thuộc) — khác với đại biểu chuyên trách ở HĐND tỉnh, các Ban, Đoàn ĐBQH.
+export const isVanPhong = (s) => /^(Văn phòng|Phòng )/i.test(String(s?.department || '').trim());
+
+// Hồ sơ nào thuộc danh sách đánh giá của phân hệ nào.
+export function staffForModule(staff, version) {
+  const list = (Array.isArray(staff) ? staff : []).filter((s) => s && s.active !== false && !s.detached);
+  if (version === 'kiemdiem') return list.filter((s) => !!s.btv);
+  if (version === 'sonha') return list.filter(isVanPhong);
+  return list;
+}
 
 export const newTraining = () => ({ id: 't_' + Math.random().toString(36).slice(2, 8), from: '', to: '', school: '', major: '', form: 'Chính quy', degree: '' });
 export const newHistory = () => ({ id: 'h_' + Math.random().toString(36).slice(2, 8), from: '', to: '', content: '' });
@@ -375,6 +399,33 @@ export function syncStaffFromPeople(staff, people) {
     if (i < list.length && !matched.has(i) && !s.detached) { s.detached = true; detached++; }
   });
   return { staff: out, added, updated, detached };
+}
+
+// Chiều NGƯỢC LẠI: dựng danh sách cán bộ của MỘT PHÂN HỆ từ hồ sơ 2C (nguồn duy nhất).
+//  • Hồ sơ thuộc phạm vi phân hệ mà chưa có trong danh sách -> tạo người mới (makePerson).
+//  • Đã có -> GIỮ NGUYÊN toàn bộ điểm/nhiệm vụ, chỉ đồng bộ họ tên, chức vụ, đơn vị, email.
+//  • Người không còn trong phạm vi phân hệ -> bỏ khỏi danh sách của phân hệ đó (hồ sơ 2C
+//    vẫn còn nguyên; muốn thêm/bớt thì sửa ở module Quản lý cán bộ).
+// Thứ tự trả về theo đúng thứ tự hồ sơ 2C. Thuần, không sửa mảng đầu vào.
+export function syncPeopleFromStaff(people, staff, version, makePerson) {
+  const scope = staffForModule(staff, version);
+  const src = Array.isArray(people) ? people : [];
+  const index = new Map();
+  src.forEach((p, i) => keysOf(p).forEach((k) => { if (!index.has(k)) index.set(k, i); }));
+  const used = new Set();
+  return scope.map((s) => {
+    const hit = keysOf(s).map((k) => index.get(k)).find((i) => i != null && !used.has(i));
+    if (hit == null) return makePerson(s);
+    used.add(hit);
+    const p = src[hit];
+    return {
+      ...p,
+      name: s.name || p.name,
+      position: s.position || p.position,
+      department: s.department || p.department,
+      email: s.email || p.email,
+    };
+  });
 }
 
 // ---------------------------------------------------------------- Độ đầy đủ hồ sơ
