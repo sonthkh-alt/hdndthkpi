@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye, Scale,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, ChevronRight, CheckCircle2,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, ChevronRight,
 } from 'lucide-react';
 import { MODULES, LEGAL_BASIS } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
@@ -103,8 +103,8 @@ export default function Portal({ onOpen }) {
         <div className="absolute inset-0 tech-grid opacity-60" />
         <div className="absolute -top-24 right-0 w-96 h-96 rounded-full bg-amber-400/20 blur-3xl" />
         <div className="absolute -bottom-32 -left-16 w-96 h-96 rounded-full bg-rose-500/25 blur-3xl" />
-        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20 grid lg:grid-cols-[1.2fr_1fr] gap-10 items-center">
-          <div>
+        <div className="relative max-w-6xl mx-auto px-4 sm:px-6 py-14 sm:py-20">
+          <div className="max-w-3xl">
             <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full bg-amber-400 text-red-900">
               <Sparkles className="w-3 h-3" /> Bản demo thử nghiệm
             </span>
@@ -125,23 +125,6 @@ export default function Portal({ onOpen }) {
               <a href="#phanhe" className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white/10 border border-white/30 hover:bg-white/20 transition">
                 Xem tất cả phân hệ <ChevronRight className="w-4 h-4" />
               </a>
-            </div>
-          </div>
-          <div className="hidden lg:block">
-            <div className="glass rounded-3xl border border-white/30 p-6 shadow-2xl">
-              <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-amber-200">Nguyên tắc vận hành</p>
-              <ul className="mt-3 space-y-2.5">
-                {[
-                  'Đánh giá bằng số liệu khách quan, có hồ sơ minh chứng.',
-                  'Cá nhân, đơn vị tự đánh giá — cấp có thẩm quyền thẩm định.',
-                  'Dữ liệu “đúng, đủ, sạch, sống”, kết xuất báo cáo tức thì.',
-                  'Công khai công thức tính điểm và điều kiện xếp loại.',
-                ].map((t) => (
-                  <li key={t} className="flex items-start gap-2 text-[13px] text-white/90 leading-snug">
-                    <CheckCircle2 className="w-4 h-4 text-amber-300 shrink-0 mt-0.5" /> {t}
-                  </li>
-                ))}
-              </ul>
             </div>
           </div>
         </div>

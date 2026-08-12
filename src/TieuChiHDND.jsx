@@ -2,7 +2,7 @@
 import {
   Home, Building2, ShieldCheck, LogIn, LogOut, Save, Send, Search, Plus, KeyRound, Lock, Unlock,
   Trash2, ChevronDown, ChevronRight, CheckCircle2, AlertTriangle, Info, ClipboardCheck, RefreshCw,
-  Award, FileDown, FileSpreadsheet, Eye, X, Copy, Landmark, ListChecks, Gauge,
+  Award, FileDown, FileSpreadsheet, Eye, X, Copy, Landmark, ListChecks, Gauge, RotateCcw,
 } from 'lucide-react';
 import {
   KHUNG, TC_KINDS, TC_TINH_SUBJECTS, computeTC, subScore, allGroups, kindInfo,
@@ -12,6 +12,7 @@ import {
   readTC, fetchTC, saveTC, saveUnitEval, unitLogin, readUnitSession, writeUnitSession,
   evalKey, makeUnit, parseUnitLines, randomPin, hashPin,
 } from './lib/tieuChiStore';
+import { seedTieuChi, DEMO_PIN } from './lib/tieuChiSeed';
 import { supabase } from './lib/supabase';
 import { getSession, signInWithPassword, isAdminCredential, resolveLoginEmail, ADMIN } from './lib/auth';
 
@@ -276,7 +277,7 @@ function ScoreCard({ comp, rec, kind }) {
 // ---------------------------------------------------------------------------
 //  PHIẾU TỰ ĐÁNH GIÁ
 // ---------------------------------------------------------------------------
-export function Phieu({ unit, rec, year, onAns, onField, readOnly, onSave, onSubmit, saving, dirty, note, adminMode, onReview }) {
+export function Phieu({ unit, rec, year, onAns, onField, readOnly, onSave, onSubmit, saving, dirty, note, adminMode, onReview, onApprove, onUnapprove }) {
   const kind = unit.kind;
   const comp = useMemo(() => computeTC(kind, rec.ans), [kind, rec.ans]);
   const K = KHUNG[kind];
@@ -377,6 +378,32 @@ export function Phieu({ unit, rec, year, onAns, onField, readOnly, onSave, onSub
             <button onClick={onSave} disabled={saving} className="mt-3 flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-sky-600 text-white hover:bg-sky-500 disabled:opacity-50"><Save className="w-3.5 h-3.5" /> Lưu kết quả thẩm định</button>
           </div>
         )}
+
+        {/* Phê duyệt của Thường trực HĐND tỉnh */}
+        {adminMode && (
+          <div className={`rounded-2xl border p-4 ${rec.approved ? 'border-emerald-300 bg-emerald-50' : 'border-slate-200 bg-white'}`}>
+            <p className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5"><Award className="w-4 h-4 text-emerald-600" /> Phê duyệt kết quả đánh giá, xếp loại</p>
+            {rec.approved ? (
+              <>
+                <p className="text-[12px] text-emerald-800 mt-1.5 flex items-center gap-1.5">
+                  <CheckCircle2 className="w-4 h-4" /> Đã phê duyệt {rec.approved.grade ? <>— xếp loại <b>{gradeName(rec.approved.grade)}</b></> : null} · {rec.approved.by} · ngày {dmy(rec.approved.at)}
+                </p>
+                <button onClick={onUnapprove} disabled={saving} className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-50 disabled:opacity-50"><RotateCcw className="w-3.5 h-3.5" /> Bỏ phê duyệt</button>
+              </>
+            ) : (
+              <>
+                <p className="text-[12px] text-slate-500 mt-1">Xác nhận kết quả cuối cùng của đơn vị: <b className="text-slate-700">{nf(comp.total)} điểm — {comp.gradeName}</b>. Sau khi phê duyệt, mọi thay đổi điểm chấm sẽ tự động gỡ phê duyệt.</p>
+                <button onClick={() => onApprove(comp.grade)} disabled={saving} className="mt-2 flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500 disabled:opacity-50"><CheckCircle2 className="w-3.5 h-3.5" /> Phê duyệt kết quả</button>
+              </>
+            )}
+          </div>
+        )}
+        {!adminMode && rec.approved && (
+          <div className="rounded-2xl border border-emerald-300 bg-emerald-50 p-4">
+            <p className="text-[13px] font-bold text-emerald-800 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Kết quả đã được Thường trực HĐND tỉnh phê duyệt {rec.approved.grade ? <>— xếp loại {gradeName(rec.approved.grade)}</> : null}</p>
+            <p className="text-[12px] text-emerald-800/90 mt-0.5">{rec.approved.by} · ngày {dmy(rec.approved.at)}</p>
+          </div>
+        )}
       </div>
 
       <div className="lg:sticky lg:top-4 space-y-3">
@@ -452,7 +479,7 @@ export function KhungView({ kind, onKind }) {
 // ---------------------------------------------------------------------------
 //  BẢNG ĐIỀU KHIỂN (Thường trực HĐND tỉnh / Tổ công tác)
 // ---------------------------------------------------------------------------
-export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
+export function AdminBoard({ doc, setDoc, persist, onOpen, saving, readOnly, onApprove }) {
   const year = doc.cfg.year;
   const [kind, setKind] = useState('xa');
   const [q, setQ] = useState('');
@@ -472,7 +499,11 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
   const shown = rows.filter((r) => !q.trim() || r.u.name.toLowerCase().includes(q.trim().toLowerCase()) || r.u.code.toLowerCase().includes(q.trim().toLowerCase()));
   const sent = rows.filter((r) => r.rec?.submitted).length;
   const avg = rows.length ? rows.reduce((s, r) => s + r.total, 0) / rows.length : 0;
-  const reviewed = rows.filter((r) => r.rec?.review?.at).length;
+  const approvedCount = rows.filter((r) => r.rec?.approved).length;
+  // Xếp loại chính thức = xếp loại sau thẩm định, có áp trần 25% Xuất sắc (cấp xã).
+  const finalGrade = (r) => (kind === 'xa' && r.grade === 'xuatsac' && !quota.picked.has(r.u.id) ? 'tot' : r.grade);
+  const pendingApproval = rows.filter((r) => r.rec?.submitted && !r.rec?.approved);
+  const isDemo = (doc.units || []).some((u) => u.demo);
 
   const addUnit = async () => {
     if (!newName.trim()) return;
@@ -512,8 +543,9 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
       rows: rows.map((r) => ({
         name: r.u.name, code: r.u.code, progress: r.comp.progress, submitted: !!r.rec?.submitted,
         self: r.comp.total, base: r.comp.base, bonus: r.comp.bonus, deduct: r.comp.deduct,
-        review: r.rec?.review?.total ?? '', final: r.total, grade: gradeName(r.grade),
-        capped: r.grade === 'xuatsac' && !quota.picked.has(r.u.id), note: r.rec?.review?.note || '',
+        review: r.rec?.review?.total ?? '', final: r.total, grade: gradeName(finalGrade(r)),
+        approved: r.rec?.approved ? `${r.rec.approved.by} · ${dmy(r.rec.approved.at)}` : '',
+        capped: r.grade === 'xuatsac' && !quota.picked.has(r.u.id) && kind === 'xa', note: r.rec?.review?.note || '',
         groups: r.comp.groups.filter((g) => g.kind === 'main').map((g) => g.score),
       })),
     });
@@ -527,7 +559,7 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
         ))}
         <span className="flex-1" />
         <div className="flex items-center rounded-lg border border-slate-200 overflow-hidden">
-          {[['kq', 'Kết quả'], ['donvi', 'Đơn vị & tài khoản'], ['cauhinh', 'Cấu hình']].map(([id, label]) => (
+          {(readOnly ? [['kq', 'Kết quả']] : [['kq', 'Kết quả'], ['donvi', 'Đơn vị & tài khoản'], ['cauhinh', 'Cấu hình']]).map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} className={`text-[12px] font-semibold px-3 py-2 ${tab === id ? 'bg-slate-800 text-white' : 'bg-white text-slate-600 hover:bg-slate-50'}`}>{label}</button>
           ))}
         </div>
@@ -535,11 +567,20 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
 
       {tab === 'kq' && (
         <>
+          {isDemo && (
+            <div className="rounded-2xl border border-amber-300 bg-amber-50 p-3 flex items-start gap-2">
+              <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0 mt-0.5" />
+              <p className="text-[12px] text-amber-900 leading-snug">
+                <b>Dữ liệu mô phỏng phục vụ trình diễn.</b> Tên đơn vị, điểm số, hồ sơ minh chứng đều là số liệu giả lập, không phải kết quả thật.
+                {!readOnly && <> Quản trị có thể xóa từng đơn vị mẫu ở thẻ <b>Đơn vị &amp; tài khoản</b> rồi nhập danh sách thật.</>}
+              </p>
+            </div>
+          )}
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
             {[
               { label: 'Đơn vị đánh giá', v: rows.length, ic: Building2, cls: 'text-indigo-600' },
               { label: 'Đã gửi kết quả', v: `${sent}/${rows.length}`, ic: Send, cls: 'text-emerald-600' },
-              { label: 'Đã thẩm định', v: `${reviewed}/${rows.length}`, ic: ClipboardCheck, cls: 'text-sky-600' },
+              { label: 'Đã phê duyệt', v: `${approvedCount}/${rows.length}`, ic: ClipboardCheck, cls: 'text-sky-600' },
               { label: 'Điểm trung bình', v: nf(avg), ic: Gauge, cls: 'text-amber-600' },
             ].map((c) => { const Ic = c.ic; return (
               <div key={c.label} className="rounded-2xl border border-slate-200 bg-white p-4">
@@ -565,6 +606,12 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
               <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Tìm theo tên hoặc mã đơn vị…" className="flex-1 text-sm outline-none" />
             </div>
             <button onClick={doExcel} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg border border-slate-300 text-slate-700 hover:bg-slate-50"><FileSpreadsheet className="w-3.5 h-3.5" /> Xuất bảng tổng hợp (Excel)</button>
+            {!readOnly && pendingApproval.length > 0 && (
+              <button onClick={() => { if (window.confirm(`Phê duyệt kết quả cho ${pendingApproval.length} đơn vị đã gửi (theo xếp loại chính thức, đã áp trần 25% Xuất sắc)?`)) onApprove(pendingApproval.map((r) => ({ unitId: r.u.id, rec: r.rec, grade: finalGrade(r) }))); }}
+                className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-emerald-600 text-white hover:bg-emerald-500">
+                <CheckCircle2 className="w-3.5 h-3.5" /> Phê duyệt {pendingApproval.length} đơn vị đã gửi
+              </button>
+            )}
           </div>
 
           <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
@@ -582,9 +629,10 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
                   </tr>
                 </thead>
                 <tbody>
-                  {shown.length === 0 && <tr><td colSpan={7} className="px-3 py-8 text-center text-slate-400 text-sm">Chưa có đơn vị nào. Sang thẻ “Đơn vị & tài khoản” để thêm.</td></tr>}
+                  {shown.length === 0 && <tr><td colSpan={7} className="px-3 py-8 text-center text-slate-400 text-sm">Chưa có đơn vị nào. Sang thẻ “Đơn vị &amp; tài khoản” để thêm.</td></tr>}
                   {shown.sort((a, b) => b.total - a.total).map((r) => {
                     const capped = r.grade === 'xuatsac' && !quota.picked.has(r.u.id) && kind === 'xa';
+                    const ap = r.rec?.approved;
                     return (
                       <tr key={r.u.id} className="border-t border-slate-100 hover:bg-slate-50/60">
                         <td className="px-3 py-2">
@@ -602,13 +650,24 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
                           {capped && <span className="block text-[10px] text-amber-600 mt-0.5">vượt trần 25%</span>}
                         </td>
                         <td className="px-3 py-2 text-center text-[11px]">
-                          {r.rec?.review?.at ? <span className="text-sky-700 font-semibold">Đã thẩm định</span>
-                            : r.rec?.submitted ? <span className="text-emerald-700 font-semibold">Đã gửi {dmy(r.rec.submittedAt)}</span>
-                              : r.comp.progress > 0 ? <span className="text-amber-600 font-semibold">Đang làm</span>
-                                : <span className="text-slate-400">Chưa làm</span>}
+                          {ap ? <span className="inline-flex items-center gap-1 text-emerald-700 font-bold"><CheckCircle2 className="w-3.5 h-3.5" /> Đã phê duyệt</span>
+                            : r.rec?.review?.at ? <span className="text-sky-700 font-semibold">Đã thẩm định</span>
+                              : r.rec?.submitted ? <span className="text-emerald-600 font-semibold">Đã gửi {dmy(r.rec.submittedAt)}</span>
+                                : r.comp.progress > 0 ? <span className="text-amber-600 font-semibold">Đang làm</span>
+                                  : <span className="text-slate-400">Chưa làm</span>}
+                          {ap && <span className="block text-[10px] text-slate-400">{dmy(ap.at)}</span>}
                         </td>
-                        <td className="px-3 py-2 text-right">
-                          <button onClick={() => onOpen(r.u)} className="text-[12px] font-semibold text-indigo-600 hover:underline flex items-center gap-1 ml-auto"><Eye className="w-3.5 h-3.5" /> Mở phiếu</button>
+                        <td className="px-3 py-2">
+                          <div className="flex items-center justify-end gap-2">
+                            {!readOnly && r.rec?.submitted && (
+                              <button onClick={() => onApprove([{ unitId: r.u.id, rec: r.rec, grade: finalGrade(r) }])}
+                                title={ap ? 'Bỏ phê duyệt' : 'Phê duyệt kết quả đơn vị này'}
+                                className={`text-[11px] font-semibold px-2 py-1 rounded border ${ap ? 'border-slate-300 text-slate-500 hover:bg-slate-50' : 'border-emerald-300 bg-emerald-50 text-emerald-700 hover:bg-emerald-100'}`}>
+                                {ap ? 'Bỏ duyệt' : 'Phê duyệt'}
+                              </button>
+                            )}
+                            <button onClick={() => onOpen(r.u)} className="text-[12px] font-semibold text-indigo-600 hover:underline flex items-center gap-1"><Eye className="w-3.5 h-3.5" /> Mở phiếu</button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -715,7 +774,8 @@ export function AdminBoard({ doc, setDoc, persist, onOpen, saving }) {
 // ---------------------------------------------------------------------------
 //  CỔNG ĐĂNG NHẬP MODULE
 // ---------------------------------------------------------------------------
-export function Gate({ doc, onUnit, onAdmin, onKhung, busy }) {
+export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
+  const demoUnits = (doc.units || []).filter((u) => u.demo);
   const [code, setCode] = useState('');
   const [pin, setPin] = useState('');
   const [err, setErr] = useState('');
@@ -771,6 +831,18 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, busy }) {
           {err && <p className="text-[12px] text-rose-600 mb-2 flex items-start gap-1.5"><AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" /> {err}</p>}
           <button type="submit" disabled={busy} className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-sm font-semibold py-2.5 rounded-xl transition disabled:opacity-50"><LogIn className="w-4 h-4" /> Vào phiếu tự đánh giá</button>
           <p className="text-[11px] text-slate-400 mt-2 leading-snug">Mã đơn vị và mã truy cập do Văn phòng Đoàn ĐBQH và HĐND tỉnh cấp. Quên mã: liên hệ đ/c Hà Ngọc Sơn — 0904818886.</p>
+          {demoUnits.length > 0 && (
+            <div className="mt-3 rounded-xl border border-amber-200 bg-amber-50 p-2.5">
+              <p className="text-[11px] font-bold text-amber-800">Đăng nhập thử với dữ liệu mô phỏng</p>
+              <p className="text-[11px] text-amber-800/90 mt-0.5">Mã truy cập chung: <b className="font-mono">{DEMO_PIN}</b></p>
+              <div className="mt-1.5 flex flex-wrap gap-1">
+                {demoUnits.slice(0, 6).map((u) => (
+                  <button key={u.id} type="button" onClick={() => { setCode(u.code); setPin(DEMO_PIN); setErr(''); }}
+                    className="text-[10px] font-mono px-1.5 py-0.5 rounded border border-amber-300 bg-white text-amber-800 hover:bg-amber-100">{u.code}</button>
+                ))}
+              </div>
+            </div>
+          )}
         </form>
 
         <form onSubmit={submitAdmin} className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
@@ -788,8 +860,11 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, busy }) {
       </div>
 
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-center justify-between gap-3 flex-wrap">
-        <p className="text-[12px] text-slate-600">Chưa có tài khoản? Vẫn có thể xem toàn văn Khung tiêu chí và cách chấm điểm.</p>
-        <button onClick={onKhung} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"><ListChecks className="w-3.5 h-3.5" /> Xem Khung tiêu chí</button>
+        <p className="text-[12px] text-slate-600">Chưa có tài khoản? Vẫn xem được kết quả đánh giá (dữ liệu mô phỏng) và toàn văn Khung tiêu chí — <b>chỉ xem, không chỉnh sửa</b>.</p>
+        <div className="flex items-center gap-2">
+          <button onClick={onGuest} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg bg-slate-800 text-white hover:bg-slate-700"><Eye className="w-3.5 h-3.5" /> Xem dữ liệu demo</button>
+          <button onClick={onKhung} className="flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-lg border border-slate-300 bg-white text-slate-700 hover:bg-slate-100"><ListChecks className="w-3.5 h-3.5" /> Xem Khung tiêu chí</button>
+        </div>
       </div>
     </div>
   );
@@ -803,6 +878,7 @@ export default function TieuChiHDND({ onHome }) {
   const [syncing, setSyncing] = useState(true); // đang đồng bộ bản mới từ máy chủ (vẫn hiển thị ngay bản cache)
   const [view, setView] = useState('gate');      // gate | phieu | admin | khung
   const [admin, setAdmin] = useState(null);      // { mode:'server'|'local', email }
+  const [guest, setGuest] = useState(false);     // khách xem dữ liệu demo — KHÔNG chỉnh sửa được
   const [unitSess, setUnitSess] = useState(readUnitSession);
   const [openUnitId, setOpenUnitId] = useState(null); // quản trị đang mở phiếu đơn vị nào
   const [draft, setDraft] = useState(null);
@@ -819,7 +895,10 @@ export default function TieuChiHDND({ onHome }) {
   useEffect(() => {
     let alive = true;
     (async () => {
-      const d = await fetchTC();
+      let d = await fetchTC();
+      // Chưa có đơn vị nào (lần đầu chạy / chưa cấu hình máy chủ) → nạp DỮ LIỆU MẪU
+      // để xem thử ngay. Dữ liệu mẫu chỉ nằm trên trình duyệt cho tới khi Quản trị bấm lưu.
+      if (!(d.units || []).length) d = await seedTieuChi(d.cfg?.year);
       if (!alive) return;
       setDoc(d); setSyncing(false);
       const s = await getSession();
@@ -838,9 +917,9 @@ export default function TieuChiHDND({ onHome }) {
   }, [syncing, unitSess, doc.units, view]);
 
   const activeUnit = useMemo(() => {
-    const id = admin && openUnitId ? openUnitId : unitSess?.unitId;
+    const id = (admin || guest) && openUnitId ? openUnitId : unitSess?.unitId;
     return (doc.units || []).find((u) => u.id === id) || null;
-  }, [doc.units, admin, openUnitId, unitSess]);
+  }, [doc.units, admin, guest, openUnitId, unitSess]);
 
   // Nạp bản nháp phiếu khi đổi đơn vị / năm
   useEffect(() => {
@@ -858,7 +937,8 @@ export default function TieuChiHDND({ onHome }) {
     else setMsg('');
   }, []);
 
-  const setAns = (id, val) => { setDraft((d) => ({ ...d, ans: { ...d.ans, [id]: val } })); setDirty(true); };
+  // Sửa điểm chấm → TỰ GỠ phê duyệt (phải phê duyệt lại kết quả mới).
+  const setAns = (id, val) => { setDraft((d) => ({ ...d, ans: { ...d.ans, [id]: val }, approved: null })); setDirty(true); };
   const setField = (k, v) => { setDraft((d) => ({ ...d, [k]: v })); setDirty(true); };
   const setReview = (patch) => { setDraft((d) => ({ ...d, review: { ...(d.review || {}), ...patch, at: new Date().toISOString(), by: patch.by ?? d.review?.by ?? (admin?.email || '') } })); setDirty(true); };
 
@@ -886,10 +966,33 @@ export default function TieuChiHDND({ onHome }) {
     await saveDraft({ submitted: true, submittedAt: new Date().toISOString() });
   };
 
+  // Quản trị (Thường trực HĐND tỉnh) phê duyệt / bỏ phê duyệt kết quả của đơn vị đang mở.
+  const approveDraft = async (grade) => {
+    if (!draft || !admin) return;
+    await saveDraft({ approved: { by: admin.mode === 'local' ? 'Thường trực HĐND tỉnh' : admin.email, at: new Date().toISOString(), grade: grade || '' } });
+  };
+  const unapproveDraft = async () => { if (admin) await saveDraft({ approved: null }); };
+
+  // Phê duyệt hàng loạt từ bảng điều khiển (đã áp trần 25% Xuất sắc).
+  const approveUnits = async (items) => {
+    if (!admin || !items.length) return;
+    const by = admin.mode === 'local' ? 'Thường trực HĐND tỉnh' : admin.email;
+    const at = new Date().toISOString();
+    const evals = { ...docRef.current.evals };
+    items.forEach(({ unitId, rec, grade }) => {
+      const k = evalKey(unitId, year);
+      evals[k] = { ...(evals[k] || rec), approved: rec?.approved ? null : { by, at, grade: grade || '' } };
+    });
+    const d = { ...docRef.current, evals };
+    setDoc(d); await persistDoc(d);
+  };
+
   const logoutUnit = () => { writeUnitSession(null); setUnitSess(null); setView('gate'); setDraft(null); };
   const logoutAdmin = () => { setAdmin(null); setOpenUnitId(null); setView('gate'); };
+  const logoutGuest = () => { setGuest(false); setOpenUnitId(null); setView('gate'); };
 
-  const readOnly = !admin && (!!draft?.submitted || doc.cfg?.open === false);
+  // Khách chỉ XEM; đơn vị không sửa được khi đã gửi hoặc đợt đánh giá đã đóng.
+  const readOnly = guest || (!admin && (!!draft?.submitted || doc.cfg?.open === false));
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
@@ -913,10 +1016,17 @@ export default function TieuChiHDND({ onHome }) {
                 <button onClick={logoutAdmin} title="Thoát" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogOut className="w-4 h-4" /></button>
               </>
             )}
-            {!admin && unitSess && (
+            {!admin && !guest && unitSess && (
               <>
                 <span className="text-[11px] px-2.5 py-1.5 rounded-lg bg-white/10 border border-white/20">{activeUnit?.name}</span>
                 <button onClick={logoutUnit} title="Thoát" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogOut className="w-4 h-4" /></button>
+              </>
+            )}
+            {guest && (
+              <>
+                <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border ${view === 'admin' ? 'bg-white text-indigo-800 border-white' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>Kết quả đánh giá</button>
+                <span className="text-[11px] px-2.5 py-1.5 rounded-lg bg-amber-400/20 border border-amber-300/40 text-amber-50">Khách · chỉ xem</span>
+                <button onClick={logoutGuest} title="Thoát chế độ xem, đăng nhập" className="p-1.5 rounded-lg bg-white/10 border border-white/20 hover:bg-white/20"><LogIn className="w-4 h-4" /></button>
               </>
             )}
             <button onClick={() => setView('khung')} className={`text-[12px] font-semibold px-3 py-1.5 rounded-lg border ${view === 'khung' ? 'bg-white text-indigo-800 border-white' : 'bg-white/10 border-white/25 hover:bg-white/20'}`}>Khung tiêu chí</button>
@@ -929,22 +1039,25 @@ export default function TieuChiHDND({ onHome }) {
           <Gate doc={doc} busy={saving}
             onUnit={(u, hash) => { const s = { unitId: u.id, code: u.code, hash, at: today() }; writeUnitSession(s); setUnitSess(s); setView('phieu'); }}
             onAdmin={(mode, email) => { setAdmin({ mode, email }); setView('admin'); }}
+            onGuest={() => { setGuest(true); setView('admin'); }}
             onKhung={() => setView('khung')} />
         ) : view === 'khung' ? (
           <>
-            <button onClick={() => setView(admin ? 'admin' : unitSess ? 'phieu' : 'gate')} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Quay lại</button>
+            <button onClick={() => setView(admin || guest ? 'admin' : unitSess ? 'phieu' : 'gate')} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Quay lại</button>
             <KhungView kind={khungKind} onKind={setKhungKind} />
           </>
-        ) : view === 'admin' && admin ? (
-          <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving}
-            onOpen={(u) => { setOpenUnitId(u.id); setView('phieu'); }} />
+        ) : view === 'admin' && (admin || guest) ? (
+          <AdminBoard doc={doc} setDoc={setDoc} persist={persistDoc} saving={saving} readOnly={guest}
+            onApprove={approveUnits} onOpen={(u) => { setOpenUnitId(u.id); setView('phieu'); }} />
         ) : view === 'phieu' && activeUnit && draft ? (
           <>
-            {admin && <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Về bảng điều khiển</button>}
+            {(admin || guest) && <button onClick={() => { setOpenUnitId(null); setView('admin'); }} className="mb-3 text-[12px] font-semibold text-indigo-600 hover:underline">← Về bảng kết quả</button>}
             <Phieu unit={activeUnit} rec={draft} year={year} readOnly={readOnly} adminMode={!!admin}
               onAns={setAns} onField={setField} onReview={setReview}
+              onApprove={approveDraft} onUnapprove={unapproveDraft}
               onSave={() => saveDraft()} onSubmit={submitRec} saving={saving} dirty={dirty}
-              note={readOnly ? (draft.submitted ? 'Phiếu đã gửi — bấm “Mở lại để sửa” nếu cần chỉnh (chỉ khi đợt đánh giá còn mở).' : 'Đợt đánh giá đã đóng, phiếu chỉ xem.') : msg} />
+              note={guest ? 'Bạn đang xem ở chế độ khách (chỉ xem) — dữ liệu mô phỏng, không chỉnh sửa được.'
+                : readOnly ? (draft.submitted ? 'Phiếu đã gửi — bấm “Mở lại để sửa” nếu cần chỉnh (chỉ khi đợt đánh giá còn mở).' : 'Đợt đánh giá đã đóng, phiếu chỉ xem.') : msg} />
           </>
         ) : (
           <p className="text-center text-slate-400 text-sm py-16">Chưa chọn đơn vị. <button onClick={() => setView('gate')} className="text-indigo-600 font-semibold hover:underline">Đăng nhập</button></p>

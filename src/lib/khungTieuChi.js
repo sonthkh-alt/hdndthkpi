@@ -662,16 +662,16 @@ export function subScore(sub, a = {}) {
 export function computeTC(kindId, ans = {}, opts = {}) {
   const K = KHUNG[kindId] || KHUNG.xa;
   const groups = [];
-  let base = 0, answered = 0, totalSubs = 0;
+  let base = 0, answered = 0, totalSubs = 0, mainAnswered = 0, mainTotal = 0;
 
   K.groups.forEach((g) => {
     let gs = 0;
     const items = g.items.map((it) => {
       let s = 0, zero = false;
       const subs = it.subs.map((sb) => {
-        totalSubs++;
+        totalSubs++; mainTotal++;
         const r = subScore(sb, ans[sb.id] || {});
-        if (r.answered) answered++;
+        if (r.answered) { answered++; mainAnswered++; }
         if (r.zeroItem) zero = true;
         s += r.score;
         return { id: sb.id, score: r.score, answered: r.answered };
@@ -754,7 +754,9 @@ export function computeTC(kindId, ans = {}, opts = {}) {
     kind: kindId, groups, base, bonus, deduct, total,
     grade, gradeName: gradeName(grade), reasons, sanctions, caps,
     dmstRate: r2(dmstRate * 100), models, dk,
-    answered, totalSubs, progress: totalSubs ? Math.round((answered / totalSubs) * 100) : 0,
+    // Tiến độ khai báo tính trên 07 nhóm tiêu chí bắt buộc; nhóm VIII (thưởng) và
+    // nhóm IX (trừ) chỉ khai khi có phát sinh nên không đưa vào mẫu số.
+    answered, totalSubs, progress: mainTotal ? Math.round((mainAnswered / mainTotal) * 100) : 0,
   };
 }
 

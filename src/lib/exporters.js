@@ -1560,6 +1560,8 @@ export function exportOKRMethodPDF(unit = 'Văn phòng Đoàn ĐBQH và HĐND t�
 //  — Khung tiêu chí nhiệm kỳ 2026-2031 của Thường trực HĐND tỉnh Thanh Hóa.
 // ===========================================================================
 
+const TC_GRADE_NAME = { xuatsac: 'Xuất sắc', tot: 'Tốt', kha: 'Khá', tb: 'Trung bình', yeu: 'Yếu' };
+
 // Mô tả mức đã chọn của một "điểm thành phần" để in ra phiếu.
 function tcAnswerText(sub, a = {}) {
   const t = sub.type || 'choice';
@@ -1667,6 +1669,11 @@ export async function exportTieuChiPhieu(ev) {
     if (rec.review.note) children.push(P(rec.review.note, { size: 24 }));
     children.push(P(`Người thẩm định: ${rec.review.by || ''}`, { size: 22, spacingAfter: 120 }));
   }
+  if (rec.approved) {
+    const d = rec.approved.at ? new Date(rec.approved.at).toLocaleDateString('vi-VN') : '';
+    children.push(P('KẾT QUẢ ĐÃ ĐƯỢC PHÊ DUYỆT', { bold: true, size: 24, spacingAfter: 40 }));
+    children.push(P(`Phê duyệt bởi: ${rec.approved.by || ''}${d ? `, ngày ${d}` : ''}${rec.approved.grade ? `. Xếp loại chính thức: ${TC_GRADE_NAME[rec.approved.grade] || rec.approved.grade}` : ''}.`, { size: 24, spacingAfter: 120 }));
+  }
 
   children.push(P('', { spacingAfter: 200 }));
   children.push(P([{ text: 'NGƯỜI LẬP PHIẾU', bold: true }, { text: '                                                                    ' }, { text: 'TM. THƯỜNG TRỰC HĐND', bold: true }], { align: C }));
@@ -1684,11 +1691,11 @@ export async function exportTieuChiTongHop({ year, kindName, rows, quotaPicked }
     ['THƯỜNG TRỰC HỘI ĐỒNG NHÂN DÂN TỈNH THANH HÓA'],
     [`BẢNG TỔNG HỢP KẾT QUẢ ĐÁNH GIÁ, XẾP LOẠI — ${kindName} — Năm ${year}`],
     [],
-    ['STT', 'Đơn vị', 'Mã đơn vị', 'Tiến độ (%)', 'Đã gửi', ...gLabels.map((g) => `Nhóm ${g}`), 'Cộng 7 nhóm', 'Thưởng VIII', 'Trừ IX', 'Tự chấm', 'Thẩm định', 'Điểm chính thức', 'Xếp loại', 'Ghi chú'],
+    ['STT', 'Đơn vị', 'Mã đơn vị', 'Tiến độ (%)', 'Đã gửi', ...gLabels.map((g) => `Nhóm ${g}`), 'Cộng 7 nhóm', 'Thưởng VIII', 'Trừ IX', 'Tự chấm', 'Thẩm định', 'Điểm chính thức', 'Xếp loại', 'Phê duyệt', 'Ghi chú'],
     ...rows.map((r, i) => [
       i + 1, r.name, r.code, r.progress, r.submitted ? 'x' : '',
       ...(r.groups || []).slice(0, 7),
-      r.base, r.bonus, r.deduct, r.self, r.review, r.final, r.grade,
+      r.base, r.bonus, r.deduct, r.self, r.review, r.final, r.grade, r.approved || '',
       [r.capped ? 'Đủ điều kiện Xuất sắc nhưng vượt trần 25% → xem xét xếp loại Tốt' : '', r.note].filter(Boolean).join('; '),
     ]),
     [],
@@ -1696,7 +1703,7 @@ export async function exportTieuChiTongHop({ year, kindName, rows, quotaPicked }
   ];
   const ws = XLSX.utils.aoa_to_sheet(aoa);
   ws['!cols'] = [{ wch: 5 }, { wch: 32 }, { wch: 14 }, { wch: 10 }, { wch: 8 },
-    ...gLabels.map(() => ({ wch: 8 })), { wch: 12 }, { wch: 11 }, { wch: 9 }, { wch: 10 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 40 }];
+    ...gLabels.map(() => ({ wch: 8 })), { wch: 12 }, { wch: 11 }, { wch: 9 }, { wch: 10 }, { wch: 11 }, { wch: 14 }, { wch: 13 }, { wch: 26 }, { wch: 40 }];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Tong hop');
   XLSX.writeFile(wb, `Tong_hop_tieu_chi_HDND_${year}.xlsx`);
