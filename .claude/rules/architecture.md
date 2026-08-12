@@ -10,8 +10,10 @@ paths:
 ## Điều hướng: TRANG CHỦ (Portal) → các PHÂN HỆ
 > `src/main.jsx` → `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** là bộ định tuyến theo **hash**:
 > `#/` (Trang chủ) · `#/okr` (App, bộ tiêu chí `sonha`) · `#/kiemdiem` (App, `kiemdiem`) · **`#/tieuchi`** (module `TieuChiHDND`) ·
-> `#/canbo` (App, tab `hr`) · `#/hotro` (App, tab `guide`) · `#/thunghiem?v=classic|improved|sg` (App, các bản thử nghiệm).
-> - **`src/Portal.jsx`** — trang chủ dạng cổng: thẻ phân hệ có biểu tượng, cơ sở pháp lý, liên hệ, bộ đếm truy cập. Ẩn thẻ theo `versionCfg`.
+> `#/canbo` (App, tab `hr`) · **`#/hotro`** (module `HuongDan`) · `#/thunghiem?v=classic|improved|sg` (App, các bản thử nghiệm).
+> Thêm `?login=1` vào route của App để mở thẳng màn Đăng nhập (prop `initialLogin`).
+> - **`src/Portal.jsx`** — trang chủ dạng cổng: thẻ phân hệ có biểu tượng, liên hệ, bộ đếm truy cập. Ẩn thẻ theo `versionCfg`. (Khối "Cơ sở pháp lý" đã chuyển sang module Hướng dẫn.)
+> - **`src/HuongDan.jsx`** — Hướng dẫn & hỗ trợ cấp HỆ THỐNG (8 mục: phân hệ · bắt đầu nhanh theo vai trò · tài khoản & phân quyền · cách tính điểm · quy trình, mốc thời gian · **cơ sở pháp lý** (`LEGAL_BASIS`) · hỏi đáp · liên hệ + góp ý), có nút In/lưu PDF. Tab "Hỗ trợ" trong App vẫn giữ hướng dẫn CHI TIẾT công thức của từng phân hệ và có liên kết sang đây.
 > - **`src/lib/modules.js`** — danh mục phân hệ dùng chung (`MODULES`: route/icon/tone/target/tags) + `LEGAL_BASIS`. Thêm phân hệ mới thì khai ở đây.
 > - **`src/App.jsx`** nhận thêm `onHome` (nút 🏠 về Trang chủ ở header) và `initialTab` (tab mở sẵn khi vào từ Trang chủ).
 > - App và module Tiêu chí đều **lazy-load** → trang đầu chỉ tải Portal (~33 kB).

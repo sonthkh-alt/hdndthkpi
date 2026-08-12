@@ -15,6 +15,7 @@ import { moduleByRoute, moduleByVersion } from './lib/modules';
 // ============================================================================
 const App = lazy(() => import('./App.jsx'));
 const TieuChiHDND = lazy(() => import('./TieuChiHDND.jsx'));
+const HuongDan = lazy(() => import('./HuongDan.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -25,10 +26,13 @@ function parseHash() {
   const m = moduleByRoute(raw);
   if (!m) return HOME;
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
+  if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
   // ?v=<bộ tiêu chí> dùng cho phân hệ "Phòng thử nghiệm" (đổi bộ tiêu chí ngay trong ứng dụng).
-  const v = new URLSearchParams(qs || '').get('v');
+  // ?login=1 mở thẳng màn Đăng nhập (bấm "Đăng nhập" ở Trang chủ).
+  const params = new URLSearchParams(qs || '');
+  const v = params.get('v');
   const version = (m.labVersions || []).includes(v) ? v : m.target.version;
-  return { view: 'app', moduleId: m.id, version, tab: m.target.tab || 'dash' };
+  return { view: 'app', moduleId: m.id, version, tab: m.target.tab || 'dash', login: params.get('login') === '1' };
 }
 
 const Loading = () => (
@@ -50,11 +54,13 @@ export default function Root() {
     setState(parseHash());
     window.scrollTo({ top: 0 });
   }, []);
-  const openModule = useCallback((m) => {
+  const openModule = useCallback((m, opts = {}) => {
     if (!m) return;
+    const p = [];
     // Phòng thử nghiệm: mang theo bộ tiêu chí đang hiển thị (?v=...)
-    const q = m.labVersions && m.target?.version ? `?v=${m.target.version}` : '';
-    goRoute(`${m.route}${q}`);
+    if (m.labVersions && m.target?.version) p.push(`v=${m.target.version}`);
+    if (opts.login) p.push('login=1');   // mở thẳng màn Đăng nhập
+    goRoute(`${m.route}${p.length ? `?${p.join('&')}` : ''}`);
   }, [goRoute]);
   const goHome = useCallback(() => goRoute(''), [goRoute]);
 
@@ -74,7 +80,9 @@ export default function Root() {
     <Suspense fallback={<Loading />}>
       {state.view === 'tieuchi'
         ? <TieuChiHDND onHome={goHome} />
-        : <App key={state.moduleId} version={state.version} onPickVersion={pickVersion} onHome={goHome} initialTab={state.tab} />}
+        : state.view === 'huongdan'
+          ? <HuongDan onHome={goHome} onOpenModule={goRoute} />
+          : <App key={state.moduleId} version={state.version} onPickVersion={pickVersion} onHome={goHome} initialTab={state.tab} initialLogin={state.login} />}
     </Suspense>
   );
 }

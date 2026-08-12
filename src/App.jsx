@@ -1085,7 +1085,7 @@ function getWeekTitle(dateObj) {
   return `Tuần thứ ${weekNo} (từ ngày ${fmt(start)} đến ngày ${fmt(end)})`;
 }
 
-export default function App({ version = 'classic', onPickVersion, onHome, initialTab } = {}) {
+export default function App({ version = 'classic', onPickVersion, onHome, initialTab, initialLogin } = {}) {
   setCriteriaVersion(version); // chọn bộ tiêu chí (Cổ điển / Cải tiến / Singapore / SonHa) trước mọi tính toán & render
   setBaseCatalog(version);     // chọn danh mục Nhóm II nền (SonHa dùng SONHA_CATALOG)
   const isImproved = version === 'improved';
@@ -1122,7 +1122,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; 'guest' = khách mặc định
   const sessionRef = useRef(undefined);               // bản ref của session để dùng trong hàm async
   const guestSeededRef = useRef(false);               // đã nạp dữ liệu mẫu cho khách chưa
-  const [wantLogin, setWantLogin] = useState(false);  // true khi người dùng chủ động bấm Đăng nhập (quản trị)
+  const [wantLogin, setWantLogin] = useState(!!initialLogin);  // true khi người dùng chủ động bấm Đăng nhập (kể cả từ Trang chủ) (quản trị)
   // Cấu hình hiển thị/đổi tên phiên bản (quản trị điều khiển): cache local + nạp bản mới từ Supabase.
   const [versionCfg, setVersionCfg] = useState(readVersionCfg);
   const [verCfgOpen, setVerCfgOpen] = useState(false); // mở bảng quản lý phiên bản (quản trị)
@@ -2382,6 +2382,11 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
 
         {tab === 'guide' && (
           <div className="space-y-6 max-w-3xl mx-auto">
+          {/* Trang này đi sâu công thức của phân hệ đang dùng; hướng dẫn chung toàn hệ thống ở #/hotro */}
+          <div className="bg-slate-800 text-white rounded-2xl p-4 flex items-center justify-between gap-3 flex-wrap">
+            <p className="text-[13px] leading-snug">Đây là hướng dẫn <b>chi tiết công thức</b> của phân hệ đang dùng. Cần hướng dẫn chung toàn hệ thống (các phân hệ, tài khoản, quy trình, cơ sở pháp lý, hỏi đáp)?</p>
+            <a href="#/hotro" className="shrink-0 flex items-center gap-1.5 text-[12px] font-bold px-3 py-2 rounded-lg bg-white text-slate-800 hover:bg-slate-100"><BookOpen className="w-4 h-4" /> Hướng dẫn toàn hệ thống</a>
+          </div>
           <ContactCard />
           <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
             <div className="flex items-start justify-between gap-4 flex-wrap">
@@ -2764,6 +2769,18 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
           <Suspense fallback={<div className="text-center text-sm text-slate-400 py-10">Đang tải module Quản lý cán bộ…</div>}>
             <CanBoManager data={hrData} people={people} onChange={patchHR} onSave={doSaveHR} saving={hrSaving} canEdit={canManage} onExportProfile={doExport2C} />
           </Suspense>
+        )}
+        {/* Vào thẳng #/canbo bằng tài khoản không phải Quản trị -> báo rõ thay vì để trang trắng. */}
+        {tab === 'hr' && !canManage && (
+          <div className="max-w-xl mx-auto bg-white rounded-2xl border border-slate-200 p-6 text-center">
+            <ShieldCheck className="w-10 h-10 text-amber-500 mx-auto mb-3" />
+            <h2 className="text-lg font-bold text-slate-800">Module Quản lý cán bộ dành riêng cho Quản trị</h2>
+            <p className="text-sm text-slate-500 mt-2 leading-relaxed">Hồ sơ cán bộ theo Mẫu 2C/TCTW-98 chứa thông tin cá nhân nhạy cảm (ngày sinh, số CCCD, sổ BHXH, quan hệ gia đình) nên chỉ tài khoản <b>Quản trị</b> mới xem được. Vui lòng đăng nhập bằng tài khoản do Văn phòng cấp.</p>
+            <div className="mt-4 flex items-center justify-center gap-2 flex-wrap">
+              <button onClick={() => setWantLogin(true)} className="flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white"><LogIn className="w-4 h-4" /> Đăng nhập</button>
+              <button onClick={() => setTab('dash')} className="text-sm font-semibold px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50">Về Tổng quan</button>
+            </div>
+          </div>
         )}
       </main>
       <footer className="max-w-6xl mx-auto px-6 py-6 text-center text-xs text-slate-400 space-y-1">

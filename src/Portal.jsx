@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
-  Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye, Scale,
+  Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
   LogIn, Sparkles, LayoutGrid, Phone, Mail,
 } from 'lucide-react';
-import { MODULES, LEGAL_BASIS } from './lib/modules';
+import { MODULES } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
 
@@ -90,8 +90,8 @@ export default function Portal({ onOpen }) {
           </div>
           <div className="flex items-center gap-2">
             <a href="#phanhe" className="hidden sm:flex items-center gap-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100"><LayoutGrid className="w-4 h-4" /> Phân hệ</a>
-            <a href="#phaply" className="hidden md:flex items-center gap-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100"><Scale className="w-4 h-4" /> Cơ sở pháp lý</a>
-            <button onClick={() => onOpen(MODULES.find((m) => m.id === 'okr'))} className="flex items-center gap-1.5 text-[12px] font-bold px-3.5 py-2 rounded-lg bg-red-700 hover:bg-red-800 text-white shadow-sm">
+            <button onClick={() => onOpen(MODULES.find((m) => m.id === 'guide'))} className="hidden md:flex items-center gap-1.5 text-[12px] font-semibold text-slate-600 hover:text-slate-900 px-3 py-2 rounded-lg hover:bg-slate-100"><BookOpen className="w-4 h-4" /> Hướng dẫn</button>
+            <button onClick={() => onOpen(MODULES.find((m) => m.id === 'okr'), { login: true })} title="Đăng nhập tài khoản cán bộ, công chức / quản trị" className="flex items-center gap-1.5 text-[12px] font-bold px-3.5 py-2 rounded-lg bg-red-700 hover:bg-red-800 text-white shadow-sm">
               <LogIn className="w-4 h-4" /> Đăng nhập
             </button>
           </div>
@@ -123,32 +123,14 @@ export default function Portal({ onOpen }) {
           </div>
         </div>
 
-        {/* ===== Cơ sở pháp lý ===== */}
-        <section id="phaply" className="mt-14 rounded-3xl border border-slate-200 bg-white p-6 sm:p-8">
-          <div className="flex items-center gap-2">
-            <span className="w-10 h-10 rounded-xl bg-slate-100 text-slate-600 flex items-center justify-center"><Scale className="w-5 h-5" /></span>
-            <div>
-              <h2 className="text-lg font-extrabold text-slate-800">Cơ sở pháp lý</h2>
-              <p className="text-[12px] text-slate-500">Các văn bản làm căn cứ xây dựng bộ tiêu chí và công thức tính điểm trong hệ thống.</p>
-            </div>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-3 mt-5">
-            {LEGAL_BASIS.map((v) => (
-              <div key={v.code} className="rounded-xl border border-slate-200 p-3.5 hover:border-slate-300 transition">
-                <p className="text-[13px] font-bold text-slate-800">{v.code}</p>
-                <p className="text-[12px] text-slate-500 mt-0.5 leading-snug">{v.desc}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* ===== Liên hệ ===== */}
-        <section className="mt-6 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-6 sm:p-8 flex flex-wrap items-center justify-between gap-6">
+        <section className="mt-12 rounded-3xl bg-gradient-to-br from-slate-800 to-slate-900 text-white p-6 sm:p-8 flex flex-wrap items-center justify-between gap-6">
           <div>
             <h2 className="text-lg font-extrabold">Cần hỗ trợ sử dụng hệ thống?</h2>
-            <p className="text-[13px] text-slate-300 mt-1">Liên hệ đồng chí Hà Ngọc Sơn, Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa.</p>
+            <p className="text-[13px] text-slate-300 mt-1">Xem <b>Hướng dẫn &amp; hỗ trợ sử dụng</b> (có cơ sở pháp lý, cách tính điểm, hỏi đáp) hoặc liên hệ đồng chí Hà Ngọc Sơn, Phó Chánh Văn phòng.</p>
           </div>
           <div className="flex flex-wrap gap-3">
+            <button onClick={() => onOpen(MODULES.find((m) => m.id === 'guide'))} className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20"><BookOpen className="w-4 h-4" /> Hướng dẫn sử dụng</button>
             <a href="tel:0904818886" className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white/10 border border-white/20 hover:bg-white/20"><Phone className="w-4 h-4" /> 0904 818 886</a>
             <a href="mailto:sonthkh@gmail.com" className="flex items-center gap-2 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-white text-slate-800 hover:bg-slate-100"><Mail className="w-4 h-4" /> sonthkh@gmail.com</a>
           </div>

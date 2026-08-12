@@ -44,10 +44,10 @@ export const MODULES = [
   {
     id: 'guide', route: 'hotro', group: 'tool',
     title: 'Hướng dẫn & hỗ trợ sử dụng',
-    short: 'Hỗ trợ',
-    desc: 'Hướng dẫn chi tiết cách chấm điểm, công thức tính, điều kiện xếp loại; thông tin liên hệ và gửi ý kiến góp ý.',
-    tags: ['Sổ tay', 'Liên hệ'], icon: 'BookOpen', tone: 'sky',
-    target: { kind: 'app', version: 'sonha', tab: 'guide' },
+    short: 'Hướng dẫn',
+    desc: 'Hướng dẫn toàn hệ thống: các phân hệ, tài khoản và phân quyền, cách tính điểm - xếp loại, quy trình và mốc thời gian, cơ sở pháp lý, câu hỏi thường gặp và kênh hỗ trợ.',
+    tags: ['Bắt đầu nhanh', 'Cơ sở pháp lý', 'Hỏi đáp'], icon: 'BookOpen', tone: 'sky',
+    target: { kind: 'huongdan' },
   },
   {
     id: 'lab', route: 'thunghiem', group: 'tool',
