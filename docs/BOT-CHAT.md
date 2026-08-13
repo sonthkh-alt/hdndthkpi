@@ -222,6 +222,21 @@ không phải việc lập trình.
 
 Bấm **Redeploy**.
 
+### Bước 3b — Xác thực domain (bắt buộc, hay quên)
+
+Zalo chỉ chấp nhận địa chỉ callback thuộc domain đã xác thực. Thiếu bước này sẽ gặp
+lỗi **`-14003 Invalid redirect uri`**.
+
+1. `developers.zalo.me` → ứng dụng → **Xác thực domain** → thêm `hdndthkpi.vercel.app`.
+2. Zalo đưa một **tệp xác minh** dạng `zalo_verifierXXXXXXXX.html`. Đặt tệp đó vào thư mục
+   `public/` của dự án rồi commit + push — Vercel sẽ phục vụ tại
+   `https://hdndthkpi.vercel.app/zalo_verifierXXXXXXXX.html`.
+3. Quay lại Zalo bấm **Xác thực**.
+4. Điền ô **Miền ứng dụng** ở trang *Cài đặt* = `hdndthkpi.vercel.app`.
+
+> Địa chỉ callback là `https://hdndthkpi.vercel.app/api/zalo` — **để trần, không kèm
+> tham số truy vấn**. Chuỗi bí mật được gửi qua tham số `state` của OAuth.
+
 ### Bước 4 — Xin quyền OA một lần (lấy token)
 
 Zalo không cấp token vĩnh viễn: phải xin quyền một lần để lấy `access_token` (hạn khoảng

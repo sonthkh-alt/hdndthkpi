@@ -45,16 +45,24 @@ export default async function handler(req, res) {
     if (!hasZalo()) return res.status(500).json({ ok: false, error: 'Chưa khai ZALO_APP_ID / ZALO_APP_SECRET trên Vercel.' });
     const q = req.query || {};
 
-    // Bước 1: lấy đường dẫn xin quyền (mở bằng tài khoản quản trị OA)
+    // Bước 1: lấy đường dẫn xin quyền (mở bằng tài khoản quản trị OA).
+    // redirect_uri để TRẦN (không kèm ?setup=) vì Zalo đối chiếu với domain đã xác thực;
+    // chuỗi bí mật đi kèm qua tham số `state`.
     if (q.auth) {
       if (!secret || q.auth !== secret) return res.status(403).json({ ok: false, error: 'Sai ZALO_WEBHOOK_SECRET.' });
-      const url = await buildAuthUrl(`${selfUrl(req)}?setup=${encodeURIComponent(secret)}`);
-      return res.status(200).json({ ok: true, moLienKetNay: url, ghiChu: 'Mở liên kết này bằng tài khoản quản trị OA, chọn OA rồi bấm Cho phép.' });
+      const redirect = selfUrl(req);
+      const url = await buildAuthUrl(redirect, secret);
+      return res.status(200).json({
+        ok: true, moLienKetNay: url, redirectUri: redirect,
+        ghiChu: 'Mở liên kết này bằng tài khoản quản trị OA, chọn OA rồi bấm Cho phép.',
+        neuLoi14003: `Vào developers.zalo.me -> Xác thực domain, xác thực "${new URL(redirect).host}" và điền ô "Miền ứng dụng".`,
+      });
     }
 
-    // Bước 2: Zalo gọi lại kèm code -> đổi lấy token
-    if (q.setup) {
-      if (!secret || q.setup !== secret) return res.status(403).json({ ok: false, error: 'Sai ZALO_WEBHOOK_SECRET.' });
+    // Bước 2: Zalo gọi lại kèm code -> đổi lấy token (chuỗi bí mật nằm ở `setup` hoặc `state`).
+    if (q.setup || q.state || q.code) {
+      const given = String(q.setup || q.state || '');
+      if (!secret || given !== secret) return res.status(403).json({ ok: false, error: 'Sai ZALO_WEBHOOK_SECRET.' });
       if (!q.code) return res.status(400).json({ ok: false, error: 'Thiếu tham số code. Hãy mở /api/zalo?auth=<secret> trước.' });
       try {
         await exchangeCode(String(q.code));

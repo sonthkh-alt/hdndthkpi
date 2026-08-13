@@ -28,15 +28,20 @@ export const hasZalo = () => !!(appId() && appSecret());
 
 const b64url = (buf) => buf.toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-/** Tạo cặp PKCE và đường dẫn xin quyền — mở đường dẫn này bằng tài khoản quản trị OA. */
-export async function buildAuthUrl(redirectUri) {
+/**
+ * Tạo cặp PKCE và đường dẫn xin quyền — mở đường dẫn này bằng tài khoản quản trị OA.
+ * ⚠️ `redirectUri` phải KHÔNG có tham số truy vấn và phải thuộc domain đã xác thực
+ *    ở developers.zalo.me, nếu không Zalo trả lỗi -14003 "Invalid redirect uri".
+ *    Chuỗi bí mật gửi kèm qua tham số `state` (Zalo trả lại nguyên vẹn khi gọi ngược).
+ */
+export async function buildAuthUrl(redirectUri, state = '') {
   const verifier = b64url(randomBytes(32));
   const challenge = b64url(createHash('sha256').update(verifier).digest());
   const row = await getRow(ROW).catch(() => null);
   await putRow(ROW, { ...(row?.data || {}), verifier });
   const q = new URLSearchParams({
-    app_id: appId(), redirect_uri: redirectUri,
-    code_challenge: challenge, state: 'hdndkpi',
+    app_id: appId(), redirect_uri: String(redirectUri).split('?')[0],
+    code_challenge: challenge, state: state || 'hdndkpi',
   });
   return `${OAUTH_PERMISSION_URL}?${q}`;
 }
