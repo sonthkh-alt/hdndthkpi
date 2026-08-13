@@ -36,8 +36,10 @@ Vercel → dự án `hdndthkpi` → **Settings → Environment Variables**, thê
 | Tên biến | Giá trị | Bắt buộc |
 |---|---|---|
 | `TELEGRAM_BOT_TOKEN` | token của BotFather | ✅ |
-| `TELEGRAM_ALLOWED_IDS` | ID được phép hỏi, nhiều người cách nhau dấu phẩy | ✅ |
-| `TELEGRAM_ADMIN_IDS` | ID được xem thêm số liệu nhân sự (bỏ trống = lấy ID đầu tiên ở trên) | nên có |
+| `TELEGRAM_ADMIN_IDS` | ID của **Quản trị** — người duyệt yêu cầu và được xem số liệu nhân sự | ✅ |
+| `TELEGRAM_ALLOWED_IDS` | ID được dùng ngay, không cần đăng ký (thường để trống) | tùy chọn |
+| `BOT_DAILY_LIMIT` | số câu hỏi tối đa mỗi người mỗi ngày, mặc định `30` | tùy chọn |
+| `TELEGRAM_OPEN` | đặt `0` nếu muốn đóng đăng ký, chỉ phục vụ danh sách trắng | tùy chọn |
 | `TELEGRAM_WEBHOOK_SECRET` | chuỗi bí mật tự đặt, ví dụ `hdnd-2026-abc123` | nên có |
 | `SUPABASE_URL` | Supabase → Settings → API → Project URL | ✅ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → **API Keys** → *Secret keys* (chuỗi `sb_secret_...`). Bản cũ: tab *Legacy API keys* → **service_role**. Muốn dùng đúng tên Supabase gợi ý thì đặt `SUPABASE_SECRET_KEY`, bot nhận cả hai | ✅ |
@@ -57,6 +59,48 @@ https://hdndthkpi.vercel.app/api/telegram?setup=<secret>
 ```
 
 Thấy `{"ok":true,...}` là xong. Vào Telegram nhắn cho bot chữ `/help` để thử.
+
+> ⚠️ **Nếu bot đã chạy từ trước**: sau khi cập nhật lên bản có nút duyệt, phải mở lại địa chỉ
+> `?setup=` này **một lần nữa** thì Telegram mới bắt đầu gửi sự kiện bấm nút (`callback_query`),
+> nếu không thì bấm nút Đồng ý / Từ chối sẽ không có tác dụng.
+
+---
+
+## 1b. Ai cũng dùng được — nhưng phải được duyệt
+
+Bot **mở cho mọi người nhắn tới**, còn hỏi được hay không thì do Quản trị quyết định.
+
+**Người dùng mới:**
+1. Tìm bot trên Telegram, bấm Start (hoặc nhắn bất cứ gì) → bot mời đăng ký.
+2. Gửi: `/dangky Họ và tên - Đơn vị công tác`
+   *Ví dụ:* `/dangky Nguyễn Văn A - Ban Kinh tế - Ngân sách`
+3. Chờ. Khi được duyệt, bot tự nhắn lại báo tin và bắt đầu trả lời.
+
+**Quản trị:** nhận ngay một tin có đủ họ tên, đơn vị, tên Telegram và ID, kèm 2 nút:
+
+```
+🔔 Có người xin sử dụng trợ lý:
+Nguyễn Văn A · Ban Kinh tế - Ngân sách · @nguyenvana · ID 123456789
+        [ ✅ Đồng ý ]   [ ⛔ Từ chối ]
+```
+
+Bấm một nút là xong — bot tự báo lại cho người đăng ký. Lệnh dự phòng nếu không bấm được nút:
+
+| Lệnh | Tác dụng |
+|---|---|
+| `/danhsach` | Xem ai đang chờ duyệt, ai đã duyệt, ai bị từ chối |
+| `/duyet <ID>` | Duyệt thủ công |
+| `/tuchoi <ID>` | Từ chối, hoặc thu hồi quyền của người đã duyệt |
+
+**Ba lớp bảo vệ khi mở rộng người dùng:**
+- Người chưa được duyệt **không hỏi được gì** — chỉ nhận lời mời đăng ký.
+- Mỗi người tối đa **`BOT_DAILY_LIMIT` câu hỏi/ngày** (mặc định 30) để chi phí AI không vượt tầm.
+  Các lệnh nhanh (`/help`, `/solieu`, `/trangthai`) không gọi AI nên không tính lượt.
+- Số liệu nhân sự (nâng lương, nghỉ hưu, hợp đồng) **chỉ trả lời cho `TELEGRAM_ADMIN_IDS`**;
+  người dùng thường chỉ xem được kết quả đánh giá và tiêu chí — đúng bằng những gì trang web
+  đã cho khách xem công khai.
+
+Người đã đăng ký được lưu ở dòng `bot_users` trong bảng `app_state`.
 
 ### Kiểm tra khi có trục trặc
 - `https://hdndthkpi.vercel.app/api/telegram` — xem bot đã nối webhook chưa, có lỗi gì không.
@@ -104,7 +148,7 @@ giao diện nên không bao giờ lệch.
 
 - Không đọc mật khẩu quản trị, mã truy cập của đơn vị, số căn cước, số bảo hiểm xã hội,
   quan hệ gia đình trong hồ sơ 2C — các trường này không được đưa vào ngữ cảnh của AI.
-- Không trả lời người ngoài danh sách `TELEGRAM_ALLOWED_IDS`.
+- Không trả lời người chưa được Quản trị duyệt.
 - Không ghi, không sửa dữ liệu — bot chỉ đọc.
 - Không thay phần mềm: đây là bản demo, số liệu cần đối chiếu lại trên web trước khi
   dùng vào việc chính thức.

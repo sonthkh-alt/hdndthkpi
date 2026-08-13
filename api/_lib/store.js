@@ -10,19 +10,21 @@
 //     (biến VITE_ sẽ bị nhúng vào mã tải về trình duyệt).
 //  Gọi REST trực tiếp bằng fetch để hàm này không phụ thuộc @supabase/supabase-js.
 // ============================================================================
-const BASE = process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
-const SECRET = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
-const KEY = SECRET || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
+// Đọc biến môi trường LÚC GỌI (không phải lúc nạp module) để kiểm thử đổi được cấu hình.
+const baseUrl = () => process.env.SUPABASE_URL || process.env.VITE_SUPABASE_URL || '';
+const secretKey = () => process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY || '';
+const anyKey = () => secretKey() || process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY || '';
 
-export const hasStore = () => !!(BASE && KEY);
-export const isServiceKey = () => !!SECRET;
+export const hasStore = () => !!(baseUrl() && anyKey());
+export const isServiceKey = () => !!secretKey();
 
 async function rest(path, init = {}) {
   if (!hasStore()) throw new Error('Chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY.');
-  const r = await fetch(`${BASE.replace(/\/+$/, '')}/rest/v1/${path}`, {
+  const key = anyKey();
+  const r = await fetch(`${baseUrl().replace(/\/+$/, '')}/rest/v1/${path}`, {
     ...init,
     headers: {
-      apikey: KEY, Authorization: `Bearer ${KEY}`,
+      apikey: key, Authorization: `Bearer ${key}`,
       'Content-Type': 'application/json', ...(init.headers || {}),
     },
   });

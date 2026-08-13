@@ -60,7 +60,11 @@ export async function reply({ text, chatKey, isAdmin = false }) {
   if (!q) return 'Đồng chí gửi câu hỏi giúp tôi nhé. Gõ /help để xem gợi ý.';
 
   const cmd = q.toLowerCase().split(/[\s@]/)[0];
-  if (['/start', '/help', '/huongdan'].includes(cmd)) return HELP;
+  if (['/start', '/help', '/huongdan'].includes(cmd)) {
+    return isAdmin
+      ? `${HELP}\n\nDành riêng cho Quản trị:\n/danhsach — xem người đăng ký dùng trợ lý\n/duyet <ID> · /tuchoi <ID> — duyệt thủ công khi không bấm được nút`
+      : HELP;
+  }
   if (['/trangthai', '/status'].includes(cmd)) return await statusText();
   if (['/quen', '/reset', '/moi'].includes(cmd)) { await clearTurns(chatKey); return 'Đã xóa ngữ cảnh. Mời đồng chí hỏi lại từ đầu.'; }
 
