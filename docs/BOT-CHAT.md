@@ -44,6 +44,8 @@ Vercel → dự án `hdndthkpi` → **Settings → Environment Variables**, thê
 | `SUPABASE_URL` | Supabase → Settings → API → Project URL | ✅ |
 | `SUPABASE_SERVICE_ROLE_KEY` | Supabase → Project Settings → **API Keys** → *Secret keys* (chuỗi `sb_secret_...`). Bản cũ: tab *Legacy API keys* → **service_role**. Muốn dùng đúng tên Supabase gợi ý thì đặt `SUPABASE_SECRET_KEY`, bot nhận cả hai | ✅ |
 | `ANTHROPIC_API_KEY` *(hoặc `GEMINI_API_KEY` / `OPENAI_API_KEY`)* | khóa AI | ✅ |
+| `CAL_SUPABASE_URL` | Project URL Supabase của **phân hệ Lịch công tác** (dự án riêng) | để hỏi được lịch |
+| `CAL_SUPABASE_SERVICE_ROLE_KEY` | khóa bí mật Supabase của phân hệ Lịch công tác | để hỏi được lịch |
 
 > ⚠️ **Không** đặt tiền tố `VITE_` cho các biến này. Biến có `VITE_` sẽ bị nhúng vào mã
 > tải về trình duyệt, ai xem mã nguồn trang web cũng đọc được.
@@ -134,6 +136,17 @@ nối tiếp được: *"còn đồng chí đó thì sao?"*.
 | `state_<năm>_<tháng>` | Bảng điểm kỳ đánh giá cán bộ: họ tên, chức vụ, phòng, điểm tự đánh giá, điểm cấp duyệt, xếp loại, đã phê duyệt hay chưa |
 | `tc_data` | Tiêu chí HĐND: từng đơn vị, tổng điểm, điểm 7 nhóm, thưởng/trừ, xếp loại (đã áp trần 25%), tiến độ khai báo, trạng thái |
 | `hr_data` | Nhắc việc nhân sự dạng tổng hợp — **chỉ trả lời cho ID trong `TELEGRAM_ADMIN_IDS`** |
+| **Lịch công tác** (Supabase riêng) | Lịch **tuần này và tuần sau**: từng mục theo ngày/buổi, lãnh đạo, nội dung, địa điểm, thành phần, trạng thái duyệt và xe được điều |
+
+**Về lịch công tác:** phân hệ này là hệ thống riêng, dùng dự án Supabase riêng, nên bot nối bằng
+cặp biến `CAL_SUPABASE_URL` + `CAL_SUPABASE_SERVICE_ROLE_KEY` (lấy trong Vercel của dự án
+`calendar`). Chưa khai thì bot vẫn chạy bình thường, chỉ không trả lời được câu hỏi về lịch.
+Bot **chỉ đọc**, không nhập và không duyệt lịch. Phạm vi lấy dữ liệu là 14 ngày kể từ thứ Hai
+tuần này — hỏi xa hơn thì bot chỉ đường dẫn để tự mở.
+
+Hỏi được ví dụ: *"Tuần này đồng chí Phó Chủ tịch HĐND tỉnh có lịch gì?"* ·
+*"Sáng mai có cuộc họp nào, ở đâu, đi xe nào?"* · *"Còn mục lịch nào đang chờ duyệt không?"* ·
+*"Thứ Sáu này Ban Kinh tế - Ngân sách làm việc ở đâu?"*
 
 Điểm của phân hệ đánh giá cán bộ được phần mềm ghi sẵn vào khóa `_summary` mỗi lần lưu,
 nên bot đọc đúng con số mà giao diện hiển thị. Với dữ liệu lưu **trước khi** có tính năng

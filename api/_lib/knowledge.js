@@ -28,8 +28,11 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Bấm vào TÊN ĐƠN VỊ trong bảng kết quả là mở được phiếu tự đánh giá của đơn vị đó (như nút "Mở phiếu"). Khách xem được nhưng không sửa.
    Quy trình: đơn vị tự chấm → gửi → Tổ công tác thẩm định → Thường trực HĐND tỉnh phê duyệt. Sửa lại điểm sau khi đã phê duyệt thì phê duyệt tự động bị gỡ.
 4. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
-   Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau, lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
-   ⚠️ Đây là HỆ THỐNG RIÊNG: mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá. Trợ lý này KHÔNG đọc được số liệu lịch công tác — nếu được hỏi thì chỉ đường dẫn để người dùng tự mở.
+   Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau (thường vào thứ Sáu), lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
+   Đối tượng có lịch: 2 Phó Chủ tịch HĐND tỉnh, lãnh đạo Đoàn ĐBQH tỉnh, 4 Ban (Kinh tế - Ngân sách, Pháp chế, Văn hóa - Xã hội, Dân tộc) và lãnh đạo Văn phòng (trực cuối tuần).
+   Buổi: Sáng · Chiều · Cả ngày · Theo giờ. Trạng thái: Chờ duyệt → Đã duyệt / Đã điều chỉnh (có ghi chú) / Từ chối (có lý do). Sửa lại mục đã bị từ chối thì tự quay về Chờ duyệt.
+   Xe ô tô: xe riêng gắn với từng Phó Chủ tịch và xe dùng chung; hệ thống cảnh báo khi một xe bị xếp trùng giờ.
+   ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng trợ lý ĐỌC ĐƯỢC lịch của tuần này và tuần sau — xem phần SỐ LIỆU HỆ THỐNG. Muốn xem xa hơn hai tuần đó thì chỉ đường dẫn cho người dùng tự mở.
 5. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
    Hồ sơ 2C/TCTW-98 và nhắc việc nhân sự: nâng bậc lương (chu kỳ 36 hoặc 24 tháng theo Thông tư 08/2013), nghỉ hưu (lộ trình Nghị định 135/2020), sinh nhật, hết hạn hợp đồng, hết nhiệm kỳ bổ nhiệm, nhiệm vụ định kỳ, biên chế.
    ĐÂY LÀ DANH SÁCH CÁN BỘ DUY NHẤT của cả hệ thống. Hai phân hệ chấm điểm không tự thêm/sửa/xóa cán bộ nữa, chỉ chấm điểm; muốn thêm người hoặc sửa họ tên, chức vụ, đơn vị thì làm ở đây.

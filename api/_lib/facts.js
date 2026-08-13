@@ -6,6 +6,7 @@
 import { getRow, listPeriodIds } from './store.js';
 import { computeTC, applyQuotaXuatSac, gradeName, kindInfo } from '../../src/lib/khungTieuChi.js';
 import { buildAlerts, DEFAULT_LEAD } from '../../src/lib/hr.js';
+import { lichFacts, hasLich } from './lich.js';
 
 const n1 = (v) => (Math.round(Number(v || 0) * 10) / 10).toString().replace('.', ',');
 const dmy = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
@@ -174,6 +175,9 @@ const KW = {
   hr: ['nâng lương', 'nang luong', 'nghỉ hưu', 'nghi huu', 'nhắc việc', 'nhac viec', 'biên chế', 'bien che', 'hồ sơ 2c', 'sinh nhật', 'hợp đồng', 'bổ nhiệm'],
   kp: ['điểm', 'diem', 'xếp loại', 'xep loai', 'kpi', 'okr', 'cán bộ', 'can bo', 'phê duyệt', 'phe duyet', 'phòng', 'tổng quan', 'trung bình',
     'kiểm điểm', 'kiem diem', 'đảng viên', 'dang vien', 'thường vụ', 'thuong vu', 'btv', 'tỉnh ủy', 'tinh uy', 'quý', 'quy i', 'hằng quý'],
+  lich: ['lịch', 'lich', 'tuần', 'tuan', 'họp', 'hop', 'hôm nay', 'hom nay', 'ngày mai', 'ngay mai', 'sáng mai', 'chiều mai',
+    'công tác', 'cong tac', 'xe', 'lái xe', 'lai xe', 'đi đâu', 'di dau', 'thứ hai', 'thứ ba', 'thứ tư', 'thứ năm', 'thứ sáu', 'thứ bảy', 'chủ nhật',
+    'chờ duyệt', 'cho duyet', 'địa điểm', 'dia diem', 'thành phần', 'thanh phan', 'tiếp công dân'],
 };
 const hit = (q, list) => list.some((k) => q.includes(k));
 
@@ -181,11 +185,13 @@ export async function gatherFacts(question, { isAdmin = false } = {}) {
   const q = String(question || '').toLowerCase();
   const wantTC = hit(q, KW.tc);
   const wantHR = isAdmin && hit(q, KW.hr);
-  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR); // mặc định nạp kỳ đánh giá
+  const wantLich = hasLich() && hit(q, KW.lich);
+  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich); // mặc định nạp kỳ đánh giá
 
   const jobs = [];
   if (wantKP) jobs.push(periodFacts().catch((e) => ({ text: `(Không đọc được kỳ đánh giá: ${e.message})` })));
   if (wantTC) jobs.push(tieuChiFacts().catch((e) => ({ text: `(Không đọc được tiêu chí HĐND: ${e.message})` })));
+  if (wantLich) jobs.push(lichFacts().catch((e) => ({ text: `(Không đọc được lịch công tác: ${e.message})` })));
   if (wantHR) jobs.push(nhanSuFacts().catch((e) => ({ text: `(Không đọc được dữ liệu nhân sự: ${e.message})` })));
 
   const parts = (await Promise.all(jobs)).map((r) => r.text).filter(Boolean);

@@ -7,6 +7,7 @@
 //  được các câu hỏi ngoài hệ thống.
 // ============================================================================
 import { gatherFacts, periodFacts, tieuChiFacts, nhanSuFacts } from './facts.js';
+import { lichFacts, hasLich } from './lich.js';
 import { KNOWLEDGE, SYSTEM_PROMPT, SITE } from './knowledge.js';
 import { askAI, hasAI, provider, modelName } from './ai.js';
 import { loadTurns, saveTurns, clearTurns, hasStore, isServiceKey } from './store.js';
@@ -17,6 +18,9 @@ Cứ hỏi tôi bằng tiếng Việt bình thường, ví dụ:
 • "Điểm tháng này của đồng chí Hà Ngọc Sơn bao nhiêu?"
 • "Phòng nào có điểm trung bình cao nhất?"
 • "Kết quả kiểm điểm quý này của các đồng chí diện Ban Thường vụ Tỉnh ủy quản lý?"
+• "Tuần này đồng chí Phó Chủ tịch HĐND tỉnh có lịch gì?"
+• "Sáng mai có cuộc họp nào, ở đâu, đi xe nào?"
+• "Còn mục lịch nào đang chờ duyệt không?"
 • "Còn ai chưa được phê duyệt?"
 • "Phường Hạc Thành xếp loại gì, vì sao chưa đạt Xuất sắc?"
 • "Muốn xếp loại Xuất sắc thì cần điều kiện gì?"
@@ -46,6 +50,11 @@ async function statusText() {
       lines.push(`Tiêu chí HĐND: ${t.meta ? `${t.meta.units} đơn vị, năm ${t.meta.year}` : 'chưa có dữ liệu'}`);
     } catch (e) { lines.push(`Lỗi đọc dữ liệu: ${e.message}`); }
   }
+  if (!hasLich()) lines.push('Lịch công tác tuần: ❌ chưa cấu hình CAL_SUPABASE_URL / CAL_SUPABASE_SERVICE_ROLE_KEY');
+  else {
+    try { const l = await lichFacts(); lines.push(`Lịch công tác tuần: ✅ ${l.meta?.count ?? 0} mục (tuần này và tuần sau), chờ duyệt ${l.meta?.cho_duyet ?? 0}`); }
+    catch (e) { lines.push(`Lịch công tác tuần: lỗi đọc — ${e.message}`); }
+  }
   return lines.join('\n');
 }
 
@@ -72,6 +81,7 @@ export async function reply({ text, chatKey, isAdmin = false }) {
     const parts = await Promise.all([
       periodFacts().catch((e) => ({ text: `(lỗi: ${e.message})` })),
       tieuChiFacts().catch(() => ({ text: '' })),
+      lichFacts().catch(() => ({ text: '' })),
       isAdmin ? nhanSuFacts().catch(() => ({ text: '' })) : Promise.resolve({ text: '' }),
     ]);
     // Có tới 3 khối số liệu (2 phân hệ chấm điểm + tiêu chí HĐND); telegram.js tự cắt thành nhiều tin.
