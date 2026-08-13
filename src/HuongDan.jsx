@@ -15,7 +15,7 @@ import { GUEST } from './lib/auth';
 //  câu hỏi thường gặp và kênh hỗ trợ.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, CalendarDays };
 
 const SECTIONS = [
   { id: 'tongquan', label: '1. Hệ thống gồm những gì' },
@@ -176,6 +176,9 @@ export default function HuongDan({ onHome, onOpenModule }) {
                     </div>
                     <p className="text-[12px] text-slate-500 mt-2 leading-snug">{m.desc}</p>
                     <p className="text-[11px] text-slate-400 mt-2 font-mono">#/{m.route}</p>
+                    {m.target?.kind === 'external' && (
+                      <p className="text-[11px] text-teal-700 mt-1">Chạy trên hệ thống riêng — tài khoản đăng nhập riêng ({m.target.url.replace('https://', '')}).</p>
+                    )}
                   </button>
                 );
               })}

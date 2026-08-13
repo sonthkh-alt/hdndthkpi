@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ExternalLink,
 } from 'lucide-react';
-import { MODULES } from './lib/modules';
+import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
 
@@ -12,7 +12,7 @@ import { countVisit } from './lib/visits';
 //  Người dùng chọn phân hệ bằng cách bấm vào thẻ (icon) tương ứng.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays };
 
 // Viết đủ tên lớp Tailwind để không bị loại khi build.
 const TONE = {
@@ -22,13 +22,20 @@ const TONE = {
   amber: { tile: 'from-amber-500 to-orange-600', shadow: 'shadow-amber-100', border: 'hover:border-amber-300', chip: 'bg-amber-50 text-amber-700 border-amber-100', link: 'text-amber-700' },
   sky: { tile: 'from-sky-500 to-cyan-600', shadow: 'shadow-sky-100', border: 'hover:border-sky-300', chip: 'bg-sky-50 text-sky-700 border-sky-100', link: 'text-sky-700' },
   violet: { tile: 'from-violet-500 to-purple-700', shadow: 'shadow-violet-100', border: 'hover:border-violet-300', chip: 'bg-violet-50 text-violet-700 border-violet-100', link: 'text-violet-700' },
+  teal: { tile: 'from-teal-500 to-emerald-700', shadow: 'shadow-teal-100', border: 'hover:border-teal-300', chip: 'bg-teal-50 text-teal-700 border-teal-100', link: 'text-teal-700' },
 };
 
 function ModuleCard({ m, onOpen, big }) {
   const Ic = ICONS[m.icon] || LayoutGrid;
   const t = TONE[m.tone] || TONE.indigo;
+  // Phân hệ chạy ở địa chỉ riêng → thẻ là liên kết thật (mở tab mới, chuột giữa/chuột phải dùng được).
+  const ext = isExternal(m);
+  const Tag = ext ? 'a' : 'button';
+  const act = ext
+    ? { href: m.target.url, target: '_blank', rel: 'noopener noreferrer' }
+    : { onClick: () => onOpen(m) };
   return (
-    <button onClick={() => onOpen(m)}
+    <Tag {...act}
       className={`group text-left w-full h-full bg-white rounded-2xl border border-slate-200 ${t.border} p-5 shadow-sm hover:shadow-xl ${t.shadow} transition-all duration-200 hover:-translate-y-0.5 flex flex-col`}>
       <div className="flex items-start justify-between gap-3">
         <span className={`shrink-0 w-14 h-14 rounded-2xl bg-gradient-to-br ${t.tile} text-white flex items-center justify-center shadow-lg ${t.shadow} group-hover:scale-105 transition-transform`}>
@@ -42,9 +49,12 @@ function ModuleCard({ m, onOpen, big }) {
         {m.tags.map((tag) => <span key={tag} className={`text-[10px] font-semibold px-2 py-0.5 rounded-full border ${t.chip}`}>{tag}</span>)}
       </div>
       <span className={`mt-4 inline-flex items-center gap-1.5 text-[13px] font-bold ${t.link}`}>
-        Mở phân hệ <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+        Mở phân hệ
+        {ext
+          ? <ExternalLink className="w-4 h-4 group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-transform" />
+          : <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />}
       </span>
-    </button>
+    </Tag>
   );
 }
 

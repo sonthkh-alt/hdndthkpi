@@ -27,14 +27,17 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Đơn vị đăng nhập bằng MÃ ĐƠN VỊ + MÃ TRUY CẬP do Thường trực HĐND tỉnh cấp (mã truy cập chỉ lưu dạng băm SHA-256).
    Bấm vào TÊN ĐƠN VỊ trong bảng kết quả là mở được phiếu tự đánh giá của đơn vị đó (như nút "Mở phiếu"). Khách xem được nhưng không sửa.
    Quy trình: đơn vị tự chấm → gửi → Tổ công tác thẩm định → Thường trực HĐND tỉnh phê duyệt. Sửa lại điểm sau khi đã phê duyệt thì phê duyệt tự động bị gỡ.
-4. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
+4. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
+   Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau, lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
+   ⚠️ Đây là HỆ THỐNG RIÊNG: mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá. Trợ lý này KHÔNG đọc được số liệu lịch công tác — nếu được hỏi thì chỉ đường dẫn để người dùng tự mở.
+5. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
    Hồ sơ 2C/TCTW-98 và nhắc việc nhân sự: nâng bậc lương (chu kỳ 36 hoặc 24 tháng theo Thông tư 08/2013), nghỉ hưu (lộ trình Nghị định 135/2020), sinh nhật, hết hạn hợp đồng, hết nhiệm kỳ bổ nhiệm, nhiệm vụ định kỳ, biên chế.
    ĐÂY LÀ DANH SÁCH CÁN BỘ DUY NHẤT của cả hệ thống. Hai phân hệ chấm điểm không tự thêm/sửa/xóa cán bộ nữa, chỉ chấm điểm; muốn thêm người hoặc sửa họ tên, chức vụ, đơn vị thì làm ở đây.
    Mỗi hồ sơ có trường "Diện quản lý cán bộ": Thuộc diện Ban Thường vụ Tỉnh ủy quản lý / Không thuộc diện. Trường này tách danh sách giữa hai phân hệ:
    - Phân hệ Kiểm điểm lấy những người có cờ "Thuộc diện BTV Tỉnh ủy quản lý".
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
-5. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
+6. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 
 ## Tài khoản và phân quyền

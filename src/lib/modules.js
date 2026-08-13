@@ -3,6 +3,9 @@
 //  Mỗi phân hệ có một đường dẫn dạng #/<route>; `target` cho biết mở gì:
 //    { kind: 'app', version, tab }  → mở ứng dụng đánh giá cán bộ với bộ tiêu chí tương ứng
 //    { kind: 'tieuchi' }            → mở module Đánh giá tiêu chí HĐND tỉnh, xã, phường
+//    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
+//    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
+//                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
 // ============================================================================
 
 export const MODULES = [
@@ -34,6 +37,15 @@ export const MODULES = [
     target: { kind: 'tieuchi' },
   },
   {
+    id: 'lichcongtac', route: 'lichcongtac', group: 'main',
+    title: 'Quản lý lịch công tác tuần',
+    short: 'Lịch công tác',
+    desc: 'Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo các Ban: Văn phòng nhập lịch tuần sau, lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe và in lịch tuần.',
+    tags: ['Hằng tuần', 'Duyệt lịch · điều xe', 'Hệ thống riêng'],
+    icon: 'CalendarDays', tone: 'teal', badge: 'Mới',
+    target: { kind: 'external', url: 'https://calendar-beta-lac.vercel.app' },
+  },
+  {
     id: 'hr', route: 'canbo', group: 'tool',
     title: 'Quản lý cán bộ (hồ sơ 2C)',
     short: 'Quản lý cán bộ',
@@ -61,6 +73,7 @@ export const MODULES = [
 ];
 
 export const moduleByRoute = (r) => MODULES.find((m) => m.route === r) || null;
+export const isExternal = (m) => m?.target?.kind === 'external';
 export const moduleByVersion = (v) => MODULES.find((m) => m.target.kind === 'app' && m.target.version === v) || null;
 
 // Cơ sở pháp lý hiển thị ở trang chủ.

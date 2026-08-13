@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, Suspense, lazy } from 'react';
 import Portal from './Portal.jsx';
-import { moduleByRoute, moduleByVersion } from './lib/modules';
+import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 
 // ============================================================================
 //  BỘ ĐIỀU HƯỚNG (ROUTER) — trang chủ dạng cổng phân hệ.
@@ -10,6 +10,7 @@ import { moduleByRoute, moduleByVersion } from './lib/modules';
 //    #/tieuchi     → Đánh giá tiêu chí HĐND tỉnh, xã, phường   (module riêng)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
+//    #/lichcongtac → Quản lý lịch công tác tuần                (hệ thống RIÊNG, tự chuyển tiếp)
 //    #/thunghiem   → Phòng thử nghiệm bộ tiêu chí              (App, các bản classic/improved/sg)
 //  Ứng dụng đánh giá (App.jsx) và module Tiêu chí HĐND đều được tải theo nhu cầu (lazy).
 // ============================================================================
@@ -27,6 +28,8 @@ function parseHash() {
   if (!m) return HOME;
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
   if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
+  // Phân hệ chạy ở địa chỉ riêng: giữ đường dẫn #/<route> để chia sẻ được, mở ra thì tự chuyển tiếp.
+  if (isExternal(m)) return { view: 'external', moduleId: m.id, url: m.target.url, title: m.title };
   // ?v=<bộ tiêu chí> dùng cho phân hệ "Phòng thử nghiệm" (đổi bộ tiêu chí ngay trong ứng dụng).
   // ?login=1 mở thẳng màn Đăng nhập (bấm "Đăng nhập" ở Trang chủ).
   const params = new URLSearchParams(qs || '');
@@ -42,6 +45,18 @@ function parseHash() {
 const Loading = () => (
   <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400 text-sm">Đang tải phân hệ…</div>
 );
+
+// Màn chuyển tiếp sang phân hệ chạy ở địa chỉ riêng (có nút bấm tay phòng khi trình duyệt chặn).
+function GoExternal({ url, title, onHome }) {
+  useEffect(() => { window.location.replace(url); }, [url]);
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center gap-3 bg-slate-50 px-6 text-center">
+      <p className="text-sm text-slate-500">Đang chuyển sang phân hệ <b className="text-slate-700">{title}</b>…</p>
+      <a href={url} className="text-sm font-bold text-teal-700 underline">{url}</a>
+      <button onClick={onHome} className="mt-2 text-[13px] font-semibold text-slate-500 hover:text-slate-800">← Về Trang chủ</button>
+    </div>
+  );
+}
 
 export default function Root() {
   const [state, setState] = useState(parseHash);
@@ -60,6 +75,8 @@ export default function Root() {
   }, []);
   const openModule = useCallback((m, opts = {}) => {
     if (!m) return;
+    // Phân hệ ở địa chỉ riêng → mở tab mới, giữ nguyên Trang chủ đang xem.
+    if (isExternal(m)) { window.open(m.target.url, '_blank', 'noopener,noreferrer'); return; }
     const p = [];
     // Phòng thử nghiệm: mang theo bộ tiêu chí đang hiển thị (?v=...)
     if (m.labVersions && m.target?.version) p.push(`v=${m.target.version}`);
@@ -79,6 +96,7 @@ export default function Root() {
   }, [goRoute]);
 
   if (state.view === 'home') return <Portal onOpen={openModule} />;
+  if (state.view === 'external') return <GoExternal url={state.url} title={state.title} onHome={goHome} />;
 
   return (
     <Suspense fallback={<Loading />}>
