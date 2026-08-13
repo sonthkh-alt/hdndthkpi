@@ -25,6 +25,7 @@ import { reply } from './_lib/brain.js';
 import {
   userKey, getUser, register, approve, block, listUsers, spendQuota, describe, isOpen, DAILY_LIMIT,
 } from './_lib/users.js';
+import { notifyNewUser, notifyUser } from './_lib/notify.js';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const api = (method) => `https://api.telegram.org/bot${TOKEN}/${method}`;
@@ -40,8 +41,10 @@ const say = (chatId, text, extra = {}) => tg('sendMessage', { chat_id: chatId, t
 function chunks(text, size = 3900) {
   const out = []; let buf = '';
   for (const line of String(text).split('\n')) {
-    if ((buf + line).length > size) { if (buf) out.push(buf); buf = ''; }
-    buf += (buf ? '\n' : '') + line.slice(0, size);
+    const piece = line.slice(0, size);
+    // +1 cho ký tự xuống dòng khi nối, để mỗi mẩu chắc chắn KHÔNG vượt `size`.
+    if (buf && buf.length + 1 + piece.length > size) { out.push(buf); buf = ''; }
+    buf = buf ? `${buf}\n${piece}` : piece;
   }
   if (buf) out.push(buf);
   return out.length ? out : ['(trống)'];
@@ -68,29 +71,25 @@ export function parseDangKy(text) {
   return { name, unit: parts.join(' - ').trim() };
 }
 
-const kbDuyet = (id) => ({
-  inline_keyboard: [[
-    { text: '✅ Đồng ý', callback_data: `ok:${id}` },
-    { text: '⛔ Từ chối', callback_data: `no:${id}` },
-  ]],
-});
+const OK_TEXT = '✅ Đồng chí đã được duyệt sử dụng trợ lý. Mời đặt câu hỏi, gõ /help để xem gợi ý.';
+const NO_TEXT = '⛔ Rất tiếc, yêu cầu sử dụng trợ lý chưa được chấp thuận. Đồng chí vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).';
 
-/** Báo cho tất cả Quản trị có người xin dùng bot. */
-async function notifyAdmins(u) {
-  const text = `🔔 Có người xin sử dụng trợ lý:\n\n${describe(u)}\n\nĐồng chí duyệt giúp:`;
-  for (const a of adminsOf()) await say(a, text, { reply_markup: kbDuyet(u.id) });
-}
-
-/** Xử lý bấm nút Đồng ý / Từ chối. */
+/**
+ * Xử lý bấm nút Đồng ý / Từ chối — dùng cho người dùng của CẢ Telegram lẫn Zalo.
+ * callback_data: 'ok:<nền tảng>:<id>'. Dạng cũ 'ok:<id>' vẫn hiểu là Telegram.
+ */
 async function onCallback(cq) {
   const from = String(cq.from?.id || '');
-  const [act, id] = String(cq.data || '').split(':');
+  const parts = String(cq.data || '').split(':');
+  const act = parts[0];
+  const platform = parts.length >= 3 ? parts[1] : 'tg';
+  const id = parts.length >= 3 ? parts.slice(2).join(':') : parts[1];
   const ans = (text) => tg('answerCallbackQuery', { callback_query_id: cq.id, text, show_alert: false });
 
   if (!adminsOf().includes(from)) return ans('Chỉ Quản trị mới duyệt được.');
   if (!id || !['ok', 'no'].includes(act)) return ans('Yêu cầu không hợp lệ.');
 
-  const key = userKey('tg', id);
+  const key = userKey(platform, id);
   await (act === 'ok' ? approve(key, from) : block(key, from));
   const verdict = act === 'ok' ? '✅ ĐÃ DUYỆT' : '⛔ ĐÃ TỪ CHỐI';
 
@@ -101,9 +100,7 @@ async function onCallback(cq) {
       text: `${cq.message.text}\n\n${verdict} — bởi ID ${from}`,
     });
   }
-  await say(id, act === 'ok'
-    ? '✅ Đồng chí đã được duyệt sử dụng trợ lý. Mời đặt câu hỏi, gõ /help để xem gợi ý.'
-    : '⛔ Rất tiếc, yêu cầu sử dụng trợ lý chưa được chấp thuận. Đồng chí vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).');
+  await notifyUser(platform, id, act === 'ok' ? OK_TEXT : NO_TEXT);
 }
 
 /** Lệnh quản lý người dùng dành cho Quản trị (dự phòng khi không bấm được nút). */
@@ -111,19 +108,24 @@ async function adminCommand(cmd, text, chatId, from) {
   if (cmd === '/danhsach') {
     const all = await listUsers();
     const grp = (s) => all.filter((u) => u.status === s);
-    const fmt = (list) => (list.length ? list.map((u) => `• ${describe(u)}`).join('\n') : '(không có)');
+    const P = { tg: 'Telegram', zalo: 'Zalo' };
+    const fmt = (list) => (list.length ? list.map((u) => `• [${P[u.platform] || u.platform}] ${describe(u)} — mã: ${u.key}`).join('\n') : '(không có)');
     await say(chatId, `👥 Người dùng trợ lý\n\nCHỜ DUYỆT (${grp('pending').length}):\n${fmt(grp('pending'))}\n\n`
       + `ĐÃ DUYỆT (${grp('approved').length}):\n${fmt(grp('approved'))}\n\n`
       + `BỊ TỪ CHỐI (${grp('blocked').length}):\n${fmt(grp('blocked'))}\n\n`
-      + 'Duyệt/từ chối bằng: /duyet <ID> hoặc /tuchoi <ID>');
+      + 'Duyệt/từ chối bằng: /duyet <mã> hoặc /tuchoi <mã> (mã dạng tg:123 hoặc zalo:abc; gõ trống nền tảng thì hiểu là Telegram).');
     return true;
   }
   if (cmd === '/duyet' || cmd === '/tuchoi') {
-    const id = (text.split(/\s+/)[1] || '').trim();
-    if (!id) { await say(chatId, `Cú pháp: ${cmd} <ID Telegram>. Xem danh sách bằng /danhsach.`); return true; }
-    const key = userKey('tg', id);
-    if (cmd === '/duyet') { await approve(key, from); await say(chatId, `✅ Đã duyệt ID ${id}.`); await say(id, '✅ Đồng chí đã được duyệt sử dụng trợ lý. Gõ /help để xem gợi ý.'); }
-    else { await block(key, from); await say(chatId, `⛔ Đã từ chối ID ${id}.`); }
+    const arg = (text.split(/\s+/)[1] || '').trim();
+    if (!arg) { await say(chatId, `Cú pháp: ${cmd} <mã> — ví dụ ${cmd} tg:123456789 hoặc ${cmd} zalo:abc. Xem danh sách bằng /danhsach.`); return true; }
+    // Chấp nhận cả 'tg:123', 'zalo:abc' lẫn '123' (mặc định Telegram).
+    const [p, ...rest] = arg.split(':');
+    const platform = rest.length ? p : 'tg';
+    const id = rest.length ? rest.join(':') : arg;
+    const key = userKey(platform, id);
+    if (cmd === '/duyet') { await approve(key, from); await say(chatId, `✅ Đã duyệt ${key}.`); await notifyUser(platform, id, OK_TEXT); }
+    else { await block(key, from); await say(chatId, `⛔ Đã từ chối ${key}.`); await notifyUser(platform, id, NO_TEXT); }
     return true;
   }
   return false;
@@ -205,7 +207,7 @@ export default async function handler(req, res) {
         if (!info) { await say(chatId, 'Cú pháp: /dangky Họ và tên - Đơn vị công tác\nVí dụ: /dangky Nguyễn Văn A - Ban Kinh tế - Ngân sách'); return res.status(200).json({ ok: true }); }
         const rec = await register(key, { id: from, platform: 'tg', username: msg.from?.username, ...info });
         if (rec.status === 'approved') await say(chatId, 'Đồng chí đã được duyệt từ trước. Mời đặt câu hỏi.');
-        else { await notifyAdmins(rec); await say(chatId, `Đã gửi yêu cầu tới Quản trị:\n${describe(rec)}\n\nĐồng chí vui lòng chờ được duyệt, bot sẽ nhắn lại ngay khi có kết quả.`); }
+        else { await notifyNewUser(rec); await say(chatId, `Đã gửi yêu cầu tới Quản trị:\n${describe(rec)}\n\nĐồng chí vui lòng chờ được duyệt, bot sẽ nhắn lại ngay khi có kết quả.`); }
         return res.status(200).json({ ok: true });
       }
 

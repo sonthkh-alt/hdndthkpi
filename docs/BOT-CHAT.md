@@ -193,24 +193,78 @@ giao diện nên không bao giờ lệch.
 
 ---
 
-## 5. Còn Zalo thì sao?
+## 5. Bot trên Zalo
 
-Zalo **không** cho lập bot trên tài khoản cá nhân. Muốn có trợ lý tự trả lời trên Zalo
-thì cơ quan phải:
+Mã đã sẵn sàng (`api/zalo.js`), dùng chung "bộ não" và chung sổ đăng ký với bot Telegram.
+Việc còn lại là **thủ tục lập Official Account** — phần này thuộc thẩm quyền cơ quan,
+không phải việc lập trình.
 
-1. Lập **Zalo Official Account** tại `oa.zalo.me` (loại cơ quan nhà nước cần hồ sơ xác thực).
-2. Tạo ứng dụng tại `developers.zalo.me`, gắn OA vào ứng dụng để xin quyền gọi API.
-3. Khai webhook trỏ về `/api/zalo` (chưa viết — phần "bộ não" `api/_lib/brain.js` đã dùng
-   chung nên thêm vào chỉ mất ít công).
+> Zalo **không** cho lập bot trên tài khoản Zalo cá nhân. Bắt buộc phải có **Official Account (OA)**.
 
-Ràng buộc của Zalo cần biết trước: OA chỉ được nhắn trả lời trong một khoảng thời gian
-nhất định sau khi người dân nhắn tới, ngoài khung đó phải dùng ZNS (có phí); mã truy cập
-API hạn ngắn, phải tự làm mới bằng refresh token. Chính sách Zalo thay đổi theo thời kỳ
-nên cần đọc lại tài liệu lúc đăng ký.
+### Bước 1 — Lập Official Account (mất vài ngày chờ duyệt)
+1. Vào `oa.zalo.me` → **Tạo Official Account** → chọn loại phù hợp (cơ quan nhà nước).
+2. Khai thông tin cơ quan, tải lên giấy tờ chứng minh (quyết định thành lập, giấy giới thiệu…).
+3. Chờ Zalo xét duyệt và xác thực OA.
 
-**Trong khi chờ lập OA**, cách dùng trên Zalo là dán đường dẫn công khai
-(`https://hdndthkpi.vercel.app/#/tieuchi`, `/#/okr`, `/#/hotro` — khách xem được, không cần
-đăng nhập), hoặc hỏi bot Telegram rồi chép câu trả lời sang Zalo.
+### Bước 2 — Tạo ứng dụng và gắn OA
+1. Vào `developers.zalo.me` → **Tạo ứng dụng mới**.
+2. Trong ứng dụng, thêm sản phẩm **Official Account**, chọn OA vừa lập và xin các quyền
+   nhắn tin (gửi tin tư vấn, nhận sự kiện tin nhắn).
+3. Ghi lại **App ID** và **App Secret Key**.
+
+### Bước 3 — Khai biến môi trường trên Vercel
+
+| Biến | Giá trị |
+|---|---|
+| `ZALO_APP_ID` | App ID ở bước 2 |
+| `ZALO_APP_SECRET` | App Secret Key ở bước 2 |
+| `ZALO_WEBHOOK_SECRET` | chuỗi bí mật tự đặt, ví dụ `zalo-hdnd-2026-xyz` |
+
+Bấm **Redeploy**.
+
+### Bước 4 — Xin quyền OA một lần (lấy token)
+
+Zalo không cấp token vĩnh viễn: phải xin quyền một lần để lấy `access_token` (hạn khoảng
+1 giờ) kèm `refresh_token`. Hệ thống tự làm mới token sau đó, anh không phải đụng vào nữa.
+
+1. Mở: `https://hdndthkpi.vercel.app/api/zalo?auth=<ZALO_WEBHOOK_SECRET>`
+   → trả về một đường dẫn ở trường `moLienKetNay`.
+2. Mở đường dẫn đó **bằng tài khoản quản trị OA**, chọn OA rồi bấm **Cho phép**.
+3. Zalo tự gọi ngược về hệ thống; thấy `{"ok":true,"message":"Đã lấy và lưu token..."}` là xong.
+
+> Ở màn hình cấu hình ứng dụng, nhớ khai địa chỉ callback (redirect URI) là
+> `https://hdndthkpi.vercel.app/api/zalo` thì bước 2 mới chạy.
+
+### Bước 5 — Khai webhook
+Trong `developers.zalo.me` → ứng dụng → **Official Account API** → **Webhook**, điền:
+
+```
+https://hdndthkpi.vercel.app/api/zalo?secret=<ZALO_WEBHOOK_SECRET>
+```
+
+Tick sự kiện **người dùng gửi tin nhắn văn bản** (`user_send_text`).
+
+### Kiểm tra
+Mở `https://hdndthkpi.vercel.app/api/zalo` — xem `token: true` là đã có token.
+Rồi lấy điện thoại nhắn cho OA một câu; bot sẽ mời đăng ký bằng `/dangky Họ tên - Đơn vị`.
+
+### Cách hoạt động
+- Người dùng Zalo đăng ký y như bên Telegram, và **yêu cầu duyệt được gửi sang Telegram**
+  cho Quản trị bấm nút (Zalo OA không có nút bấm tiện như vậy). Nút hiện rõ `(Zalo)`.
+- Duyệt xong bot tự nhắn lại **trên Zalo** cho người đăng ký.
+- `/danhsach` trong Telegram liệt kê người dùng của cả hai nền tảng kèm mã `tg:…` / `zalo:…`;
+  duyệt thủ công bằng `/duyet zalo:<id>` hoặc `/tuchoi zalo:<id>`.
+- Người dùng Zalo **không bao giờ** được coi là Quản trị → không đọc được hồ sơ nhân sự.
+- Hạn mức mỗi ngày áp dụng chung.
+
+### Hạn chế của Zalo cần biết trước
+- OA chỉ được nhắn trả lời trong **một khoảng thời gian nhất định** sau khi người dùng nhắn
+  tới; ngoài khung đó phải dùng ZNS (có phí). Vì bot chỉ trả lời khi được hỏi nên thường
+  không vướng, nhưng nếu câu trả lời tới muộn (AI chậm) thì có thể bị Zalo từ chối.
+- Chính sách và đường dẫn API của Zalo thay đổi theo thời kỳ. Nếu sau này hỏng, sửa 3 hằng
+  số URL ở đầu `api/_lib/zaloApi.js` là đủ.
+- Zalo không gửi tiêu đề bí mật như Telegram, nên chuỗi bí mật được đặt ngay trong địa chỉ
+  webhook (`?secret=…`). Đừng để lộ địa chỉ webhook này ra ngoài.
 
 ---
 
