@@ -29,6 +29,31 @@ từng người cần cấp quyền.
 | Anthropic (Claude) | console.anthropic.com → API Keys | Trả lời tiếng Việt tốt nhất, tính phí theo lượt |
 | Google (Gemini) | aistudio.google.com → Get API key | Có mức dùng miễn phí |
 | OpenAI | platform.openai.com → API keys | Tính phí theo lượt |
+| Dịch vụ trung gian *tương thích OpenAI* | khóa mua ngoài, cổng nội bộ… | Xem mục 1c bên dưới |
+
+### 1c. Dùng khóa của dịch vụ trung gian (tương thích OpenAI)
+
+Nhiều nơi bán khóa dùng chung một giao thức với OpenAI, chỉ khác địa chỉ endpoint
+(ví dụ `https://api.shopaikey.com/v1`). Khai 4 biến trên Vercel:
+
+| Biến | Giá trị |
+|---|---|
+| `AI_PROVIDER` | `openai` |
+| `AI_BASE_URL` | địa chỉ endpoint API của họ, ví dụ `https://api.shopaikey.com/v1` |
+| `OPENAI_API_KEY` | khóa họ cấp |
+| `AI_MODEL` | tên mô hình đúng theo bảng của họ, ví dụ `gpt-4o` hoặc `claude-sonnet-4` |
+
+Mã sẽ gọi tới `<AI_BASE_URL>/chat/completions`. Nếu họ cho hai địa chỉ (*API* và *DIRECT*)
+thì dùng địa chỉ **API**; khi nào bị chặn hoặc chậm mới đổi sang *DIRECT*.
+
+Đổi xong bấm **Redeploy**, rồi nhắn `/trangthai` cho bot — dòng "Bộ não AI" sẽ hiện
+đúng tên miền endpoint và mô hình đang dùng.
+
+> ⚠️ **Cân nhắc trước khi dùng trung gian:** toàn bộ câu hỏi *và số liệu hệ thống nạp kèm*
+> (họ tên, chức vụ, điểm, xếp loại cán bộ; lịch công tác của lãnh đạo) sẽ đi qua máy chủ
+> của bên đó. Với khóa mua từ nhà cung cấp gốc (Anthropic/Google/OpenAI) thì dữ liệu chỉ
+> qua nhà cung cấp đó. Nếu dữ liệu thật được đưa vào sử dụng chính thức, nên cân nhắc
+> dùng khóa gốc hoặc hỏi rõ chính sách lưu trữ, ghi log của bên trung gian.
 
 ### Bước 4 — Khai biến môi trường trên Vercel
 Vercel → dự án `hdndthkpi` → **Settings → Environment Variables**, thêm:

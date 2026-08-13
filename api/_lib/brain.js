@@ -9,7 +9,7 @@
 import { gatherFacts, periodFacts, tieuChiFacts, nhanSuFacts } from './facts.js';
 import { lichFacts, hasLich } from './lich.js';
 import { KNOWLEDGE, SYSTEM_PROMPT, SITE } from './knowledge.js';
-import { askAI, hasAI, provider, modelName } from './ai.js';
+import { askAI, hasAI, provider, modelName, endpointHost } from './ai.js';
 import { loadTurns, saveTurns, clearTurns, hasStore, isServiceKey } from './store.js';
 
 const HELP = `Xin chào! Tôi là trợ lý của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa.
@@ -38,7 +38,7 @@ Xem đầy đủ trên web: ${SITE}
 async function statusText() {
   const lines = [
     `Kết nối cơ sở dữ liệu: ${hasStore() ? (isServiceKey() ? '✅ có (khóa bí mật)' : '⚠️ có nhưng dùng khóa công khai (anon) — có thể không đọc được kỳ đánh giá') : '❌ chưa cấu hình SUPABASE_URL / SUPABASE_SERVICE_ROLE_KEY'}`,
-    `Bộ não AI: ${hasAI() ? `✅ ${provider()} · mô hình ${modelName()}` : '❌ chưa khai khóa API của AI'}`,
+    `Bộ não AI: ${hasAI() ? `✅ ${provider()} · mô hình ${modelName()} · endpoint ${endpointHost()}` : '❌ chưa khai khóa API của AI'}`,
   ];
   if (hasStore()) {
     try {

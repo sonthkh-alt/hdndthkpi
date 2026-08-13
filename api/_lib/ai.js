@@ -4,8 +4,25 @@
 //     ANTHROPIC_API_KEY  |  GEMINI_API_KEY  |  OPENAI_API_KEY
 //  Muốn chỉ định rõ thì đặt AI_PROVIDER = anthropic | gemini | openai
 //  Muốn đổi mô hình thì đặt AI_MODEL.
+//
+//  DÙNG DỊCH VỤ TRUNG GIAN "tương thích OpenAI" (vd https://api.<nhà cung cấp>/v1):
+//    AI_PROVIDER = openai
+//    AI_BASE_URL = https://api.<nhà cung cấp>/v1     (mã sẽ gọi <AI_BASE_URL>/chat/completions)
+//    OPENAI_API_KEY = <khóa của họ>
+//    AI_MODEL = <tên mô hình theo bảng của họ>
+//  ⚠️ Toàn bộ câu hỏi và số liệu nạp kèm sẽ đi qua máy chủ của bên đó.
 // ============================================================================
 const DEFAULT_MODEL = { anthropic: 'claude-sonnet-5', gemini: 'gemini-2.5-flash', openai: 'gpt-4o-mini' };
+
+const noSlash = (u) => String(u || '').replace(/\/+$/, '');
+// Địa chỉ endpoint — đổi được để dùng dịch vụ trung gian hoặc cổng nội bộ.
+export const baseUrlOf = (p = provider()) => ({
+  anthropic: noSlash(process.env.ANTHROPIC_BASE_URL || process.env.AI_BASE_URL || 'https://api.anthropic.com'),
+  gemini: noSlash(process.env.GEMINI_BASE_URL || process.env.AI_BASE_URL || 'https://generativelanguage.googleapis.com/v1beta'),
+  openai: noSlash(process.env.OPENAI_BASE_URL || process.env.AI_BASE_URL || 'https://api.openai.com/v1'),
+}[p] || '');
+/** Tên miền endpoint để hiện trong /trangthai (không lộ khóa). */
+export const endpointHost = () => { try { return new URL(baseUrlOf()).host; } catch { return '(chưa rõ)'; } };
 
 export function provider() {
   const forced = String(process.env.AI_PROVIDER || '').toLowerCase().trim();
@@ -40,7 +57,7 @@ export async function askAI(system, turns) {
   const msgs = turns.filter((t) => t.text).map((t) => ({ role: t.role === 'assistant' ? 'assistant' : 'user', content: t.text }));
 
   if (p === 'anthropic') {
-    const d = await post('https://api.anthropic.com/v1/messages',
+    const d = await post(`${baseUrlOf('anthropic')}/v1/messages`,
       { model, max_tokens: 1200, system, messages: msgs },
       { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' });
     return (d.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('\n').trim();
@@ -48,7 +65,7 @@ export async function askAI(system, turns) {
 
   if (p === 'gemini') {
     const key = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
-    const d = await post(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent?key=${key}`,
+    const d = await post(`${baseUrlOf('gemini')}/models/${encodeURIComponent(model)}:generateContent?key=${key}`,
       {
         systemInstruction: { parts: [{ text: system }] },
         contents: msgs.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
@@ -59,10 +76,12 @@ export async function askAI(system, turns) {
   }
 
   if (p === 'openai') {
-    const d = await post('https://api.openai.com/v1/chat/completions',
+    const d = await post(`${baseUrlOf('openai')}/chat/completions`,
       { model, max_tokens: 1200, temperature: 0.3, messages: [{ role: 'system', content: system }, ...msgs] },
       { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` });
-    return (d.choices?.[0]?.message?.content || '').trim();
+    // Một số dịch vụ trung gian trả nội dung dạng mảng khối thay vì chuỗi.
+    const c = d.choices?.[0]?.message?.content;
+    return (Array.isArray(c) ? c.map((x) => x?.text || '').join('') : (c || '')).trim();
   }
 
   throw new Error('Chưa khai khóa API của AI (ANTHROPIC_API_KEY / GEMINI_API_KEY / OPENAI_API_KEY) trên Vercel.');
