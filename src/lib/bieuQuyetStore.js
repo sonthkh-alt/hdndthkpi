@@ -1,5 +1,5 @@
 import { supabase } from './supabase';
-import { newPhien, sinhPhieuMoPhong, PHIEN_MAU, TONG_DAI_BIEU } from './bieuQuyet';
+import { newPhien, sinhPhieuMoPhong, PHIEN_MAU, TONG_DAI_BIEU, KY_HOP_MAC_DINH } from './bieuQuyet';
 
 // ============================================================================
 //  LƯU TRỮ phân hệ "Biểu quyết Online" — một dòng app_state, id = 'bq_data'
@@ -19,16 +19,19 @@ const ROW_ID = 'bq_data';
 export const EMPTY_BQ = { phien: [], updatedAt: '' };
 
 const normalize = (d) => ({
-  phien: Array.isArray(d?.phien) ? d.phien : [],
+  // Dữ liệu cũ chưa ghi kỳ họp → gán về kỳ mặc định (tương thích ngược).
+  phien: (Array.isArray(d?.phien) ? d.phien : []).map((p) => ({ ...p, kyHop: Number(p?.kyHop) || KY_HOP_MAC_DINH })),
   updatedAt: d?.updatedAt || '',
 });
 
 /** Bộ nội dung mẫu của bản demo: mỗi phiên có sẵn phiếu mô phỏng của 82 đại biểu. */
 export function seedBieuQuyet() {
+  // Kỳ họp MỚI NHẤT đang diễn ra → mở cho người xem bấm; các kỳ trước đã biểu quyết xong.
+  const maxKy = Math.max(...PHIEN_MAU.map((m) => Number(m.kyHop) || KY_HOP_MAC_DINH));
+  const tanThanh = [0.86, 0.93, 0.79, 0.9, 0.84];
   const phien = PHIEN_MAU.map((m, i) => {
     const p = { ...newPhien({ ...m, tong: TONG_DAI_BIEU }), id: `bq-mau-${i + 1}`, demo: true };
-    // Phiên đầu để MỞ cho người xem bấm; các phiên sau coi như đã biểu quyết xong.
-    return { ...sinhPhieuMoPhong(p, { tanThanh: [0.86, 0.93, 0.79][i] ?? 0.86 }), trangThai: i === 0 ? 'mo' : 'dong' };
+    return { ...sinhPhieuMoPhong(p, { tanThanh: tanThanh[i] ?? 0.86 }), trangThai: (Number(m.kyHop) || KY_HOP_MAC_DINH) === maxKy ? 'mo' : 'dong' };
   });
   return normalize({ phien });
 }

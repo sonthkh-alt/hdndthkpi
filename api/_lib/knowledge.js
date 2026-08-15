@@ -10,7 +10,7 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
 
 ## Các phân hệ (từ Trang chủ bấm vào thẻ để mở)
 1. Biểu quyết Online — ${SITE}/#/bieuquyet
-   Biểu quyết trực tuyến tại kỳ họp HĐND tỉnh. Đại biểu bấm một trong BA lựa chọn: Đồng ý · Không đồng ý · Có ý kiến khác; mỗi đại biểu chỉ tính một lá phiếu, còn trong thời gian mở phiên thì đổi lại được.
+   Biểu quyết trực tuyến tại kỳ họp HĐND tỉnh. Nội dung được gom theo KỲ HỌP: chọn "Kỳ họp thứ …" ở đầu trang để xem các nghị quyết trình tại kỳ đó. Đại biểu bấm một trong BA lựa chọn: Đồng ý · Không đồng ý · Có ý kiến khác cho TỪNG nghị quyết, hoặc bấm MỘT LẦN để biểu quyết cho TẤT CẢ nghị quyết đang mở của kỳ họp (lá phiếu vẫn ghi cho từng nghị quyết, sau đó mở từng nội dung để đổi riêng được); mỗi đại biểu chỉ tính một lá phiếu, còn trong thời gian mở phiên thì đổi lại được.
    Kết quả kiểm phiếu tính trên TỔNG SỐ 82 ĐẠI BIỂU HĐND tỉnh Thanh Hóa (không phải trên số người đã bấm): số và tỷ lệ Đồng ý / Không đồng ý / Có ý kiến khác / Chưa biểu quyết, bảng điện tử 82 ô và kết luận đối chiếu điều kiện thông qua.
    Điều kiện thông qua theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15: quá nửa tổng số đại biểu tán thành (tối thiểu 42/82); nội dung đặc biệt cần ít nhất hai phần ba (tối thiểu 55/82). Xuất được biên bản kết quả ra Word.
    Người trình nội dung mới, khóa hoặc mở lại phiên phải đăng nhập; đại biểu bỏ phiếu thì không cần tài khoản.

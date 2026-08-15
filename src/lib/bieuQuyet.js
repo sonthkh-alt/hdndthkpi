@@ -38,6 +38,19 @@ export function danhSachDaiBieu(tong = TONG_DAI_BIEU) {
   });
 }
 
+// ---- Kỳ họp ----------------------------------------------------------------
+//  Mỗi nội dung biểu quyết TRÌNH TẠI MỘT KỲ HỌP; giao diện chọn "Kỳ họp thứ x"
+//  để xem và biểu quyết các nghị quyết của kỳ đó. Dữ liệu cũ chưa ghi kỳ họp
+//  được gán về kỳ mặc định khi đọc (bieuQuyetStore.normalize).
+export const KY_HOP_MAC_DINH = 21;
+export const tenKyHop = (so) => `Kỳ họp thứ ${so}`;
+export const kyHopCua = (p) => Number(p?.kyHop) || KY_HOP_MAC_DINH;
+
+/** Danh sách kỳ họp có nội dung, kỳ mới nhất đứng trước. */
+export function danhSachKyHop(list = []) {
+  return [...new Set(list.map(kyHopCua))].sort((a, b) => b - a);
+}
+
 // ---- Phiên biểu quyết ------------------------------------------------------
 export const TY_LE = {
   quanua: { id: 'quanua', nhan: 'Quá nửa tổng số đại biểu', tinh: (tong) => Math.floor(tong / 2) + 1 },
@@ -48,13 +61,14 @@ export const nguongThongQua = (tyLe = 'quanua', tong = TONG_DAI_BIEU) => (TY_LE[
 let seq = 1;
 export const newPhienId = () => `bq${Date.now().toString(36)}${(seq++).toString(36)}`;
 
-export function newPhien({ tieuDe = '', moTa = '', tyLe = 'quanua', tong = TONG_DAI_BIEU } = {}) {
+export function newPhien({ tieuDe = '', moTa = '', tyLe = 'quanua', tong = TONG_DAI_BIEU, kyHop = KY_HOP_MAC_DINH } = {}) {
   return {
     id: newPhienId(),
     tieuDe: String(tieuDe).trim(),
     moTa: String(moTa).trim(),
     tyLe: TY_LE[tyLe] ? tyLe : 'quanua',
     tong,
+    kyHop: Number(kyHop) || KY_HOP_MAC_DINH,
     trangThai: 'mo', // 'mo' | 'dong'
     taoLuc: new Date().toISOString(),
     phieu: {}, // { DB01: { chon, moPhong, luc } }
@@ -103,6 +117,22 @@ export function sinhPhieuMoPhong(phien, { bo = [], tanThanh = 0.86 } = {}) {
 export function ghiPhieu(phien, ma, chon, luc = new Date().toISOString()) {
   if (!hopLe(chon)) return phien;
   return { ...phien, phieu: { ...(phien.phieu || {}), [ma]: { chon, moPhong: false, luc } } };
+}
+
+/**
+ * Bỏ CÙNG MỘT lá phiếu cho TẤT CẢ nội dung ĐANG MỞ của một kỳ họp
+ * (nút "… với tất cả nghị quyết"). Nội dung đã khóa và kỳ họp khác giữ nguyên;
+ * sau đó vẫn mở từng nội dung để đổi lá phiếu riêng được.
+ */
+export function ghiPhieuCaKyHop(list = [], kyHop, ma, chon, luc = new Date().toISOString()) {
+  if (!hopLe(chon)) return { list, soNoiDung: 0 };
+  let soNoiDung = 0;
+  const moi = list.map((p) => {
+    if (kyHopCua(p) !== Number(kyHop) || p.trangThai !== 'mo') return p;
+    soNoiDung += 1;
+    return ghiPhieu(p, ma, chon, luc);
+  });
+  return { list: moi, soNoiDung };
 }
 
 /** Kết quả kiểm phiếu của một phiên. */
@@ -182,21 +212,36 @@ export function vanBanKetQua(phien, kq) {
   ].filter((d) => d !== '').join('\n');
 }
 
-/** Nội dung mẫu để bản demo có sẵn việc mà xem. */
+/** Nội dung mẫu để bản demo có sẵn việc mà xem: kỳ mới nhất ĐANG biểu quyết, kỳ trước đã xong. */
 export const PHIEN_MAU = [
   {
+    kyHop: 21,
     tieuDe: 'Nghị quyết về dự toán thu ngân sách nhà nước trên địa bàn, chi ngân sách địa phương năm 2027',
     moTa: 'Tờ trình của UBND tỉnh; Báo cáo thẩm tra của Ban Kinh tế - Ngân sách HĐND tỉnh.',
     tyLe: 'quanua',
   },
   {
+    kyHop: 21,
     tieuDe: 'Nghị quyết về chủ trương đầu tư dự án đường giao thông kết nối các huyện miền núi phía Tây của tỉnh',
     moTa: 'Tờ trình của UBND tỉnh; Báo cáo thẩm tra của Ban Kinh tế - Ngân sách HĐND tỉnh.',
     tyLe: 'quanua',
   },
   {
+    kyHop: 21,
     tieuDe: 'Nghị quyết về Chương trình giám sát của HĐND tỉnh năm 2027',
     moTa: 'Tờ trình của Thường trực HĐND tỉnh.',
+    tyLe: 'quanua',
+  },
+  {
+    kyHop: 20,
+    tieuDe: 'Nghị quyết về kế hoạch phát triển kinh tế - xã hội tỉnh Thanh Hóa năm 2026',
+    moTa: 'Kỳ họp thường lệ cuối năm 2025 — đã biểu quyết xong.',
+    tyLe: 'quanua',
+  },
+  {
+    kyHop: 20,
+    tieuDe: 'Nghị quyết về giao biên chế công chức hành chính của tỉnh năm 2026',
+    moTa: 'Kỳ họp thường lệ cuối năm 2025 — đã biểu quyết xong.',
     tyLe: 'quanua',
   },
 ];

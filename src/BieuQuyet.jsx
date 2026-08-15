@@ -1,12 +1,13 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Home, Vote, CheckCircle2, XCircle, MessageSquareWarning, Users, Download, RefreshCw,
-  AlertTriangle, Info, Plus, Lock, Unlock, Trash2, ChevronRight,
+  AlertTriangle, Info, Plus, Lock, Unlock, Trash2, ChevronRight, CalendarDays,
 } from 'lucide-react';
 import { getSession, onAuthChange } from './lib/auth';
 import {
-  LUA_CHON, TONG_DAI_BIEU, TY_LE, danhSachDaiBieu, ghiPhieu, ketQua, ketLuan, maDaiBieu,
-  newPhien, nhanLuaChon, sinhPhieuMoPhong, vanBanKetQua,
+  KY_HOP_MAC_DINH, LUA_CHON, TONG_DAI_BIEU, TY_LE, danhSachDaiBieu, danhSachKyHop, ghiPhieu,
+  ghiPhieuCaKyHop, ketQua, ketLuan, kyHopCua, maDaiBieu, newPhien, nhanLuaChon,
+  sinhPhieuMoPhong, tenKyHop, vanBanKetQua,
 } from './lib/bieuQuyet';
 import {
   cacheBQ, fetchBQ, guiPhieu, readBQ, readMaDaiBieu, saveBQ, seedBieuQuyet, writeMaDaiBieu,
@@ -60,7 +61,8 @@ export default function BieuQuyet({ onHome }) {
   const [thongBao, setThongBao] = useState('');
   const [loi, setLoi] = useState('');
   const [moThem, setMoThem] = useState(false);
-  const [moi, setMoi] = useState({ tieuDe: '', moTa: '', tyLe: 'quanua' });
+  const [kyHop, setKyHop] = useState(0); // 0 = chưa chọn, tự chọn kỳ có nội dung đang mở
+  const [moi, setMoi] = useState({ tieuDe: '', moTa: '', tyLe: 'quanua', kyHop: KY_HOP_MAC_DINH });
 
   useEffect(() => {
     let alive = true;
@@ -70,7 +72,9 @@ export default function BieuQuyet({ onHome }) {
       if (!alive) return;
       const doc = d.phien.length ? d : seedBieuQuyet();
       setData(doc);
-      setPhienId((cur) => cur || (doc.phien.find((p) => p.trangThai === 'mo') || doc.phien[0] || {}).id || '');
+      const dau = doc.phien.find((x) => x.trangThai === 'mo') || doc.phien[0];
+      setKyHop((cur) => cur || (dau ? kyHopCua(dau) : KY_HOP_MAC_DINH));
+      setPhienId((cur) => cur || dau?.id || '');
     });
     return () => { alive = false; off(); };
   }, []);
@@ -86,7 +90,12 @@ export default function BieuQuyet({ onHome }) {
   }, [phien, data]);
 
   const daDangNhap = !!phien;
-  const p = data.phien.find((x) => x.id === phienId) || data.phien[0] || null;
+  // Nội dung được gom theo KỲ HỌP: chọn kỳ → chỉ thấy và biểu quyết các nghị quyết của kỳ đó.
+  const dsKyHop = danhSachKyHop(data.phien);
+  const kyDangChon = dsKyHop.includes(kyHop) ? kyHop : (dsKyHop[0] || KY_HOP_MAC_DINH);
+  const phienKy = data.phien.filter((x) => kyHopCua(x) === kyDangChon);
+  const soMo = phienKy.filter((x) => x.trangThai === 'mo').length;
+  const p = phienKy.find((x) => x.id === phienId) || phienKy[0] || null;
   const kq = useMemo(() => (p ? ketQua(p) : null), [p]);
   const kl = kq ? ketLuan(kq, p.trangThai) : null;
   const laPhieuCuaToi = p?.phieu?.[maDB];
@@ -120,6 +129,36 @@ export default function BieuQuyet({ onHome }) {
     }
   }
 
+  // ---- Đổi kỳ họp ---------------------------------------------------------
+  const chonKyHop = (so) => {
+    setKyHop(so); setThongBao(''); setLoi('');
+    const ds = data.phien.filter((x) => kyHopCua(x) === so);
+    setPhienId(((ds.find((x) => x.trangThai === 'mo') || ds[0]) || {}).id || '');
+  };
+
+  // ---- Bỏ CÙNG một lá phiếu cho TẤT CẢ nghị quyết đang mở của kỳ họp ------
+  async function boPhieuCaKy(chon) {
+    const moIds = phienKy.filter((x) => x.trangThai === 'mo').map((x) => x.id);
+    if (!moIds.length || dangGui) return;
+    setLoi(''); setThongBao(''); setDangGui(`caKy-${chon}`);
+    const { list } = ghiPhieuCaKyHop(data.phien, kyDangChon, maDB, chon);
+    const doc = { ...data, phien: list };
+    setData(doc); cacheBQ(doc);
+
+    let okCount = 0;
+    for (const id of moIds) {
+      const r = await guiPhieu(id, maDB, chon); // eslint-disable-line no-await-in-loop -- tuần tự để máy chủ không tự ghi đè lẫn nhau
+      if (r.ok) okCount += 1;
+    }
+    setDangGui('');
+    if (okCount === moIds.length) {
+      setThongBao(`Đã ghi nhận lá phiếu «${nhanLuaChon(chon)}» cho cả ${moIds.length} nghị quyết đang biểu quyết tại ${tenKyHop(kyDangChon)}. Vẫn mở được từng nghị quyết để đổi lá phiếu riêng.`);
+      fetchBQ().then((d) => d.phien.length && setData(d));
+    } else {
+      setThongBao(`Đã ghi nhận trên máy này lá phiếu «${nhanLuaChon(chon)}» cho ${moIds.length} nghị quyết của ${tenKyHop(kyDangChon)}${okCount ? ` (${okCount} nội dung đã lên máy chủ)` : ' — máy chủ chưa nhận phiếu dùng chung (xem BƯỚC 8 trong supabase/schema.sql hoặc nhờ Quản trị mở phân hệ một lần để khởi tạo)'}.`);
+    }
+  }
+
   const xuatBienBan = async () => {
     const { exportVanBanDonGian } = await import('./lib/exporters');
     await exportVanBanDonGian({
@@ -133,9 +172,10 @@ export default function BieuQuyet({ onHome }) {
     if (!moi.tieuDe.trim()) { setLoi('Chưa nhập nội dung trình biểu quyết.'); return; }
     const p2 = newPhien(moi);
     const doc = { ...data, phien: [p2, ...data.phien] };
-    setData(doc); setPhienId(p2.id); setMoThem(false); setMoi({ tieuDe: '', moTa: '', tyLe: 'quanua' });
+    setData(doc); setKyHop(p2.kyHop); setPhienId(p2.id); setMoThem(false);
+    setMoi({ tieuDe: '', moTa: '', tyLe: 'quanua', kyHop: p2.kyHop });
     const r = await saveBQ(doc);
-    setThongBao(r.ok ? 'Đã mở phiên biểu quyết mới.' : 'Đã tạo trên máy này; đăng nhập để lưu lên máy chủ.');
+    setThongBao(r.ok ? `Đã mở phiên biểu quyết mới tại ${tenKyHop(p2.kyHop)}.` : 'Đã tạo trên máy này; đăng nhập để lưu lên máy chủ.');
   };
 
   const doiTrangThai = async () => {
@@ -147,7 +187,8 @@ export default function BieuQuyet({ onHome }) {
 
   const xoaPhien = async () => {
     const doc = { ...data, phien: data.phien.filter((x) => x.id !== p.id) };
-    setData(doc); setPhienId(doc.phien[0]?.id || '');
+    const conLai = doc.phien.filter((x) => kyHopCua(x) === kyDangChon);
+    setData(doc); setPhienId(conLai[0]?.id || doc.phien[0]?.id || '');
     await saveBQ(doc);
   };
 
@@ -198,11 +239,48 @@ export default function BieuQuyet({ onHome }) {
           </div>
         ) : (
           <>
+            {/* ===== Chọn kỳ họp ===== */}
+            <section className="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between gap-3 flex-wrap">
+              <label className="flex items-center gap-2.5">
+                <span className="w-9 h-9 rounded-xl bg-red-50 text-red-700 flex items-center justify-center shrink-0"><CalendarDays className="w-5 h-5" /></span>
+                <span className="text-[13px] font-bold text-slate-700">Kỳ họp</span>
+                <select value={kyDangChon} onChange={(e) => chonKyHop(Number(e.target.value))}
+                  className="rounded-xl border border-slate-300 px-3 py-2 text-[13px] font-semibold text-slate-800">
+                  {dsKyHop.map((so) => <option key={so} value={so}>{tenKyHop(so)}</option>)}
+                </select>
+              </label>
+              <p className="text-[12.5px] text-slate-500">
+                <b className="text-slate-700">{phienKy.length}</b> nghị quyết trình tại kỳ họp · <b className={soMo ? 'text-emerald-700' : 'text-slate-700'}>{soMo}</b> đang mở biểu quyết
+              </p>
+            </section>
+
+            {/* ===== Biểu quyết nhanh cho TẤT CẢ nghị quyết của kỳ họp ===== */}
+            {soMo >= 2 && (
+              <section className="rounded-2xl border border-red-200 bg-red-50/70 p-4">
+                <p className="text-[13px] font-extrabold text-red-800 flex items-center gap-1.5">
+                  <Vote className="w-4 h-4" /> Biểu quyết một lần cho cả {soMo} nghị quyết đang mở tại {tenKyHop(kyDangChon)}
+                </p>
+                <div className="mt-2.5 grid sm:grid-cols-3 gap-2">
+                  {LUA_CHON.map((c) => {
+                    const m = MAU[c.id];
+                    const Ic = m.icon;
+                    return (
+                      <button key={c.id} type="button" onClick={() => boPhieuCaKy(c.id)} disabled={!!dangGui}
+                        className={`rounded-xl border-2 px-3 py-2.5 text-[13px] font-bold inline-flex items-center justify-center gap-1.5 transition disabled:opacity-60 ${m.nut}`}>
+                        <Ic className="w-4 h-4" /> {c.nhan} — tất cả
+                      </button>
+                    );
+                  })}
+                </div>
+                <p className="text-[11.5px] text-red-800/70 mt-2">Lá phiếu được ghi cho TỪNG nghị quyết; sau đó vẫn mở từng nội dung bên dưới để đổi lá phiếu riêng.</p>
+              </section>
+            )}
+
             {/* ===== Nội dung trình biểu quyết ===== */}
             <section className="rounded-2xl border border-slate-200 bg-white p-5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-red-700">Nội dung trình biểu quyết</p>
+                  <p className="text-[11px] font-bold uppercase tracking-wider text-red-700">Nội dung trình biểu quyết · {tenKyHop(kyHopCua(p))}</p>
                   <h2 className="text-lg sm:text-xl font-extrabold text-slate-800 leading-snug mt-1">{p.tieuDe}</h2>
                   {p.moTa && <p className="text-[13px] text-slate-500 mt-1">{p.moTa}</p>}
                   <p className="text-[12px] text-slate-500 mt-2">
@@ -310,10 +388,10 @@ export default function BieuQuyet({ onHome }) {
             {/* ===== Danh sách nội dung & điều khiển ===== */}
             <section className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
               <div className="flex items-center justify-between gap-3 flex-wrap">
-                <h3 className="text-[15px] font-extrabold text-slate-800">Các nội dung biểu quyết</h3>
+                <h3 className="text-[15px] font-extrabold text-slate-800">Các nghị quyết trình tại {tenKyHop(kyDangChon)}</h3>
                 {daDangNhap && (
                   <div className="flex flex-wrap gap-2">
-                    <button type="button" onClick={() => setMoThem((v) => !v)} className="inline-flex items-center gap-1.5 text-[12px] font-bold px-3 py-2 rounded-xl bg-red-700 text-white hover:bg-red-800"><Plus className="w-4 h-4" /> Trình nội dung mới</button>
+                    <button type="button" onClick={() => { setMoThem((v) => !v); setMoi((m) => ({ ...m, kyHop: kyDangChon })); }} className="inline-flex items-center gap-1.5 text-[12px] font-bold px-3 py-2 rounded-xl bg-red-700 text-white hover:bg-red-800"><Plus className="w-4 h-4" /> Trình nội dung mới</button>
                     <button type="button" onClick={doiTrangThai} className="inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-2 rounded-xl border border-slate-300 bg-white hover:bg-slate-50">
                       {dangMo ? <><Lock className="w-4 h-4" /> Khóa phiên</> : <><Unlock className="w-4 h-4" /> Mở lại</>}
                     </button>
@@ -335,18 +413,25 @@ export default function BieuQuyet({ onHome }) {
                     <input value={moi.moTa} onChange={(e) => setMoi({ ...moi, moTa: e.target.value })}
                       className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-[13px]" />
                   </label>
-                  <label className="block">
-                    <span className="text-[12px] font-bold text-slate-600">Điều kiện thông qua</span>
-                    <select value={moi.tyLe} onChange={(e) => setMoi({ ...moi, tyLe: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-[13px]">
-                      {Object.values(TY_LE).map((t) => <option key={t.id} value={t.id}>{t.nhan} ({t.tinh(TONG_DAI_BIEU)}/{TONG_DAI_BIEU} phiếu)</option>)}
-                    </select>
-                  </label>
+                  <div className="grid sm:grid-cols-2 gap-3">
+                    <label className="block">
+                      <span className="text-[12px] font-bold text-slate-600">Trình tại kỳ họp thứ</span>
+                      <input type="number" min="1" value={moi.kyHop} onChange={(e) => setMoi({ ...moi, kyHop: e.target.value })}
+                        className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-[13px]" />
+                    </label>
+                    <label className="block">
+                      <span className="text-[12px] font-bold text-slate-600">Điều kiện thông qua</span>
+                      <select value={moi.tyLe} onChange={(e) => setMoi({ ...moi, tyLe: e.target.value })} className="mt-1 w-full rounded-xl border border-slate-300 px-3 py-2 text-[13px]">
+                        {Object.values(TY_LE).map((t) => <option key={t.id} value={t.id}>{t.nhan} ({t.tinh(TONG_DAI_BIEU)}/{TONG_DAI_BIEU} phiếu)</option>)}
+                      </select>
+                    </label>
+                  </div>
                   <button type="button" onClick={themPhien} className="inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-slate-800 text-white hover:bg-slate-900"><Vote className="w-4 h-4" /> Mở phiên biểu quyết</button>
                 </div>
               )}
 
               <ul className="divide-y divide-slate-100">
-                {data.phien.map((x) => {
+                {phienKy.map((x) => {
                   const k = ketQua(x);
                   const on = x.id === p.id;
                   return (
