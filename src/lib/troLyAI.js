@@ -67,15 +67,14 @@ async function layToken() {
 }
 
 async function goi(duongDan, body) {
+  // Có phiên đăng nhập thì gửi kèm thẻ để máy chủ tính hạn mức theo tài khoản
+  // (5 lượt/ngày); không có thẻ thì tính là khách (1 lượt/ngày).
   const token = await layToken();
-  if (!token) {
-    return { error: 'Chức năng AI chỉ dành cho người đã đăng nhập bằng tài khoản cơ quan. Vui lòng bấm "Đăng nhập" rồi thử lại.' };
-  }
   let r;
   try {
     r = await fetch(duongDan, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
       body: JSON.stringify(body),
     });
   } catch (e) {
@@ -86,8 +85,18 @@ async function goi(duongDan, body) {
   }
   let data = null;
   try { data = await r.json(); } catch { /* không phải JSON */ }
-  if (!r.ok) return { error: data?.error || `Máy chủ trả lỗi ${r.status}.` };
+  if (!r.ok) return { error: data?.error || `Máy chủ trả lỗi ${r.status}.`, hanMuc: data?.hanMuc, hetLuot: r.status === 429 };
   return data || {};
+}
+
+/** Số lượt gọi AI còn lại trong ngày của chính người đang mở trang. */
+export async function xemHanMuc() {
+  const token = await layToken();
+  try {
+    const r = await fetch('/api/troly', { headers: token ? { Authorization: `Bearer ${token}` } : {} });
+    if (!r.ok) return null;
+    return await r.json();
+  } catch { return null; }
 }
 
 /** Gọi một việc nghiệp vụ. Trả { text } hoặc { json } hoặc { error }. */

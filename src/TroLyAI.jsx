@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { getSession, onAuthChange } from './lib/auth';
 import {
-  goiTroLy, hoiDap, docTaiLieu, gopNguCanh, chuanHoaVanBan, goiChuKy,
+  goiTroLy, hoiDap, docTaiLieu, gopNguCanh, chuanHoaVanBan, goiChuKy, xemHanMuc,
   LOAI_VAN_BAN, TRONG_TAM_SOAT_XET, BAN_HDND, TAC_VU_KY_HOP, LINH_VUC_KIEN_NGHI, TRANG_THAI_KIEN_NGHI,
 } from './lib/troLyAI';
 import {
@@ -172,6 +172,7 @@ export default function TroLyAI({ onHome }) {
   const [vb, setVb] = useState(readVB);               // kiến nghị + thư viện
   const [thongBao, setThongBao] = useState('');
   const [chat, setChat] = useState([]);
+  const [hanMuc, setHanMuc] = useState(null);   // { conLai, gioiHan, daDung }
 
   useEffect(() => {
     let alive = true;
@@ -181,8 +182,18 @@ export default function TroLyAI({ onHome }) {
     return () => { alive = false; off(); };
   }, []);
 
+  // Hạn mức tính theo tài khoản nên đăng nhập / đăng xuất là phải hỏi lại máy chủ.
+  useEffect(() => {
+    if (phien === undefined) return;
+    let alive = true;
+    xemHanMuc().then((r) => { if (alive && r?.hanMuc) setHanMuc(r.hanMuc); });
+    return () => { alive = false; };
+  }, [phien]);
+
   const daDangNhap = !!phien;
   const email = phien?.user?.email || '';
+  // Hết lượt trong ngày thì khóa các nút gọi AI (vẫn xem và soạn nội dung được).
+  const hetLuot = !!hanMuc && hanMuc.conLai <= 0;
 
   const up = (t, patch) => setForm((f) => ({ ...f, [t]: { ...f[t], ...patch } }));
   const datKq = (t, v) => setKq((k) => ({ ...k, [t]: v }));
@@ -192,6 +203,7 @@ export default function TroLyAI({ onHome }) {
     setLoi(''); setThongBao(''); setDangChay(id);
     try {
       const r = await fn();
+      if (r?.hanMuc) setHanMuc(r.hanMuc);
       if (r?.error) { setLoi(r.error); return null; }
       if (r?.canhBao) setThongBao(r.canhBao);
       return r;
@@ -353,12 +365,16 @@ export default function TroLyAI({ onHome }) {
           <p className="text-[13px] text-slate-600 leading-relaxed"><b>{tabHienTai.label}.</b> {tabHienTai.desc}</p>
         </div>
 
-        {!daDangNhap && phien !== undefined && (
-          <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-[13px] text-amber-800 flex items-start gap-2">
-            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+        {phien !== undefined && (
+          <div className={`rounded-2xl border p-4 text-[13px] flex items-start gap-2 ${hetLuot ? 'border-amber-300 bg-amber-50 text-amber-800' : 'border-slate-200 bg-white text-slate-600'}`}>
+            <AlertTriangle className={`w-4 h-4 shrink-0 mt-0.5 ${hetLuot ? '' : 'text-slate-400'}`} />
             <span>
-              Bạn đang xem ở chế độ khách. <b>Các chức năng gọi AI và lưu dữ liệu chỉ dành cho người đã đăng nhập</b> bằng tài khoản cơ quan —
-              mỗi lượt gọi AI đều tốn chi phí khóa dịch vụ. <a href="#/okr?login=1" className="font-bold underline">Đăng nhập</a> rồi quay lại phân hệ này.
+              {hanMuc
+                ? <>Lượt gọi AI trong ngày: <b>còn {hanMuc.conLai}/{hanMuc.gioiHan} lượt</b>. </>
+                : <>Mỗi lượt gọi AI đều tốn chi phí khóa dịch vụ nên có giới hạn theo ngày. </>}
+              {daDangNhap
+                ? <>Tài khoản đã đăng nhập được <b>5 lượt/ngày</b>. Hết lượt thì dùng tiếp vào ngày mai hoặc liên hệ Quản trị để nâng hạn mức.</>
+                : <>Khách được dùng thử <b>1 lượt/ngày</b>; <a href="#/okr?login=1" className="font-bold underline">đăng nhập</a> bằng tài khoản cơ quan để có <b>5 lượt/ngày</b> và lưu được dữ liệu.</>}
             </span>
           </div>
         )}
@@ -378,7 +394,7 @@ export default function TroLyAI({ onHome }) {
           {tab === 'kyhop' && (
             <Cot2
               trai={<>
-                <ChonTep docs={form.kyhop.docs} khoa={!daDangNhap} onChange={(d) => up('kyhop', { docs: d })}
+                <ChonTep docs={form.kyhop.docs} onChange={(d) => up('kyhop', { docs: d })}
                   nhan="Tài liệu kỳ họp (PDF, DOCX, TXT)" hint="Tối đa 3 MB mỗi tệp. Tệp PDF là bản chụp (scan) sẽ không trích được chữ." />
                 <Field label="Hoặc dán trực tiếp nội dung cần đối soát">
                   <Area rows={7} value={form.kyhop.chuNhap} onChange={(e) => up('kyhop', { chuNhap: e.target.value })} placeholder="Dán báo cáo, số liệu, dự thảo nghị quyết…" />
@@ -405,7 +421,7 @@ export default function TroLyAI({ onHome }) {
                     <Area rows={3} value={form.kyhop.cauHoi} onChange={(e) => up('kyhop', { cauHoi: e.target.value })} placeholder="Ví dụ: Chỉ ra các rủi ro trong kế hoạch đầu tư công…" />
                   </Field>
                 )}
-                <NutChay dangChay={dangChay === 'kyhop'} khoa={!daDangNhap} onClick={chayKyHop}>Thực hiện phân tích</NutChay>
+                <NutChay dangChay={dangChay === 'kyhop'} khoa={hetLuot} onClick={chayKyHop}>Thực hiện phân tích</NutChay>
               </>}
               phai={<KhungKetQua text={kq.kyhop || ''} onChange={(v) => datKq('kyhop', v)}
                 onXuat={() => xuatDonGian('Báo cáo phân tích phục vụ kỳ họp', '', kq.kyhop)} tenXuat="Tải báo cáo (Word)"
@@ -424,8 +440,8 @@ export default function TroLyAI({ onHome }) {
                 <Field label="Căn cứ pháp lý (tùy chọn)" hint="Dán nội dung điều khoản luật, nghị định, nghị quyết cần viện dẫn.">
                   <Area rows={4} value={form.soanthao.canCu} onChange={(e) => up('soanthao', { canCu: e.target.value })} />
                 </Field>
-                <ChonTep docs={form.soanthao.docs} khoa={!daDangNhap} onChange={(d) => up('soanthao', { docs: d })} nhan="Tài liệu tham khảo (tùy chọn)" />
-                <NutChay dangChay={dangChay === 'soanthao'} khoa={!daDangNhap} onClick={chaySoanThao}>Tạo dự thảo văn bản</NutChay>
+                <ChonTep docs={form.soanthao.docs} onChange={(d) => up('soanthao', { docs: d })} nhan="Tài liệu tham khảo (tùy chọn)" />
+                <NutChay dangChay={dangChay === 'soanthao'} khoa={hetLuot} onClick={chaySoanThao}>Tạo dự thảo văn bản</NutChay>
               </>}
               phai={kq.soanthao ? (
                 <div className="space-y-3">
@@ -465,7 +481,7 @@ export default function TroLyAI({ onHome }) {
                 <Field label="Ý chính cần nhấn mạnh">
                   <Area rows={7} value={form.phatbieu.yChinh} onChange={(e) => up('phatbieu', { yChinh: e.target.value })} placeholder="Mỗi ý một dòng: kết quả nổi bật, hạn chế, nhiệm vụ trọng tâm…" />
                 </Field>
-                <NutChay dangChay={dangChay === 'phatbieu'} khoa={!daDangNhap} onClick={chayPhatBieu}>Soạn bài phát biểu</NutChay>
+                <NutChay dangChay={dangChay === 'phatbieu'} khoa={hetLuot} onClick={chayPhatBieu}>Soạn bài phát biểu</NutChay>
               </>}
               phai={<KhungKetQua text={kq.phatbieu || ''} onChange={(v) => datKq('phatbieu', v)}
                 onXuat={() => xuatDonGian(`Bài phát biểu của ${form.phatbieu.chucDanh || 'lãnh đạo'}`, form.phatbieu.suKien, kq.phatbieu)}
@@ -477,7 +493,7 @@ export default function TroLyAI({ onHome }) {
           {tab === 'soatxet' && (
             <Cot2
               trai={<>
-                <ChonTep docs={form.soatxet.docs} khoa={!daDangNhap} onChange={(d) => up('soatxet', { docs: d })} nhan="Văn bản cần kiểm tra (PDF, DOCX, TXT)" />
+                <ChonTep docs={form.soatxet.docs} onChange={(d) => up('soatxet', { docs: d })} nhan="Văn bản cần kiểm tra (PDF, DOCX, TXT)" />
                 <Field label="Hoặc dán nội dung văn bản">
                   <Area rows={10} value={form.soatxet.chuNhap} onChange={(e) => up('soatxet', { chuNhap: e.target.value })} />
                 </Field>
@@ -493,7 +509,7 @@ export default function TroLyAI({ onHome }) {
                     ))}
                   </div>
                 </div>
-                <NutChay dangChay={dangChay === 'soatxet'} khoa={!daDangNhap} onClick={chaySoatXet}>Bắt đầu kiểm tra</NutChay>
+                <NutChay dangChay={dangChay === 'soatxet'} khoa={hetLuot} onClick={chaySoatXet}>Bắt đầu kiểm tra</NutChay>
               </>}
               phai={<KhungKetQua text={kq.soatxet || ''} onChange={(v) => datKq('soatxet', v)}
                 onXuat={() => xuatDonGian('Báo cáo soát xét văn bản', '', kq.soatxet)} tenXuat="Tải báo cáo (Word)"
@@ -507,12 +523,12 @@ export default function TroLyAI({ onHome }) {
               trai={<>
                 <Field label="Ban thẩm tra"><Select value={form.thamtra.ban} options={BAN_HDND} onChange={(e) => up('thamtra', { ban: e.target.value })} /></Field>
                 <Field label="Tên dự thảo nghị quyết"><Input value={form.thamtra.tenNghiQuyet} onChange={(e) => up('thamtra', { tenNghiQuyet: e.target.value })} placeholder="Ví dụ: Nghị quyết về phân bổ ngân sách địa phương năm 2027" /></Field>
-                <ChonTep docs={form.thamtra.docs} khoa={!daDangNhap} onChange={(d) => up('thamtra', { docs: d })} nhan="Tờ trình UBND tỉnh, dự thảo nghị quyết" />
-                <ChonTep docs={form.thamtra.docsLienQuan} khoa={!daDangNhap} onChange={(d) => up('thamtra', { docsLienQuan: d })} nhan="Văn bản liên quan (tùy chọn)" />
+                <ChonTep docs={form.thamtra.docs} onChange={(d) => up('thamtra', { docs: d })} nhan="Tờ trình UBND tỉnh, dự thảo nghị quyết" />
+                <ChonTep docs={form.thamtra.docsLienQuan} onChange={(d) => up('thamtra', { docsLienQuan: d })} nhan="Văn bản liên quan (tùy chọn)" />
                 <Field label="Ghi chú, yêu cầu đặc biệt (tùy chọn)">
                   <Area rows={3} value={form.thamtra.ghiChu} onChange={(e) => up('thamtra', { ghiChu: e.target.value })} placeholder="Ví dụ: Tập trung phản biện nguồn kinh phí bố trí…" />
                 </Field>
-                <NutChay dangChay={dangChay === 'thamtra'} khoa={!daDangNhap} onClick={chayThamTra}>Tạo báo cáo thẩm tra</NutChay>
+                <NutChay dangChay={dangChay === 'thamtra'} khoa={hetLuot} onClick={chayThamTra}>Tạo báo cáo thẩm tra</NutChay>
               </>}
               phai={<KhungKetQua text={kq.thamtra || ''} onChange={(v) => datKq('thamtra', v)} onXuat={xuatThamTra}
                 tenXuat="Xuất báo cáo thẩm tra (Word)" trong="Báo cáo thẩm tra 4 phần sẽ hiển thị ở đây." />}
@@ -604,10 +620,10 @@ export default function TroLyAI({ onHome }) {
 
                   <div className="pt-3 border-t border-slate-200 space-y-3">
                     <p className="text-[13px] font-bold text-slate-700">Nhờ AI tổng hợp</p>
-                    <ChonTep docs={form.kiennghi.docs} khoa={!daDangNhap} onChange={(d) => up('kiennghi', { docs: d })} nhan="Tệp tổng hợp kiến nghị cử tri" />
+                    <ChonTep docs={form.kiennghi.docs} onChange={(d) => up('kiennghi', { docs: d })} nhan="Tệp tổng hợp kiến nghị cử tri" />
                     <div className="flex flex-wrap gap-2">
-                      <NutChay dangChay={dangChay === 'kiennghi_file'} khoa={!daDangNhap} onClick={chayKienNghiFile}>Tổng hợp từ tệp</NutChay>
-                      <NutChay dangChay={dangChay === 'kiennghi_xuhuong'} khoa={!daDangNhap} onClick={chayKienNghiXuHuong}>Phân tích xu hướng</NutChay>
+                      <NutChay dangChay={dangChay === 'kiennghi_file'} khoa={hetLuot} onClick={chayKienNghiFile}>Tổng hợp từ tệp</NutChay>
+                      <NutChay dangChay={dangChay === 'kiennghi_xuhuong'} khoa={hetLuot} onClick={chayKienNghiXuHuong}>Phân tích xu hướng</NutChay>
                     </div>
                   </div>
                 </div>
@@ -670,12 +686,12 @@ export default function TroLyAI({ onHome }) {
                 {dangChay === 'hoidap' && <p className="text-[12px] text-slate-500 flex items-center gap-1.5"><Loader2 className="w-4 h-4 animate-spin" /> Trợ lý đang soạn câu trả lời…</p>}
               </div>
               <div className="flex gap-2">
-                <input value={form.hoidap.cauHoi} disabled={!daDangNhap}
+                <input value={form.hoidap.cauHoi} disabled={hetLuot}
                   onChange={(e) => up('hoidap', { cauHoi: e.target.value })}
                   onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); guiChat(); } }}
-                  placeholder={daDangNhap ? 'Nhập câu hỏi rồi bấm Enter…' : 'Đăng nhập để sử dụng'}
+                  placeholder={hetLuot ? 'Đã hết lượt gọi AI trong ngày' : 'Nhập câu hỏi rồi bấm Enter…'}
                   className="flex-1 rounded-xl border border-slate-300 px-3 py-2.5 text-[13px] focus:outline-none focus:ring-2 focus:ring-slate-400" />
-                <button type="button" onClick={guiChat} disabled={!daDangNhap || dangChay === 'hoidap'}
+                <button type="button" onClick={guiChat} disabled={hetLuot || dangChay === 'hoidap'}
                   className="inline-flex items-center gap-1.5 text-[13px] font-bold px-4 py-2.5 rounded-xl bg-slate-800 text-white hover:bg-slate-900 disabled:opacity-50"><Send className="w-4 h-4" /> Gửi</button>
                 {!!chat.length && (
                   <button type="button" onClick={() => setChat([])} title="Xóa lịch sử trò chuyện"
