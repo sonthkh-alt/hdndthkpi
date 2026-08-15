@@ -193,3 +193,72 @@ create policy "state_public_read" on app_state
 --  PHÍA MÁY CHỦ (api/_lib/xacThuc.js) vì mỗi lượt gọi đều tốn tiền khóa API.
 --  Máy chủ cần các biến: SUPABASE_URL + một khóa của dự án, và một khóa AI.
 -- ---------------------------------------------------------------------
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 8. PHÂN HỆ "BIỂU QUYẾT ONLINE" (id = 'bq_data')
+--  ⚠️ NÊN CHẠY nếu muốn nhiều máy cùng bỏ phiếu và thấy CHUNG một kết quả.
+--  Chưa chạy thì phân hệ vẫn dùng được nhưng lá phiếu chỉ nằm trên máy đang
+--  bấm (giao diện có báo rõ điều này).
+--
+--  • Cho ĐỌC công khai: đại biểu và người dự họp xem kết quả không cần đăng nhập.
+--  • GHI: chỉ qua hàm bq_vote() dưới đây — hàm chỉ sửa ĐÚNG một lá phiếu của
+--    một đại biểu trong một phiên, không cho ghi đè cả dòng dữ liệu.
+--  • Quản lý phiên (trình nội dung mới, khóa/mở, xóa) vẫn cần đăng nhập
+--    (chính sách app_state_auth_all ở BƯỚC 2).
+-- ---------------------------------------------------------------------
+drop policy if exists "bq_data_public_read" on app_state;
+create policy "bq_data_public_read" on app_state
+  for select using (id = 'bq_data');
+
+create or replace function bq_vote(p_phien text, p_ma text, p_chon text)
+returns void
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_data jsonb;
+  v_idx int;
+begin
+  -- Chỉ nhận ba lựa chọn hợp lệ và mã đại biểu đúng dạng DB01..DB99.
+  if p_chon not in ('dongY', 'khongDongY', 'yKienKhac') then
+    raise exception 'Lua chon khong hop le';
+  end if;
+  if p_ma !~ '^DB[0-9]{2}$' then
+    raise exception 'Ma dai bieu khong hop le';
+  end if;
+
+  select data into v_data from app_state where id = 'bq_data' for update;
+  if v_data is null then
+    raise exception 'Chua co phien bieu quyet nao';
+  end if;
+
+  -- Tìm vị trí phiên trong mảng data->'phien'
+  select i - 1 into v_idx
+  from jsonb_array_elements(v_data->'phien') with ordinality as t(p, i)
+  where p->>'id' = p_phien
+  limit 1;
+
+  if v_idx is null then
+    raise exception 'Khong tim thay phien bieu quyet';
+  end if;
+  -- Phiên đã khóa thì không nhận thêm phiếu.
+  if (v_data->'phien'->v_idx->>'trangThai') = 'dong' then
+    raise exception 'Phien bieu quyet da khoa';
+  end if;
+
+  v_data := jsonb_set(
+    v_data,
+    array['phien', v_idx::text, 'phieu', p_ma],
+    jsonb_build_object('chon', p_chon, 'moPhong', false, 'luc', to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"')),
+    true
+  );
+
+  update app_state
+     set data = jsonb_set(v_data, '{updatedAt}', to_jsonb(to_char(now() at time zone 'utc', 'YYYY-MM-DD"T"HH24:MI:SS"Z"'))),
+         updated_at = now()
+   where id = 'bq_data';
+end;
+$$;
+
+grant execute on function bq_vote(text, text, text) to anon, authenticated;

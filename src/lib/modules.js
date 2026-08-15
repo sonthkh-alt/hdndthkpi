@@ -2,6 +2,7 @@
 //  DANH MỤC PHÂN HỆ (MODULE) CỦA HỆ THỐNG — dùng chung cho Trang chủ và bộ định tuyến.
 //  Mỗi phân hệ có một đường dẫn dạng #/<route>; `target` cho biết mở gì:
 //    { kind: 'app', version, tab }  → mở ứng dụng đánh giá cán bộ với bộ tiêu chí tương ứng
+//    { kind: 'bieuquyet' }          → mở module Biểu quyết Online
 //    { kind: 'tieuchi' }            → mở module Đánh giá tiêu chí HĐND tỉnh, xã, phường
 //    { kind: 'troly' }              → mở module Trợ lý AI nghiệp vụ dân cử
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
@@ -10,6 +11,15 @@
 // ============================================================================
 
 export const MODULES = [
+  {
+    id: 'bieuquyet', route: 'bieuquyet', group: 'main',
+    title: 'Biểu quyết Online',
+    short: 'Biểu quyết',
+    desc: 'Biểu quyết trực tuyến tại kỳ họp HĐND tỉnh: đại biểu bấm Đồng ý · Không đồng ý · Có ý kiến khác, hệ thống kiểm phiếu ngay trên tổng số 82 đại biểu, hiện bảng điện tử và đối chiếu điều kiện thông qua.',
+    tags: ['82 đại biểu', 'Kết quả tức thì', 'Biên bản Word'],
+    icon: 'Vote', tone: 'red', badge: 'Trung tâm',
+    target: { kind: 'bieuquyet' },
+  },
   {
     id: 'okr', route: 'okr', group: 'main',
     title: 'Đánh giá OKR / KPI cán bộ, công chức',

@@ -10,7 +10,7 @@ paths:
 ## Điều hướng: TRANG CHỦ (Portal) → các PHÂN HỆ
 > `src/main.jsx` → `<ErrorBoundary><Root/></ErrorBoundary>`. **`src/Root.jsx`** là bộ định tuyến theo **hash**:
 > `#/` (Trang chủ) · `#/okr` (App, bộ tiêu chí `sonha`) · `#/kiemdiem` (App, `kiemdiem`) · **`#/tieuchi`** (module `TieuChiHDND`) ·
-> `#/canbo` (App, tab `hr`) · **`#/troly`** (module `TroLyAI`) · **`#/hotro`** (module `HuongDan`) · **`#/giamsat`**, **`#/onedata`** và **`#/lichcongtac`** (phân hệ ở ĐỊA CHỈ RIÊNG, tự chuyển tiếp) · `#/thunghiem?v=classic|improved|sg` (App, các bản thử nghiệm).
+> **`#/bieuquyet`** (module `BieuQuyet`) · `#/canbo` (App, tab `hr`) · **`#/troly`** (module `TroLyAI`) · **`#/hotro`** (module `HuongDan`) · **`#/giamsat`**, **`#/onedata`** và **`#/lichcongtac`** (phân hệ ở ĐỊA CHỈ RIÊNG, tự chuyển tiếp) · `#/thunghiem?v=classic|improved|sg` (App, các bản thử nghiệm).
 > Thêm `?login=1` vào route của App để mở thẳng màn Đăng nhập (prop `initialLogin`).
 > - **`src/Portal.jsx`** — trang chủ dạng cổng: thẻ phân hệ có biểu tượng, liên hệ, bộ đếm truy cập. Ẩn thẻ theo `versionCfg`. (Khối "Cơ sở pháp lý" đã chuyển sang module Hướng dẫn.)
 > - **`src/HuongDan.jsx`** — Hướng dẫn & hỗ trợ cấp HỆ THỐNG (8 mục: phân hệ · bắt đầu nhanh theo vai trò · tài khoản & phân quyền · cách tính điểm · quy trình, mốc thời gian · **cơ sở pháp lý** (`LEGAL_BASIS`) · hỏi đáp · liên hệ + góp ý), có nút In/lưu PDF. Tab "Hỗ trợ" trong App vẫn giữ hướng dẫn CHI TIẾT công thức của từng phân hệ và có liên kết sang đây.
@@ -20,6 +20,12 @@ paths:
 >   - **`#/giamsat` → Giám sát số Thanh Hóa** (`https://sonthkh-alt.github.io/giamsat/`, repo riêng `sonthkh-alt/giamsat`, mã nguồn ở thư mục anh em `../GS`: **Vite + React 18 + TypeScript, dữ liệu là file JSON đọc bằng `fetch` và ghi qua GitHub Contents API, tài khoản riêng** — không dùng Supabase của hệ thống đánh giá). Quản lý hoạt động giám sát theo **12 nhóm nghiệp vụ GS-01…GS-12** (Luật 121/2025/QH15, NQ 114 & 115/2025/UBTVQH15). Hệ thống đánh giá và bot chat **KHÔNG đọc được dữ liệu giám sát** — `knowledge.js` dặn rõ chỉ trả đường dẫn, không bịa số.
 > - **`src/App.jsx`** nhận thêm `onHome` (nút 🏠 về Trang chủ ở header) và `initialTab` (tab mở sẵn khi vào từ Trang chủ).
 > - App và module Tiêu chí đều **lazy-load** → trang đầu chỉ tải Portal (~33 kB).
+
+## Module BIỂU QUYẾT ONLINE — `#/bieuquyet` (phân hệ trung tâm, thẻ ĐẦU TIÊN ở Trang chủ)
+- **`src/lib/bieuQuyet.js`** — LOGIC THUẦN (Node chạy được): `TONG_DAI_BIEU = 82`, `LUA_CHON` (dongY · khongDongY · yKienKhac), `danhSachDaiBieu()` (**đánh số DB01…DB82, KHÔNG gắn họ tên người thật** — bản demo không gán lá phiếu cho cá nhân), `newPhien`/`ghiPhieu` (mỗi đại biểu MỘT lá, bấm lại là đổi), `ketQua` (tính trên TỔNG số đại biểu, tách `phieuThuc` = phiếu người bấm), `TY_LE`/`nguongThongQua` (**quá nửa = 42/82 · hai phần ba = 55/82**, Luật 72/2025/QH15), `ketLuan`, `vanBanKetQua` (biên bản), `sinhPhieuMoPhong` (bộ sinh số **có hạt giống theo id phiên** nên mọi máy thấy cùng một bảng điện tử).
+- **`src/lib/bieuQuyetStore.js`** — `app_state` id=**`bq_data`** `{phien:[{id,tieuDe,tyLe,trangThai,phieu:{DB01:{chon,moPhong,luc}}}]}` + cache localStorage; `seedBieuQuyet()` (3 nội dung mẫu); `guiPhieu()` gọi RPC **`bq_vote`**; mã đại biểu của thiết bị lưu ở `hdndkpi_bq_ma`.
+- **`src/BieuQuyet.jsx`** — nội dung trình biểu quyết + **3 nút lớn** → kết quả: 4 thẻ số liệu, thanh tỷ lệ có **vạch ngưỡng thông qua**, **bảng điện tử 82 ô**, kết luận, xuất biên bản Word (`exportVanBanDonGian`). Quản trị (đã đăng nhập) trình nội dung mới, khóa/mở phiên, nạp phiếu mô phỏng.
+- ⚠️ **BƯỚC 8 trong `supabase/schema.sql`**: policy `bq_data_public_read` (khách xem kết quả) + hàm **`bq_vote(p_phien, p_ma, p_chon)`** security definer — chỉ sửa ĐÚNG một lá phiếu, chặn lựa chọn lạ/mã lạ/phiên đã khóa. Chưa chạy SQL thì lá phiếu chỉ nằm trên máy đang bấm (giao diện báo rõ).
 
 ## Module TRỢ LÝ AI NGHIỆP VỤ DÂN CỬ — `#/troly` (chuyển từ app Streamlit `../HDND`)
 - **Nguồn**: ứng dụng Streamlit `../HDND` (`hdndthanhhoa.streamlit.app`, Python + SQLite/Postgres + OAuth Google). Đã port sang React 4 trang: 1 (Trung tâm lập pháp) · 2 (Soạn thảo) · 3 (Thẩm tra) · 6 (Trợ lý AI). **KHÔNG dùng Streamlit nữa.** Trang 7 của app đó vốn chỉ chuyển tiếp sang hdndthkpi; trang 8 trùng phân hệ Giám sát số nên bỏ.

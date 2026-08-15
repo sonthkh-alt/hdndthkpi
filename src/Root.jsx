@@ -7,6 +7,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/            → Trang chủ (Portal): các phân hệ hiển thị dạng thẻ/biểu tượng
 //    #/okr         → Đánh giá OKR/KPI cán bộ, công chức        (App, bộ tiêu chí 'sonha')
 //    #/kiemdiem    → Kiểm điểm, xếp loại đảng viên             (App, bộ tiêu chí 'kiemdiem')
+//    #/bieuquyet   → Biểu quyết Online (82 đại biểu HĐND tỉnh) (module riêng)
 //    #/tieuchi     → Đánh giá tiêu chí HĐND tỉnh, xã, phường   (module riêng)
 //    #/troly       → Trợ lý AI nghiệp vụ dân cử                (module riêng, cần đăng nhập)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
@@ -21,6 +22,7 @@ const App = lazy(() => import('./App.jsx'));
 const TieuChiHDND = lazy(() => import('./TieuChiHDND.jsx'));
 const HuongDan = lazy(() => import('./HuongDan.jsx'));
 const TroLyAI = lazy(() => import('./TroLyAI.jsx'));
+const BieuQuyet = lazy(() => import('./BieuQuyet.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -31,6 +33,7 @@ function parseHash() {
   const m = moduleByRoute(raw);
   if (!m) return HOME;
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
+  if (m.target.kind === 'bieuquyet') return { view: 'bieuquyet', moduleId: m.id };
   if (m.target.kind === 'troly') return { view: 'troly', moduleId: m.id };
   if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
   // Phân hệ chạy ở địa chỉ riêng: giữ đường dẫn #/<route> để chia sẻ được, mở ra thì tự chuyển tiếp.
@@ -103,21 +106,20 @@ export default function Root() {
   if (state.view === 'home') return <Portal onOpen={openModule} />;
   if (state.view === 'external') return <GoExternal url={state.url} title={state.title} onHome={goHome} />;
 
-  return (
-    <Suspense fallback={<Loading />}>
-      {state.view === 'tieuchi'
-        ? <TieuChiHDND onHome={goHome} />
-        : state.view === 'troly'
-          ? <TroLyAI onHome={goHome} />
-          : state.view === 'huongdan'
-            ? <HuongDan onHome={goHome} onOpenModule={goRoute} />
-            : (
-              // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
-              // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
-              <App key={state.moduleId} version={state.version} onHome={goHome}
-                onPickVersion={state.isLab ? pickVersion : undefined}
-                moduleTitle={state.title} initialTab={state.tab} initialLogin={state.login} />
-            )}
-    </Suspense>
-  );
+  // Mỗi phân hệ có module riêng thì render module đó; còn lại là ứng dụng đánh giá (App).
+  const noiDung = () => {
+    if (state.view === 'bieuquyet') return <BieuQuyet onHome={goHome} />;
+    if (state.view === 'tieuchi') return <TieuChiHDND onHome={goHome} />;
+    if (state.view === 'troly') return <TroLyAI onHome={goHome} />;
+    if (state.view === 'huongdan') return <HuongDan onHome={goHome} onOpenModule={goRoute} />;
+    // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
+    // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
+    return (
+      <App key={state.moduleId} version={state.version} onHome={goHome}
+        onPickVersion={state.isLab ? pickVersion : undefined}
+        moduleTitle={state.title} initialTab={state.tab} initialLogin={state.login} />
+    );
+  };
+
+  return <Suspense fallback={<Loading />}>{noiDung()}</Suspense>;
 }

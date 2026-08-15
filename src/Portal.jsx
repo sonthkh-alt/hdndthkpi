@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, ExternalLink,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, Vote, ExternalLink,
 } from 'lucide-react';
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
@@ -12,7 +12,7 @@ import { countVisit } from './lib/visits';
 //  Người dùng chọn phân hệ bằng cách bấm vào thẻ (icon) tương ứng.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database, Vote };
 
 // Viết đủ tên lớp Tailwind để không bị loại khi build.
 const TONE = {
@@ -26,6 +26,7 @@ const TONE = {
   slate: { tile: 'from-slate-600 to-slate-800', shadow: 'shadow-slate-100', border: 'hover:border-slate-400', chip: 'bg-slate-100 text-slate-700 border-slate-200', link: 'text-slate-700' },
   cyan: { tile: 'from-cyan-500 to-blue-700', shadow: 'shadow-cyan-100', border: 'hover:border-cyan-300', chip: 'bg-cyan-50 text-cyan-700 border-cyan-100', link: 'text-cyan-700' },
   orange: { tile: 'from-orange-500 to-amber-700', shadow: 'shadow-orange-100', border: 'hover:border-orange-300', chip: 'bg-orange-50 text-orange-700 border-orange-100', link: 'text-orange-700' },
+  red: { tile: 'from-red-600 to-red-900', shadow: 'shadow-red-100', border: 'hover:border-red-300', chip: 'bg-red-50 text-red-700 border-red-100', link: 'text-red-700' },
 };
 
 function ModuleCard({ m, onOpen, big }) {
