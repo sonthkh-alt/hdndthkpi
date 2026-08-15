@@ -337,7 +337,7 @@ export default function TroLyAI({ onHome }) {
               : daDangNhap ? <span className="px-3 py-1.5 rounded-lg bg-emerald-500/20 border border-emerald-300/40 text-emerald-100">Đã đăng nhập: {email}</span>
                 : (
                   <a href="#/okr?login=1" className="inline-flex items-center gap-1.5 font-bold px-3.5 py-2 rounded-lg bg-white text-slate-800 hover:bg-slate-100">
-                    <LogIn className="w-4 h-4" /> Đăng nhập để dùng AI
+                    <LogIn className="w-4 h-4" /> Đăng nhập để có 5 lượt/ngày
                   </a>
                 )}
           </div>

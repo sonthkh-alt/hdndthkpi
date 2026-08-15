@@ -1,22 +1,27 @@
-# Hệ thống đánh giá OKR/KPI — Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa
+# Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa — hệ thống phần mềm nghiệp vụ
 
-Công cụ đánh giá, xếp loại cán bộ, công chức hằng tháng theo phương pháp **OKR/KPI**, tích hợp **Khung năng lực số**. Xây dựng theo Quy định đánh giá, xếp loại hằng tháng (thang điểm 30 + 70, công thức KPI quy đổi × 70%, xếp loại A/B/C/D) và Quyết định Khung năng lực số.
+Nền tảng dùng chung nhiều phân hệ, vào từ **Trang chủ** dạng cổng (`https://hdndthkpi.vercel.app`):
 
-> ⚠️ **Bản DEMO chạy trên cloud công cộng — chỉ dùng dữ liệu giả (tên hư cấu), không nhập thông tin cán bộ thật.**
+| # | Phân hệ | Đường dẫn |
+|---|---------|-----------|
+| 1 | **Biểu quyết Online** — 82 đại biểu HĐND tỉnh, 3 lựa chọn, bảng điện tử, điều kiện thông qua theo Luật 72/2025/QH15 | `#/bieuquyet` |
+| 2 | Đánh giá OKR/KPI cán bộ, công chức (hằng tháng, NĐ 335/2025) | `#/okr` |
+| 3 | Kiểm điểm, xếp loại đảng viên (hằng quý, HD 03-HD/TU) | `#/kiemdiem` |
+| 4 | Đánh giá tiêu chí HĐND tỉnh, xã, phường (Khung 2026-2031) | `#/tieuchi` |
+| 5 | Trợ lý AI nghiệp vụ dân cử (soạn thảo NĐ 30, thẩm tra, soát lỗi, kỳ họp, kiến nghị cử tri, hỏi đáp — hạn mức khách 1 lượt/ngày, đăng nhập 5 lượt/ngày) | `#/troly` |
+| 6 | Giám sát số Thanh Hóa (hệ thống riêng, GitHub Pages) | `#/giamsat` |
+| 7 | Một dữ liệu – Không báo cáo lại (hệ thống riêng, Render) | `#/onedata` |
+| 8 | Quản lý lịch công tác tuần (hệ thống riêng, Vercel) | `#/lichcongtac` |
+| 9 | Quản lý cán bộ — hồ sơ 2C, nhắc việc nhân sự (chỉ Quản trị) | `#/canbo` |
+| 10 | Hướng dẫn & hỗ trợ sử dụng | `#/hotro` |
 
----
+Kèm bot chat Telegram / Zalo OA (`api/telegram.js`, `api/zalo.js`) đọc số liệu thật và trả lời có dẫn nguồn.
 
-## Tính năng
-
-- **Tổng quan:** Dashboard chỉ số, mục tiêu OKR cấp Văn phòng, phân bố xếp loại, cảnh báo trần 20%, bảng tổng hợp (Mẫu 1A).
-- **Đánh giá:** Chấm điểm 2 cột (tự đánh giá / cấp có thẩm quyền), nhiệm vụ KPI liên kết OKR, trạng thái màu theo tiến độ, check-in tuần.
-- **Năng lực số:** Tự đánh giá 8 nhóm năng lực theo 4 mức.
-- **Xuất báo cáo:** Excel (Mẫu 1A), Word (phiếu đánh giá), in PDF — chạy ngay trên trình duyệt.
-- **Lưu trữ lâu dài:** Tự đồng bộ lên Supabase (Postgres) khi đã cấu hình.
+> ⚠️ **Bản DEMO chạy trên cloud công cộng — dữ liệu hiển thị là dữ liệu mô phỏng, không nhập thông tin mật.**
 
 ## Công nghệ
 
-React + Vite + TailwindCSS · Supabase (Postgres) · SheetJS · docx · html2pdf · Hosting Vercel.
+React 18 + Vite + TailwindCSS · lucide-react · Recharts · Supabase (Postgres + Auth, RLS) · SheetJS · docx · html2pdf · pdf-parse · Vercel (hosting + serverless `api/`). Chi tiết kiến trúc: `.claude/rules/architecture.md`; biến môi trường: `.env.example`.
 
 ---
 

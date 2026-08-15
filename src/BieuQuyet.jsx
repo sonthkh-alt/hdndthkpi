@@ -75,6 +75,16 @@ export default function BieuQuyet({ onHome }) {
     return () => { alive = false; off(); };
   }, []);
 
+  // Dữ liệu mẫu = dữ liệu chính thống: máy chủ chưa có dòng bq_data (updatedAt
+  // rỗng = chưa từng lưu) thì người ĐĂNG NHẬP đầu tiên mở phân hệ sẽ ghi lên,
+  // từ đó mọi máy bỏ phiếu vào CÙNG một kết quả (qua hàm bq_vote).
+  useEffect(() => {
+    if (!phien || data.updatedAt || !data.phien.length) return;
+    let alive = true;
+    saveBQ(data).then((r) => { if (alive && r.ok) setData(r.doc); });
+    return () => { alive = false; };
+  }, [phien, data]);
+
   const daDangNhap = !!phien;
   const p = data.phien.find((x) => x.id === phienId) || data.phien[0] || null;
   const kq = useMemo(() => (p ? ketQua(p) : null), [p]);
@@ -98,9 +108,12 @@ export default function BieuQuyet({ onHome }) {
     const r = await guiPhieu(p.id, maDB, chon);
     setDangGui('');
     if (!r.ok) {
-      setThongBao(r.reason === 'no-rpc'
-        ? 'Đã ghi nhận lá phiếu trên máy này. Máy chủ chưa bật hàm bỏ phiếu dùng chung (BƯỚC 8 trong supabase/schema.sql) nên kết quả chưa cộng chung giữa các thiết bị.'
-        : 'Đã ghi nhận lá phiếu trên máy này (chưa kết nối máy chủ).');
+      const thieuDong = String(r.error?.message || '').includes('Chua co phien');
+      setThongBao(thieuDong
+        ? 'Đã ghi nhận lá phiếu trên máy này. Máy chủ chưa có dữ liệu phiên biểu quyết — Quản trị đăng nhập và mở phân hệ này một lần để khởi tạo, khi đó mọi thiết bị sẽ bỏ phiếu vào cùng một kết quả.'
+        : r.reason === 'no-rpc'
+          ? 'Đã ghi nhận lá phiếu trên máy này. Máy chủ chưa bật hàm bỏ phiếu dùng chung (BƯỚC 8 trong supabase/schema.sql) nên kết quả chưa cộng chung giữa các thiết bị.'
+          : 'Đã ghi nhận lá phiếu trên máy này (chưa kết nối máy chủ).');
     } else {
       setThongBao('Đã ghi nhận lá phiếu.');
       fetchBQ().then((d) => d.phien.length && setData(d));

@@ -189,9 +189,12 @@ create policy "state_public_read" on app_state
 --     tri có TÊN NGƯỜI DÂN và địa bàn. Khách vào phân hệ sẽ thấy danh sách
 --     trống — đúng như thiết kế, đừng "sửa" bằng cách thêm policy public read.
 --
---  Chức năng gọi AI (/api/troly, /api/doctext) còn kiểm tra thẻ đăng nhập ở
---  PHÍA MÁY CHỦ (api/_lib/xacThuc.js) vì mỗi lượt gọi đều tốn tiền khóa API.
---  Máy chủ cần các biến: SUPABASE_URL + một khóa của dự án, và một khóa AI.
+--  Chức năng gọi AI (/api/troly) có HẠN MỨC theo ngày đếm ở PHÍA MÁY CHỦ
+--  (api/_lib/hanMuc.js, dòng app_state id='troly_quota'): khách 1 lượt/ngày,
+--  người đăng nhập 5 lượt/ngày — vì mỗi lượt gọi đều tốn tiền khóa API.
+--  Máy chủ cần: SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY (bộ đếm ghi bỏ qua
+--  RLS) và một khóa AI. /api/doctext (trích chữ từ tệp) chạy tại chỗ, không
+--  tốn tiền AI nên mở cho cả khách và không tính vào hạn mức.
 -- ---------------------------------------------------------------------
 
 -- ---------------------------------------------------------------------

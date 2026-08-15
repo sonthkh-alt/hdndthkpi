@@ -52,7 +52,7 @@ export const MODULES = [
     title: 'Trợ lý AI nghiệp vụ dân cử',
     short: 'Trợ lý AI',
     desc: 'Trợ lý kỳ họp (phân tích tài liệu, gợi ý chất vấn), soạn thảo văn bản chuẩn Nghị định 30, soạn bài phát biểu, soát xét văn bản, thẩm tra dự thảo nghị quyết, theo dõi kiến nghị cử tri và hỏi đáp.',
-    tags: ['Chuẩn NĐ 30/2020', 'Xuất Word', 'Cần đăng nhập'],
+    tags: ['Chuẩn NĐ 30/2020', 'Xuất Word', 'Khách thử 1 lượt/ngày'],
     icon: 'Sparkles', tone: 'cyan', badge: 'Mới',
     target: { kind: 'troly' },
   },
