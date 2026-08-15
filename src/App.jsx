@@ -1875,12 +1875,12 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>Hệ thống đánh giá, xếp loại</p>
+                <p className={`text-[11px] font-semibold tracking-[0.22em] uppercase ${th.eyebrow}`}>{unit}</p>
                 <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${th.badge}`}>Bản demo thử nghiệm</span>
                 {onPickVersion && <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-white/15 border border-white/30 text-white/90">Bộ tiêu chí {vName(version)}</span>}
               </div>
               <h1 className="text-lg sm:text-2xl font-extrabold leading-tight aurora-text">{moduleTitle || 'Đánh giá, xếp loại cán bộ, công chức'}</h1>
-              <p className="text-white/85 text-xs sm:text-sm mt-0.5">{unit}</p>
+              <p className="text-white/85 text-xs sm:text-sm mt-0.5">Hệ thống đánh giá, xếp loại cán bộ, công chức</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap max-w-full">

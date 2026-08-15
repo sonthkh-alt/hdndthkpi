@@ -86,10 +86,10 @@ export default function Login({ unit, onGuest, onLocalAdmin, onClose, onHome, ve
           <div className={`inline-flex w-24 h-24 rounded-full ${t.emblem} items-center justify-center shadow-2xl ring-2 ${t.ring} emblem-glow animate-floatY p-2.5 mb-4`}>
             <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
           </div>
-          <p className={`text-[11px] font-semibold tracking-[0.25em] uppercase ${t.eyebrow}`}>Hệ thống đánh giá, xếp loại</p>
+          <p className={`text-[11px] font-semibold tracking-[0.25em] uppercase ${t.eyebrow}`}>{unit || 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa'}</p>
           <div className="mt-1.5"><span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded ${t.badge}`}>Bản demo thử nghiệm</span></div>
           <h1 className={`text-xl font-extrabold leading-tight mt-1.5 ${t.title}`}>Đánh giá, xếp loại cán bộ, công chức</h1>
-          <p className={`text-sm mt-1.5 ${t.unit}`}>{unit || 'Đăng nhập để tiếp tục'}</p>
+          <p className={`text-sm mt-1.5 ${t.unit}`}>Đăng nhập để tiếp tục</p>
         </div>
 
         <div className={`rounded-2xl shadow-2xl p-6 text-slate-800 ${t.card}`}>

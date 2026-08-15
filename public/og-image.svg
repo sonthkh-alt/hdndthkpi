@@ -37,9 +37,9 @@
 
   <!-- Chữ -->
   <g font-family="'Segoe UI', 'Be Vietnam Pro', system-ui, sans-serif">
-    <text x="470" y="238" fill="#fcd34d" font-size="30" font-weight="700" letter-spacing="6">HỆ THỐNG ĐÁNH GIÁ · OKR / KPI</text>
-    <text x="470" y="322" fill="#ffffff" font-size="66" font-weight="800">Đánh giá, xếp loại</text>
-    <text x="470" y="392" fill="#ffffff" font-size="66" font-weight="800">cán bộ, công chức</text>
-    <text x="470" y="452" fill="#fde8c8" font-size="30" font-weight="500">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</text>
+    <text x="470" y="238" fill="#fcd34d" font-size="30" font-weight="700" letter-spacing="6">HỆ THỐNG PHẦN MỀM NGHIỆP VỤ</text>
+    <text x="470" y="322" fill="#ffffff" font-size="60" font-weight="800">Văn phòng Đoàn ĐBQH</text>
+    <text x="470" y="392" fill="#ffffff" font-size="60" font-weight="800">và HĐND tỉnh Thanh Hóa</text>
+    <text x="470" y="452" fill="#fde8c8" font-size="28" font-weight="500">Đánh giá, xếp loại · Kiểm điểm · Tiêu chí HĐND · Trợ lý AI</text>
   </g>
 </svg>

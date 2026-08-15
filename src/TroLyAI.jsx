@@ -313,11 +313,11 @@ export default function TroLyAI({ onHome }) {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-300">Hệ thống đánh giá, xếp loại</p>
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-slate-300">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
               </div>
               <h1 className="text-base sm:text-xl font-extrabold leading-tight">Trợ lý AI nghiệp vụ dân cử</h1>
-              <p className="text-white/70 text-[11px] sm:text-xs mt-0.5">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
+              <p className="text-white/70 text-[11px] sm:text-xs mt-0.5">Hệ thống phần mềm nghiệp vụ dùng chung</p>
             </div>
           </div>
           <div className="text-[12px]">

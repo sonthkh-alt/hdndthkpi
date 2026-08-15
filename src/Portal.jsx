@@ -96,8 +96,8 @@ export default function Portal({ onOpen }) {
           <div className="flex items-center gap-3 min-w-0">
             <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-10 h-10 shrink-0" />
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-700 truncate">Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
-              <p className="text-[13px] sm:text-[15px] font-extrabold text-slate-800 leading-tight truncate">Hệ thống đánh giá, xếp loại</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-red-700 truncate">Hệ thống phần mềm nghiệp vụ</p>
+              <p className="text-[13px] sm:text-[15px] font-extrabold text-slate-800 leading-tight truncate">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
             </div>
           </div>
           <div className="flex items-center gap-2">

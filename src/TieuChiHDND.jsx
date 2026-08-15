@@ -812,7 +812,7 @@ export function Gate({ doc, onUnit, onAdmin, onKhung, onGuest, busy }) {
         <div className="inline-flex w-20 h-20 rounded-full bg-white items-center justify-center shadow-xl ring-2 ring-indigo-200 p-2 mb-3">
           <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
         </div>
-        <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-indigo-500">Hệ thống đánh giá, xếp loại</p>
+        <p className="text-[11px] font-semibold tracking-[0.22em] uppercase text-indigo-500">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
         <h1 className="text-xl sm:text-2xl font-extrabold text-slate-800 mt-0.5">Đánh giá, xếp loại HĐND cấp tỉnh, cấp xã</h1>
         <p className="text-sm text-slate-500 mt-1">Khung tiêu chí nhiệm kỳ 2026 - 2031 · Thường trực HĐND tỉnh Thanh Hóa</p>
       </div>
@@ -1041,11 +1041,11 @@ export default function TieuChiHDND({ onHome }) {
             </div>
             <div>
               <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-indigo-200">Hệ thống đánh giá, xếp loại</p>
+                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-indigo-200">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
               </div>
               <h1 className="text-base sm:text-xl font-extrabold leading-tight">Đánh giá tiêu chí HĐND tỉnh, xã, phường</h1>
-              <p className="text-white/80 text-[11px] sm:text-xs mt-0.5">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
+              <p className="text-white/80 text-[11px] sm:text-xs mt-0.5">Khung tiêu chí nhiệm kỳ 2026 - 2031</p>
             </div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
