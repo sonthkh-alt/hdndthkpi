@@ -14,6 +14,7 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Kết quả kiểm phiếu tính trên TỔNG SỐ 82 ĐẠI BIỂU HĐND tỉnh Thanh Hóa (không phải trên số người đã bấm): số và tỷ lệ Đồng ý / Không đồng ý / Có ý kiến khác / Chưa biểu quyết, bảng điện tử 82 ô và kết luận đối chiếu điều kiện thông qua.
    Điều kiện thông qua theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15: quá nửa tổng số đại biểu tán thành (tối thiểu 42/82); nội dung đặc biệt cần ít nhất hai phần ba (tối thiểu 55/82). Xuất được biên bản kết quả ra Word.
    Người trình nội dung mới, khóa hoặc mở lại phiên phải đăng nhập; đại biểu bỏ phiếu thì không cần tài khoản.
+   Bản demo mô phỏng HĐND tỉnh nhiệm kỳ 2026-2031, hiện đã bước sang KỲ HỌP THỨ 5 (4 nghị quyết đang mở biểu quyết); kỳ họp thứ 4 (3 nghị quyết) và kỳ họp thứ 3 (2 nghị quyết, trong đó nghị quyết về điều chỉnh phí, lệ phí KHÔNG đủ số phiếu tán thành) đã biểu quyết xong.
    ⚠️ Trong bản demo, phần lớn lá phiếu trên bảng điện tử là DỮ LIỆU MÔ PHỎNG để minh họa; không được nói đó là kết quả biểu quyết thật của HĐND tỉnh.
 2. Đánh giá OKR/KPI cán bộ, công chức — ${SITE}/#/okr
    Chấm hằng THÁNG. Thang 100 điểm = Nhóm I "tiêu chí chung" (tối đa 30đ) + Nhóm II "kết quả nhiệm vụ" (tối đa 70đ) − điểm trừ.

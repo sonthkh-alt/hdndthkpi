@@ -18,27 +18,44 @@ const ROW_ID = 'bq_data';
 
 export const EMPTY_BQ = { phien: [], updatedAt: '' };
 
+// Phiên bản bộ dữ liệu mẫu — tăng số này khi thay bộ mẫu để bản cũ trên máy
+// chủ / máy người dùng được thay bằng bộ mới (chỉ thay khi TOÀN BỘ là dữ liệu
+// demo; đã có nội dung thật do Quản trị trình thì giữ nguyên).
+const SEED_V = 2;
+
 const normalize = (d) => ({
   // Dữ liệu cũ chưa ghi kỳ họp → gán về kỳ mặc định (tương thích ngược).
   phien: (Array.isArray(d?.phien) ? d.phien : []).map((p) => ({ ...p, kyHop: Number(p?.kyHop) || KY_HOP_MAC_DINH })),
+  seedV: Number(d?.seedV) || 0,
   updatedAt: d?.updatedAt || '',
 });
 
 /** Bộ nội dung mẫu của bản demo: mỗi phiên có sẵn phiếu mô phỏng của 82 đại biểu. */
 export function seedBieuQuyet() {
-  // Kỳ họp MỚI NHẤT đang diễn ra → mở cho người xem bấm; các kỳ trước đã biểu quyết xong.
+  // Kỳ họp MỚI NHẤT (kỳ thứ 5) đang diễn ra → mở cho người xem bấm; các kỳ trước đã xong.
   const maxKy = Math.max(...PHIEN_MAU.map((m) => Number(m.kyHop) || KY_HOP_MAC_DINH));
-  const tanThanh = [0.86, 0.93, 0.79, 0.9, 0.84];
+  // Tỷ lệ tán thành mô phỏng theo từng nghị quyết; nghị quyết cuối (phí, lệ phí
+  // kỳ họp thứ 3) cố ý DƯỚI quá nửa để demo có cả trường hợp KHÔNG được thông qua.
+  const tanThanh = [0.86, 0.93, 0.79, 0.88, 0.9, 0.84, 0.95, 0.82, 0.45];
   const phien = PHIEN_MAU.map((m, i) => {
     const p = { ...newPhien({ ...m, tong: TONG_DAI_BIEU }), id: `bq-mau-${i + 1}`, demo: true };
     return { ...sinhPhieuMoPhong(p, { tanThanh: tanThanh[i] ?? 0.86 }), trangThai: (Number(m.kyHop) || KY_HOP_MAC_DINH) === maxKy ? 'mo' : 'dong' };
   });
-  return normalize({ phien });
+  return normalize({ phien, seedV: SEED_V });
 }
+
+/** Bộ mẫu ĐỜI CŨ (đánh số kỳ 20-21, chưa có seedV) và chưa lẫn nội dung thật? */
+const laMauCu = (doc) => doc.phien.length > 0 && doc.seedV < SEED_V && doc.phien.every((p) => p.demo);
 
 // ---- Đọc / ghi -------------------------------------------------------------
 export function readBQ() {
-  try { const raw = localStorage.getItem(KEY); if (raw) return normalize(JSON.parse(raw)); } catch { /* bỏ qua */ }
+  try {
+    const raw = localStorage.getItem(KEY);
+    if (raw) {
+      const doc = normalize(JSON.parse(raw));
+      if (!laMauCu(doc)) return doc;
+    }
+  } catch { /* bỏ qua */ }
   return normalize(EMPTY_BQ);
 }
 const cache = (d) => { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch { /* bỏ qua */ } return d; };
@@ -50,7 +67,13 @@ export async function fetchBQ() {
   if (!supabase) return readBQ();
   try {
     const { data, error } = await supabase.from('app_state').select('data').eq('id', ROW_ID).maybeSingle();
-    if (!error && data?.data?.phien?.length) return cache(normalize(data.data));
+    if (!error && data?.data?.phien?.length) {
+      const doc = normalize(data.data);
+      // Máy chủ còn giữ bộ mẫu đời cũ → trả bộ mẫu mới (updatedAt rỗng nên
+      // người ĐĂNG NHẬP đầu tiên mở phân hệ sẽ tự lưu đè lên máy chủ).
+      if (laMauCu(doc)) return cache(seedBieuQuyet());
+      return cache(doc);
+    }
   } catch (e) { console.warn('fetchBQ:', e); }
   return readBQ();
 }

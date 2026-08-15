@@ -42,7 +42,8 @@ export function danhSachDaiBieu(tong = TONG_DAI_BIEU) {
 //  Mỗi nội dung biểu quyết TRÌNH TẠI MỘT KỲ HỌP; giao diện chọn "Kỳ họp thứ x"
 //  để xem và biểu quyết các nghị quyết của kỳ đó. Dữ liệu cũ chưa ghi kỳ họp
 //  được gán về kỳ mặc định khi đọc (bieuQuyetStore.normalize).
-export const KY_HOP_MAC_DINH = 21;
+//  HĐND tỉnh nhiệm kỳ 2026 - 2031 hiện đã bước sang KỲ HỌP THỨ 5.
+export const KY_HOP_MAC_DINH = 5;
 export const tenKyHop = (so) => `Kỳ họp thứ ${so}`;
 export const kyHopCua = (p) => Number(p?.kyHop) || KY_HOP_MAC_DINH;
 
@@ -212,36 +213,66 @@ export function vanBanKetQua(phien, kq) {
   ].filter((d) => d !== '').join('\n');
 }
 
-/** Nội dung mẫu để bản demo có sẵn việc mà xem: kỳ mới nhất ĐANG biểu quyết, kỳ trước đã xong. */
+/**
+ * Nội dung mẫu để bản demo có sẵn việc mà xem: KỲ HỌP THỨ 5 đang biểu quyết,
+ * các kỳ họp thứ 3 và 4 đã xong (mở ra chỉ xem kết quả).
+ */
 export const PHIEN_MAU = [
+  // ---- Kỳ họp thứ 5 (đang diễn ra) ----------------------------------------
   {
-    kyHop: 21,
-    tieuDe: 'Nghị quyết về dự toán thu ngân sách nhà nước trên địa bàn, chi ngân sách địa phương năm 2027',
+    kyHop: 5,
+    tieuDe: 'Nghị quyết về nhiệm vụ trọng tâm phát triển kinh tế - xã hội 6 tháng cuối năm 2026',
     moTa: 'Tờ trình của UBND tỉnh; Báo cáo thẩm tra của Ban Kinh tế - Ngân sách HĐND tỉnh.',
     tyLe: 'quanua',
   },
   {
-    kyHop: 21,
+    kyHop: 5,
     tieuDe: 'Nghị quyết về chủ trương đầu tư dự án đường giao thông kết nối các huyện miền núi phía Tây của tỉnh',
     moTa: 'Tờ trình của UBND tỉnh; Báo cáo thẩm tra của Ban Kinh tế - Ngân sách HĐND tỉnh.',
     tyLe: 'quanua',
   },
   {
-    kyHop: 21,
+    kyHop: 5,
     tieuDe: 'Nghị quyết về Chương trình giám sát của HĐND tỉnh năm 2027',
     moTa: 'Tờ trình của Thường trực HĐND tỉnh.',
     tyLe: 'quanua',
   },
   {
-    kyHop: 20,
-    tieuDe: 'Nghị quyết về kế hoạch phát triển kinh tế - xã hội tỉnh Thanh Hóa năm 2026',
-    moTa: 'Kỳ họp thường lệ cuối năm 2025 — đã biểu quyết xong.',
+    kyHop: 5,
+    tieuDe: 'Nghị quyết về chính sách hỗ trợ phát triển nông nghiệp ứng dụng công nghệ cao giai đoạn 2027 - 2030',
+    moTa: 'Tờ trình của UBND tỉnh; Báo cáo thẩm tra của Ban Kinh tế - Ngân sách HĐND tỉnh.',
+    tyLe: 'quanua',
+  },
+  // ---- Kỳ họp thứ 4 (đã biểu quyết xong) -----------------------------------
+  {
+    kyHop: 4,
+    tieuDe: 'Nghị quyết về kế hoạch phát triển kinh tế - xã hội tỉnh Thanh Hóa 5 năm 2026 - 2030',
+    moTa: 'Kỳ họp thường lệ — đã biểu quyết xong.',
     tyLe: 'quanua',
   },
   {
-    kyHop: 20,
+    kyHop: 4,
     tieuDe: 'Nghị quyết về giao biên chế công chức hành chính của tỉnh năm 2026',
-    moTa: 'Kỳ họp thường lệ cuối năm 2025 — đã biểu quyết xong.',
+    moTa: 'Kỳ họp thường lệ — đã biểu quyết xong.',
+    tyLe: 'quanua',
+  },
+  {
+    kyHop: 4,
+    tieuDe: 'Nghị quyết về đặt tên đường, phố và công trình công cộng trên địa bàn một số phường, xã',
+    moTa: 'Kỳ họp thường lệ — đã biểu quyết xong.',
+    tyLe: 'quanua',
+  },
+  // ---- Kỳ họp thứ 3 (chuyên đề, đã biểu quyết xong) ------------------------
+  {
+    kyHop: 3,
+    tieuDe: 'Nghị quyết về chủ trương chuyển mục đích sử dụng rừng sang mục đích khác để thực hiện các dự án đầu tư',
+    moTa: 'Kỳ họp chuyên đề — đã biểu quyết xong.',
+    tyLe: 'quanua',
+  },
+  {
+    kyHop: 3,
+    tieuDe: 'Nghị quyết về điều chỉnh mức thu một số loại phí, lệ phí trên địa bàn tỉnh',
+    moTa: 'Kỳ họp chuyên đề — không đủ số phiếu tán thành, giao cơ quan trình hoàn thiện thêm.',
     tyLe: 'quanua',
   },
 ];

@@ -213,7 +213,7 @@ export default function BieuQuyet({ onHome }) {
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
               </div>
               <h1 className="text-base sm:text-xl font-extrabold leading-tight">Biểu quyết Online</h1>
-              <p className="text-white/75 text-[11px] sm:text-xs mt-0.5">Kỳ họp HĐND tỉnh · {TONG_DAI_BIEU} đại biểu</p>
+              <p className="text-white/75 text-[11px] sm:text-xs mt-0.5">{tenKyHop(kyDangChon)} · HĐND tỉnh nhiệm kỳ 2026 - 2031 · {TONG_DAI_BIEU} đại biểu</p>
             </div>
           </div>
           <div className="flex items-center gap-2 text-[12px]">
