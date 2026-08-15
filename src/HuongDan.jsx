@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Home, BookOpen, Target, ShieldCheck, Landmark, Users, Scale, Printer, ChevronDown, ChevronRight,
-  Phone, Mail, Send, CheckCircle2, AlertTriangle, KeyRound, CalendarDays, ScanSearch, Sparkles, HelpCircle, ArrowRight, Info,
+  Phone, Mail, Send, CheckCircle2, AlertTriangle, KeyRound, CalendarDays, ScanSearch, Sparkles, Database, HelpCircle, ArrowRight, Info,
 } from 'lucide-react';
 import { MODULES, LEGAL_BASIS } from './lib/modules';
 import { DEMO_PIN } from './lib/tieuChiSeed';
@@ -15,7 +15,7 @@ import { GUEST } from './lib/auth';
 //  câu hỏi thường gặp và kênh hỗ trợ.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, CalendarDays, ScanSearch, Sparkles };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, CalendarDays, ScanSearch, Sparkles, Database };
 
 const SECTIONS = [
   { id: 'tongquan', label: '1. Hệ thống gồm những gì' },

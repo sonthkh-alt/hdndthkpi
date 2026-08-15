@@ -12,6 +12,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
 //    #/giamsat     → Giám sát số Thanh Hóa                     (hệ thống RIÊNG, tự chuyển tiếp)
+//    #/onedata     → Một dữ liệu – Không báo cáo lại           (hệ thống RIÊNG, tự chuyển tiếp)
 //    #/lichcongtac → Quản lý lịch công tác tuần                (hệ thống RIÊNG, tự chuyển tiếp)
 //    #/thunghiem   → Phòng thử nghiệm bộ tiêu chí              (App, các bản classic/improved/sg)
 //  Ứng dụng đánh giá (App.jsx) và module Tiêu chí HĐND đều được tải theo nhu cầu (lazy).

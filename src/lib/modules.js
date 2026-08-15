@@ -56,6 +56,15 @@ export const MODULES = [
     target: { kind: 'external', url: 'https://sonthkh-alt.github.io/giamsat/' },
   },
   {
+    id: 'onedata', route: 'onedata', group: 'main',
+    title: 'Một dữ liệu – Không báo cáo lại',
+    short: 'Một dữ liệu',
+    desc: 'Kho dữ liệu dùng chung hai lớp (kho văn bản, tri thức số + chỉ tiêu có cấu trúc): máy trích xuất số liệu ngay từ văn bản vừa phát hành, công chức chỉ xác nhận; máy soạn báo cáo chuẩn NĐ 30; hỏi - đáp dữ liệu có dẫn nguồn; trang công khai dữ liệu mở. Lần mở đầu có thể chậm 30 - 60 giây do máy chủ miễn phí "ngủ".',
+    tags: ['QĐ 2053 · 2176/QĐ-UBND', 'Dữ liệu mở', 'Hệ thống riêng'],
+    icon: 'Database', tone: 'orange', badge: 'Mới',
+    target: { kind: 'external', url: 'https://onedata-thanhhoa.onrender.com' },
+  },
+  {
     id: 'lichcongtac', route: 'lichcongtac', group: 'main',
     title: 'Quản lý lịch công tác tuần',
     short: 'Lịch công tác',
