@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Eye, Home } from 'lucide-react';
+import { Mail, LogIn, CheckCircle2, AlertTriangle, Lock, KeyRound, Home } from 'lucide-react';
 // Tài khoản quản trị KHÔNG hiển thị trên màn đăng nhập (tránh lộ thông tin) — vẫn đăng nhập được bằng cách gõ tay.
 import { signInWithOtp, signInWithPassword, GUEST, isGuestCredential, isAdminCredential, resolveLoginEmail } from './lib/auth';
 import { readVersionCfg } from './lib/versionCfg';
@@ -151,13 +151,6 @@ export default function Login({ unit, onGuest, onLocalAdmin, onClose, onHome, ve
               {status === 'error' && (
                 <p className="text-xs text-rose-600 flex items-center gap-1.5"><AlertTriangle className="w-3.5 h-3.5" /> {msg}</p>
               )}
-              <div className="rounded-xl border border-amber-300 bg-amber-50/90 p-3">
-                <p className="text-[12px] font-bold text-amber-800 flex items-center gap-1.5"><Eye className="w-3.5 h-3.5" /> Tài khoản khách (chỉ xem)</p>
-                <p className="text-[12px] text-amber-800/90 mt-1">Email: <b>{GUEST.email}</b> · Mật khẩu: <b>{GUEST.password}</b></p>
-                <button type="button" onClick={() => { setEmail(GUEST.email); setPassword(GUEST.password); if (onGuest) onGuest(); }} className="mt-2 w-full flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white text-[13px] font-semibold py-2 rounded-lg transition">
-                  <Eye className="w-3.5 h-3.5" /> Vào xem ngay (chỉ xem)
-                </button>
-              </div>
               <button type="submit" disabled={status === 'sending'} className={`w-full flex items-center justify-center gap-2 disabled:opacity-60 text-white font-semibold py-2.5 rounded-xl shadow-lg transition ${t.btn}`}>
                 <LogIn className="w-4 h-4" /> {status === 'sending' ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
