@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ExternalLink,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, ExternalLink,
 } from 'lucide-react';
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
@@ -12,7 +12,7 @@ import { countVisit } from './lib/visits';
 //  Người dùng chọn phân hệ bằng cách bấm vào thẻ (icon) tương ứng.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch };
 
 // Viết đủ tên lớp Tailwind để không bị loại khi build.
 const TONE = {
@@ -23,6 +23,7 @@ const TONE = {
   sky: { tile: 'from-sky-500 to-cyan-600', shadow: 'shadow-sky-100', border: 'hover:border-sky-300', chip: 'bg-sky-50 text-sky-700 border-sky-100', link: 'text-sky-700' },
   violet: { tile: 'from-violet-500 to-purple-700', shadow: 'shadow-violet-100', border: 'hover:border-violet-300', chip: 'bg-violet-50 text-violet-700 border-violet-100', link: 'text-violet-700' },
   teal: { tile: 'from-teal-500 to-emerald-700', shadow: 'shadow-teal-100', border: 'hover:border-teal-300', chip: 'bg-teal-50 text-teal-700 border-teal-100', link: 'text-teal-700' },
+  slate: { tile: 'from-slate-600 to-slate-800', shadow: 'shadow-slate-100', border: 'hover:border-slate-400', chip: 'bg-slate-100 text-slate-700 border-slate-200', link: 'text-slate-700' },
 };
 
 function ModuleCard({ m, onOpen, big }) {

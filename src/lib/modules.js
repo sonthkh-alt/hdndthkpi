@@ -37,6 +37,15 @@ export const MODULES = [
     target: { kind: 'tieuchi' },
   },
   {
+    id: 'giamsat', route: 'giamsat', group: 'main',
+    title: 'Giám sát số Thanh Hóa',
+    short: 'Giám sát số',
+    desc: 'Quản lý hoạt động giám sát của cơ quan dân cử theo 12 nhóm nghiệp vụ GS-01 đến GS-12: kho nghị quyết cấp xã, danh mục rà soát hằng tháng, thẩm định, giải trình và theo dõi thực hiện kết luận, kiến nghị sau giám sát.',
+    tags: ['Luật 121/2025/QH15', '12 nhóm nghiệp vụ', 'Hệ thống riêng'],
+    icon: 'ScanSearch', tone: 'slate', badge: 'Mới',
+    target: { kind: 'external', url: 'https://sonthkh-alt.github.io/giamsat/' },
+  },
+  {
     id: 'lichcongtac', route: 'lichcongtac', group: 'main',
     title: 'Quản lý lịch công tác tuần',
     short: 'Lịch công tác',
