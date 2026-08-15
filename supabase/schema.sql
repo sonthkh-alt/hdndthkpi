@@ -178,3 +178,18 @@ grant execute on function tc_unit_save(text, text, text, jsonb) to anon, authent
 drop policy if exists "state_public_read" on app_state;
 create policy "state_public_read" on app_state
   for select using (starts_with(id, 'state_'));
+
+-- ---------------------------------------------------------------------
+-- GHI CHÚ 7. PHÂN HỆ "TRỢ LÝ AI NGHIỆP VỤ DÂN CỬ" (id = 'vb_data')
+--  KHÔNG cần chạy thêm SQL. Dòng 'vb_data' (kiến nghị cử tri + thư viện tài
+--  liệu) dùng đúng chính sách app_state_auth_all ở BƯỚC 2: chỉ tài khoản ĐÃ
+--  ĐĂNG NHẬP mới đọc/ghi được.
+--
+--  ⚠️ CỐ Ý KHÔNG mở đọc công khai như 'state_…' và 'tc_data', vì kiến nghị cử
+--     tri có TÊN NGƯỜI DÂN và địa bàn. Khách vào phân hệ sẽ thấy danh sách
+--     trống — đúng như thiết kế, đừng "sửa" bằng cách thêm policy public read.
+--
+--  Chức năng gọi AI (/api/troly, /api/doctext) còn kiểm tra thẻ đăng nhập ở
+--  PHÍA MÁY CHỦ (api/_lib/xacThuc.js) vì mỗi lượt gọi đều tốn tiền khóa API.
+--  Máy chủ cần các biến: SUPABASE_URL + một khóa của dự án, và một khóa AI.
+-- ---------------------------------------------------------------------

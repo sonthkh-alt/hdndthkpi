@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import {
   Home, BookOpen, Target, ShieldCheck, Landmark, Users, Scale, Printer, ChevronDown, ChevronRight,
-  Phone, Mail, Send, CheckCircle2, AlertTriangle, KeyRound, CalendarDays, ScanSearch, HelpCircle, ArrowRight, Info,
+  Phone, Mail, Send, CheckCircle2, AlertTriangle, KeyRound, CalendarDays, ScanSearch, Sparkles, HelpCircle, ArrowRight, Info,
 } from 'lucide-react';
 import { MODULES, LEGAL_BASIS } from './lib/modules';
 import { DEMO_PIN } from './lib/tieuChiSeed';
@@ -15,7 +15,7 @@ import { GUEST } from './lib/auth';
 //  câu hỏi thường gặp và kênh hỗ trợ.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, CalendarDays, ScanSearch };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, CalendarDays, ScanSearch, Sparkles };
 
 const SECTIONS = [
   { id: 'tongquan', label: '1. Hệ thống gồm những gì' },
@@ -95,6 +95,7 @@ const FAQ = [
   { q: 'Vì sao điểm cao nhưng xếp loại vẫn bị hạ?', a: 'Vì ngoài tổng điểm còn có ĐIỀU KIỆN xếp loại: tỷ lệ hoàn thành, tỷ lệ vượt mức, kỷ luật, vi phạm, điều kiện đổi mới sáng tạo, trần tỷ lệ Xuất sắc. Phần mềm luôn hiển thị lý do hạ mức ngay dưới kết quả.' },
   { q: 'Vì sao đơn vị đủ 90 điểm mà vẫn chỉ được Tốt?', a: 'Cấp xã áp trần 25% số đơn vị được xếp loại Xuất sắc. Khi số đơn vị đủ điều kiện vượt tỷ lệ, hệ thống chọn từ tổng điểm cao xuống thấp; đơn vị không được chọn sẽ xem xét xếp loại Tốt (Điều 6 khoản 2).' },
   { q: 'Sửa điểm sau khi đã phê duyệt thì sao?', a: 'Mọi thay đổi ở trường chấm điểm sẽ TỰ ĐỘNG gỡ trạng thái phê duyệt, buộc cấp có thẩm quyền phê duyệt lại — bảo đảm kết quả đã duyệt luôn khớp với số liệu hiện hành.' },
+  { q: 'Phân hệ Trợ lý AI dùng thế nào, có tốn phí không?', a: 'Mở Trang chủ → thẻ “Trợ lý AI nghiệp vụ dân cử”. Mỗi lượt bấm tạo nội dung là một lượt gọi dịch vụ AI có tính phí theo khóa của cơ quan, nên chức năng này CHỈ dành cho người đã đăng nhập bằng tài khoản cơ quan; khách vẫn xem được giao diện. Tài liệu tải lên tối đa 3 MB mỗi tệp, tệp PDF bản chụp (scan) không trích được chữ. Kết quả do AI sinh ra chỉ để tham khảo — phải rà soát thể thức, căn cứ pháp lý và số liệu trước khi trình ký.' },
   { q: 'Xuất báo cáo được những gì?', a: 'Phiếu đánh giá cá nhân (Word), bản kiểm điểm và bảng tổng hợp theo Phụ lục (Word), phiếu tự đánh giá của đơn vị HĐND (Word), bảng tổng hợp kết quả các đơn vị (Excel) và sổ tay hướng dẫn (PDF qua cửa sổ in).' },
   { q: 'Dữ liệu được lưu ở đâu, có an toàn không?', a: 'Dữ liệu lưu trên Supabase (PostgreSQL) có kiểm soát truy cập theo dòng. Hồ sơ cán bộ (Mẫu 2C) chỉ tài khoản Quản trị đọc/ghi được. Mã truy cập của đơn vị chỉ lưu chuỗi băm SHA-256. Đây vẫn là bản demo nội bộ, không dùng cho dữ liệu mật.' },
 ];
@@ -178,6 +179,9 @@ export default function HuongDan({ onHome, onOpenModule }) {
                     <p className="text-[11px] text-slate-400 mt-2 font-mono">#/{m.route}</p>
                     {m.target?.kind === 'external' && (
                       <p className="text-[11px] text-teal-700 mt-1">Chạy trên hệ thống riêng — tài khoản đăng nhập riêng ({m.target.url.replace('https://', '')}).</p>
+                    )}
+                    {m.target?.kind === 'troly' && (
+                      <p className="text-[11px] text-cyan-700 mt-1">Chức năng gọi AI chỉ dành cho người đã đăng nhập; nội dung do AI sinh ra phải được rà soát trước khi sử dụng.</p>
                     )}
                   </button>
                 );

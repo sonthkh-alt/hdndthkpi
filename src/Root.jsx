@@ -8,6 +8,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/okr         → Đánh giá OKR/KPI cán bộ, công chức        (App, bộ tiêu chí 'sonha')
 //    #/kiemdiem    → Kiểm điểm, xếp loại đảng viên             (App, bộ tiêu chí 'kiemdiem')
 //    #/tieuchi     → Đánh giá tiêu chí HĐND tỉnh, xã, phường   (module riêng)
+//    #/troly       → Trợ lý AI nghiệp vụ dân cử                (module riêng, cần đăng nhập)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
 //    #/giamsat     → Giám sát số Thanh Hóa                     (hệ thống RIÊNG, tự chuyển tiếp)
@@ -18,6 +19,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 const App = lazy(() => import('./App.jsx'));
 const TieuChiHDND = lazy(() => import('./TieuChiHDND.jsx'));
 const HuongDan = lazy(() => import('./HuongDan.jsx'));
+const TroLyAI = lazy(() => import('./TroLyAI.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -28,6 +30,7 @@ function parseHash() {
   const m = moduleByRoute(raw);
   if (!m) return HOME;
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
+  if (m.target.kind === 'troly') return { view: 'troly', moduleId: m.id };
   if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
   // Phân hệ chạy ở địa chỉ riêng: giữ đường dẫn #/<route> để chia sẻ được, mở ra thì tự chuyển tiếp.
   if (isExternal(m)) return { view: 'external', moduleId: m.id, url: m.target.url, title: m.title };
@@ -103,15 +106,17 @@ export default function Root() {
     <Suspense fallback={<Loading />}>
       {state.view === 'tieuchi'
         ? <TieuChiHDND onHome={goHome} />
-        : state.view === 'huongdan'
-          ? <HuongDan onHome={goHome} onOpenModule={goRoute} />
-          : (
-            // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
-            // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
-            <App key={state.moduleId} version={state.version} onHome={goHome}
-              onPickVersion={state.isLab ? pickVersion : undefined}
-              moduleTitle={state.title} initialTab={state.tab} initialLogin={state.login} />
-          )}
+        : state.view === 'troly'
+          ? <TroLyAI onHome={goHome} />
+          : state.view === 'huongdan'
+            ? <HuongDan onHome={goHome} onOpenModule={goRoute} />
+            : (
+              // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
+              // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
+              <App key={state.moduleId} version={state.version} onHome={goHome}
+                onPickVersion={state.isLab ? pickVersion : undefined}
+                moduleTitle={state.title} initialTab={state.tab} initialLogin={state.login} />
+            )}
     </Suspense>
   );
 }

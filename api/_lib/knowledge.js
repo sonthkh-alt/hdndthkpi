@@ -27,27 +27,31 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Đơn vị đăng nhập bằng MÃ ĐƠN VỊ + MÃ TRUY CẬP do Thường trực HĐND tỉnh cấp (mã truy cập chỉ lưu dạng băm SHA-256).
    Bấm vào TÊN ĐƠN VỊ trong bảng kết quả là mở được phiếu tự đánh giá của đơn vị đó (như nút "Mở phiếu"). Khách xem được nhưng không sửa.
    Quy trình: đơn vị tự chấm → gửi → Tổ công tác thẩm định → Thường trực HĐND tỉnh phê duyệt. Sửa lại điểm sau khi đã phê duyệt thì phê duyệt tự động bị gỡ.
-4. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
+4. Trợ lý AI nghiệp vụ dân cử — ${SITE}/#/troly
+   Tám việc trong một phân hệ: (1) Trợ lý kỳ họp — tải tài liệu kỳ họp lên rồi phân tích (so sánh số liệu tìm mâu thuẫn, đề xuất câu hỏi chất vấn, kiểm tra tuân thủ nghị quyết, phân tích điểm nghẽn ngân sách, tóm tắt rủi ro chính sách, hoặc tự đặt câu hỏi); (2) Soạn thảo văn bản hành chính theo thể thức Nghị định 30/2020/NĐ-CP, sửa từng phần rồi xuất Word; (3) Soạn bài phát biểu của lãnh đạo; (4) Soát xét, kiểm lỗi văn bản (chính tả, thể thức NĐ 30, văn phong, logic quản lý) — trả về bảng lỗi kèm đề xuất sửa; (5) Thẩm tra dự thảo nghị quyết theo 4 phần chuẩn của HĐND, xuất Word báo cáo thẩm tra; (6) Kiến nghị cử tri — nhập, phân loại, theo dõi trạng thái và nhờ AI tổng hợp từ tệp hoặc phân tích xu hướng; (7) Thư viện tài liệu dùng chung làm ngữ cảnh cho Trợ lý kỳ họp; (8) Hỏi đáp tự do.
+   ⚠️ Mỗi lượt gọi AI đều tốn phí khóa dịch vụ nên phân hệ này CHỈ phục vụ người đã đăng nhập bằng tài khoản cơ quan (khách chỉ xem giao diện). Tài liệu tải lên tối đa 3 MB mỗi tệp; PDF bản chụp (scan) không trích được chữ.
+   ⚠️ Nội dung do AI sinh ra chỉ để tham khảo, người dùng phải rà soát thể thức, căn cứ pháp lý và số liệu trước khi sử dụng chính thức. Trợ lý chat KHÔNG đọc được nội dung người dùng đã soạn hay tài liệu họ tải lên trong phân hệ này.
+5. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
    Quản lý hoạt động giám sát của cơ quan dân cử theo Luật Hoạt động giám sát số 121/2025/QH15 (hiệu lực 01/3/2026), Nghị quyết 114/2025/UBTVQH15 và Nghị quyết 115/2025/UBTVQH15.
    Mọi hồ sơ thuộc đúng một trong 12 nhóm nghiệp vụ GS-01 đến GS-12 (thẩm tra báo cáo · giám sát văn bản quy phạm pháp luật · chất vấn · giải trình · giám sát chuyên đề · khiếu nại, tố cáo · kiến nghị cử tri · thi hành pháp luật ở địa phương · lấy phiếu tín nhiệm · thực hiện nghị quyết về giám sát · theo dõi kết luận, kiến nghị · giám sát lại), mỗi hồ sơ gắn kèm chủ thể giám sát và cấp hành chính. Nhóm GS-09 (tín nhiệm) chưa triển khai.
    Trọng tâm đang chạy là giám sát nghị quyết của HĐND 166 xã, phường: hằng tháng hệ thống rà dấu hiệu cảnh báo, chấm điểm rủi ro, xếp hạng và TRÌNH danh mục đề xuất; quyền quyết định danh mục chính thức thuộc Thường trực HĐND tỉnh — máy đề xuất, người quyết định, không có bốc thăm tự động.
    Thẩm định thang 100 điểm (thẩm quyền và hình thức 20 · trình tự, thủ tục 20 · tính hợp hiến, hợp pháp, thống nhất 30 · thể thức, kỹ thuật trình bày 10 · tính khả thi 20). Xếp loại: Tốt ≥90 · Khá 75-89 · Đạt 60-74 · Chưa đạt <60; có nội dung trái pháp luật thì luôn là Chưa đạt, bất kể tổng điểm.
    Theo dõi sau giám sát: mỗi kết luận, kiến nghị tách thành nhiệm vụ riêng, nhắc trước hạn 15/7/3 ngày; quá hạn thì yêu cầu giải trình theo Điều 40 (15 ngày, việc phức tạp không quá 30 ngày) và đi theo bảy bước đôn đốc → kiến nghị cấp có thẩm quyền xử lý → giải trình → chất vấn → giám sát lại → báo cáo HĐND.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá). Trợ lý KHÔNG đọc được số liệu của phân hệ này — chỉ đưa đường dẫn để người hỏi tự mở, tuyệt đối không đoán hay bịa số nghị quyết, điểm thẩm định, tên đơn vị bị xếp loại.
-5. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
+6. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
    Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau (thường vào thứ Sáu), lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
    Đối tượng có lịch: 2 Phó Chủ tịch HĐND tỉnh, lãnh đạo Đoàn ĐBQH tỉnh, 4 Ban (Kinh tế - Ngân sách, Pháp chế, Văn hóa - Xã hội, Dân tộc) và lãnh đạo Văn phòng (trực cuối tuần).
    Buổi: Sáng · Chiều · Cả ngày · Theo giờ. Trạng thái: Chờ duyệt → Đã duyệt / Đã điều chỉnh (có ghi chú) / Từ chối (có lý do). Sửa lại mục đã bị từ chối thì tự quay về Chờ duyệt.
    Xe ô tô: xe riêng gắn với từng Phó Chủ tịch và xe dùng chung; hệ thống cảnh báo khi một xe bị xếp trùng giờ.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng trợ lý ĐỌC ĐƯỢC lịch của tuần này và tuần sau — xem phần SỐ LIỆU HỆ THỐNG. Muốn xem xa hơn hai tuần đó thì chỉ đường dẫn cho người dùng tự mở.
-6. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
+7. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
    Hồ sơ 2C/TCTW-98 và nhắc việc nhân sự: nâng bậc lương (chu kỳ 36 hoặc 24 tháng theo Thông tư 08/2013), nghỉ hưu (lộ trình Nghị định 135/2020), sinh nhật, hết hạn hợp đồng, hết nhiệm kỳ bổ nhiệm, nhiệm vụ định kỳ, biên chế.
    ĐÂY LÀ DANH SÁCH CÁN BỘ DUY NHẤT của cả hệ thống. Hai phân hệ chấm điểm không tự thêm/sửa/xóa cán bộ nữa, chỉ chấm điểm; muốn thêm người hoặc sửa họ tên, chức vụ, đơn vị thì làm ở đây.
    Mỗi hồ sơ có trường "Diện quản lý cán bộ": Thuộc diện Ban Thường vụ Tỉnh ủy quản lý / Không thuộc diện. Trường này tách danh sách giữa hai phân hệ:
    - Phân hệ Kiểm điểm lấy những người có cờ "Thuộc diện BTV Tỉnh ủy quản lý".
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
-7. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
+8. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 
 ## Tài khoản và phân quyền

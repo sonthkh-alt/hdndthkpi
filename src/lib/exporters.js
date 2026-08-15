@@ -1708,3 +1708,151 @@ export async function exportTieuChiTongHop({ year, kindName, rows, quotaPicked }
   XLSX.utils.book_append_sheet(wb, ws, 'Tong hop');
   XLSX.writeFile(wb, `Tong_hop_tieu_chi_HDND_${year}.xlsx`);
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PHÂN HỆ "TRỢ LÝ AI NGHIỆP VỤ DÂN CỬ" — xuất Word theo thể thức
+//  Nghị định 30/2020/NĐ-CP. Chuyển từ `utils/doc_helper.py` (python-docx)
+//  của ứng dụng Streamlit: khổ A4, Times New Roman, bảng đầu 2 cột
+//  (cơ quan · quốc hiệu), thân bài căn đều, bảng cuối (Nơi nhận · chữ ký).
+// ═══════════════════════════════════════════════════════════════════════════
+const VB_FONT_SIZE = 28;        // 14pt (docx tính theo nửa point)
+const VB_INDENT = { firstLine: 720 }; // thụt đầu dòng 1,27 cm
+
+// Ô của bảng đầu/cuối văn bản: KHÔNG kẻ viền (thể thức hành chính).
+function VBCell(children, width) {
+  return new TableCell({
+    width: { size: width, type: WidthType.PERCENTAGE },
+    borders: { top: { style: BorderStyle.NONE }, bottom: { style: BorderStyle.NONE }, left: { style: BorderStyle.NONE }, right: { style: BorderStyle.NONE } },
+    children,
+  });
+}
+const vbLine = (text, opts = {}) => P(text, { size: VB_FONT_SIZE, ...opts });
+
+/** Một dòng thân bài: tách **đậm**, in nghiêng dòng "Căn cứ…", in đậm số mục đầu dòng. */
+function vbBodyParagraph(line) {
+  const raw = String(line || '').trim();
+  const canCu = /^căn cứ/i.test(raw);
+  const runs = [];
+  let rest = raw;
+  const heading = rest.match(/^((?:[IVX]+\.|\d+(?:\.\d+)*\.|Điều \d+\.?))\s+(.*)$/);
+  if (heading) { runs.push({ text: `${heading[1]} `, bold: true }); rest = heading[2]; }
+  for (const part of rest.split(/(\*\*.*?\*\*)/)) {
+    if (!part) continue;
+    const bold = part.startsWith('**') && part.endsWith('**');
+    const text = bold ? part.slice(2, -2) : part.replace(/\*/g, '');
+    if (text) runs.push({ text, bold, italics: canCu });
+  }
+  return new Paragraph({
+    alignment: AlignmentType.JUSTIFIED,
+    indent: VB_INDENT,
+    spacing: { before: 60, after: 60, line: 340 },
+    children: (runs.length ? runs : [{ text: '' }]).map((r) => new TextRun({ text: r.text, bold: r.bold, italics: r.italics, size: VB_FONT_SIZE, font: FONT })),
+  });
+}
+const vbBody = (text) => String(text || '').split('\n').map((l) => l.trim()).filter(Boolean).map(vbBodyParagraph);
+
+// Bảng đầu văn bản: trái = cơ quan + số ký hiệu, phải = quốc hiệu + địa danh, ngày tháng.
+function vbHeaderTable({ coQuanChuQuan = '', coQuanBanHanh = '', soKyHieu = '', diaDanh = '' }) {
+  const C = AlignmentType.CENTER;
+  const trai = [];
+  if (coQuanChuQuan) trai.push(P(coQuanChuQuan, { size: 24, align: C }));
+  if (coQuanBanHanh) {
+    trai.push(P(coQuanBanHanh, { size: 24, bold: true, align: C }));
+    trai.push(P('*'.repeat(coQuanBanHanh.length > 20 ? 15 : 10), { size: 20, align: C }));
+  }
+  trai.push(P(soKyHieu, { size: 26, align: C }));
+
+  const phai = [
+    P('CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM', { size: 26, bold: true, align: C }),
+    P('Độc lập - Tự do - Hạnh phúc', { size: VB_FONT_SIZE, bold: true, align: C }),
+    P('________________________', { size: 24, align: C }),
+    P(diaDanh, { size: VB_FONT_SIZE, italics: true, align: C, spacingAfter: 120 }),
+  ];
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [new TableRow({ children: [VBCell(trai, 40), VBCell(phai, 60)] })],
+  });
+}
+
+// Bảng cuối văn bản: trái = Nơi nhận, phải = quyền hạn, chức vụ, họ tên người ký.
+function vbFooterTable({ noiNhan = [], quyenHan = '', nguoiKy = '' }) {
+  const C = AlignmentType.CENTER;
+  const trai = [P('Nơi nhận:', { size: 22, bold: true, italics: true })];
+  noiNhan.forEach((n) => trai.push(P(n, { size: 22 })));
+
+  const phai = String(quyenHan || '').split('\n').filter(Boolean).map((d) => P(d, { size: VB_FONT_SIZE, bold: true, align: C }));
+  phai.push(P('', { spacingAfter: 700 }));
+  if (nguoiKy) phai.push(P(nguoiKy, { size: VB_FONT_SIZE, bold: true, align: C }));
+
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [new TableRow({ children: [VBCell(trai, 55), VBCell(phai.length ? phai : [P('')], 45)] })],
+  });
+}
+
+const vbDoc = (children) => new Document({
+  sections: [{ properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, right: 1134, bottom: 1134, left: 1701 } } }, children }],
+});
+async function vbSave(children, tenTep) {
+  const blob = await Packer.toBlob(vbDoc(children));
+  saveAs(blob, tenTep);
+}
+const vbTenTep = (s, mac = 'Van_ban') => {
+  const t = String(s || '').normalize('NFD').replace(new RegExp('[\\u0300-\\u036f]', 'g'), '').replace(/đ/gi, 'd')
+    .replace(/[^a-zA-Z0-9]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60);
+  return `${t || mac}.docx`;
+};
+
+/** WORD — văn bản hành chính chuẩn NĐ 30 (dữ liệu do AI trả về dạng JSON). */
+export async function exportVanBanND30(vb = {}, tenTep) {
+  const C = AlignmentType.CENTER;
+  const children = [
+    vbHeaderTable({
+      coQuanChuQuan: vb.co_quan_chu_quan, coQuanBanHanh: vb.co_quan_ban_hanh,
+      soKyHieu: vb.so_ky_hieu, diaDanh: vb.dia_danh_ngay_thang,
+    }),
+    P('', { spacingAfter: 120 }),
+  ];
+  if (vb.loai_van_ban) children.push(P(vb.loai_van_ban, { size: VB_FONT_SIZE, bold: true, align: C }));
+  if (vb.trich_yeu) children.push(P(vb.trich_yeu, { size: VB_FONT_SIZE, bold: !!vb.loai_van_ban, align: C }));
+  children.push(P('', { spacingAfter: 120 }));
+  children.push(...vbBody(vb.noi_dung_chinh));
+  children.push(P('', { spacingAfter: 200 }));
+  children.push(vbFooterTable({ noiNhan: vb.noi_nhan, quyenHan: vb.quyen_han_ky, nguoiKy: vb.nguoi_ky }));
+  await vbSave(children, tenTep || vbTenTep(vb.trich_yeu || vb.loai_van_ban, 'Van_ban_du_thao'));
+}
+
+/** WORD — Báo cáo thẩm tra dự thảo nghị quyết của Ban HĐND tỉnh. */
+export async function exportBaoCaoThamTra({ text = '', ban = '', tenNghiQuyet = '' } = {}) {
+  const C = AlignmentType.CENTER;
+  const now = new Date();
+  const children = [
+    vbHeaderTable({
+      coQuanChuQuan: 'HỘI ĐỒNG NHÂN DÂN TỈNH THANH HÓA',
+      coQuanBanHanh: `BAN ${String(ban || '').toUpperCase()}`,
+      soKyHieu: 'Số:      /BC-HĐND',
+      diaDanh: `Thanh Hóa, ngày ${now.getDate()} tháng ${now.getMonth() + 1} năm ${now.getFullYear()}`,
+    }),
+    P('', { spacingAfter: 120 }),
+    P('BÁO CÁO THẨM TRA', { size: VB_FONT_SIZE, bold: true, align: C }),
+    P(tenNghiQuyet || 'Dự thảo Nghị quyết', { size: VB_FONT_SIZE, bold: true, align: C, spacingAfter: 120 }),
+    ...vbBody(text),
+    P('', { spacingAfter: 200 }),
+    vbFooterTable({
+      noiNhan: ['- Thường trực HĐND tỉnh;', '- UBND tỉnh;', '- Các Ban HĐND tỉnh;', '- Lưu: VT.'],
+      quyenHan: 'TM. BAN\nTRƯỞNG BAN',
+    }),
+  ];
+  await vbSave(children, vbTenTep(`Bao_cao_tham_tra_${ban}`, 'Bao_cao_tham_tra'));
+}
+
+/** WORD — văn bản đơn giản (bài phát biểu, báo cáo soát lỗi, kết quả phân tích). */
+export async function exportVanBanDonGian({ tieuDe = '', phuDe = '', text = '', tenTep } = {}) {
+  const C = AlignmentType.CENTER;
+  const children = [];
+  if (tieuDe) children.push(P(tieuDe.toUpperCase(), { size: VB_FONT_SIZE, bold: true, align: C }));
+  if (phuDe) children.push(P(phuDe, { size: 26, italics: true, align: C }));
+  children.push(P('', { spacingAfter: 120 }));
+  children.push(...vbBody(text));
+  await vbSave(children, tenTep || vbTenTep(tieuDe, 'Van_ban'));
+}

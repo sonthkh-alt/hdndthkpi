@@ -3,6 +3,7 @@
 //  Mỗi phân hệ có một đường dẫn dạng #/<route>; `target` cho biết mở gì:
 //    { kind: 'app', version, tab }  → mở ứng dụng đánh giá cán bộ với bộ tiêu chí tương ứng
 //    { kind: 'tieuchi' }            → mở module Đánh giá tiêu chí HĐND tỉnh, xã, phường
+//    { kind: 'troly' }              → mở module Trợ lý AI nghiệp vụ dân cử
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
 //    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
 //                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
@@ -35,6 +36,15 @@ export const MODULES = [
     tags: ['Khung tiêu chí 2026-2031', 'Phụ lục I · II', 'Đơn vị tự đăng nhập'],
     icon: 'Landmark', tone: 'indigo', badge: 'Mới',
     target: { kind: 'tieuchi' },
+  },
+  {
+    id: 'troly', route: 'troly', group: 'main',
+    title: 'Trợ lý AI nghiệp vụ dân cử',
+    short: 'Trợ lý AI',
+    desc: 'Trợ lý kỳ họp (phân tích tài liệu, gợi ý chất vấn), soạn thảo văn bản chuẩn Nghị định 30, soạn bài phát biểu, soát xét văn bản, thẩm tra dự thảo nghị quyết, theo dõi kiến nghị cử tri và hỏi đáp.',
+    tags: ['Chuẩn NĐ 30/2020', 'Xuất Word', 'Cần đăng nhập'],
+    icon: 'Sparkles', tone: 'cyan', badge: 'Mới',
+    target: { kind: 'troly' },
   },
   {
     id: 'giamsat', route: 'giamsat', group: 'main',
