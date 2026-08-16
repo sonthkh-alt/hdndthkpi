@@ -278,6 +278,23 @@ export default function BieuQuyet({ onHome }) {
 
             {/* ===== Nội dung trình biểu quyết ===== */}
             <section className="rounded-2xl border border-slate-200 bg-white p-5">
+              {/* Chọn nội dung cần biểu quyết: nội dung ĐÃ ĐÓNG bị làm mờ, không chọn được
+                  (kết quả của nội dung đã đóng vẫn xem được ở danh sách cuối trang). */}
+              <label className="block mb-4">
+                <span className="text-[12px] font-bold text-slate-600">Chọn nội dung biểu quyết — {tenKyHop(kyDangChon)}</span>
+                <select value={p.id} onChange={(e) => { setPhienId(e.target.value); setThongBao(''); setLoi(''); }}
+                  className="mt-1 w-full rounded-xl border border-slate-300 bg-white px-3 py-2.5 text-[13px] font-semibold text-slate-800">
+                  {phienKy.map((x) => (
+                    <option key={x.id} value={x.id} disabled={x.trangThai !== 'mo'} className={x.trangThai !== 'mo' ? 'text-slate-400' : ''}>
+                      {x.tieuDe}{x.trangThai !== 'mo' ? ' — đã đóng biểu quyết' : ''}
+                    </option>
+                  ))}
+                </select>
+                {phienKy.some((x) => x.trangThai !== 'mo') && (
+                  <span className="block text-[11px] text-slate-400 mt-1">Nội dung mờ là đã đóng biểu quyết — không chọn để bỏ phiếu được, xem kết quả ở danh sách cuối trang.</span>
+                )}
+              </label>
+
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="min-w-0">
                   <p className="text-[11px] font-bold uppercase tracking-wider text-red-700">Nội dung trình biểu quyết · {tenKyHop(kyHopCua(p))}</p>
