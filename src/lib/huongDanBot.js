@@ -17,21 +17,11 @@ const DAU = new RegExp('[\\u0300-\\u036f]', 'g');
 /** Bỏ dấu tiếng Việt + về chữ thường, để so khớp "biểu quyết" ~ "bieu quyet". */
 export const boDau = (s) => String(s || '').toLowerCase().normalize('NFD').replace(DAU, '').replace(/đ/g, 'd');
 
-/** Câu hỏi gợi ý hiện thành nút bấm nhanh trong popup. */
-export const GOI_Y = [
-  'Hệ thống gồm những phân hệ nào?',
-  'Biểu quyết online dùng thế nào?',
-  'Cách tính điểm OKR/KPI?',
-  'Xem lịch công tác tuần ở đâu?',
-  'Đăng nhập bằng tài khoản nào?',
-  'Liên hệ ai khi cần hỗ trợ?',
-];
-
 /** Lời chào mở đầu của người hướng dẫn. */
 export const CHAO = {
   id: 'chao',
   text: 'Xin chào! Tôi là người hướng dẫn của hệ thống.\n'
-    + '• Câu CÓ SẴN (bấm gợi ý bên dưới) tôi trả lời tức thì, miễn phí, không giới hạn.\n'
+    + '• Câu hỏi về cách dùng, các phân hệ, cách tính điểm… tôi trả lời tức thì, miễn phí, không giới hạn.\n'
     + '• Câu khác tôi sẽ hỏi AI giúp quý vị — miễn phí 3 lượt mỗi ngày; hết lượt thì chuyển sang Zalo/Telegram để hỏi tiếp.\n'
     + '• Muốn hỏi AI NGAY: bật nút [AI] cạnh ô nhập, hoặc bấm "Hỏi AI ngay" dưới câu trả lời có sẵn.',
   lienKet: [],
@@ -40,7 +30,7 @@ export const CHAO = {
 /** Hết lượt AI miễn phí trong ngày → hướng dẫn đăng ký bot Zalo/Telegram từng bước. */
 export const HET_LUOT_AI = {
   id: 'hetLuotAI',
-  text: 'Quý vị đã dùng hết số lượt hỏi AI miễn phí trong ngày tại khung chat này. Các câu CÓ SẴN (gợi ý bên dưới) vẫn được trả lời miễn phí, không giới hạn.\n'
+  text: 'Quý vị đã dùng hết số lượt hỏi AI miễn phí trong ngày tại khung chat này. Các câu hỏi về hướng dẫn sử dụng tôi vẫn trả lời miễn phí, không giới hạn.\n'
     + 'Muốn hỏi AI tiếp — không giới hạn chủ đề và đọc được SỐ LIỆU THẬT của hệ thống — mời chuyển sang Zalo hoặc Telegram, đăng ký MỘT lần là dùng được:\n'
     + '1. Bấm nút Zalo hoặc Telegram bên dưới để mở trợ lý.\n'
     + '2. Nhắn: /dangky Họ và tên - Đơn vị công tác\n'

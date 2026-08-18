@@ -1,6 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Headset, Send, MessageCircle, X, BookOpen, Sparkles } from 'lucide-react';
-import { CHAO, GOI_Y, HET_LUOT_AI, NGOAI_KICH_BAN, traLoi, CHAT_TELEGRAM, CHAT_ZALO } from './lib/huongDanBot';
+import { CHAO, HET_LUOT_AI, NGOAI_KICH_BAN, traLoi, CHAT_TELEGRAM, CHAT_ZALO } from './lib/huongDanBot';
+
+// Màu nhận diện của hai ứng dụng chat — dùng cho nút VÀ dòng hướng dẫn đăng ký.
+const MAU_ZALO = '#0068ff';
+const MAU_TELEGRAM = '#229ED9';
 
 // ============================================================================
 //  NGƯỜI HƯỚNG DẪN — nút nổi ở góc Trang chủ, mở khung chat hai tầng:
@@ -167,18 +171,8 @@ export default function NguoiHuongDan({ onGuide }) {
             )}
           </div>
 
-          {/* Gợi ý bấm nhanh */}
-          <div className="px-3 pt-2 flex flex-wrap gap-1.5 border-t border-slate-100">
-            {GOI_Y.map((c) => (
-              <button key={c} type="button" onClick={() => gui(c)}
-                className="text-[11px] font-semibold px-2.5 py-1 rounded-full border border-slate-200 bg-white text-slate-600 hover:bg-slate-100">
-                {c}
-              </button>
-            ))}
-          </div>
-
           {/* Ô nhập */}
-          <form className="p-3 flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); gui(oNhap); }}>
+          <form className="p-3 flex items-center gap-2 border-t border-slate-100" onSubmit={(e) => { e.preventDefault(); gui(oNhap); }}>
             <input value={oNhap} onChange={(e) => setONhap(e.target.value)}
               placeholder={cheDoAI ? 'Hỏi thẳng AI (tốn 1 lượt)…' : 'Gõ câu hỏi của quý vị…'}
               className={`flex-1 min-w-0 rounded-xl border px-3 py-2 text-[13px] focus:outline-none focus:ring-2 ${cheDoAI ? 'border-violet-300 focus:ring-violet-200' : 'border-slate-300 focus:ring-red-200'}`} />
@@ -194,14 +188,31 @@ export default function NguoiHuongDan({ onGuide }) {
             </button>
           </form>
 
-          {/* Lối rẽ sang trợ lý AI thật + trang Hướng dẫn */}
-          <div className="px-3 pb-3 flex items-center justify-between gap-2 flex-wrap text-[11px]">
-            <span className="text-slate-500">Cần số liệu thật, hỏi không giới hạn?</span>
-            <span className="flex items-center gap-1.5">
-              <a href={CHAT_ZALO} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold px-2 py-1 rounded-lg text-white" style={{ background: '#0068ff' }}><MessageCircle className="w-3.5 h-3.5" /> Zalo</a>
-              <a href={CHAT_TELEGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold px-2 py-1 rounded-lg text-white" style={{ background: '#229ED9' }}><Send className="w-3.5 h-3.5" /> Telegram</a>
-              <button onClick={() => { setMo(false); onGuide?.(); }} className="inline-flex items-center gap-1 font-bold px-2 py-1 rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50"><BookOpen className="w-3.5 h-3.5" /> Hướng dẫn</button>
-            </span>
+          {/* Lối rẽ sang trợ lý AI thật: nút to gấp đôi + hướng dẫn đăng ký in đậm theo màu từng ứng dụng */}
+          <div className="px-3 pb-3 space-y-2">
+            <p className="text-[11px] text-slate-500 text-center">Cần số liệu thật, hỏi không giới hạn? Chat với trợ lý AI:</p>
+            <div className="flex items-center justify-center gap-3">
+              <a href={CHAT_ZALO} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-bold px-4 py-2 rounded-xl text-white text-[13px] hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-md"
+                style={{ background: MAU_ZALO }}>
+                <MessageCircle className="w-7 h-7" /> Zalo
+              </a>
+              <a href={CHAT_TELEGRAM} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-bold px-4 py-2 rounded-xl text-white text-[13px] hover:opacity-90 hover:-translate-y-0.5 transition-all shadow-md"
+                style={{ background: MAU_TELEGRAM }}>
+                <Send className="w-7 h-7" /> Telegram
+              </a>
+            </div>
+            <p className="text-[11px] font-bold text-center leading-relaxed" style={{ color: MAU_ZALO }}>
+              Zalo: bấm nút trên → nhắn "/dangky Họ và tên - Đơn vị" cho OA của Văn phòng, Quản trị duyệt một lần là hỏi được.
+            </p>
+            <p className="text-[11px] font-bold text-center leading-relaxed" style={{ color: MAU_TELEGRAM }}>
+              Telegram: nhắn "/dangky Họ và tên - Đơn vị" cho bot @hdnd_thanhhoa_bot — cách đăng ký y như Zalo.
+            </p>
+            <button onClick={() => { setMo(false); onGuide?.(); }}
+              className="mx-auto flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-slate-600">
+              <BookOpen className="w-3.5 h-3.5" /> Hướng dẫn &amp; hỗ trợ sử dụng
+            </button>
           </div>
         </div>
       )}
