@@ -21,13 +21,17 @@ import { ngayVN, khoaDem, donNgayCu, trangThai } from './_lib/hanMuc.js';
 
 const ROW_ID = 'hd_quota';
 export const gioiHan = () => Number(process.env.HUONGDAN_QUOTA ?? 3);
+// Danh bạ điện thoại chứa số thật của cán bộ — mặc định KHÔNG mở cho khách vô danh
+// ở khung chat Trang chủ (bot Zalo/Telegram thì tra được vì người dùng đã được duyệt).
+// Quản trị muốn mở thì đặt biến môi trường DANHBA_KHACH=1 trên Vercel.
+const choDanhBaKhach = () => process.env.DANHBA_KHACH === '1';
 
-const SYSTEM = `Bạn là "Người hướng dẫn" — khung chat nhỏ ở Trang chủ hệ thống của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa: hướng dẫn sử dụng và trả lời về số liệu của các phân hệ.
+const SYSTEM = () => `Bạn là "Người hướng dẫn" — khung chat nhỏ ở Trang chủ hệ thống của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa: hướng dẫn sử dụng và trả lời về số liệu của các phân hệ.
 
 QUY TẮC:
 1. Trả lời tiếng Việt có dấu, lịch sự, NGẮN GỌN (tối đa 120 từ), dùng gạch đầu dòng khi liệt kê, không dùng Markdown phức tạp (chỉ gạch đầu dòng, không in đậm).
 2. Khi câu hỏi liên quan số liệu, CHỈ dùng số trong phần "SỐ LIỆU HỆ THỐNG" bên dưới — tuyệt đối không bịa hay ước lượng. Số liệu không có trong đó thì nói thẳng là chưa có, chỉ đường dẫn phân hệ tương ứng hoặc mời chat với trợ lý AI đầy đủ trên Zalo (https://zalo.me/142053241153738721) / Telegram (https://t.me/hdnd_thanhhoa_bot) — nhắn "/dangky Họ và tên - Đơn vị" một lần để đăng ký.
-3. Khung chat này KHÔNG đọc được hồ sơ nhân sự (nâng lương, nghỉ hưu, hợp đồng, hồ sơ 2C) — phần đó chỉ Quản trị hỏi được qua bot Telegram.
+3. Khung chat này KHÔNG đọc được hồ sơ nhân sự (nâng lương, nghỉ hưu, hợp đồng, hồ sơ 2C) — phần đó chỉ Quản trị hỏi được qua bot Telegram.${choDanhBaKhach() ? '' : ' Danh bạ số điện thoại cũng không mở ở khung chat này — ai hỏi số điện thoại thì mời họ chat với trợ lý AI trên Zalo/Telegram (đăng ký một lần là tra được).'}
 4. Khi câu hỏi nêu ĐÍCH DANH một người, một Ban hoặc đơn vị: chỉ dùng dòng dữ liệu ghi ĐÚNG tên đó; không thấy thì nói "không có mục nào", không lấy dòng của người khác thay thế.
 5. Tuyệt đối không cung cấp mật khẩu, mã truy cập, thông tin cá nhân của cán bộ.
 6. Đây là bản demo thử nghiệm, phần lớn số liệu là mô phỏng — kết quả dùng vào việc chính thức phải đối chiếu lại.
@@ -99,9 +103,9 @@ export default async function handler(req, res) {
     // Số liệu thật của các phân hệ, chọn theo từ khóa câu hỏi. LUÔN isAdmin:false —
     // khách vô danh không bao giờ được kèm dữ liệu nhân sự vào ngữ cảnh.
     const soLieu = hasStore()
-      ? await gatherFacts(cau, { isAdmin: false }).catch((e) => `(Không đọc được số liệu: ${e.message})`)
+      ? await gatherFacts(cau, { isAdmin: false, danhBa: choDanhBaKhach() }).catch((e) => `(Không đọc được số liệu: ${e.message})`)
       : '';
-    const system = `${SYSTEM}\n\nSỐ LIỆU HỆ THỐNG (đọc từ cơ sở dữ liệu lúc trả lời):\n${soLieu || '(chưa đọc được số liệu lúc này — trả lời phần hướng dẫn, số liệu thì chỉ đường dẫn)'}`;
+    const system = `${SYSTEM()}\n\nSỐ LIỆU HỆ THỐNG (đọc từ cơ sở dữ liệu lúc trả lời):\n${soLieu || '(chưa đọc được số liệu lúc này — trả lời phần hướng dẫn, số liệu thì chỉ đường dẫn)'}`;
     const traLoi = await askAI(system, [...turns, { role: 'user', text: cau }]);
     return res.status(200).json({ ok: true, traLoi: traLoi || '(AI không trả lời)', hanMuc: q });
   } catch (e) {

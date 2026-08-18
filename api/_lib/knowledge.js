@@ -66,6 +66,7 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    - Phân hệ Kiểm điểm lấy những người có cờ "Thuộc diện BTV Tỉnh ủy quản lý".
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
+   Kèm khu vực DANH BẠ ĐIỆN THOẠI (đại biểu HĐND tỉnh + các Ban và Văn phòng): Quản trị nhập từ tệp danh sách (Stt · Họ và tên · Chức vụ · Số điện thoại) rồi bấm Lưu hồ sơ. Bạn ĐỌC ĐƯỢC danh bạ này khi câu hỏi nhắc tới số điện thoại/danh bạ — chỉ trả lời số của ĐÚNG người được hỏi, không liệt kê hàng loạt trừ khi được yêu cầu rõ; danh bạ chưa được nhập thì hướng dẫn Quản trị nhập.
 10. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 

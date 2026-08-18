@@ -14,3 +14,8 @@ dist/
 fix_exporters.py
 fix_nd335.py
 reinject.py
+
+# Danh bạ điện thoại chứa SỐ THẬT của cán bộ — repo này CÔNG KHAI nên tuyệt đối
+# không commit; dữ liệu được Quản trị nhập vào hr_data qua phân hệ Quản lý cán bộ.
+docs/*danh bạ*
+docs/*danh ba*

@@ -199,6 +199,14 @@ export const KICH_BAN = [
     lienKet: [{ nhan: 'Zalo OA của Văn phòng', url: CHAT_ZALO }, { nhan: 'Telegram @hdnd_thanhhoa_bot', url: CHAT_TELEGRAM }],
   },
   {
+    id: 'danhba',
+    tu: ['so dien thoai', 'dien thoai cua', 'danh ba', 'sdt', 'so may', 'so cua dong chi', 'goi cho dong chi'],
+    mau: 'Tra số điện thoại của đại biểu thế nào?',
+    text: 'Danh bạ điện thoại (đại biểu HĐND tỉnh + các Ban và Văn phòng) tra qua trợ lý AI trên Zalo hoặc Telegram — đăng ký một lần bằng "/dangky Họ và tên - Đơn vị", được duyệt là hỏi được, ví dụ: "số điện thoại của đồng chí Lê Tiến Lam?".\n'
+      + 'Quản trị xem và nhập toàn bộ danh bạ trong phân hệ Quản lý cán bộ → khu vực "Danh bạ điện thoại".',
+    lienKet: [{ nhan: 'Chat Zalo', url: CHAT_ZALO }, { nhan: 'Chat Telegram', url: CHAT_TELEGRAM }, { nhan: 'Mở Quản lý cán bộ', url: '#/canbo' }],
+  },
+  {
     id: 'lienhe',
     tu: ['lien he', 'ho tro', 'dien thoai', 'so may', 'email', 'ai phu trach', 'gap ai', 'hotline'],
     mau: 'Liên hệ ai khi cần hỗ trợ?',

@@ -200,6 +200,36 @@ export function fmtBieuQuyet(doc) {
 }
 
 // ---------------------------------------------------------------------------
+//  E. Danh bạ điện thoại (hr_data.danhBa — Quản trị nhập từ tệp trong phân hệ
+//  Quản lý cán bộ). Danh bạ là để tra cứu nên mở cho MỌI người dùng bot đã
+//  được duyệt (không riêng Quản trị); riêng khung chat khách vô danh ở Trang
+//  chủ thì nơi gọi tự quyết bằng tùy chọn `danhBa` của gatherFacts.
+// ---------------------------------------------------------------------------
+export async function danhBaFacts() {
+  const row = await getRow('hr_data');
+  return fmtDanhBa(row?.data);
+}
+
+/** Phần định dạng THUẦN — kiểm thử được bằng Node. */
+export function fmtDanhBa(doc) {
+  const list = Array.isArray(doc?.danhBa) ? doc.danhBa : [];
+  if (!list.length) {
+    return {
+      meta: null,
+      text: '## Danh bạ điện thoại\nChưa có danh bạ trên máy chủ. Nhắc người dùng: Quản trị mở phân hệ Quản lý cán bộ '
+        + '(https://hdndthkpi.vercel.app/#/canbo) → khu vực "Danh bạ điện thoại" → Nhập từ tệp rồi bấm Lưu hồ sơ.',
+    };
+  }
+  const rows = list.map((d) => `- ${d.ten}${d.nhom ? ` [${d.nhom}]` : ''} | ${d.chucVu || ''} | ĐT: ${d.sdt || '(chưa có số)'}`);
+  return {
+    meta: { so: list.length },
+    text: `## Danh bạ điện thoại (${list.length} người)\n`
+      + `Chỉ trả lời số điện thoại của ĐÚNG người được hỏi (đối chiếu đủ họ tên/chức vụ); `
+      + `không liệt kê hàng loạt trừ khi người hỏi yêu cầu rõ một danh sách.\n${rows.join('\n')}`,
+  };
+}
+
+// ---------------------------------------------------------------------------
 //  Chọn nạp phần nào theo câu hỏi — tránh nhồi hết dữ liệu vào mỗi lượt chat.
 // ---------------------------------------------------------------------------
 const KW = {
@@ -212,22 +242,26 @@ const KW = {
     'chờ duyệt', 'cho duyet', 'địa điểm', 'dia diem', 'thành phần', 'thanh phan', 'tiếp công dân'],
   bq: ['biểu quyết', 'bieu quyet', 'nghị quyết', 'nghi quyet', 'kỳ họp', 'ky hop', 'tán thành', 'tan thanh',
     'thông qua', 'thong qua', 'lá phiếu', 'la phieu', 'bỏ phiếu', 'bo phieu', 'kiểm phiếu', 'kiem phieu', 'đại biểu', 'dai bieu'],
+  db: ['số điện thoại', 'so dien thoai', 'điện thoại của', 'dien thoai cua', 'danh bạ', 'danh ba', 'sđt', 'sdt',
+    'số máy', 'so may', 'số của', 'so cua', 'gọi cho', 'goi cho', 'liên lạc với', 'lien lac voi', 'hotline'],
 };
 const hit = (q, list) => list.some((k) => q.includes(k));
 
-export async function gatherFacts(question, { isAdmin = false } = {}) {
+export async function gatherFacts(question, { isAdmin = false, danhBa = true } = {}) {
   const q = String(question || '').toLowerCase();
   const wantTC = hit(q, KW.tc);
   const wantHR = isAdmin && hit(q, KW.hr);
   const wantLich = hasLich() && hit(q, KW.lich);
   const wantBQ = hit(q, KW.bq);
-  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich && !wantBQ); // mặc định nạp kỳ đánh giá
+  const wantDB = danhBa && hit(q, KW.db);
+  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich && !wantBQ && !wantDB); // mặc định nạp kỳ đánh giá
 
   const jobs = [];
   if (wantKP) jobs.push(periodFacts().catch((e) => ({ text: `(Không đọc được kỳ đánh giá: ${e.message})` })));
   if (wantTC) jobs.push(tieuChiFacts().catch((e) => ({ text: `(Không đọc được tiêu chí HĐND: ${e.message})` })));
   if (wantLich) jobs.push(lichFacts().catch((e) => ({ text: `(Không đọc được lịch công tác: ${e.message})` })));
   if (wantBQ) jobs.push(bieuQuyetFacts().catch((e) => ({ text: `(Không đọc được kết quả biểu quyết: ${e.message})` })));
+  if (wantDB) jobs.push(danhBaFacts().catch((e) => ({ text: `(Không đọc được danh bạ: ${e.message})` })));
   if (wantHR) jobs.push(nhanSuFacts().catch((e) => ({ text: `(Không đọc được dữ liệu nhân sự: ${e.message})` })));
 
   const parts = (await Promise.all(jobs)).map((r) => r.text).filter(Boolean);

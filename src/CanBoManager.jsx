@@ -3,6 +3,7 @@ import {
   Users, BellRing, CalendarClock, ClipboardList, Building2, Search, Plus, Trash2,
   FileText, Save, AlertTriangle, CheckCircle2, X, UserPlus, Cake, TrendingUp,
   RefreshCw, ShieldCheck, Briefcase, GraduationCap, Landmark, HeartPulse, Info, ChevronRight,
+  Phone, Upload,
 } from 'lucide-react';
 import {
   HR_CATEGORY, catOf, HR_BTV, HR_NGACH, ngachOf, hesoOf, HR_GENDER, HR_REPEAT,
@@ -10,6 +11,8 @@ import {
   buildAlerts, ALERT_META, headcount, nextRaise, retireDate, nextBirthday,
   profileCompleteness, fmtD, daysTo, ageAt, addMonths, toDate, DEFAULT_LEAD,
 } from './lib/hr';
+import { phanTichDanhBa, timDanhBa, nhomDanhBa } from './lib/danhBa';
+import { docTaiLieu } from './lib/troLyAI';
 
 // ============================================================================
 // MODULE QUẢN LÝ CÁN BỘ (chỉ tài khoản Quản trị)
@@ -23,6 +26,7 @@ const SUBTABS = [
   { id: 'list', label: 'Hồ sơ cán bộ', icon: Users },
   { id: 'duties', label: 'Nhiệm vụ có hạn', icon: ClipboardList },
   { id: 'quota', label: 'Biên chế', icon: Building2 },
+  { id: 'danhba', label: 'Danh bạ điện thoại', icon: Phone },
 ];
 
 const dayLabel = (d) => (d == null ? '' : d < 0 ? `quá ${-d} ngày` : d === 0 ? 'hôm nay' : `còn ${d} ngày`);
@@ -57,6 +61,21 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
   const duties = useMemo(() => data.duties || [], [data.duties]);
   const quota = useMemo(() => data.quota || {}, [data.quota]);
   const lead = useMemo(() => ({ ...DEFAULT_LEAD, ...(data.lead || {}) }), [data.lead]);
+  const danhBa = useMemo(() => data.danhBa || [], [data.danhBa]);
+
+  // ---- Danh bạ điện thoại: nhập từ tệp (.docx/.pdf/.txt) qua /api/doctext ----
+  const [qDb, setQDb] = useState('');
+  const [dbTrangThai, setDbTrangThai] = useState('');
+  const napDanhBa = async (file) => {
+    if (!file) return;
+    setDbTrangThai('Đang đọc tệp…');
+    const r = await docTaiLieu(file);
+    if (r.error) { setDbTrangThai(`Lỗi: ${r.error}`); return; }
+    const ds = phanTichDanhBa(r.text);
+    if (!ds.length) { setDbTrangThai('Không nhận ra mục danh bạ nào — tệp cần bảng dạng Stt · Họ và tên · Chức vụ · Số điện thoại.'); return; }
+    onChange({ danhBa: ds });
+    setDbTrangThai(`Đã đọc ${ds.length} số (${nhomDanhBa(ds).join(' · ') || 'một nhóm'}). Bấm "Lưu hồ sơ" để lưu lên máy chủ — sau đó trợ lý chat tra cứu được.`);
+  };
 
   const alerts = useMemo(() => buildAlerts(staff, duties, quota, lead), [staff, duties, quota, lead]);
   const hc = useMemo(() => headcount(staff, quota), [staff, quota]);
@@ -109,7 +128,7 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
         {/* Thanh khu vực */}
         <div className="px-3 py-2.5 flex gap-1.5 flex-wrap border-b border-slate-100 bg-slate-50/60">
           {SUBTABS.map((t) => { const Ic = t.icon; const on = sub === t.id;
-            const n = t.id === 'alerts' ? alerts.length : t.id === 'list' ? staff.length : t.id === 'duties' ? duties.filter((d) => !d.done).length : hc.rows.length;
+            const n = t.id === 'alerts' ? alerts.length : t.id === 'list' ? staff.length : t.id === 'duties' ? duties.filter((d) => !d.done).length : t.id === 'danhba' ? danhBa.length : hc.rows.length;
             return (
               <button key={t.id} onClick={() => setSub(t.id)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition ${on ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500 hover:bg-white hover:text-slate-700'}`}>
                 <Ic className="w-3.5 h-3.5" /> {t.label}
@@ -394,6 +413,70 @@ export default function CanBoManager({ data, people, onChange, onSave, saving, c
               </tbody>
             </table>
           </div>
+        </section>
+      )}
+
+      {/* ============ Danh bạ điện thoại ============ */}
+      {sub === 'danhba' && (
+        <section className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center gap-2 flex-wrap">
+            <h3 className="font-bold text-slate-800 text-sm flex items-center gap-2"><Phone className="w-4 h-4 text-emerald-600" /> Danh bạ điện thoại</h3>
+            {canEdit && (
+              <label className="ml-auto flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 text-white rounded-xl text-xs font-semibold hover:bg-slate-700 transition cursor-pointer">
+                <Upload className="w-3.5 h-3.5" /> Nhập từ tệp (.docx/.pdf/.txt)
+                <input type="file" accept=".docx,.pdf,.txt" className="hidden"
+                  onChange={(e) => { napDanhBa(e.target.files?.[0]); e.target.value = ''; }} />
+              </label>
+            )}
+          </div>
+          <div className="px-4 pt-3 space-y-2">
+            <p className="text-[11px] text-slate-500 leading-relaxed">
+              Danh bạ lưu trong hồ sơ cán bộ trên máy chủ (chỉ Quản trị đọc được qua giao diện) và <b>cố ý không nằm trong mã nguồn</b> vì
+              kho mã công khai. Trợ lý chat trên Zalo/Telegram (người dùng đã được duyệt) tra cứu được số điện thoại từ danh bạ này.
+            </p>
+            {dbTrangThai && <p className="text-[11.5px] font-semibold text-sky-700 bg-sky-50 border border-sky-100 rounded-xl px-3 py-2">{dbTrangThai}</p>}
+            <div className="relative">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input value={qDb} onChange={(e) => setQDb(e.target.value)} placeholder="Tìm theo tên, chức vụ, số máy (gõ không dấu cũng được)…"
+                className="w-full pl-8 pr-3 py-2 bg-white border border-slate-200 rounded-xl text-xs text-slate-700 outline-none focus:border-slate-400" />
+            </div>
+          </div>
+          {danhBa.length === 0 ? (
+            <div className="text-center py-12 text-slate-400">
+              <Phone className="w-10 h-10 mx-auto mb-2 text-slate-300" />
+              <p className="text-sm font-medium text-slate-500">Chưa có danh bạ</p>
+              <p className="text-[11px] mt-1">Bấm "Nhập từ tệp" và chọn tệp danh sách danh bạ (bảng Stt · Họ và tên · Chức vụ · Số điện thoại).</p>
+            </div>
+          ) : (
+            <div className="p-3 space-y-4">
+              {nhomDanhBa(timDanhBa(danhBa, qDb)).map((nhom) => (
+                <div key={nhom}>
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 px-1 mb-1.5">{nhom}</p>
+                  <div className="overflow-x-auto rounded-xl border border-slate-100">
+                    <table className="w-full text-sm min-w-[560px]">
+                      <tbody className="divide-y divide-slate-100">
+                        {timDanhBa(danhBa, qDb).filter((d) => d.nhom === nhom).map((d) => (
+                          <tr key={`${d.nhom}-${d.stt}-${d.sdt}`} className="hover:bg-slate-50">
+                            <td className="px-3 py-2 text-[11px] text-slate-400 w-8 text-right">{d.stt}</td>
+                            <td className="px-2 py-2">
+                              <span className="flex items-center gap-2"><Avatar name={d.ten} size="sm" /><span className="text-xs font-semibold text-slate-800">{d.ten}</span></span>
+                            </td>
+                            <td className="px-2 py-2 text-[11px] text-slate-500 max-w-[380px]">{d.chucVu}</td>
+                            <td className="px-3 py-2 text-right whitespace-nowrap">
+                              {d.sdt
+                                ? <a href={`tel:${d.sdt}`} className="inline-flex items-center gap-1.5 text-xs font-bold text-emerald-700 hover:text-emerald-900"><Phone className="w-3 h-3" /> {d.sdt}</a>
+                                : <span className="text-[11px] text-slate-400">(chưa có số)</span>}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              ))}
+              {timDanhBa(danhBa, qDb).length === 0 && <p className="text-center text-[12px] text-slate-400 py-6">Không có mục nào khớp "{qDb}".</p>}
+            </div>
+          )}
         </section>
       )}
 
