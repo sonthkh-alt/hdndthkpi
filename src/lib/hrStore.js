@@ -8,13 +8,17 @@ import { DEFAULT_LEAD } from './hr';
 // ⚠ Cần policy cho phép tài khoản đã đăng nhập đọc/ghi dòng 'hr_data' (xem supabase/schema.sql).
 // ============================================================================
 const KEY = 'hdndkpi_hr_data';
-export const EMPTY_HR = { staff: [], duties: [], quota: {}, lead: { ...DEFAULT_LEAD }, updatedAt: '' };
+export const EMPTY_HR = { staff: [], duties: [], quota: {}, lead: { ...DEFAULT_LEAD }, danhBa: [], updatedAt: '' };
 
+// ⚠️ normalize là DANH SÁCH TRẮNG các trường được giữ lại — thêm trường mới vào
+// hồ sơ thì PHẢI khai ở đây, nếu không sẽ bị gọt mất ngay lúc lưu/nạp
+// (bài học: trường danhBa từng "lưu xong mở lại thì biến mất" vì thiếu dòng này).
 const normalize = (d) => ({
   staff: Array.isArray(d?.staff) ? d.staff : [],
   duties: Array.isArray(d?.duties) ? d.duties : [],
   quota: (d && typeof d.quota === 'object' && d.quota) || {},
   lead: { ...DEFAULT_LEAD, ...((d && typeof d.lead === 'object' && d.lead) || {}) },
+  danhBa: Array.isArray(d?.danhBa) ? d.danhBa : [],   // danh bạ điện thoại (nhập ở CanBoManager)
   updatedAt: d?.updatedAt || '',
 });
 
