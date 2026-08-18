@@ -17,10 +17,10 @@
 //     mang đúng app_id của ứng dụng mình (Zalo luôn gửi kèm app_id).
 //     Chuỗi bí mật VẪN bắt buộc cho hai đường dẫn quản trị ?auth= và ?setup=.
 // ============================================================================
-import { reply } from './_lib/brain.js';
-import { userKey, getUser, register, spendQuota, describe, isOpen } from './_lib/users.js';
-import { notifyNewUser, tgAdmins } from './_lib/notify.js';
-import { hasZalo, appId, buildAuthUrl, exchangeCode, accessToken, sendText } from './_lib/zaloApi.js';
+// ⚠️ KHÔNG import gì ở đây: Zalo bấm "Kiểm tra" chỉ chờ vài giây, mà lần gọi đầu
+//    Vercel phải khởi động nguội. Nạp toàn bộ bộ não + khung tiêu chí + dữ liệu nhân sự
+//    lúc đó sẽ quá chậm và Zalo báo HTTP 408. Vì vậy mọi mô-đun đều nạp THEO NHU CẦU
+//    (dynamic import) bên trong handler, sau khi đã biết chắc đây là tin nhắn thật.
 
 const WELCOME = 'Xin chào! Đây là trợ lý của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa.\n\n'
   + 'Để sử dụng, quý vị vui lòng đăng ký một lần bằng cách gửi:\n'
@@ -37,6 +37,10 @@ export function parseDangKy(text) {
   return name ? { name, unit: parts.join(' - ').trim() } : null;
 }
 
+/** Có phải sự kiện "người dùng gửi tin nhắn văn bản" thật hay không. */
+const isTextEvent = (ev) => !!(ev && ev.sender?.id && ev.message?.text
+  && (!ev.event_name || ev.event_name === 'user_send_text'));
+
 const selfUrl = (req) => {
   const host = req.headers['x-forwarded-host'] || req.headers.host;
   const proto = req.headers['x-forwarded-proto'] || 'https';
@@ -48,7 +52,10 @@ export default async function handler(req, res) {
 
   // ---- GET: cấu hình & chẩn đoán ------------------------------------------
   if (req.method === 'GET') {
+    const { hasZalo, appId, buildAuthUrl, exchangeCode, accessToken } = await import('./_lib/zaloApi.js');
     if (!hasZalo()) return res.status(500).json({ ok: false, error: 'Chưa khai ZALO_APP_ID / ZALO_APP_SECRET trên Vercel.' });
+    const { isOpen } = await import('./_lib/users.js');
+    const { tgAdmins } = await import('./_lib/notify.js');
     const q = req.query || {};
 
     // Bước 1: lấy đường dẫn xin quyền (mở bằng tài khoản quản trị OA).
@@ -89,9 +96,14 @@ export default async function handler(req, res) {
 
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
 
+  const ev = req.body || {};
+  // Nút "Kiểm tra" của Zalo và các sự kiện khác (follow, gửi ảnh...) -> TRẢ 200 NGAY,
+  // không nạp thêm mô-đun nào. Đây là chỗ trước đây gây HTTP 408.
+  if (!isTextEvent(ev)) return res.status(200).json({ ok: true });
+
   // Luôn trả 200 để Zalo không gửi lại liên tục.
   try {
-    const ev = req.body || {};
+    const { appId, sendText } = await import('./_lib/zaloApi.js');
 
     // Zalo không gửi tiêu đề bí mật như Telegram và cũng không cho gắn tham số vào
     // địa chỉ webhook -> chấp nhận khi có ?secret= đúng HOẶC gói tin mang đúng app_id.
@@ -99,9 +111,10 @@ export default async function handler(req, res) {
     const byAppId = ev.app_id && String(ev.app_id) === appId();
     if (secret && !bySecret && !byAppId) return res.status(401).json({ ok: false });
 
-    const from = String(ev.sender?.id || '');
-    const text = ev.message?.text;
-    if (!from || !text || (ev.event_name && ev.event_name !== 'user_send_text')) return res.status(200).json({ ok: true });
+    const { userKey, getUser, register, spendQuota, describe, isOpen } = await import('./_lib/users.js');
+    const { notifyNewUser } = await import('./_lib/notify.js');
+    const from = String(ev.sender.id);
+    const text = ev.message.text;
 
     const key = userKey('zalo', from);
     const cmd = text.toLowerCase().split(/\s+/)[0];
@@ -128,7 +141,10 @@ export default async function handler(req, res) {
 
     let answer;
     // Người dùng Zalo KHÔNG được coi là Quản trị -> không đọc được hồ sơ nhân sự.
-    try { answer = await reply({ text, chatKey: `zalo:${from}`, isAdmin: false }); }
+    try {
+      const { reply } = await import('./_lib/brain.js');
+      answer = await reply({ text, chatKey: `zalo:${from}`, isAdmin: false });
+    }
     catch (e) { answer = `Xin lỗi, tôi gặp trục trặc khi xử lý: ${String(e?.message || e).slice(0, 300)}`; }
     await sendText(from, answer);
     return res.status(200).json({ ok: true });
