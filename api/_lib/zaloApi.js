@@ -94,6 +94,18 @@ export async function accessToken(row0) {
   return store(await tokenRequest({ refresh_token: refresh, app_id: appId(), grant_type: 'refresh_token' }));
 }
 
+/**
+ * Hỏi Zalo thông tin OA đang gắn (mã số + tên) — dùng cho chẩn đoán ở GET /api/zalo.
+ * Người dân chat với OA qua liên kết `https://zalo.me/<mã số OA>`.
+ */
+export async function oaInfo() {
+  const token = await accessToken();
+  const r = await fetch('https://openapi.zalo.me/v2.0/oa/getoa', { headers: { access_token: token } });
+  const d = await r.json().catch(() => ({}));
+  if (Number(d.error || 0) !== 0) throw new Error(`Zalo getoa lỗi ${d.error}: ${d.message || ''}`);
+  return { id: String(d.data?.oa_id || ''), ten: d.data?.name || '', lienKet: d.data?.oa_id ? `https://zalo.me/${d.data.oa_id}` : '' };
+}
+
 /** Zalo giới hạn độ dài mỗi tin — cắt theo dòng cho gọn. */
 export function zaloChunks(text, size = 1900) {
   const out = []; let buf = '';

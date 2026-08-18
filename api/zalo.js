@@ -58,7 +58,7 @@ export default async function handler(req, res) {
 
   // ---- GET: cấu hình & chẩn đoán ------------------------------------------
   if (req.method === 'GET') {
-    const { hasZalo, appId, buildAuthUrl, exchangeCode, accessToken } = await import('./_lib/zaloApi.js');
+    const { hasZalo, appId, buildAuthUrl, exchangeCode, accessToken, oaInfo } = await import('./_lib/zaloApi.js');
     if (!hasZalo()) return res.status(500).json({ ok: false, error: 'Chưa khai ZALO_APP_ID / ZALO_APP_SECRET trên Vercel.' });
     const { isOpen } = await import('./_lib/users.js');
     const { tgAdmins } = await import('./_lib/notify.js');
@@ -91,6 +91,10 @@ export default async function handler(req, res) {
 
     let token = null; let tokenError = null;
     try { token = !!(await accessToken()); } catch (e) { tokenError = String(e.message || e); }
+    // Thông tin OA đang gắn — người dân chat với OA qua liên kết zalo.me/<mã số OA>
+    // (nút "Người hướng dẫn" ở Trang chủ dùng liên kết này).
+    let oa = null;
+    if (token) { try { oa = await oaInfo(); } catch { /* thiếu quyền getoa thì bỏ qua */ } }
     let tinNhanGanNhat = null; let tinTrungGanNhat = null;
     try {
       const { getRow } = await import('./_lib/store.js');
@@ -99,7 +103,7 @@ export default async function handler(req, res) {
       tinTrungGanNhat = (await getRow(DBG_TRUNG))?.data || null;
     } catch { /* bỏ qua */ }
     return res.status(200).json({
-      ok: true, appId: appId(), token, tokenError,
+      ok: true, appId: appId(), token, tokenError, oa,
       tinNhanGanNhat,   // null = Zalo CHƯA gửi tin nhắn nào tới webhook này
       tinTrungGanNhat,  // khác null = đã có tin bị Zalo gửi lại và bot đã chặn trả lời lặp
       webhookUrl: selfUrl(req),   // khai NGUYÊN chuỗi này, không kèm tham số
