@@ -61,7 +61,8 @@ export default function NguoiHuongDan({ onGuide }) {
   const [oNhap, setONhap] = useState('');
   const [dangGo, setDangGo] = useState(''); // '' | 'kb' (kịch bản) | 'ai'
   const [hanMuc, setHanMuc] = useState(null); // {conLai, gioiHan} — lượt AI hôm nay
-  const [cheDoAI, setCheDoAI] = useState(false); // bật = hỏi thẳng AI, bỏ qua câu có sẵn
+  const [cheDoAI, setCheDoAI] = useState(true); // MẶC ĐỊNH hỏi AI; tắt = chế độ tiết kiệm (câu có sẵn trước)
+  const daBaoHetLuotRef = useRef(false); // thông báo "đã chuyển sang chat miễn phí" chỉ hiện MỘT lần
   const khungRef = useRef(null);
 
   useEffect(() => {
@@ -126,20 +127,36 @@ export default function NguoiHuongDan({ onGuide }) {
     if (!hoi || dangGo) return;
     setTinNhan((t) => [...t, { vai: 'toi', text: hoi }]);
     setONhap('');
+    const coLuot = !!hanMuc && hanMuc.conLai > 0;
+    const kb = traLoi(hoi);
 
-    // TẦNG 1 — câu có sẵn: trả lời ngay trong trình duyệt, 0 token, không giới hạn.
-    // Bật chế độ AI (nút gạt cạnh ô nhập) thì BỎ QUA kịch bản, hỏi thẳng AI.
-    if (!cheDoAI) {
-      const kb = traLoi(hoi);
-      if (kb.id !== 'ngoai') {
-        setDangGo('kb');
-        setTimeout(() => { themBot({ ...kb, goc: hoi }); setDangGo(''); }, 350);
-        return;
-      }
+    // MẶC ĐỊNH: còn lượt thì hỏi thẳng AI.
+    if (cheDoAI && coLuot) { guiAI(hoi); return; }
+
+    // Chế độ tiết kiệm (người dùng tự tắt [AI]): câu có sẵn trả lời miễn phí trước,
+    // câu ngoài kịch bản mới dùng tới AI.
+    if (!cheDoAI && kb.id !== 'ngoai') {
+      setDangGo('kb');
+      setTimeout(() => { themBot({ ...kb, goc: hoi }); setDangGo(''); }, 350);
+      return;
     }
+    if (coLuot) { guiAI(hoi); return; }
 
-    // TẦNG 2 — hỏi AI.
-    guiAI(hoi);
+    // HẾT LƯỢT AI → TỰ CHUYỂN sang chat miễn phí của hệ thống (kịch bản có sẵn);
+    // câu ngoài kịch bản thì hướng dẫn đăng ký Zalo/Telegram.
+    setDangGo('kb');
+    setTimeout(() => {
+      if (kb.id !== 'ngoai') {
+        if (!daBaoHetLuotRef.current) {
+          daBaoHetLuotRef.current = true;
+          themBot({ text: 'Đã hết lượt hỏi AI miễn phí hôm nay — tôi tự chuyển sang CHAT MIỄN PHÍ của hệ thống: trả lời theo kịch bản có sẵn, không giới hạn. Muốn hỏi AI tiếp thì dùng Zalo/Telegram bên dưới.', lienKet: [] });
+        }
+        themBot(kb);
+      } else {
+        themBot(HET_LUOT_AI);
+      }
+      setDangGo('');
+    }, 350);
   };
 
   return (
@@ -174,11 +191,11 @@ export default function NguoiHuongDan({ onGuide }) {
           {/* Ô nhập */}
           <form className="p-3 flex items-center gap-2 border-t border-slate-100" onSubmit={(e) => { e.preventDefault(); gui(oNhap); }}>
             <input value={oNhap} onChange={(e) => setONhap(e.target.value)}
-              placeholder={cheDoAI ? 'Hỏi thẳng AI (tốn 1 lượt)…' : 'Gõ câu hỏi của quý vị…'}
+              placeholder={cheDoAI ? 'Gõ câu hỏi — AI trả lời (mặc định)…' : 'Gõ câu hỏi — câu có sẵn miễn phí trước…'}
               className={`flex-1 min-w-0 rounded-xl border px-3 py-2 text-[13px] focus:outline-none focus:ring-2 ${cheDoAI ? 'border-violet-300 focus:ring-violet-200' : 'border-slate-300 focus:ring-red-200'}`} />
-            {/* Nút gạt: bật = câu hỏi đi THẲNG tới AI, không qua kịch bản. */}
+            {/* Nút gạt: MẶC ĐỊNH BẬT (hỏi thẳng AI); tắt = chế độ tiết kiệm, câu có sẵn trước. */}
             <button type="button" onClick={() => setCheDoAI((v) => !v)} aria-pressed={cheDoAI}
-              title={cheDoAI ? 'Đang hỏi thẳng AI (mỗi câu tốn 1 lượt) — bấm để tắt' : 'Bật để hỏi thẳng AI ngay, bỏ qua câu trả lời có sẵn'}
+              title={cheDoAI ? 'Đang trả lời bằng AI (mặc định, mỗi câu tốn 1 lượt) — bấm để chuyển chế độ tiết kiệm' : 'Chế độ tiết kiệm: câu có sẵn trả lời miễn phí trước — bấm để trở lại hỏi thẳng AI'}
               className={`shrink-0 h-10 px-2.5 rounded-xl border text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors ${cheDoAI ? 'bg-violet-600 border-violet-600 text-white' : 'border-slate-300 text-slate-500 hover:bg-slate-50'}`}>
               <Sparkles className="w-3.5 h-3.5" /> AI
             </button>

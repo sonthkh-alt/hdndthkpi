@@ -21,9 +21,9 @@ export const boDau = (s) => String(s || '').toLowerCase().normalize('NFD').repla
 export const CHAO = {
   id: 'chao',
   text: 'Xin chào! Tôi là người hướng dẫn của hệ thống.\n'
-    + '• Câu hỏi về cách dùng, các phân hệ, cách tính điểm… tôi trả lời tức thì, miễn phí, không giới hạn.\n'
-    + '• Câu khác tôi sẽ hỏi AI giúp quý vị — miễn phí 3 lượt mỗi ngày; hết lượt thì chuyển sang Zalo/Telegram để hỏi tiếp.\n'
-    + '• Muốn hỏi AI NGAY: bật nút [AI] cạnh ô nhập, hoặc bấm "Hỏi AI ngay" dưới câu trả lời có sẵn.',
+    + '• Mặc định tôi trả lời bằng AI — miễn phí 3 lượt mỗi ngày.\n'
+    + '• Hết lượt, tôi TỰ CHUYỂN sang chat miễn phí của hệ thống (trả lời theo kịch bản có sẵn, không giới hạn); muốn hỏi AI tiếp thì sang Zalo/Telegram bên dưới.\n'
+    + '• Muốn tiết kiệm lượt: tắt nút [AI] cạnh ô nhập — câu có sẵn sẽ được trả lời miễn phí trước, cần thì bấm "Hỏi AI ngay" dưới câu trả lời.',
   lienKet: [],
 };
 
