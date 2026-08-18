@@ -81,7 +81,7 @@ Chấm điểm OKR/KPI hằng tháng, chốt trước ngày 15/12 với kỳ th�
 
 ## Liên hệ
 Đồng chí Hà Ngọc Sơn, Phó Chánh Văn phòng — điện thoại 0904818886, thư điện tử sonthkh@gmail.com.
-Chat với trợ lý (chính là bạn): góc phải dưới Trang chủ có nút nổi "Người hướng dẫn" mở popup dẫn tới hai kênh — Zalo OA "VP Đoàn ĐBQH và HĐND tỉnh Thanh Hóa" (https://zalo.me/142053241153738721) và Telegram @hdnd_thanhhoa_bot (https://t.me/hdnd_thanhhoa_bot). Lần đầu nhắn tin phải gửi "/dangky Họ và tên - Đơn vị" và chờ Quản trị duyệt.
+Chat hướng dẫn: góc phải dưới Trang chủ có nút nổi "Người hướng dẫn" mở khung chat TRẢ LỜI TỨC THÌ các câu hỏi hướng dẫn sử dụng ngay trong trình duyệt (theo kịch bản soạn sẵn, không dùng AI, miễn phí, không tính lượt nào). Câu hỏi mở hoặc cần số liệu thật thì chat với trợ lý AI (chính là bạn) qua hai kênh — Zalo OA "VP Đoàn ĐBQH và HĐND tỉnh Thanh Hóa" (https://zalo.me/142053241153738721) và Telegram @hdnd_thanhhoa_bot (https://t.me/hdnd_thanhhoa_bot). Lần đầu nhắn tin phải gửi "/dangky Họ và tên - Đơn vị" và chờ Quản trị duyệt.
 
 ## Cơ sở pháp lý chính
 Nghị định 335/2025/NĐ-CP về đánh giá, xếp loại cán bộ, công chức; Quyết định 1053-QĐ/TU ngày 05/6/2026 của Tỉnh ủy Thanh Hóa; Hướng dẫn 03-HD/TU ngày 02/7/2026; Quyết định 73-QĐ/TU ngày 14/11/2025; Khung tiêu chí đánh giá, xếp loại HĐND cấp tỉnh, cấp xã nhiệm kỳ 2026-2031; Thông tư 08/2013/TT-BNV; Nghị định 135/2020/NĐ-CP.`;
