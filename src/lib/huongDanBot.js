@@ -22,6 +22,7 @@ export const GOI_Y = [
   'Hệ thống gồm những phân hệ nào?',
   'Biểu quyết online dùng thế nào?',
   'Cách tính điểm OKR/KPI?',
+  'Xem lịch công tác tuần ở đâu?',
   'Đăng nhập bằng tài khoản nào?',
   'Liên hệ ai khi cần hỗ trợ?',
 ];
@@ -108,11 +109,44 @@ export const KICH_BAN = [
   },
   {
     id: 'lich',
-    tu: ['lich cong tac', 'lich tuan', 'lich lanh dao', 'dieu xe', 'xe cong'],
+    tu: ['lich cong tac', 'lich tuan', 'xem lich', 'mo lich', 'in lich'],
     mau: 'Xem lịch công tác tuần ở đâu?',
-    text: 'Lịch công tác tuần chạy trên hệ thống riêng (tài khoản đăng nhập riêng) — bấm thẻ "Quản lý lịch công tác tuần" trên Trang chủ để mở.\n'
-      + 'Mẹo: trợ lý AI trên Zalo/Telegram đọc được lịch của tuần này và tuần sau, hỏi trực tiếp bên đó rất nhanh.',
-    lienKet: [{ nhan: 'Trang chủ (thẻ Lịch công tác)', url: '#/' }],
+    text: 'Lịch công tác tuần chạy trên hệ thống riêng (tài khoản đăng nhập riêng) — bấm thẻ "Quản lý lịch công tác tuần" trên Trang chủ, hoặc mở thẳng liên kết bên dưới.\n'
+      + '• Đối tượng có lịch: 2 Phó Chủ tịch HĐND tỉnh, lãnh đạo Đoàn ĐBQH tỉnh, 4 Ban (Kinh tế - Ngân sách · Pháp chế · Văn hóa - Xã hội · Dân tộc) và lãnh đạo Văn phòng (trực cuối tuần).\n'
+      + '• Mỗi mục lịch ghi theo buổi: Sáng · Chiều · Cả ngày · Theo giờ, kèm địa điểm, thành phần; in được lịch tuần.\n'
+      + 'Mẹo: cần tra nhanh thì hỏi trợ lý AI trên Zalo/Telegram — bên đó đọc được lịch tuần này và tuần sau.',
+    lienKet: [{ nhan: 'Mở Lịch công tác tuần', url: 'https://calendar-beta-lac.vercel.app' }],
+  },
+  {
+    id: 'lichhoi',
+    tu: ['lich hom nay', 'lich ngay mai', 'hoi lich', 'lich cua', 'hom nay co lich', 'lich tuan nay', 'lich tuan sau', 'lich lanh dao'],
+    mau: 'Hỏi lịch hôm nay của lãnh đạo thế nào?',
+    text: 'Muốn tra lịch nhanh, nhắn cho trợ lý AI trên Zalo hoặc Telegram — trợ lý đọc được lịch công tác của TUẦN NÀY và TUẦN SAU, ví dụ:\n'
+      + '• "Lịch hôm nay của Phó Chủ tịch Thường trực?"\n'
+      + '• "Tuần sau Ban Pháp chế có lịch gì?"\n'
+      + '• "Ngày mai có mục lịch nào chờ duyệt không?"\n'
+      + 'Lưu ý: mỗi câu hỏi tính vào hạn mức 30 câu/ngày của bot; lịch xa hơn hai tuần thì mở hệ thống lịch để xem.',
+    lienKet: [{ nhan: 'Chat Zalo', url: CHAT_ZALO }, { nhan: 'Chat Telegram', url: CHAT_TELEGRAM }, { nhan: 'Mở hệ thống lịch', url: 'https://calendar-beta-lac.vercel.app' }],
+  },
+  {
+    id: 'lichnhap',
+    tu: ['nhap lich', 'dang ky lich', 'them lich', 'duyet lich', 'duyet lich tuan', 'cho duyet', 'tu choi lich', 'dieu chinh lich', 'sua lich'],
+    mau: 'Đăng ký lịch mới và duyệt lịch thế nào?',
+    text: 'Cán bộ Văn phòng nhập lịch của tuần sau trên hệ thống lịch (thường chốt vào thứ Sáu), dùng tài khoản riêng của hệ thống đó.\n'
+      + '• Vòng duyệt: Chờ duyệt → lãnh đạo bấm Đã duyệt, hoặc Đã điều chỉnh (kèm ghi chú), hoặc Từ chối (kèm lý do).\n'
+      + '• Mục bị từ chối mà sửa lại thì tự quay về trạng thái Chờ duyệt.\n'
+      + 'Việc nhập và duyệt chỉ làm được trong hệ thống lịch; trợ lý AI chỉ ĐỌC lịch, không nhập hay duyệt thay.',
+    lienKet: [{ nhan: 'Mở hệ thống lịch', url: 'https://calendar-beta-lac.vercel.app' }],
+  },
+  {
+    id: 'lichxe',
+    tu: ['dieu xe', 'xe cong', 'xe rieng', 'xe dung chung', 'trung xe', 'bo tri xe', 'xep xe'],
+    mau: 'Xe công được bố trí thế nào?',
+    text: 'Việc điều xe làm ngay trong hệ thống lịch: mỗi mục lịch được Văn phòng gắn xe đưa đón.\n'
+      + '• Xe riêng gắn cố định với từng Phó Chủ tịch; các xe còn lại dùng chung.\n'
+      + '• Một xe bị xếp trùng giờ sẽ được hệ thống cảnh báo ngay khi điều.\n'
+      + 'Muốn biết tuần này xe nào đi đâu, hỏi trợ lý AI trên Zalo/Telegram (đọc được 2 tuần lịch kèm xe được điều).',
+    lienKet: [{ nhan: 'Mở hệ thống lịch', url: 'https://calendar-beta-lac.vercel.app' }, { nhan: 'Chat Zalo', url: CHAT_ZALO }],
   },
   {
     id: 'giamsat',
