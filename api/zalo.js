@@ -122,35 +122,44 @@ export default async function handler(req, res) {
     const from = String(ev.sender.id);
     const text = ev.message.text;
 
-    // Nhật ký chẩn đoán: ghi lại tin nhắn gần nhất để biết Zalo CÓ gọi webhook hay không
-    // (xem ở GET /api/zalo, trường `tinNhanGanNhat`). Không chặn luồng trả lời nếu lỗi.
-    try {
-      const { putRow } = await import('./_lib/store.js');
-      await putRow('zalo_debug', { at: new Date().toISOString(), from, text: String(text).slice(0, 120), event: ev.event_name || '' });
-    } catch { /* bỏ qua */ }
+    // Nhật ký chẩn đoán (xem ở GET /api/zalo, trường `tinNhanGanNhat`): ghi lại tin nhận
+    // được VÀ kết quả gửi trả lời — để phân biệt "Zalo không gọi webhook" với
+    // "webhook chạy nhưng Zalo từ chối cho gửi tin". Lỗi ghi không chặn luồng trả lời.
+    const { putRow } = await import('./_lib/store.js');
+    const dbg = { at: new Date().toISOString(), from, text: String(text).slice(0, 120), event: ev.event_name || '' };
+    const ghi = async (patch) => { try { await putRow('zalo_debug', { ...dbg, ...patch }); } catch { /* bỏ qua */ } };
+    await ghi({ ketQua: 'đang xử lý' });
+
+    // Gửi tin và GHI LẠI kết quả (Zalo có thể từ chối vì hết cửa sổ trả lời, thiếu quyền...).
+    const send = async (to, msg) => {
+      let ketQua = 'đã gửi';
+      try { await sendText(to, msg); }
+      catch (e) { ketQua = `LỖI GỬI: ${String(e?.message || e).slice(0, 250)}`; }
+      await ghi({ traLoi: String(msg).slice(0, 120), ketQua });
+    };
 
     const key = userKey('zalo', from);
     const cmd = text.toLowerCase().split(/\s+/)[0];
     const u = await getUser(key);
 
     if (cmd === '/dangky') {
-      if (u?.status === 'blocked') { await sendText(from, 'Yêu cầu của quý vị trước đây chưa được chấp thuận. Vui lòng liên hệ Văn phòng (0904818886).'); return res.status(200).json({ ok: true }); }
-      if (!isOpen()) { await sendText(from, 'Trợ lý đang tạm đóng đăng ký. Vui lòng liên hệ Văn phòng (0904818886).'); return res.status(200).json({ ok: true }); }
+      if (u?.status === 'blocked') { await send(from, 'Yêu cầu của quý vị trước đây chưa được chấp thuận. Vui lòng liên hệ Văn phòng (0904818886).'); return res.status(200).json({ ok: true }); }
+      if (!isOpen()) { await send(from, 'Trợ lý đang tạm đóng đăng ký. Vui lòng liên hệ Văn phòng (0904818886).'); return res.status(200).json({ ok: true }); }
       const info = parseDangKy(text);
-      if (!info) { await sendText(from, 'Cú pháp: /dangky Họ và tên - Đơn vị công tác\nVí dụ: /dangky Nguyễn Văn A - Ban Kinh tế - Ngân sách'); return res.status(200).json({ ok: true }); }
+      if (!info) { await send(from, 'Cú pháp: /dangky Họ và tên - Đơn vị công tác\nVí dụ: /dangky Nguyễn Văn A - Ban Kinh tế - Ngân sách'); return res.status(200).json({ ok: true }); }
       const rec = await register(key, { id: from, platform: 'zalo', name: info.name, unit: info.unit });
-      if (rec.status === 'approved') await sendText(from, 'Quý vị đã được duyệt từ trước. Mời đặt câu hỏi.');
-      else { await notifyNewUser(rec); await sendText(from, `Đã gửi yêu cầu tới Quản trị:\n${describe(rec)}\n\nQuý vị vui lòng chờ được duyệt, trợ lý sẽ nhắn lại ngay khi có kết quả.`); }
+      if (rec.status === 'approved') await send(from, 'Quý vị đã được duyệt từ trước. Mời đặt câu hỏi.');
+      else { await notifyNewUser(rec); await send(from, `Đã gửi yêu cầu tới Quản trị:\n${describe(rec)}\n\nQuý vị vui lòng chờ được duyệt, trợ lý sẽ nhắn lại ngay khi có kết quả.`); }
       return res.status(200).json({ ok: true });
     }
 
-    if (!u) { await sendText(from, isOpen() ? WELCOME : 'Xin lỗi, trợ lý này hiện chỉ phục vụ một số tài khoản được chỉ định. Vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).'); return res.status(200).json({ ok: true }); }
-    if (u.status === 'blocked') { await sendText(from, 'Xin lỗi, tài khoản của quý vị chưa được chấp thuận sử dụng trợ lý này. Vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).'); return res.status(200).json({ ok: true }); }
-    if (u.status !== 'approved') { await sendText(from, `⏳ Yêu cầu của quý vị đang chờ Quản trị duyệt.\n${describe(u)}`); return res.status(200).json({ ok: true }); }
+    if (!u) { await send(from, isOpen() ? WELCOME : 'Xin lỗi, trợ lý này hiện chỉ phục vụ một số tài khoản được chỉ định. Vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).'); return res.status(200).json({ ok: true }); }
+    if (u.status === 'blocked') { await send(from, 'Xin lỗi, tài khoản của quý vị chưa được chấp thuận sử dụng trợ lý này. Vui lòng liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (0904818886).'); return res.status(200).json({ ok: true }); }
+    if (u.status !== 'approved') { await send(from, `⏳ Yêu cầu của quý vị đang chờ Quản trị duyệt.\n${describe(u)}`); return res.status(200).json({ ok: true }); }
 
     // Lệnh nhanh không gọi AI nên không tính vào hạn mức ngày.
     const q = cmd.startsWith('/') ? { ok: true } : await spendQuota(key);
-    if (!q.ok) { await sendText(from, `Quý vị đã dùng hết ${q.limit} lượt hỏi của hôm nay. Mời quay lại vào ngày mai, hoặc xem trực tiếp trên web: https://hdndthkpi.vercel.app`); return res.status(200).json({ ok: true }); }
+    if (!q.ok) { await send(from, `Quý vị đã dùng hết ${q.limit} lượt hỏi của hôm nay. Mời quay lại vào ngày mai, hoặc xem trực tiếp trên web: https://hdndthkpi.vercel.app`); return res.status(200).json({ ok: true }); }
 
     let answer;
     // Người dùng Zalo KHÔNG được coi là Quản trị -> không đọc được hồ sơ nhân sự.
@@ -159,7 +168,7 @@ export default async function handler(req, res) {
       answer = await reply({ text, chatKey: `zalo:${from}`, isAdmin: false });
     }
     catch (e) { answer = `Xin lỗi, tôi gặp trục trặc khi xử lý: ${String(e?.message || e).slice(0, 300)}`; }
-    await sendText(from, answer);
+    await send(from, answer);
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error('zalo handler:', e);
