@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { Headset, Send, MessageCircle, X, BookOpen } from 'lucide-react';
-import { CHAO, GOI_Y, traLoi, CHAT_TELEGRAM, CHAT_ZALO } from './lib/huongDanBot';
+import { Headset, Send, MessageCircle, X, BookOpen, Sparkles } from 'lucide-react';
+import { CHAO, GOI_Y, HET_LUOT_AI, NGOAI_KICH_BAN, traLoi, CHAT_TELEGRAM, CHAT_ZALO } from './lib/huongDanBot';
 
 // ============================================================================
-//  NGƯỜI HƯỚNG DẪN — nút nổi ở góc Trang chủ, mở khung CHAT trả lời TỨC THÌ
-//  ngay trong popup: bộ trả lời theo kịch bản chạy trong trình duyệt
-//  (src/lib/huongDanBot.js) — không gọi AI, không gọi máy chủ, 0 token.
-//  Câu khó / cần số liệu thật thì mời sang trợ lý AI (Zalo OA / Telegram).
+//  NGƯỜI HƯỚNG DẪN — nút nổi ở góc Trang chủ, mở khung chat hai tầng:
+//   1) Câu CÓ SẴN: bộ kịch bản trong trình duyệt (huongDanBot.js) trả lời
+//      tức thì — 0 token, không giới hạn.
+//   2) Câu NGOÀI kịch bản: hỏi AI qua /api/huongdan — mỗi khách 3 lượt/ngày
+//      (đếm ở máy chủ); hết lượt thì hiện hướng dẫn đăng ký bot Zalo/Telegram
+//      để hỏi AI tiếp, còn khung này quay về chỉ trả lời câu có sẵn.
 // ============================================================================
 
 export { CHAT_TELEGRAM, CHAT_ZALO };
@@ -20,6 +22,11 @@ function BongBong({ tin }) {
   }
   return (
     <div className="self-start max-w-[88%] rounded-2xl rounded-tl-sm bg-white border border-slate-200 px-3 py-2 shadow-sm">
+      {tin.loai === 'ai' && (
+        <span className="inline-flex items-center gap-1 text-[9px] font-bold uppercase tracking-wider text-violet-700 bg-violet-50 border border-violet-100 rounded px-1.5 py-0.5 mb-1">
+          <Sparkles className="w-2.5 h-2.5" /> Trả lời bằng AI
+        </span>
+      )}
       <p className="text-[12.5px] text-slate-700 leading-relaxed whitespace-pre-line">{tin.text}</p>
       {tin.lienKet?.length > 0 && (
         <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -41,7 +48,8 @@ export default function NguoiHuongDan({ onGuide }) {
   const [moiChao, setMoiChao] = useState(false);
   const [tinNhan, setTinNhan] = useState([{ vai: 'bot', ...CHAO }]);
   const [oNhap, setONhap] = useState('');
-  const [dangGo, setDangGo] = useState(false);
+  const [dangGo, setDangGo] = useState(''); // '' | 'kb' (kịch bản) | 'ai'
+  const [hanMuc, setHanMuc] = useState(null); // {conLai, gioiHan} — lượt AI hôm nay
   const khungRef = useRef(null);
 
   useEffect(() => {
@@ -54,23 +62,60 @@ export default function NguoiHuongDan({ onGuide }) {
     try { sessionStorage.setItem(KHOA_MOI_CHAO, '1'); } catch { /* bỏ qua */ }
   };
 
+  // Mở khung lần đầu thì hỏi máy chủ còn bao nhiêu lượt AI hôm nay.
+  // Không hỏi được (chạy local, mất mạng) → coi như hết lượt, chỉ còn câu có sẵn.
+  useEffect(() => {
+    if (!mo || hanMuc !== null) return;
+    fetch('/api/huongdan')
+      .then((r) => r.json())
+      .then((d) => setHanMuc(d?.hanMuc || { conLai: 0, gioiHan: 3 }))
+      .catch(() => setHanMuc({ conLai: 0, gioiHan: 3 }));
+  }, [mo, hanMuc]);
+
   // Tự cuộn xuống tin mới nhất.
   useEffect(() => {
     khungRef.current?.scrollTo({ top: khungRef.current.scrollHeight, behavior: 'smooth' });
   }, [tinNhan, dangGo]);
 
-  // Trả lời NGAY TRONG TRÌNH DUYỆT — traLoi() là hàm thuần, không mạng, không AI.
-  // setTimeout ngắn chỉ để nhịp hội thoại tự nhiên, không phải chờ máy chủ.
+  const themBot = (tin) => setTinNhan((t) => [...t, { vai: 'bot', ...tin }]);
+
   const gui = (cau) => {
     const hoi = String(cau || '').trim();
     if (!hoi || dangGo) return;
     setTinNhan((t) => [...t, { vai: 'toi', text: hoi }]);
     setONhap('');
-    setDangGo(true);
-    setTimeout(() => {
-      setTinNhan((t) => [...t, { vai: 'bot', ...traLoi(hoi) }]);
-      setDangGo(false);
-    }, 350);
+
+    // TẦNG 1 — câu có sẵn: trả lời ngay trong trình duyệt, 0 token, không giới hạn.
+    const kb = traLoi(hoi);
+    if (kb.id !== 'ngoai') {
+      setDangGo('kb');
+      setTimeout(() => { themBot(kb); setDangGo(''); }, 350);
+      return;
+    }
+
+    // TẦNG 2 — ngoài kịch bản: hỏi AI nếu còn lượt; hết lượt thì hướng dẫn sang Zalo/Telegram.
+    if (!hanMuc || hanMuc.conLai <= 0) {
+      setDangGo('kb');
+      setTimeout(() => { themBot(HET_LUOT_AI); setDangGo(''); }, 350);
+      return;
+    }
+    setDangGo('ai');
+    // Vài lượt gần nhất (bỏ lời chào) để AI hiểu câu hỏi nối tiếp.
+    const lichSu = tinNhan.slice(1).slice(-6).map((t) => ({ role: t.vai === 'toi' ? 'user' : 'assistant', text: t.text }));
+    fetch('/api/huongdan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ hoi, lichSu }),
+    })
+      .then((r) => r.json())
+      .then((d) => {
+        if (d?.hanMuc) setHanMuc(d.hanMuc);
+        if (d?.ok) themBot({ loai: 'ai', text: d.traLoi, lienKet: [] });
+        else if (d?.hetLuot) themBot(HET_LUOT_AI);
+        else themBot({ text: `AI đang trục trặc: ${d?.error || 'không rõ nguyên nhân'}. Quý vị thử lại sau, hoặc hỏi qua Zalo/Telegram.`, lienKet: NGOAI_KICH_BAN.lienKet });
+      })
+      .catch(() => themBot(NGOAI_KICH_BAN))
+      .finally(() => setDangGo(''));
   };
 
   return (
@@ -85,7 +130,9 @@ export default function NguoiHuongDan({ onGuide }) {
             </span>
             <div className="min-w-0 flex-1">
               <p className="text-[14px] font-extrabold leading-tight">Người hướng dẫn</p>
-              <p className="text-[11px] text-red-100">Trả lời tức thì · miễn phí, không dùng AI</p>
+              <p className="text-[11px] text-red-100">
+                {hanMuc ? <>Câu có sẵn: miễn phí · Hỏi AI: còn <b>{hanMuc.conLai}/{hanMuc.gioiHan}</b> lượt hôm nay</> : 'Trả lời tức thì · câu có sẵn miễn phí'}
+              </p>
             </div>
             <button onClick={() => setMo(false)} aria-label="Đóng" className="shrink-0 w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center"><X className="w-4 h-4" /></button>
           </div>
@@ -93,7 +140,11 @@ export default function NguoiHuongDan({ onGuide }) {
           {/* Dòng tin nhắn */}
           <div ref={khungRef} className="h-72 overflow-y-auto bg-slate-50 p-3 flex flex-col gap-2.5">
             {tinNhan.map((tin, i) => <BongBong key={i} tin={tin} />)}
-            {dangGo && <div className="self-start rounded-2xl rounded-tl-sm bg-white border border-slate-200 px-3 py-2 text-[12.5px] text-slate-400 animate-pulse">Đang soạn…</div>}
+            {dangGo && (
+              <div className="self-start rounded-2xl rounded-tl-sm bg-white border border-slate-200 px-3 py-2 text-[12.5px] text-slate-400 animate-pulse">
+                {dangGo === 'ai' ? 'Đang hỏi AI…' : 'Đang soạn…'}
+              </div>
+            )}
           </div>
 
           {/* Gợi ý bấm nhanh */}
@@ -110,7 +161,7 @@ export default function NguoiHuongDan({ onGuide }) {
           <form className="p-3 flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); gui(oNhap); }}>
             <input value={oNhap} onChange={(e) => setONhap(e.target.value)} placeholder="Gõ câu hỏi của quý vị…"
               className="flex-1 min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-red-200" />
-            <button type="submit" aria-label="Gửi câu hỏi" disabled={!oNhap.trim() || dangGo}
+            <button type="submit" aria-label="Gửi câu hỏi" disabled={!oNhap.trim() || !!dangGo}
               className="shrink-0 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 disabled:opacity-40 text-white flex items-center justify-center">
               <Send className="w-4 h-4" />
             </button>
@@ -118,7 +169,7 @@ export default function NguoiHuongDan({ onGuide }) {
 
           {/* Lối rẽ sang trợ lý AI thật + trang Hướng dẫn */}
           <div className="px-3 pb-3 flex items-center justify-between gap-2 flex-wrap text-[11px]">
-            <span className="text-slate-500">Cần số liệu thật, câu hỏi mở? Trợ lý AI:</span>
+            <span className="text-slate-500">Cần số liệu thật, hỏi không giới hạn?</span>
             <span className="flex items-center gap-1.5">
               <a href={CHAT_ZALO} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold px-2 py-1 rounded-lg text-white" style={{ background: '#0068ff' }}><MessageCircle className="w-3.5 h-3.5" /> Zalo</a>
               <a href={CHAT_TELEGRAM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold px-2 py-1 rounded-lg text-white" style={{ background: '#229ED9' }}><Send className="w-3.5 h-3.5" /> Telegram</a>

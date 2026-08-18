@@ -30,8 +30,23 @@ export const GOI_Y = [
 /** Lời chào mở đầu của người hướng dẫn. */
 export const CHAO = {
   id: 'chao',
-  text: 'Xin chào! Tôi là người hướng dẫn của hệ thống — trả lời tức thì ngay tại đây, miễn phí, không dùng AI.\nQuý vị gõ câu hỏi hoặc bấm một gợi ý bên dưới.',
+  text: 'Xin chào! Tôi là người hướng dẫn của hệ thống.\n'
+    + '• Câu CÓ SẴN (bấm gợi ý bên dưới) tôi trả lời tức thì, miễn phí, không giới hạn.\n'
+    + '• Câu khác tôi sẽ hỏi AI giúp quý vị — miễn phí 3 lượt mỗi ngày; hết lượt thì chuyển sang Zalo/Telegram để hỏi tiếp.\n'
+    + 'Quý vị cứ gõ câu hỏi tự nhiên.',
   lienKet: [],
+};
+
+/** Hết lượt AI miễn phí trong ngày → hướng dẫn đăng ký bot Zalo/Telegram từng bước. */
+export const HET_LUOT_AI = {
+  id: 'hetLuotAI',
+  text: 'Quý vị đã dùng hết số lượt hỏi AI miễn phí trong ngày tại khung chat này. Các câu CÓ SẴN (gợi ý bên dưới) vẫn được trả lời miễn phí, không giới hạn.\n'
+    + 'Muốn hỏi AI tiếp — không giới hạn chủ đề và đọc được SỐ LIỆU THẬT của hệ thống — mời chuyển sang Zalo hoặc Telegram, đăng ký MỘT lần là dùng được:\n'
+    + '1. Bấm nút Zalo hoặc Telegram bên dưới để mở trợ lý.\n'
+    + '2. Nhắn: /dangky Họ và tên - Đơn vị công tác\n'
+    + '   (ví dụ: /dangky Nguyễn Văn A - Ban Pháp chế)\n'
+    + '3. Chờ Quản trị duyệt — trợ lý sẽ nhắn lại ngay khi được duyệt; sau đó quý vị hỏi được tối đa 30 câu mỗi ngày.',
+  lienKet: [{ nhan: 'Mở Zalo OA', url: CHAT_ZALO }, { nhan: 'Mở Telegram', url: CHAT_TELEGRAM }],
 };
 
 // ---------------------------------------------------------------------------
