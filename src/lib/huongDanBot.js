@@ -33,7 +33,7 @@ export const CHAO = {
   text: 'Xin chào! Tôi là người hướng dẫn của hệ thống.\n'
     + '• Câu CÓ SẴN (bấm gợi ý bên dưới) tôi trả lời tức thì, miễn phí, không giới hạn.\n'
     + '• Câu khác tôi sẽ hỏi AI giúp quý vị — miễn phí 3 lượt mỗi ngày; hết lượt thì chuyển sang Zalo/Telegram để hỏi tiếp.\n'
-    + 'Quý vị cứ gõ câu hỏi tự nhiên.',
+    + '• Muốn hỏi AI NGAY: bật nút [AI] cạnh ô nhập, hoặc bấm "Hỏi AI ngay" dưới câu trả lời có sẵn.',
   lienKet: [],
 };
 

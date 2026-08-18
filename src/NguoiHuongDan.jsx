@@ -16,7 +16,7 @@ export { CHAT_TELEGRAM, CHAT_ZALO };
 const KHOA_MOI_CHAO = 'hdndkpi_hd_moi'; // mỗi phiên trình duyệt chỉ mời chào một lần
 
 /** Một bong bóng tin nhắn trong khung chat. */
-function BongBong({ tin }) {
+function BongBong({ tin, onHoiAI }) {
   if (tin.vai === 'toi') {
     return <div className="self-end max-w-[85%] rounded-2xl rounded-br-sm bg-red-700 text-white px-3 py-2 text-[12.5px] leading-relaxed whitespace-pre-line">{tin.text}</div>;
   }
@@ -39,6 +39,13 @@ function BongBong({ tin }) {
           ))}
         </div>
       )}
+      {/* Câu trả lời soạn sẵn kèm lối hỏi AI NGAY với đúng câu hỏi đó. */}
+      {tin.goc && onHoiAI && (
+        <button type="button" onClick={() => onHoiAI(tin.goc)}
+          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-bold text-violet-700 hover:text-violet-900">
+          <Sparkles className="w-3 h-3" /> Chưa đúng ý? Hỏi AI ngay
+        </button>
+      )}
     </div>
   );
 }
@@ -50,6 +57,7 @@ export default function NguoiHuongDan({ onGuide }) {
   const [oNhap, setONhap] = useState('');
   const [dangGo, setDangGo] = useState(''); // '' | 'kb' (kịch bản) | 'ai'
   const [hanMuc, setHanMuc] = useState(null); // {conLai, gioiHan} — lượt AI hôm nay
+  const [cheDoAI, setCheDoAI] = useState(false); // bật = hỏi thẳng AI, bỏ qua câu có sẵn
   const khungRef = useRef(null);
 
   useEffect(() => {
@@ -79,21 +87,8 @@ export default function NguoiHuongDan({ onGuide }) {
 
   const themBot = (tin) => setTinNhan((t) => [...t, { vai: 'bot', ...tin }]);
 
-  const gui = (cau) => {
-    const hoi = String(cau || '').trim();
-    if (!hoi || dangGo) return;
-    setTinNhan((t) => [...t, { vai: 'toi', text: hoi }]);
-    setONhap('');
-
-    // TẦNG 1 — câu có sẵn: trả lời ngay trong trình duyệt, 0 token, không giới hạn.
-    const kb = traLoi(hoi);
-    if (kb.id !== 'ngoai') {
-      setDangGo('kb');
-      setTimeout(() => { themBot(kb); setDangGo(''); }, 350);
-      return;
-    }
-
-    // TẦNG 2 — ngoài kịch bản: hỏi AI nếu còn lượt; hết lượt thì hướng dẫn sang Zalo/Telegram.
+  // Hỏi AI qua /api/huongdan (tốn 1 trong 3 lượt/ngày). Hết lượt → hướng dẫn Zalo/Telegram.
+  const guiAI = (hoi) => {
     if (!hanMuc || hanMuc.conLai <= 0) {
       setDangGo('kb');
       setTimeout(() => { themBot(HET_LUOT_AI); setDangGo(''); }, 350);
@@ -118,6 +113,31 @@ export default function NguoiHuongDan({ onGuide }) {
       .finally(() => setDangGo(''));
   };
 
+  // Bấm "Chưa đúng ý? Hỏi AI ngay" dưới một câu trả lời soạn sẵn:
+  // câu hỏi đã nằm trên màn hình nên hỏi lại AI luôn, không lặp lại bong bóng.
+  const hoiAI = (goc) => { if (!dangGo) guiAI(goc); };
+
+  const gui = (cau) => {
+    const hoi = String(cau || '').trim();
+    if (!hoi || dangGo) return;
+    setTinNhan((t) => [...t, { vai: 'toi', text: hoi }]);
+    setONhap('');
+
+    // TẦNG 1 — câu có sẵn: trả lời ngay trong trình duyệt, 0 token, không giới hạn.
+    // Bật chế độ AI (nút gạt cạnh ô nhập) thì BỎ QUA kịch bản, hỏi thẳng AI.
+    if (!cheDoAI) {
+      const kb = traLoi(hoi);
+      if (kb.id !== 'ngoai') {
+        setDangGo('kb');
+        setTimeout(() => { themBot({ ...kb, goc: hoi }); setDangGo(''); }, 350);
+        return;
+      }
+    }
+
+    // TẦNG 2 — hỏi AI.
+    guiAI(hoi);
+  };
+
   return (
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {/* ===== Khung chat ===== */}
@@ -139,7 +159,7 @@ export default function NguoiHuongDan({ onGuide }) {
 
           {/* Dòng tin nhắn */}
           <div ref={khungRef} className="h-72 overflow-y-auto bg-slate-50 p-3 flex flex-col gap-2.5">
-            {tinNhan.map((tin, i) => <BongBong key={i} tin={tin} />)}
+            {tinNhan.map((tin, i) => <BongBong key={i} tin={tin} onHoiAI={hoiAI} />)}
             {dangGo && (
               <div className="self-start rounded-2xl rounded-tl-sm bg-white border border-slate-200 px-3 py-2 text-[12.5px] text-slate-400 animate-pulse">
                 {dangGo === 'ai' ? 'Đang hỏi AI…' : 'Đang soạn…'}
@@ -159,8 +179,15 @@ export default function NguoiHuongDan({ onGuide }) {
 
           {/* Ô nhập */}
           <form className="p-3 flex items-center gap-2" onSubmit={(e) => { e.preventDefault(); gui(oNhap); }}>
-            <input value={oNhap} onChange={(e) => setONhap(e.target.value)} placeholder="Gõ câu hỏi của quý vị…"
-              className="flex-1 min-w-0 rounded-xl border border-slate-300 px-3 py-2 text-[13px] focus:outline-none focus:ring-2 focus:ring-red-200" />
+            <input value={oNhap} onChange={(e) => setONhap(e.target.value)}
+              placeholder={cheDoAI ? 'Hỏi thẳng AI (tốn 1 lượt)…' : 'Gõ câu hỏi của quý vị…'}
+              className={`flex-1 min-w-0 rounded-xl border px-3 py-2 text-[13px] focus:outline-none focus:ring-2 ${cheDoAI ? 'border-violet-300 focus:ring-violet-200' : 'border-slate-300 focus:ring-red-200'}`} />
+            {/* Nút gạt: bật = câu hỏi đi THẲNG tới AI, không qua kịch bản. */}
+            <button type="button" onClick={() => setCheDoAI((v) => !v)} aria-pressed={cheDoAI}
+              title={cheDoAI ? 'Đang hỏi thẳng AI (mỗi câu tốn 1 lượt) — bấm để tắt' : 'Bật để hỏi thẳng AI ngay, bỏ qua câu trả lời có sẵn'}
+              className={`shrink-0 h-10 px-2.5 rounded-xl border text-[11px] font-extrabold inline-flex items-center gap-1 transition-colors ${cheDoAI ? 'bg-violet-600 border-violet-600 text-white' : 'border-slate-300 text-slate-500 hover:bg-slate-50'}`}>
+              <Sparkles className="w-3.5 h-3.5" /> AI
+            </button>
             <button type="submit" aria-label="Gửi câu hỏi" disabled={!oNhap.trim() || !!dangGo}
               className="shrink-0 w-10 h-10 rounded-xl bg-red-700 hover:bg-red-800 disabled:opacity-40 text-white flex items-center justify-center">
               <Send className="w-4 h-4" />
