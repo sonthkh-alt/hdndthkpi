@@ -18,7 +18,9 @@ export const DAILY_LIMIT = Number(process.env.BOT_DAILY_LIMIT || 30);
 /** Đặt TELEGRAM_OPEN=0 để quay về chế độ chỉ danh sách trắng (không cho đăng ký mới). */
 export const isOpen = () => String(process.env.TELEGRAM_OPEN ?? '1') !== '0';
 
-const today = () => new Date().toISOString().slice(0, 10);
+// Mốc đặt lại hạn mức là 0 giờ GIỜ VIỆT NAM (UTC+7) — dùng giờ UTC thì hạn mức
+// đặt lại lúc 7 giờ sáng, giống cách api/_lib/hanMuc.js tính cho Trợ lý AI.
+const today = () => new Date(Date.now() + 7 * 3600 * 1000).toISOString().slice(0, 10);
 const readAll = async () => {
   try { const row = await getRow(ROW); return (row?.data?.users && typeof row.data.users === 'object') ? row.data.users : {}; }
   catch { return {}; }
@@ -65,6 +67,14 @@ export const block = (key, by) => saveUser(key, { status: 'blocked', by: String(
  * Đếm lượt hỏi trong ngày. Trả { ok, used, limit }.
  * Vượt hạn mức thì trả ok=false để nơi gọi báo lại người dùng.
  */
+/** Xóa bộ đếm lượt hỏi trong ngày của một người (Quản trị dùng khi họ bị trừ oan). */
+export async function resetQuota(key) {
+  const u = await getUser(key);
+  if (!u) return null;
+  await saveUser(key, { day: '', count: 0 });
+  return u;
+}
+
 export async function spendQuota(key, limit = DAILY_LIMIT) {
   const u = await getUser(key);
   const d = today();

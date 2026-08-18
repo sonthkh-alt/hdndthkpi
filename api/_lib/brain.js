@@ -64,14 +64,15 @@ async function statusText() {
  * @param {string}  chatKey  khóa cuộc trò chuyện (để nhớ ngữ cảnh)
  * @param {boolean} isAdmin  người hỏi có phải Quản trị không (mở dữ liệu nhân sự)
  */
-export async function reply({ text, chatKey, isAdmin = false }) {
+export async function reply({ text, chatKey, isAdmin = false, moc = {} }) {
   const q = String(text || '').trim();
   if (!q) return 'Đồng chí gửi câu hỏi giúp tôi nhé. Gõ /help để xem gợi ý.';
 
   const cmd = q.toLowerCase().split(/[\s@]/)[0];
   if (['/start', '/help', '/huongdan'].includes(cmd)) {
     return isAdmin
-      ? `${HELP}\n\nDành riêng cho Quản trị:\n/danhsach — xem người đăng ký dùng trợ lý\n/duyet <ID> · /tuchoi <ID> — duyệt thủ công khi không bấm được nút`
+      ? `${HELP}\n\nDành riêng cho Quản trị:\n/danhsach — xem người đăng ký dùng trợ lý\n/duyet <ID> · /tuchoi <ID> — duyệt thủ công khi không bấm được nút
+/moluot <ID> — mở lại lượt hỏi trong ngày cho một người`
       : HELP;
   }
   if (['/trangthai', '/status'].includes(cmd)) return await statusText();
@@ -94,7 +95,15 @@ export async function reply({ text, chatKey, isAdmin = false }) {
       + 'Cách khắc phục: vào Vercel → Settings → Environment Variables, thêm ANTHROPIC_API_KEY (hoặc GEMINI_API_KEY / OPENAI_API_KEY) rồi triển khai lại.';
   }
 
-  const facts = hasStore() ? await gatherFacts(q, { isAdmin }).catch((e) => `(Không đọc được số liệu: ${e.message})`) : '';
+  // Nạp số liệu và ngữ cảnh hội thoại SONG SONG — hai việc không phụ thuộc nhau,
+  // chạy nối tiếp là cộng thêm một vòng gọi mạng vào thời gian người dùng phải chờ.
+  const t0 = Date.now();
+  const [facts, turns] = await Promise.all([
+    hasStore() ? gatherFacts(q, { isAdmin }).catch((e) => `(Không đọc được số liệu: ${e.message})`) : Promise.resolve(''),
+    loadTurns(chatKey),
+  ]);
+  moc.msSoLieu = Date.now() - t0;
+
   const system = `${SYSTEM_PROMPT}
 
 # HIỂU BIẾT VỀ HỆ THỐNG
@@ -106,8 +115,10 @@ ${facts || '(Lượt hỏi này không nạp số liệu nào. Nếu người d�
 # NGƯỜI HỎI
 ${isAdmin ? 'Là Quản trị hệ thống — được xem cả số liệu nhân sự tổng hợp.' : 'Là người dùng thường — KHÔNG được xem hồ sơ nhân sự, chỉ xem kết quả đánh giá và tiêu chí.'}`;
 
-  const turns = await loadTurns(chatKey);
+  moc.coChu = system.length;   // độ dài lời dẫn — càng dài AI càng lâu trả lời
+  const t1 = Date.now();
   const answer = await askAI(system, [...turns, { role: 'user', text: q }]);
+  moc.msAI = Date.now() - t1;
   const out = (answer || '').trim() || 'Xin lỗi, tôi chưa trả lời được câu này.';
   await saveTurns(chatKey, [...turns, { role: 'user', text: q }, { role: 'assistant', text: out }]);
   return out;

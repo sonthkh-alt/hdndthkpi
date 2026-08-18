@@ -35,7 +35,14 @@ export function provider() {
 export const hasAI = () => !!provider();
 export const modelName = () => process.env.AI_MODEL || DEFAULT_MODEL[provider()] || '(chưa rõ)';
 
-async function post(url, body, headers, ms = 45000) {
+// Trần thời gian chờ AI. Vercel cắt hàm ở 60 giây (vercel.json) nên phải nhỏ hơn,
+// còn chỗ để gửi câu báo lỗi về cho người hỏi. Dịch vụ trung gian chậm thì hạ xuống.
+export const timeoutMs = () => Number(process.env.AI_TIMEOUT_MS || 40000);
+// Câu trả lời càng dài càng lâu. Bot chat cần gọn (knowledge.js đã dặn dưới 200 từ)
+// nên 900 vừa đủ; muốn dài hơn thì đặt AI_MAX_TOKENS.
+export const maxTokens = () => Number(process.env.AI_MAX_TOKENS || 900);
+
+async function post(url, body, headers, ms = timeoutMs()) {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), ms);
   try {
@@ -43,6 +50,13 @@ async function post(url, body, headers, ms = 45000) {
     const txt = await r.text();
     if (!r.ok) throw new Error(`AI ${r.status}: ${txt.slice(0, 300)}`);
     return JSON.parse(txt);
+  } catch (e) {
+    // Thông báo gốc của Node là "This operation was aborted" — người dùng không hiểu gì.
+    if (e?.name === 'AbortError' || /aborted/i.test(String(e?.message))) {
+      throw new Error(`AI không trả lời trong ${Math.round(ms / 1000)} giây (endpoint ${endpointHost()}). `
+        + 'Có thể dịch vụ AI đang quá tải — đồng chí thử hỏi lại, hoặc hỏi câu ngắn gọn hơn.');
+    }
+    throw e;
   } finally { clearTimeout(timer); }
 }
 
@@ -58,7 +72,7 @@ export async function askAI(system, turns) {
 
   if (p === 'anthropic') {
     const d = await post(`${baseUrlOf('anthropic')}/v1/messages`,
-      { model, max_tokens: 1200, system, messages: msgs },
+      { model, max_tokens: maxTokens(), system, messages: msgs },
       { 'x-api-key': process.env.ANTHROPIC_API_KEY, 'anthropic-version': '2023-06-01' });
     return (d.content || []).filter((c) => c.type === 'text').map((c) => c.text).join('\n').trim();
   }
@@ -69,7 +83,7 @@ export async function askAI(system, turns) {
       {
         systemInstruction: { parts: [{ text: system }] },
         contents: msgs.map((m) => ({ role: m.role === 'assistant' ? 'model' : 'user', parts: [{ text: m.content }] })),
-        generationConfig: { maxOutputTokens: 1200, temperature: 0.3 },
+        generationConfig: { maxOutputTokens: maxTokens(), temperature: 0.3 },
       }, {});
     const parts = d.candidates?.[0]?.content?.parts || [];
     return parts.map((x) => x.text || '').join('').trim();
@@ -77,7 +91,7 @@ export async function askAI(system, turns) {
 
   if (p === 'openai') {
     const d = await post(`${baseUrlOf('openai')}/chat/completions`,
-      { model, max_tokens: 1200, temperature: 0.3, messages: [{ role: 'system', content: system }, ...msgs] },
+      { model, max_tokens: maxTokens(), temperature: 0.3, messages: [{ role: 'system', content: system }, ...msgs] },
       { Authorization: `Bearer ${process.env.OPENAI_API_KEY}` });
     // Một số dịch vụ trung gian trả nội dung dạng mảng khối thay vì chuỗi.
     const c = d.choices?.[0]?.message?.content;

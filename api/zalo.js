@@ -190,12 +190,18 @@ export default async function handler(req, res) {
     if (!q.ok) { await send(from, `Quý vị đã dùng hết ${q.limit} lượt hỏi của hôm nay. Mời quay lại vào ngày mai, hoặc xem trực tiếp trên web: https://hdndthkpi.vercel.app`); return res.status(200).json({ ok: true }); }
 
     let answer;
+    // `moc` hứng số đo thời gian của bộ não (đọc số liệu / gọi AI) để ghi vào nhật ký —
+    // Zalo gửi lại khi ta trả lời chậm, nên phải BIẾT thời gian đi đâu chứ không đoán.
+    const moc = {};
+    const tBatDau = Date.now();
     // Người dùng Zalo KHÔNG được coi là Quản trị -> không đọc được hồ sơ nhân sự.
     try {
       const { reply } = await import('./_lib/brain.js');
-      answer = await reply({ text, chatKey: `zalo:${from}`, isAdmin: false });
+      answer = await reply({ text, chatKey: `zalo:${from}`, isAdmin: false, moc });
     }
     catch (e) { answer = `Xin lỗi, tôi gặp trục trặc khi xử lý: ${String(e?.message || e).slice(0, 300)}`; }
+    const giay = (ms) => Math.round((ms || 0) / 100) / 10;
+    dbg.giay = { soLieu: giay(moc.msSoLieu), ai: giay(moc.msAI), tong: giay(Date.now() - tBatDau), coChuLoiDan: moc.coChu || 0 };
     await send(from, answer);
     // Dọn các dòng "giành chỗ" quá 1 ngày — làm SAU khi đã trả lời nên không kéo dài chờ đợi.
     try { await purgeClaims(CLAIM_ALL); } catch { /* bỏ qua */ }

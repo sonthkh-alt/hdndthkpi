@@ -23,7 +23,7 @@
 // ============================================================================
 import { reply } from './_lib/brain.js';
 import {
-  userKey, getUser, register, approve, block, listUsers, spendQuota, describe, isOpen, DAILY_LIMIT,
+  userKey, getUser, register, approve, block, listUsers, spendQuota, resetQuota, describe, isOpen, DAILY_LIMIT,
 } from './_lib/users.js';
 import { notifyNewUser, notifyUser } from './_lib/notify.js';
 import { claimOnce, purgeClaims } from './_lib/store.js';
@@ -118,7 +118,17 @@ async function adminCommand(cmd, text, chatId, from) {
     await say(chatId, `👥 Người dùng trợ lý\n\nCHỜ DUYỆT (${grp('pending').length}):\n${fmt(grp('pending'))}\n\n`
       + `ĐÃ DUYỆT (${grp('approved').length}):\n${fmt(grp('approved'))}\n\n`
       + `BỊ TỪ CHỐI (${grp('blocked').length}):\n${fmt(grp('blocked'))}\n\n`
-      + 'Duyệt/từ chối bằng: /duyet <mã> hoặc /tuchoi <mã> (mã dạng tg:123 hoặc zalo:abc; gõ trống nền tảng thì hiểu là Telegram).');
+      + 'Duyệt/từ chối bằng: /duyet <mã> hoặc /tuchoi <mã> (mã dạng tg:123 hoặc zalo:abc; gõ trống nền tảng thì hiểu là Telegram).\n'
+      + 'Mở lại lượt hỏi trong ngày: /moluot <mã>.');
+    return true;
+  }
+  if (cmd === '/moluot') {
+    const arg = (text.split(/\s+/)[1] || '').trim();
+    if (!arg) { await say(chatId, 'Cú pháp: /moluot <mã> — ví dụ /moluot zalo:abc. Xóa bộ đếm lượt hỏi trong ngày của người đó.'); return true; }
+    const [p0, ...rest0] = arg.split(':');
+    const key = userKey(rest0.length ? p0 : 'tg', rest0.length ? rest0.join(':') : arg);
+    const u = await resetQuota(key);
+    await say(chatId, u ? `♻️ Đã mở lại ${DAILY_LIMIT} lượt hỏi hôm nay cho ${key}.` : `Không tìm thấy người dùng ${key}. Xem /danhsach.`);
     return true;
   }
   if (cmd === '/duyet' || cmd === '/tuchoi') {

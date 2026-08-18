@@ -84,8 +84,8 @@ export async function exchangeCode(code) {
 }
 
 /** Lấy access_token còn hạn; hết hạn thì tự làm mới bằng refresh_token. */
-export async function accessToken() {
-  const row = await getRow(ROW).catch(() => null);
+export async function accessToken(row0) {
+  const row = row0 !== undefined ? row0 : await getRow(ROW).catch(() => null);
   const d = row?.data || {};
   if (d.access_token && d.expiresAt && Date.now() < d.expiresAt) return d.access_token;
 
@@ -125,7 +125,13 @@ async function sendOne(ep, token, userId, part) {
  * Đầu nối nào chạy được sẽ được nhớ lại để các mẩu sau gửi thẳng, không thử lại từ đầu.
  */
 export async function sendText(userId, text) {
-  const token = await accessToken();
+  // Đọc dòng zalo_token MỘT lần rồi dùng cho cả token lẫn đầu nối đã ghi nhớ.
+  const row = await getRow(ROW).catch(() => null);
+  const token = await accessToken(row);
+  // OA của Văn phòng chỉ gửi được bằng v2.0 -> thử v3.0 trước là phí một vòng gọi mạng
+  // cho MỌI câu trả lời. Nhớ đầu nối đã chạy được và ưu tiên dùng lại.
+  const daBiet = row?.data?.epTen || '';
+  const thuTu = daBiet ? [...SEND_ENDPOINTS].sort((a, b) => (b.ten === daBiet) - (a.ten === daBiet)) : SEND_ENDPOINTS;
   let dung = null; let loiCuoi = '';
   for (const part of zaloChunks(text)) {
     if (dung) {
@@ -133,7 +139,7 @@ export async function sendText(userId, text) {
       if (r.code !== 0) throw new Error(`Zalo gửi tin lỗi ${r.code}: ${r.message} (${dung.ten})`);
       continue;
     }
-    for (const ep of SEND_ENDPOINTS) {
+    for (const ep of thuTu) {
       const r = await sendOne(ep, token, userId, part);
       if (r.code === 0) { dung = ep; loiCuoi = ''; break; }
       loiCuoi = `${r.code}: ${r.message} (${ep.ten})`;
@@ -143,6 +149,11 @@ export async function sendText(userId, text) {
       if (r.code !== -235) break;
     }
     if (!dung) throw new Error(`Zalo gửi tin lỗi ${loiCuoi}`);
+  }
+  // Ghi lại đầu nối vừa chạy được (chỉ ghi khi ĐỔI, để không thêm một lần ghi mỗi tin).
+  if (dung && dung.ten !== daBiet) {
+    const moi = await getRow(ROW).catch(() => null);   // đọc lại: token có thể vừa được làm mới
+    await putRow(ROW, { ...(moi?.data || {}), epTen: dung.ten }).catch(() => {});
   }
   return dung?.ten || '';
 }
