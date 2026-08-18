@@ -46,16 +46,28 @@ const sessionText = (e) => (e.session === 'gio'
   ? `${hhmm(e.start_time)}${e.end_time ? `-${hhmm(e.end_time)}` : ''}`
   : (SESSION[e.session] || e.session));
 
-const leaderName = (l) => (!l ? '(không rõ)'
-  : l.leader_type === 'ban' ? l.full_name
-    : `${l.full_name}${l.position ? ` (${l.position})` : ''}`);
+/**
+ * Nhãn của một đối tượng có lịch. PHẢI kèm TÊN BAN khi có `ban_id` — thiếu tên Ban thì
+ * ngữ cảnh chỉ còn họ tên, AI không phân biệt được "Trưởng Ban Dân tộc" với
+ * "Trưởng Ban Kinh tế - Ngân sách" và sẽ trả lời nhầm người.
+ */
+const leaderName = (l, banName = '') => {
+  if (!l) return '(không rõ)';
+  // Dữ liệu thật có cả hai kiểu: dòng ĐƠN VỊ (full_name = tên Ban, position rỗng)
+  // và dòng ĐÍCH DANH (full_name = họ tên, position = "Trưởng ban"). Ghép chung một
+  // công thức để không đánh rơi chức vụ ở kiểu thứ hai.
+  const base = `${l.full_name}${l.position ? ` (${l.position})` : ''}`;
+  return banName && !base.includes(banName) ? `${base} — ${banName}` : base;
+};
 
 /**
  * Phần định dạng THUẦN (không đụng mạng) — tách ra để kiểm thử bằng Node.
  * @param {object} d { leaders, vehicles, entries, from, to, today }
  */
 export function fmtLich(d) {
-  const { leaders = [], vehicles = [], entries = [], from, to, today } = d || {};
+  const { leaders = [], vehicles = [], entries = [], bans = [], from, to, today } = d || {};
+  const banName = new Map(bans.map((b) => [b.id, b.name || b.short_name || '']));
+  const nameOf = (l) => leaderName(l, l ? banName.get(l.ban_id) || '' : '');
   if (!entries.length) {
     return {
       meta: { from, to, count: 0 },
@@ -69,7 +81,7 @@ export function fmtLich(d) {
   const cnt = entries.reduce((a, e) => { a[e.status] = (a[e.status] || 0) + 1; return a; }, {});
 
   const xe = vehicles.filter((v) => v.active !== false).map((v) => {
-    const own = v.vehicle_type === 'rieng' ? `xe riêng${v.assigned_leader_id ? ` của ${leaderName(byLeader.get(v.assigned_leader_id))}` : ''}` : 'xe dùng chung';
+    const own = v.vehicle_type === 'rieng' ? `xe riêng${v.assigned_leader_id ? ` của ${nameOf(byLeader.get(v.assigned_leader_id))}` : ''}` : 'xe dùng chung';
     return `${v.plate} (${own}${v.driver_name ? `, lái xe ${v.driver_name}` : ''})`;
   });
 
@@ -90,7 +102,7 @@ export function fmtLich(d) {
       shown++;
       const l = byLeader.get(e.leader_id);
       const v = e.vehicle_id ? byVehicle.get(e.vehicle_id) : null;
-      lines.push(`- [${sessionText(e)}] ${GROUP[l?.leader_type] || ''} · ${leaderName(l)}: ${String(e.content || '').slice(0, 200)}`
+      lines.push(`- [${sessionText(e)}] ${GROUP[l?.leader_type] || ''} · ${nameOf(l)}: ${String(e.content || '').slice(0, 200)}`
         + `${e.location ? ` | Địa điểm: ${e.location}` : ''}`
         + `${e.participants ? ` | Thành phần: ${String(e.participants).slice(0, 120)}` : ''}`
         + ` | ${STATUS[e.status] || e.status}`
@@ -101,10 +113,17 @@ export function fmtLich(d) {
     if (shown >= MAX) break;
   }
 
+  // Danh sách đối tượng có lịch — để AI khớp câu hỏi với ĐÚNG người/Ban, không suy đoán.
+  const roster = Object.entries(GROUP).map(([type, title]) => {
+    const ds = leaders.filter((l) => l.leader_type === type && l.active !== false).map(nameOf);
+    return ds.length ? `- ${title}: ${ds.join(' · ')}` : '';
+  }).filter(Boolean).join('\n');
+
   return {
     meta: { from, to, count: entries.length, cho_duyet: cnt.cho_duyet || 0 },
     text: `## Lịch công tác tuần (phân hệ riêng: calendar-beta-lac.vercel.app)\n`
       + `Hôm nay: ${dowName(today)} ${dmy(today)}. Số liệu lấy từ ${dmy(from)} đến ${dmy(to)} (tuần này và tuần sau).\n`
+      + `${roster ? `Đối tượng có lịch (khi được hỏi về một người hoặc một Ban, chỉ lấy các mục ghi ĐÚNG tên trong danh sách này; nếu không có thì nói là không có):\n${roster}\n` : ''}`
       + `Tổng ${entries.length} mục lịch — ${Object.entries(cnt).map(([k, n]) => `${STATUS[k] || k}: ${n}`).join(' · ')}.\n`
       + `${xe.length ? `Xe ô tô: ${xe.join(' · ')}.\n` : ''}`
       + `${shown < entries.length ? `(Chỉ liệt kê ${shown}/${entries.length} mục đầu.)\n` : ''}`
