@@ -138,12 +138,15 @@ export async function lichFacts(opts = {}) {
   const from = mondayOf(today);
   const to = addDays(from, 13);
 
-  const [leaders, vehicles, entries] = await Promise.all([
+  const [bans, leaders, vehicles, entries] = await Promise.all([
+    // BẮT BUỘC nạp `bans`: lãnh đạo Ban gắn với Ban qua `ban_id`, thiếu bảng này thì
+    // ngữ cảnh chỉ còn họ tên và AI sẽ trả lời nhầm Ban.
+    rest('bans?select=id,name,short_name'),
     rest('leaders?select=id,full_name,position,leader_type,ban_id,active'),
     rest('vehicles?select=id,plate,driver_name,vehicle_type,assigned_leader_id,active'),
     rest(`schedule_entries?date=gte.${from}&date=lte.${to}`
       + '&select=id,leader_id,date,session,start_time,end_time,content,location,participants,status,review_note,vehicle_id'
       + '&order=date.asc,session.asc'),
   ]);
-  return fmtLich({ leaders, vehicles, entries, from, to, today });
+  return fmtLich({ bans, leaders, vehicles, entries, from, to, today });
 }
