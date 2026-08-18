@@ -23,7 +23,8 @@ const OAUTH_PERMISSION_URL = 'https://oauth.zaloapp.com/v4/oa/permission';
 // ("This API does not support this type of OA") -> thử tiếp đời v2 rồi mới báo lỗi.
 const SEND_ENDPOINTS = [
   { url: 'https://openapi.zalo.me/v3.0/oa/message/cs', ten: 'v3.0/message/cs', tokenO: 'header' },
-  { url: 'https://openapi.zalo.me/v2.0/oa/message', ten: 'v2.0/message', tokenO: 'query' },
+  // v2.0 cũng đòi access_token đặt ở TIÊU ĐỀ (lỗi -216 nếu để ở tham số truy vấn).
+  { url: 'https://openapi.zalo.me/v2.0/oa/message', ten: 'v2.0/message', tokenO: 'header' },
 ];
 const ROW = 'zalo_token';
 
