@@ -85,8 +85,14 @@ export default async function handler(req, res) {
 
     let token = null; let tokenError = null;
     try { token = !!(await accessToken()); } catch (e) { tokenError = String(e.message || e); }
+    let tinNhanGanNhat = null;
+    try {
+      const { getRow } = await import('./_lib/store.js');
+      tinNhanGanNhat = (await getRow('zalo_debug'))?.data || null;
+    } catch { /* bỏ qua */ }
     return res.status(200).json({
       ok: true, appId: appId(), token, tokenError,
+      tinNhanGanNhat,   // null = Zalo CHƯA gửi tin nhắn nào tới webhook này
       webhookUrl: selfUrl(req),   // khai NGUYÊN chuỗi này, không kèm tham số
       quanTriDuyetTren: `Telegram (${tgAdmins().length} tài khoản)`,
       moCuaDangKy: isOpen(),
@@ -115,6 +121,13 @@ export default async function handler(req, res) {
     const { notifyNewUser } = await import('./_lib/notify.js');
     const from = String(ev.sender.id);
     const text = ev.message.text;
+
+    // Nhật ký chẩn đoán: ghi lại tin nhắn gần nhất để biết Zalo CÓ gọi webhook hay không
+    // (xem ở GET /api/zalo, trường `tinNhanGanNhat`). Không chặn luồng trả lời nếu lỗi.
+    try {
+      const { putRow } = await import('./_lib/store.js');
+      await putRow('zalo_debug', { at: new Date().toISOString(), from, text: String(text).slice(0, 120), event: ev.event_name || '' });
+    } catch { /* bỏ qua */ }
 
     const key = userKey('zalo', from);
     const cmd = text.toLowerCase().split(/\s+/)[0];
