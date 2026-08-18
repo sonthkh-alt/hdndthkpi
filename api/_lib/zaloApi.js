@@ -120,8 +120,8 @@ async function sendOne(ep, token, userId, part) {
 }
 
 /**
- * Gửi tin nhắn tới một người dùng Zalo.
- * Thử lần lượt các đầu nối; nếu đầu nối đầu trả -235 (loại OA không hỗ trợ) thì thử đầu kế.
+ * Gửi tin nhắn tới một người dùng Zalo. Trả về TÊN đầu nối đã dùng (để ghi nhật ký).
+ * Thử lần lượt các đầu nối; CHỈ khi đầu nối trả -235 (loại OA không hỗ trợ) mới thử đầu kế.
  * Đầu nối nào chạy được sẽ được nhớ lại để các mẩu sau gửi thẳng, không thử lại từ đầu.
  */
 export async function sendText(userId, text) {
@@ -137,9 +137,12 @@ export async function sendText(userId, text) {
       const r = await sendOne(ep, token, userId, part);
       if (r.code === 0) { dung = ep; loiCuoi = ''; break; }
       loiCuoi = `${r.code}: ${r.message} (${ep.ten})`;
-      // -235 = loại OA không dùng được đầu nối này -> thử đầu nối tiếp theo.
-      // Các lỗi khác (token hỏng, hết cửa sổ trả lời...) cũng thử nốt cho chắc.
+      // CHỈ -235 ("loại OA không dùng được đầu nối này") mới thử đầu nối tiếp theo.
+      // Các lỗi khác dừng NGAY: có trường hợp Zalo báo lỗi nhưng tin VẪN đi, thử tiếp
+      // sẽ thành GỬI HAI LẦN — người dùng nhận hai câu trả lời giống hệt nhau.
+      if (r.code !== -235) break;
     }
     if (!dung) throw new Error(`Zalo gửi tin lỗi ${loiCuoi}`);
   }
+  return dung?.ten || '';
 }

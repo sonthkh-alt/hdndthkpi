@@ -48,6 +48,43 @@ export async function putRow(id, data) {
   });
 }
 
+// ---------------------------------------------------------------------------
+//  CHỐNG XỬ LÝ LẶP MỘT SỰ KIỆN ("giành chỗ" một lần).
+//  Zalo/Telegram GỬI LẠI cùng một tin khi không nhận được 200 đủ nhanh — mà một lượt
+//  hỏi AI mất nhiều giây — nên người dùng nhận HAI câu trả lời giống hệt nhau.
+//  Serverless không giữ được biến giữa các lần gọi (mỗi lần là một tiến trình riêng),
+//  vì vậy phải chốt trên cơ sở dữ liệu. Dùng chính KHÓA CHÍNH của bảng app_state:
+//  hai lần chèn cùng một id thì Postgres từ chối lần sau (HTTP 409) — thao tác này
+//  NGUYÊN TỬ nên kể cả hai lần gọi chạy song song cũng chỉ đúng MỘT lần nhận được true.
+// ---------------------------------------------------------------------------
+
+/**
+ * @returns {Promise<boolean>} true = lần đầu thấy sự kiện này (hãy xử lý);
+ *                             false = đã có lần gọi khác nhận việc (bỏ qua).
+ * Chưa cấu hình kho dữ liệu thì trả true (không chặn được nhưng cũng không được làm hỏng bot).
+ */
+export async function claimOnce(id, meta = {}) {
+  if (!hasStore()) return true;
+  const key = anyKey();
+  // CỐ Ý không dùng 'resolution=merge-duplicates' — cần Postgres BÁO LỖI khi trùng.
+  const r = await fetch(`${baseUrl().replace(/\/+$/, '')}/rest/v1/app_state`, {
+    method: 'POST',
+    headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({ id, data: meta, updated_at: new Date().toISOString() }),
+  });
+  if (r.ok) return true;
+  if (r.status === 409) return false;
+  throw new Error(`Supabase ${r.status}: ${(await r.text()).slice(0, 200)}`);
+}
+
+/** Dọn các dòng "giành chỗ" đã cũ để bảng app_state không phình dần. */
+export async function purgeClaims(prefix, olderThanMs = 24 * 60 * 60 * 1000) {
+  const cutoff = new Date(Date.now() - olderThanMs).toISOString();
+  await rest(`app_state?id=like.${encodeURIComponent(prefix)}*&updated_at=lt.${cutoff}`, {
+    method: 'DELETE', headers: { Prefer: 'return=minimal' },
+  });
+}
+
 // Mỗi PHÂN HỆ có kho dữ liệu riêng (xem src/lib/supabase.js):
 //   state_<năm>_<tháng>             -> OKR/KPI cán bộ, công chức (ns = '')
 //   state_kiemdiem_<năm>_<tháng>    -> Kiểm điểm, xếp loại đảng viên (ns = 'kiemdiem')

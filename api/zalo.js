@@ -37,6 +37,12 @@ export function parseDangKy(text) {
   return name ? { name, unit: parts.join(' - ').trim() } : null;
 }
 
+// Tiền tố dòng "giành chỗ" chống xử lý lặp + dòng nhật ký tin bị bỏ qua vì trùng.
+// Tiền tố CHUNG `bot_seen_` cho cả Zalo lẫn Telegram để chỉ cần một lệnh dọn dẹp.
+const CLAIM = 'bot_seen_zalo_';
+const CLAIM_ALL = 'bot_seen_';
+const DBG_TRUNG = 'zalo_debug_trung';
+
 /** Có phải sự kiện "người dùng gửi tin nhắn văn bản" thật hay không. */
 const isTextEvent = (ev) => !!(ev && ev.sender?.id && ev.message?.text
   && (!ev.event_name || ev.event_name === 'user_send_text'));
@@ -85,14 +91,17 @@ export default async function handler(req, res) {
 
     let token = null; let tokenError = null;
     try { token = !!(await accessToken()); } catch (e) { tokenError = String(e.message || e); }
-    let tinNhanGanNhat = null;
+    let tinNhanGanNhat = null; let tinTrungGanNhat = null;
     try {
       const { getRow } = await import('./_lib/store.js');
       tinNhanGanNhat = (await getRow('zalo_debug'))?.data || null;
+      // Có giá trị = Zalo đã GỬI LẠI một tin và bot đã bỏ qua (đúng như mong muốn).
+      tinTrungGanNhat = (await getRow(DBG_TRUNG))?.data || null;
     } catch { /* bỏ qua */ }
     return res.status(200).json({
       ok: true, appId: appId(), token, tokenError,
       tinNhanGanNhat,   // null = Zalo CHƯA gửi tin nhắn nào tới webhook này
+      tinTrungGanNhat,  // khác null = đã có tin bị Zalo gửi lại và bot đã chặn trả lời lặp
       webhookUrl: selfUrl(req),   // khai NGUYÊN chuỗi này, không kèm tham số
       quanTriDuyetTren: `Telegram (${tgAdmins().length} tài khoản)`,
       moCuaDangKy: isOpen(),
@@ -117,23 +126,42 @@ export default async function handler(req, res) {
     const byAppId = ev.app_id && String(ev.app_id) === appId();
     if (secret && !bySecret && !byAppId) return res.status(401).json({ ok: false });
 
-    const { userKey, getUser, register, spendQuota, describe, isOpen } = await import('./_lib/users.js');
-    const { notifyNewUser } = await import('./_lib/notify.js');
     const from = String(ev.sender.id);
     const text = ev.message.text;
+
+    // ---- CHỐNG TRẢ LỜI LẶP -------------------------------------------------
+    // Một lượt hỏi AI mất nhiều giây, trong khi Zalo chỉ chờ 200 trong ít giây rồi GỬI LẠI
+    // đúng tin đó -> nếu không chặn, bot trả lời hai lần. Chốt bằng `claimOnce` (khóa chính
+    // của bảng app_state, thao tác nguyên tử) NGAY TRƯỚC khi nạp bộ não — mọi lần gửi lại
+    // sau đó đều rơi vào nhánh bỏ qua. Cũng chặn luôn trường hợp OA khai trùng webhook.
+    const { claimOnce, putRow, purgeClaims } = await import('./_lib/store.js');
+    // Chỉ chốt khi nhận dạng được ĐÚNG sự kiện. CỐ Ý không lấy nội dung tin làm mã:
+    // người dùng có quyền hỏi lại y hệt câu vừa hỏi, chặn theo nội dung là chặn nhầm.
+    const maTin = String(ev.message.msg_id || (ev.timestamp ? `${from}-${ev.timestamp}` : '')).slice(0, 120);
+    let lanDau = true;
+    if (maTin) {
+      try { lanDau = await claimOnce(`${CLAIM}${maTin}`, { at: new Date().toISOString(), from }); }
+      catch { lanDau = true; }   // kho dữ liệu trục trặc thì thà trả lời hơn là im lặng
+    }
+    if (!lanDau) {
+      try { await putRow(DBG_TRUNG, { at: new Date().toISOString(), from, maTin, text: String(text).slice(0, 120) }); } catch { /* bỏ qua */ }
+      return res.status(200).json({ ok: true, boQua: 'tin trùng' });
+    }
+
+    const { userKey, getUser, register, spendQuota, describe, isOpen } = await import('./_lib/users.js');
+    const { notifyNewUser } = await import('./_lib/notify.js');
 
     // Nhật ký chẩn đoán (xem ở GET /api/zalo, trường `tinNhanGanNhat`): ghi lại tin nhận
     // được VÀ kết quả gửi trả lời — để phân biệt "Zalo không gọi webhook" với
     // "webhook chạy nhưng Zalo từ chối cho gửi tin". Lỗi ghi không chặn luồng trả lời.
-    const { putRow } = await import('./_lib/store.js');
-    const dbg = { at: new Date().toISOString(), from, text: String(text).slice(0, 120), event: ev.event_name || '' };
+    const dbg = { at: new Date().toISOString(), from, text: String(text).slice(0, 120), event: ev.event_name || '', maTin };
     const ghi = async (patch) => { try { await putRow('zalo_debug', { ...dbg, ...patch }); } catch { /* bỏ qua */ } };
     await ghi({ ketQua: 'đang xử lý' });
 
     // Gửi tin và GHI LẠI kết quả (Zalo có thể từ chối vì hết cửa sổ trả lời, thiếu quyền...).
     const send = async (to, msg) => {
       let ketQua = 'đã gửi';
-      try { await sendText(to, msg); }
+      try { const ten = await sendText(to, msg); ketQua = `đã gửi${ten ? ` (${ten})` : ''}`; }
       catch (e) { ketQua = `LỖI GỬI: ${String(e?.message || e).slice(0, 250)}`; }
       await ghi({ traLoi: String(msg).slice(0, 120), ketQua });
     };
@@ -169,6 +197,8 @@ export default async function handler(req, res) {
     }
     catch (e) { answer = `Xin lỗi, tôi gặp trục trặc khi xử lý: ${String(e?.message || e).slice(0, 300)}`; }
     await send(from, answer);
+    // Dọn các dòng "giành chỗ" quá 1 ngày — làm SAU khi đã trả lời nên không kéo dài chờ đợi.
+    try { await purgeClaims(CLAIM_ALL); } catch { /* bỏ qua */ }
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error('zalo handler:', e);

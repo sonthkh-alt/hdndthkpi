@@ -26,6 +26,11 @@ import {
   userKey, getUser, register, approve, block, listUsers, spendQuota, describe, isOpen, DAILY_LIMIT,
 } from './_lib/users.js';
 import { notifyNewUser, notifyUser } from './_lib/notify.js';
+import { claimOnce, purgeClaims } from './_lib/store.js';
+
+// Tiền tố dòng "giành chỗ" chống xử lý lặp (xem api/_lib/store.js). Dùng chung với Zalo.
+const CLAIM = 'bot_seen_tg_';
+const CLAIM_ALL = 'bot_seen_';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const api = (method) => `https://api.telegram.org/bot${TOKEN}/${method}`;
@@ -171,6 +176,16 @@ export default async function handler(req, res) {
 
   // Luôn trả 200 cho Telegram, nếu không nó sẽ gửi lại liên tục.
   try {
+    // Telegram gửi LẠI nguyên update khi lần trước chưa kịp trả 200 (một lượt hỏi AI mất
+    // nhiều giây) -> chốt theo update_id để không trả lời/duyệt hai lần. Xem `claimOnce`.
+    const upd = req.body?.update_id;
+    if (upd != null) {
+      let lanDau = true;
+      try { lanDau = await claimOnce(`${CLAIM}${upd}`, { at: new Date().toISOString() }); }
+      catch { lanDau = true; }   // kho dữ liệu trục trặc thì thà trả lời hơn là im lặng
+      if (!lanDau) return res.status(200).json({ ok: true, boQua: 'update trùng' });
+    }
+
     if (req.body?.callback_query) { await onCallback(req.body.callback_query); return res.status(200).json({ ok: true }); }
 
     const msg = req.body?.message;
@@ -243,6 +258,8 @@ export default async function handler(req, res) {
       answer = `Xin lỗi, tôi gặp trục trặc khi xử lý: ${String(e?.message || e).slice(0, 300)}`;
     }
     for (const part of chunks(answer)) await say(chatId, part);
+    // Dọn dòng "giành chỗ" quá 1 ngày — làm SAU khi đã trả lời nên không kéo dài chờ đợi.
+    try { await purgeClaims(CLAIM_ALL); } catch { /* bỏ qua */ }
     return res.status(200).json({ ok: true });
   } catch (e) {
     console.error('telegram handler:', e);
