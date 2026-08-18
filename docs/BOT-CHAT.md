@@ -254,10 +254,15 @@ Zalo không cấp token vĩnh viễn: phải xin quyền một lần để lấy
 Trong `developers.zalo.me` → ứng dụng → **Official Account API** → **Webhook**, điền:
 
 ```
-https://hdndthkpi.vercel.app/api/zalo?secret=<ZALO_WEBHOOK_SECRET>
+https://hdndthkpi.vercel.app/api/zalo
 ```
 
 Tick sự kiện **người dùng gửi tin nhắn văn bản** (`user_send_text`).
+
+> ⚠️ **Không kèm tham số** vào địa chỉ webhook — Zalo báo *"Đường dẫn webhook không hợp lệ"*.
+> Vì vậy `ZALO_WEBHOOK_SECRET` KHÔNG bắt buộc ở webhook: gói tin được chấp nhận khi mang
+> đúng `app_id` của ứng dụng mình (Zalo luôn gửi kèm). Chuỗi bí mật vẫn bắt buộc cho hai
+> đường dẫn quản trị `?auth=` và `?setup=`.
 
 ### Kiểm tra
 Mở `https://hdndthkpi.vercel.app/api/zalo` — xem `token: true` là đã có token.

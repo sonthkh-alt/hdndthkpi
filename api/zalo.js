@@ -9,7 +9,13 @@
 //    GET  /api/zalo                          → xem tình trạng cấu hình
 //    GET  /api/zalo?auth=<secret>            → lấy đường dẫn xin quyền OA (mở 1 lần)
 //    GET  /api/zalo?setup=<secret>&code=...  → Zalo gọi lại, đổi mã lấy token
-//    POST /api/zalo?secret=<secret>          → ĐỊA CHỈ WEBHOOK khai ở developers.zalo.me
+//    POST /api/zalo                          → ĐỊA CHỈ WEBHOOK khai ở developers.zalo.me
+//
+//  ⚠️ Zalo KHÔNG chấp nhận địa chỉ webhook có tham số truy vấn ("Đường dẫn webhook
+//     không hợp lệ"), nên chuỗi bí mật KHÔNG bắt buộc ở webhook. Yêu cầu được chấp
+//     nhận khi: chưa đặt ZALO_WEBHOOK_SECRET, HOẶC có ?secret= đúng, HOẶC gói tin
+//     mang đúng app_id của ứng dụng mình (Zalo luôn gửi kèm app_id).
+//     Chuỗi bí mật VẪN bắt buộc cho hai đường dẫn quản trị ?auth= và ?setup=.
 // ============================================================================
 import { reply } from './_lib/brain.js';
 import { userKey, getUser, register, spendQuota, describe, isOpen } from './_lib/users.js';
@@ -74,7 +80,7 @@ export default async function handler(req, res) {
     try { token = !!(await accessToken()); } catch (e) { tokenError = String(e.message || e); }
     return res.status(200).json({
       ok: true, appId: appId(), token, tokenError,
-      webhookUrl: `${selfUrl(req)}${secret ? `?secret=${secret}` : ''}`,
+      webhookUrl: selfUrl(req),   // khai NGUYÊN chuỗi này, không kèm tham số
       quanTriDuyetTren: `Telegram (${tgAdmins().length} tài khoản)`,
       moCuaDangKy: isOpen(),
       huongDan: 'Chưa có token thì mở /api/zalo?auth=<ZALO_WEBHOOK_SECRET> để xin quyền OA một lần.',
@@ -82,12 +88,17 @@ export default async function handler(req, res) {
   }
 
   if (req.method !== 'POST') return res.status(405).json({ ok: false });
-  // Zalo không gửi tiêu đề bí mật như Telegram -> đặt chuỗi bí mật ngay trong địa chỉ webhook.
-  if (secret && String(req.query?.secret || '') !== secret) return res.status(401).json({ ok: false });
 
   // Luôn trả 200 để Zalo không gửi lại liên tục.
   try {
     const ev = req.body || {};
+
+    // Zalo không gửi tiêu đề bí mật như Telegram và cũng không cho gắn tham số vào
+    // địa chỉ webhook -> chấp nhận khi có ?secret= đúng HOẶC gói tin mang đúng app_id.
+    const bySecret = secret && String(req.query?.secret || '') === secret;
+    const byAppId = ev.app_id && String(ev.app_id) === appId();
+    if (secret && !bySecret && !byAppId) return res.status(401).json({ ok: false });
+
     const from = String(ev.sender?.id || '');
     const text = ev.message?.text;
     if (!from || !text || (ev.event_name && ev.event_name !== 'user_send_text')) return res.status(200).json({ ok: true });
