@@ -19,7 +19,12 @@ import { getRow, putRow } from './store.js';
 
 const OAUTH_TOKEN_URL = 'https://oauth.zaloapp.com/v4/oa/access_token';
 const OAUTH_PERMISSION_URL = 'https://oauth.zaloapp.com/v4/oa/permission';
-const OPENAPI = 'https://openapi.zalo.me/v3.0/oa';
+// Zalo có 2 đời API gửi tin. OA nào không dùng được đời v3 sẽ trả lỗi -235
+// ("This API does not support this type of OA") -> thử tiếp đời v2 rồi mới báo lỗi.
+const SEND_ENDPOINTS = [
+  { url: 'https://openapi.zalo.me/v3.0/oa/message/cs', ten: 'v3.0/message/cs', tokenO: 'header' },
+  { url: 'https://openapi.zalo.me/v2.0/oa/message', ten: 'v2.0/message', tokenO: 'query' },
+];
 const ROW = 'zalo_token';
 
 export const appId = () => process.env.ZALO_APP_ID || '';
@@ -101,17 +106,39 @@ export function zaloChunks(text, size = 1900) {
   return out.length ? out : ['(trống)'];
 }
 
-/** Gửi tin nhắn tư vấn tới một người dùng Zalo. */
+/** Gửi MỘT mẩu tin qua một đầu nối cụ thể. Trả về mã lỗi Zalo (0 = thành công). */
+async function sendOne(ep, token, userId, part) {
+  const url = ep.tokenO === 'query' ? `${ep.url}?access_token=${encodeURIComponent(token)}` : ep.url;
+  const headers = { 'Content-Type': 'application/json', ...(ep.tokenO === 'header' ? { access_token: token } : {}) };
+  const r = await fetch(url, {
+    method: 'POST', headers,
+    body: JSON.stringify({ recipient: { user_id: String(userId) }, message: { text: part } }),
+  });
+  const d = await r.json().catch(() => ({}));
+  return { code: Number(d.error || 0), message: d.message || '' };
+}
+
+/**
+ * Gửi tin nhắn tới một người dùng Zalo.
+ * Thử lần lượt các đầu nối; nếu đầu nối đầu trả -235 (loại OA không hỗ trợ) thì thử đầu kế.
+ * Đầu nối nào chạy được sẽ được nhớ lại để các mẩu sau gửi thẳng, không thử lại từ đầu.
+ */
 export async function sendText(userId, text) {
   const token = await accessToken();
+  let dung = null; let loiCuoi = '';
   for (const part of zaloChunks(text)) {
-    const r = await fetch(`${OPENAPI}/message/cs`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', access_token: token },
-      body: JSON.stringify({ recipient: { user_id: String(userId) }, message: { text: part } }),
-    });
-    const d = await r.json().catch(() => ({}));
-    // error 0 = thành công. Các mã khác thường do hết cửa sổ trả lời hoặc token hỏng.
-    if (d.error && d.error !== 0) throw new Error(`Zalo gửi tin lỗi ${d.error}: ${d.message || ''}`);
+    if (dung) {
+      const r = await sendOne(dung, token, userId, part);
+      if (r.code !== 0) throw new Error(`Zalo gửi tin lỗi ${r.code}: ${r.message} (${dung.ten})`);
+      continue;
+    }
+    for (const ep of SEND_ENDPOINTS) {
+      const r = await sendOne(ep, token, userId, part);
+      if (r.code === 0) { dung = ep; loiCuoi = ''; break; }
+      loiCuoi = `${r.code}: ${r.message} (${ep.ten})`;
+      // -235 = loại OA không dùng được đầu nối này -> thử đầu nối tiếp theo.
+      // Các lỗi khác (token hỏng, hết cửa sổ trả lời...) cũng thử nốt cho chắc.
+    }
+    if (!dung) throw new Error(`Zalo gửi tin lỗi ${loiCuoi}`);
   }
 }
