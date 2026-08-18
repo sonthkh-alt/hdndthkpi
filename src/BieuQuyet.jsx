@@ -26,16 +26,19 @@ const MAU = {
     nut: 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100 text-emerald-800',
     nutDam: 'bg-emerald-600 hover:bg-emerald-700', o: 'bg-emerald-500', the: 'bg-emerald-50 text-emerald-800 border-emerald-200',
     thanh: 'bg-emerald-500', icon: CheckCircle2,
+    tron: 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-emerald-300/60', chu: 'text-emerald-800',
   },
   khongDongY: {
     nut: 'border-rose-300 bg-rose-50 hover:bg-rose-100 text-rose-800',
     nutDam: 'bg-rose-600 hover:bg-rose-700', o: 'bg-rose-500', the: 'bg-rose-50 text-rose-800 border-rose-200',
     thanh: 'bg-rose-500', icon: XCircle,
+    tron: 'bg-gradient-to-br from-rose-500 to-rose-700 shadow-rose-300/60', chu: 'text-rose-800',
   },
   yKienKhac: {
     nut: 'border-amber-300 bg-amber-50 hover:bg-amber-100 text-amber-800',
     nutDam: 'bg-amber-500 hover:bg-amber-600', o: 'bg-amber-400', the: 'bg-amber-50 text-amber-800 border-amber-200',
     thanh: 'bg-amber-400', icon: MessageSquareWarning,
+    tron: 'bg-gradient-to-br from-amber-400 to-amber-600 shadow-amber-300/60', chu: 'text-amber-800',
   },
   chua: { o: 'bg-slate-200', the: 'bg-slate-50 text-slate-600 border-slate-200', thanh: 'bg-slate-200' },
 };
@@ -256,23 +259,31 @@ export default function BieuQuyet({ onHome }) {
 
             {/* ===== Biểu quyết nhanh cho TẤT CẢ nghị quyết của kỳ họp ===== */}
             {soMo >= 2 && (
-              <section className="rounded-2xl border border-red-200 bg-red-50/70 p-4">
-                <p className="text-[13px] font-extrabold text-red-800 flex items-center gap-1.5">
-                  <Vote className="w-4 h-4" /> Biểu quyết một lần cho cả {soMo} nghị quyết đang mở tại {tenKyHop(kyDangChon)}
+              <section className="rounded-2xl border-2 border-red-200 bg-gradient-to-b from-red-50 to-white p-5">
+                <p className="text-[14px] sm:text-[15px] font-extrabold text-red-800 flex items-center justify-center gap-2 text-center">
+                  <Vote className="w-5 h-5 shrink-0" /> Biểu quyết một lần cho cả {soMo} nghị quyết đang mở tại {tenKyHop(kyDangChon)}
                 </p>
-                <div className="mt-2.5 grid sm:grid-cols-3 gap-2">
+                {/* Ba nút TRÒN cỡ lớn — cố ý to hơn hẳn nút biểu quyết từng nghị quyết bên dưới
+                    để đại biểu nhận ra ngay đây là thao tác "một chạm cho cả kỳ họp". */}
+                <div className="mt-5 flex items-start justify-center gap-5 sm:gap-12 flex-wrap">
                   {LUA_CHON.map((c) => {
                     const m = MAU[c.id];
                     const Ic = m.icon;
+                    const dang = dangGui === `caKy-${c.id}`;
                     return (
                       <button key={c.id} type="button" onClick={() => boPhieuCaKy(c.id)} disabled={!!dangGui}
-                        className={`rounded-xl border-2 px-3 py-2.5 text-[13px] font-bold inline-flex items-center justify-center gap-1.5 transition disabled:opacity-60 ${m.nut}`}>
-                        <Ic className="w-4 h-4" /> {c.nhan} — tất cả
+                        title={`${c.nhan} — cho tất cả ${soMo} nghị quyết đang mở`}
+                        className="group flex flex-col items-center gap-2 disabled:opacity-60">
+                        <span className={`w-24 h-24 sm:w-28 sm:h-28 rounded-full text-white flex items-center justify-center shadow-xl ring-4 ring-white transition-transform group-hover:scale-110 group-active:scale-95 ${m.tron} ${dang ? 'animate-pulse' : ''}`}>
+                          <Ic className="w-11 h-11 sm:w-14 sm:h-14" />
+                        </span>
+                        <span className={`text-[14px] font-extrabold ${m.chu}`}>{c.nhan}</span>
+                        <span className="text-[11px] text-slate-500 -mt-1.5">tất cả {soMo} nghị quyết</span>
                       </button>
                     );
                   })}
                 </div>
-                <p className="text-[11.5px] text-red-800/70 mt-2">Lá phiếu được ghi cho TỪNG nghị quyết; sau đó vẫn mở từng nội dung bên dưới để đổi lá phiếu riêng.</p>
+                <p className="text-[11.5px] text-red-800/70 mt-4 text-center">Lá phiếu được ghi cho TỪNG nghị quyết; sau đó vẫn mở từng nội dung bên dưới để đổi lá phiếu riêng.</p>
               </section>
             )}
 
