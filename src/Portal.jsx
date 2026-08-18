@@ -6,6 +6,7 @@ import {
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
+import NguoiHuongDan from './NguoiHuongDan';
 
 // ============================================================================
 //  TRANG CHỦ (PORTAL) — cổng vào các phân hệ nghiệp vụ.
@@ -163,6 +164,9 @@ export default function Portal({ onOpen }) {
           )}
         </div>
       </footer>
+
+      {/* ===== Người hướng dẫn (chat với trợ lý qua Zalo / Telegram) ===== */}
+      <NguoiHuongDan onGuide={() => onOpen(MODULES.find((m) => m.id === 'guide'))} />
     </div>
   );
 }
