@@ -73,7 +73,8 @@ export const KICH_BAN = [
     text: 'Vào phân hệ Biểu quyết Online, chọn Kỳ họp rồi chọn nội dung, bấm một trong ba nút: Đồng ý · Không đồng ý · Có ý kiến khác. Không cần tài khoản.\n'
       + '• Mỗi đại biểu một lá phiếu, còn mở biểu quyết thì bấm lại để đổi được.\n'
       + '• Kỳ họp có nhiều nghị quyết đang mở thì dùng 3 nút tròn lớn để biểu quyết MỘT LẦN cho tất cả.\n'
-      + '• Kết quả tính trên tổng số 82 đại biểu: quá nửa cần 42/82, hai phần ba cần 55/82 phiếu tán thành. Xuất được biên bản Word.',
+      + '• Kết quả tính trên tổng số 82 đại biểu: quá nửa cần 42/82, hai phần ba cần 55/82 phiếu tán thành. Xuất được biên bản Word.\n'
+      + 'Muốn biết kết quả kiểm phiếu hiện tại: bật nút [AI] cạnh ô nhập rồi hỏi, ví dụ "Kết quả biểu quyết kỳ họp thứ 5?".',
     lienKet: [{ nhan: 'Mở Biểu quyết Online', url: '#/bieuquyet' }],
   },
   {
@@ -136,11 +137,11 @@ export const KICH_BAN = [
     id: 'lichhoi',
     tu: ['lich hom nay', 'lich ngay mai', 'hoi lich', 'lich cua', 'hom nay co lich', 'lich tuan nay', 'lich tuan sau', 'lich lanh dao'],
     mau: 'Hỏi lịch hôm nay của lãnh đạo thế nào?',
-    text: 'Muốn tra lịch nhanh, nhắn cho trợ lý AI trên Zalo hoặc Telegram — trợ lý đọc được lịch công tác của TUẦN NÀY và TUẦN SAU, ví dụ:\n'
+    text: 'Muốn tra lịch nhanh, bật nút [AI] cạnh ô nhập rồi hỏi NGAY TẠI ĐÂY (tôi đọc được lịch công tác của TUẦN NÀY và TUẦN SAU, tốn 1 trong 3 lượt AI/ngày), ví dụ:\n'
       + '• "Lịch hôm nay của Phó Chủ tịch Thường trực?"\n'
       + '• "Tuần sau Ban Pháp chế có lịch gì?"\n'
       + '• "Ngày mai có mục lịch nào chờ duyệt không?"\n'
-      + 'Lưu ý: mỗi câu hỏi tính vào hạn mức 30 câu/ngày của bot; lịch xa hơn hai tuần thì mở hệ thống lịch để xem.',
+      + 'Hỏi nhiều hơn thì nhắn trợ lý AI trên Zalo/Telegram (30 câu/ngày); lịch xa hơn hai tuần thì mở hệ thống lịch để xem.',
     lienKet: [{ nhan: 'Chat Zalo', url: CHAT_ZALO }, { nhan: 'Chat Telegram', url: CHAT_TELEGRAM }, { nhan: 'Mở hệ thống lịch', url: 'https://calendar-beta-lac.vercel.app' }],
   },
   {

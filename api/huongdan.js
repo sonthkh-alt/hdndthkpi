@@ -8,25 +8,30 @@
 //     • Hết lượt → 429, giao diện hiện hướng dẫn đăng ký bot Zalo/Telegram.
 //     • Trừ lượt TRƯỚC khi gọi AI (bấm liên tiếp không lọt trần); AI lỗi thì
 //       hoàn lại lượt vừa trừ.
-//  CỐ Ý không nạp facts.js: điểm nối mở cho khách, chỉ hướng dẫn sử dụng,
-//  không được kèm số liệu nhân sự/đánh giá nào vào ngữ cảnh AI.
+//  Số liệu: nạp qua gatherFacts với isAdmin=false — đọc được số liệu của các
+//  phân hệ (kỳ đánh giá, tiêu chí HĐND, biểu quyết, lịch công tác 2 tuần)
+//  nhưng KHÔNG BAO GIỜ kèm dữ liệu nhân sự hồ sơ 2C (chỉ dành cho Quản trị,
+//  mà điểm nối này thì mở cho khách vô danh).
 // ============================================================================
 import { hasAI, askAI } from './_lib/ai.js';
 import { KNOWLEDGE } from './_lib/knowledge.js';
+import { gatherFacts } from './_lib/facts.js';
 import { getRow, putRow, hasStore, isServiceKey } from './_lib/store.js';
 import { ngayVN, khoaDem, donNgayCu, trangThai } from './_lib/hanMuc.js';
 
 const ROW_ID = 'hd_quota';
 export const gioiHan = () => Number(process.env.HUONGDAN_QUOTA ?? 3);
 
-const SYSTEM = `Bạn là "Người hướng dẫn" — khung chat nhỏ ở Trang chủ hệ thống của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa, chuyên HƯỚNG DẪN SỬ DỤNG.
+const SYSTEM = `Bạn là "Người hướng dẫn" — khung chat nhỏ ở Trang chủ hệ thống của Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa: hướng dẫn sử dụng và trả lời về số liệu của các phân hệ.
 
 QUY TẮC:
-1. Trả lời tiếng Việt có dấu, lịch sự, NGẮN GỌN (tối đa 120 từ), dùng gạch đầu dòng khi liệt kê, không dùng Markdown phức tạp.
-2. Bạn KHÔNG được nạp bất kỳ số liệu thật nào (điểm, xếp loại, lịch, kết quả biểu quyết). Ai hỏi số liệu thì nói thẳng là khung chat này không đọc được số liệu, mời họ chat với trợ lý AI đầy đủ trên Zalo (https://zalo.me/142053241153738721) hoặc Telegram (https://t.me/hdnd_thanhhoa_bot) — nhắn "/dangky Họ và tên - Đơn vị" một lần để đăng ký.
-3. Tuyệt đối không cung cấp mật khẩu, mã truy cập, thông tin cá nhân của cán bộ.
-4. Đây là bản demo thử nghiệm — kết quả dùng vào việc chính thức phải đối chiếu lại.
-5. Câu hỏi ngoài phạm vi hệ thống (kiến thức chung, soạn thảo...) vẫn trả lời được bằng kiến thức của bạn, ngắn gọn.
+1. Trả lời tiếng Việt có dấu, lịch sự, NGẮN GỌN (tối đa 120 từ), dùng gạch đầu dòng khi liệt kê, không dùng Markdown phức tạp (chỉ gạch đầu dòng, không in đậm).
+2. Khi câu hỏi liên quan số liệu, CHỈ dùng số trong phần "SỐ LIỆU HỆ THỐNG" bên dưới — tuyệt đối không bịa hay ước lượng. Số liệu không có trong đó thì nói thẳng là chưa có, chỉ đường dẫn phân hệ tương ứng hoặc mời chat với trợ lý AI đầy đủ trên Zalo (https://zalo.me/142053241153738721) / Telegram (https://t.me/hdnd_thanhhoa_bot) — nhắn "/dangky Họ và tên - Đơn vị" một lần để đăng ký.
+3. Khung chat này KHÔNG đọc được hồ sơ nhân sự (nâng lương, nghỉ hưu, hợp đồng, hồ sơ 2C) — phần đó chỉ Quản trị hỏi được qua bot Telegram.
+4. Khi câu hỏi nêu ĐÍCH DANH một người, một Ban hoặc đơn vị: chỉ dùng dòng dữ liệu ghi ĐÚNG tên đó; không thấy thì nói "không có mục nào", không lấy dòng của người khác thay thế.
+5. Tuyệt đối không cung cấp mật khẩu, mã truy cập, thông tin cá nhân của cán bộ.
+6. Đây là bản demo thử nghiệm, phần lớn số liệu là mô phỏng — kết quả dùng vào việc chính thức phải đối chiếu lại.
+7. Câu hỏi ngoài phạm vi hệ thống (kiến thức chung, soạn thảo...) vẫn trả lời được bằng kiến thức của bạn, ngắn gọn.
 
 HIỂU BIẾT VỀ HỆ THỐNG:
 ${KNOWLEDGE}`;
@@ -91,7 +96,13 @@ export default async function handler(req, res) {
   while (turns.length && turns[0].role === 'assistant') turns.shift(); // AI đòi lượt đầu là user
 
   try {
-    const traLoi = await askAI(SYSTEM, [...turns, { role: 'user', text: cau }]);
+    // Số liệu thật của các phân hệ, chọn theo từ khóa câu hỏi. LUÔN isAdmin:false —
+    // khách vô danh không bao giờ được kèm dữ liệu nhân sự vào ngữ cảnh.
+    const soLieu = hasStore()
+      ? await gatherFacts(cau, { isAdmin: false }).catch((e) => `(Không đọc được số liệu: ${e.message})`)
+      : '';
+    const system = `${SYSTEM}\n\nSỐ LIỆU HỆ THỐNG (đọc từ cơ sở dữ liệu lúc trả lời):\n${soLieu || '(chưa đọc được số liệu lúc này — trả lời phần hướng dẫn, số liệu thì chỉ đường dẫn)'}`;
+    const traLoi = await askAI(system, [...turns, { role: 'user', text: cau }]);
     return res.status(200).json({ ok: true, traLoi: traLoi || '(AI không trả lời)', hanMuc: q });
   } catch (e) {
     await hoanLuot(req);

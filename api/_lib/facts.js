@@ -6,6 +6,7 @@
 import { getRow, listPeriodIds } from './store.js';
 import { computeTC, applyQuotaXuatSac, gradeName, kindInfo } from '../../src/lib/khungTieuChi.js';
 import { buildAlerts, DEFAULT_LEAD } from '../../src/lib/hr.js';
+import { ketQua, tenKyHop, kyHopCua, danhSachKyHop } from '../../src/lib/bieuQuyet.js';
 import { lichFacts, hasLich } from './lich.js';
 
 const n1 = (v) => (Math.round(Number(v || 0) * 10) / 10).toString().replace('.', ',');
@@ -168,6 +169,37 @@ export function fmtNhanSu(doc) {
 }
 
 // ---------------------------------------------------------------------------
+//  D. Biểu quyết Online (dòng bq_data) — kết quả kiểm phiếu tính lại tại chỗ
+//  bằng chính src/lib/bieuQuyet.js của giao diện nên không lệch màn hình.
+// ---------------------------------------------------------------------------
+export async function bieuQuyetFacts() {
+  const row = await getRow('bq_data');
+  return fmtBieuQuyet(row?.data);
+}
+
+/** Phần định dạng THUẦN — kiểm thử được bằng Node. */
+export function fmtBieuQuyet(doc) {
+  if (!doc || !Array.isArray(doc.phien) || !doc.phien.length) return { text: '', meta: null };
+
+  const line = (p) => {
+    const k = ketQua(p);
+    return `- ${p.tieuDe} | ${p.trangThai === 'mo' ? 'ĐANG MỞ biểu quyết' : 'đã đóng biểu quyết'}`
+      + ` | tán thành ${k.dongY}/${k.tong} (${k.tyLeDongY}%) · không đồng ý ${k.khongDongY} · ý kiến khác ${k.yKienKhac} · chưa biểu quyết ${k.chuaBieuQuyet}`
+      + ` | ngưỡng thông qua ${k.nguong}/${k.tong} → ${k.thongQua ? 'ĐỦ điều kiện thông qua' : 'CHƯA đủ điều kiện thông qua'}`
+      + ` | phiếu do người thật bấm: ${k.phieuThuc}`;
+  };
+  const nhom = danhSachKyHop(doc.phien).map((so) =>
+    `### ${tenKyHop(so)}\n${doc.phien.filter((p) => kyHopCua(p) === so).map(line).join('\n')}`);
+
+  return {
+    meta: { phien: doc.phien.length },
+    text: `## Biểu quyết Online — HĐND tỉnh Thanh Hóa (82 đại biểu, nhiệm kỳ 2026-2031)\n`
+      + `⚠️ Bản demo: phần lớn lá phiếu là DỮ LIỆU MÔ PHỎNG trình diễn (cột "phiếu do người thật bấm" là số phiếu thật) — không phải kết quả biểu quyết chính thức của HĐND tỉnh.\n`
+      + nhom.join('\n'),
+  };
+}
+
+// ---------------------------------------------------------------------------
 //  Chọn nạp phần nào theo câu hỏi — tránh nhồi hết dữ liệu vào mỗi lượt chat.
 // ---------------------------------------------------------------------------
 const KW = {
@@ -178,6 +210,8 @@ const KW = {
   lich: ['lịch', 'lich', 'tuần', 'tuan', 'họp', 'hop', 'hôm nay', 'hom nay', 'ngày mai', 'ngay mai', 'sáng mai', 'chiều mai',
     'công tác', 'cong tac', 'xe', 'lái xe', 'lai xe', 'đi đâu', 'di dau', 'thứ hai', 'thứ ba', 'thứ tư', 'thứ năm', 'thứ sáu', 'thứ bảy', 'chủ nhật',
     'chờ duyệt', 'cho duyet', 'địa điểm', 'dia diem', 'thành phần', 'thanh phan', 'tiếp công dân'],
+  bq: ['biểu quyết', 'bieu quyet', 'nghị quyết', 'nghi quyet', 'kỳ họp', 'ky hop', 'tán thành', 'tan thanh',
+    'thông qua', 'thong qua', 'lá phiếu', 'la phieu', 'bỏ phiếu', 'bo phieu', 'kiểm phiếu', 'kiem phieu', 'đại biểu', 'dai bieu'],
 };
 const hit = (q, list) => list.some((k) => q.includes(k));
 
@@ -186,12 +220,14 @@ export async function gatherFacts(question, { isAdmin = false } = {}) {
   const wantTC = hit(q, KW.tc);
   const wantHR = isAdmin && hit(q, KW.hr);
   const wantLich = hasLich() && hit(q, KW.lich);
-  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich); // mặc định nạp kỳ đánh giá
+  const wantBQ = hit(q, KW.bq);
+  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich && !wantBQ); // mặc định nạp kỳ đánh giá
 
   const jobs = [];
   if (wantKP) jobs.push(periodFacts().catch((e) => ({ text: `(Không đọc được kỳ đánh giá: ${e.message})` })));
   if (wantTC) jobs.push(tieuChiFacts().catch((e) => ({ text: `(Không đọc được tiêu chí HĐND: ${e.message})` })));
   if (wantLich) jobs.push(lichFacts().catch((e) => ({ text: `(Không đọc được lịch công tác: ${e.message})` })));
+  if (wantBQ) jobs.push(bieuQuyetFacts().catch((e) => ({ text: `(Không đọc được kết quả biểu quyết: ${e.message})` })));
   if (wantHR) jobs.push(nhanSuFacts().catch((e) => ({ text: `(Không đọc được dữ liệu nhân sự: ${e.message})` })));
 
   const parts = (await Promise.all(jobs)).map((r) => r.text).filter(Boolean);
