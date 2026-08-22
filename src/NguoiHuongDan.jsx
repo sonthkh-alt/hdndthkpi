@@ -7,7 +7,8 @@ const MAU_ZALO = '#0068ff';
 const MAU_TELEGRAM = '#229ED9';
 
 // ============================================================================
-//  NGƯỜI HƯỚNG DẪN — nút nổi ở góc Trang chủ, mở khung chat hai tầng:
+//  NGƯỜI HƯỚNG DẪN — khung chat ở góc phải dưới Trang chủ, TỰ MỞ SẴN khi vào trang
+//  (khách đóng rồi thì phiên đó không tự mở lại — xem `moSan`/`dongKhung`). Hai tầng:
 //   1) Câu CÓ SẴN: bộ kịch bản trong trình duyệt (huongDanBot.js) trả lời
 //      tức thì — 0 token, không giới hạn.
 //   2) Câu NGOÀI kịch bản: hỏi AI qua /api/huongdan — mỗi khách 3 lượt/ngày
@@ -18,6 +19,14 @@ const MAU_TELEGRAM = '#229ED9';
 export { CHAT_TELEGRAM, CHAT_ZALO };
 
 const KHOA_MOI_CHAO = 'hdndkpi_hd_moi'; // mỗi phiên trình duyệt chỉ mời chào một lần
+const KHOA_DA_DONG = 'hdndkpi_hd_dong'; // khách đã tự tay đóng khung -> phiên này không tự mở lại
+
+/**
+ * Vào Trang chủ là khung chat MỞ SẴN. Nhưng nếu khách đã tự tay đóng thì tôn trọng:
+ * Trang chủ dựng lại component mỗi lần quay về từ một phân hệ, tự mở lại mỗi lần
+ * như vậy sẽ thành phiền. Trình duyệt chặn sessionStorage thì cứ mở (mặc định).
+ */
+const moSan = () => { try { return !sessionStorage.getItem(KHOA_DA_DONG); } catch { return true; } };
 
 /** Một bong bóng tin nhắn trong khung chat. */
 function BongBong({ tin, onHoiAI }) {
@@ -55,7 +64,7 @@ function BongBong({ tin, onHoiAI }) {
 }
 
 export default function NguoiHuongDan({ onGuide }) {
-  const [mo, setMo] = useState(false);
+  const [mo, setMo] = useState(moSan);
   const [moiChao, setMoiChao] = useState(false);
   const [tinNhan, setTinNhan] = useState([{ vai: 'bot', ...CHAO }]);
   const [oNhap, setONhap] = useState('');
@@ -65,15 +74,24 @@ export default function NguoiHuongDan({ onGuide }) {
   const daBaoHetLuotRef = useRef(false); // thông báo "đã chuyển sang chat miễn phí" chỉ hiện MỘT lần
   const khungRef = useRef(null);
 
-  useEffect(() => {
-    try { if (sessionStorage.getItem(KHOA_MOI_CHAO)) return; } catch { /* bỏ qua */ }
-    const t = setTimeout(() => setMoiChao(true), 2200);
-    return () => clearTimeout(t);
-  }, []);
   const tatMoiChao = () => {
     setMoiChao(false);
     try { sessionStorage.setItem(KHOA_MOI_CHAO, '1'); } catch { /* bỏ qua */ }
   };
+  /** Đóng khung: nhớ lại để phiên này không tự bật lên nữa. */
+  const dongKhung = () => {
+    setMo(false);
+    try { sessionStorage.setItem(KHOA_DA_DONG, '1'); } catch { /* bỏ qua */ }
+  };
+
+  // Khung đã mở sẵn thì bong bóng mời chào là thừa (và không hiện được vì chỉ hiện khi đóng).
+  useEffect(() => {
+    if (mo) { tatMoiChao(); return undefined; }
+    try { if (sessionStorage.getItem(KHOA_MOI_CHAO)) return undefined; } catch { /* bỏ qua */ }
+    const t = setTimeout(() => setMoiChao(true), 2200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Mở khung lần đầu thì hỏi máy chủ còn bao nhiêu lượt AI hôm nay.
   // Không hỏi được (chạy local, mất mạng) → coi như hết lượt, chỉ còn câu có sẵn.
@@ -163,7 +181,7 @@ export default function NguoiHuongDan({ onGuide }) {
     <div className="fixed bottom-5 right-5 z-50 flex flex-col items-end gap-3">
       {/* ===== Khung chat ===== */}
       {mo && (
-        <div className="w-[min(22.5rem,calc(100vw-2.5rem))] rounded-2xl bg-white border border-slate-200 shadow-2xl overflow-hidden">
+        <div className="w-[min(22.5rem,calc(100vw-2.5rem))] max-h-[calc(100vh-7rem)] overflow-y-auto rounded-2xl bg-white border border-slate-200 shadow-2xl">
           <div className="bg-gradient-to-br from-red-700 to-red-900 text-white px-4 py-3 flex items-center gap-3">
             <span className="relative shrink-0 w-10 h-10 rounded-full bg-white/15 border border-white/25 flex items-center justify-center">
               <Headset className="w-5 h-5" />
@@ -175,11 +193,11 @@ export default function NguoiHuongDan({ onGuide }) {
                 {hanMuc ? <>Câu có sẵn: miễn phí · Hỏi AI: còn <b>{hanMuc.conLai}/{hanMuc.gioiHan}</b> lượt hôm nay</> : 'Trả lời tức thì · câu có sẵn miễn phí'}
               </p>
             </div>
-            <button onClick={() => setMo(false)} aria-label="Đóng" className="shrink-0 w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center"><X className="w-4 h-4" /></button>
+            <button onClick={dongKhung} aria-label="Đóng" className="shrink-0 w-8 h-8 rounded-full hover:bg-white/15 flex items-center justify-center"><X className="w-4 h-4" /></button>
           </div>
 
           {/* Dòng tin nhắn */}
-          <div ref={khungRef} className="h-72 overflow-y-auto bg-slate-50 p-3 flex flex-col gap-2.5">
+          <div ref={khungRef} className="h-72 max-h-[38vh] overflow-y-auto bg-slate-50 p-3 flex flex-col gap-2.5">
             {tinNhan.map((tin, i) => <BongBong key={i} tin={tin} onHoiAI={hoiAI} />)}
             {dangGo && (
               <div className="self-start rounded-2xl rounded-tl-sm bg-white border border-slate-200 px-3 py-2 text-[12.5px] text-slate-400 animate-pulse">
@@ -226,7 +244,7 @@ export default function NguoiHuongDan({ onGuide }) {
             <p className="text-[11px] font-bold text-center leading-relaxed" style={{ color: MAU_TELEGRAM }}>
               Telegram: nhắn "/dangky Họ và tên - Đơn vị" cho bot @hdnd_thanhhoa_bot — cách đăng ký y như Zalo.
             </p>
-            <button onClick={() => { setMo(false); onGuide?.(); }}
+            <button onClick={() => { dongKhung(); onGuide?.(); }}
               className="mx-auto flex items-center gap-1 text-[11px] font-semibold text-slate-400 hover:text-slate-600">
               <BookOpen className="w-3.5 h-3.5" /> Hướng dẫn &amp; hỗ trợ sử dụng
             </button>
@@ -245,7 +263,7 @@ export default function NguoiHuongDan({ onGuide }) {
       )}
 
       {/* ===== Nút nổi ===== */}
-      <button onClick={() => { setMo((v) => !v); tatMoiChao(); }}
+      <button onClick={() => { if (mo) dongKhung(); else setMo(true); tatMoiChao(); }}
         aria-label={mo ? 'Đóng cửa sổ người hướng dẫn' : 'Mở cửa sổ người hướng dẫn — chat và được trả lời ngay tại chỗ'}
         title="Người hướng dẫn — chat và được trả lời ngay"
         className="relative w-14 h-14 rounded-full bg-gradient-to-br from-red-600 to-red-900 text-white shadow-xl shadow-red-200 hover:scale-105 transition-transform flex items-center justify-center">
