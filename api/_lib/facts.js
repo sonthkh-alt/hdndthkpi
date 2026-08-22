@@ -8,6 +8,8 @@ import { computeTC, applyQuotaXuatSac, gradeName, kindInfo } from '../../src/lib
 import { buildAlerts, DEFAULT_LEAD } from '../../src/lib/hr.js';
 import { ketQua, tenKyHop, kyHopCua, danhSachKyHop } from '../../src/lib/bieuQuyet.js';
 import { lichFacts, hasLich } from './lich.js';
+import { giamSatFacts } from './giamsat.js';
+import { oneDataFacts } from './onedata.js';
 
 const n1 = (v) => (Math.round(Number(v || 0) * 10) / 10).toString().replace('.', ',');
 const dmy = (iso) => { const d = new Date(iso); return isNaN(d) ? '' : `${String(d.getDate()).padStart(2, '0')}/${String(d.getMonth() + 1).padStart(2, '0')}/${d.getFullYear()}`; };
@@ -230,6 +232,53 @@ export function fmtDanhBa(doc) {
 }
 
 // ---------------------------------------------------------------------------
+//  F. Trợ lý AI nghiệp vụ dân cử (vb_data — kiến nghị cử tri + thư viện tài liệu).
+//
+//  ⚠️ CHỈ TRẢ CHO QUẢN TRỊ. Kiến nghị ở phân hệ này có ghi TÊN CỬ TRI và địa bàn
+//  (khác với kiến nghị bên Giám sát số vốn cố ý không lưu danh tính), nên dòng
+//  vb_data cố ý không mở đọc công khai — xem GHI CHÚ 7 trong supabase/schema.sql.
+//  Không được đưa tên cử tri vào ngữ cảnh của khung chat khách.
+// ---------------------------------------------------------------------------
+export async function vanBanFacts() {
+  const row = await getRow('vb_data');
+  return fmtVanBan(row?.data);
+}
+
+/** Phần định dạng THUẦN — kiểm thử được bằng Node. */
+export function fmtVanBan(doc) {
+  const kienNghi = Array.isArray(doc?.kienNghi) ? doc.kienNghi : [];
+  const taiLieu = Array.isArray(doc?.taiLieu) ? doc.taiLieu : [];
+  if (!kienNghi.length && !taiLieu.length) return { text: '', meta: null };
+
+  const theoTrangThai = kienNghi.reduce((a, k) => {
+    const t = k.trangThai || 'Chưa rõ';
+    a[t] = (a[t] || 0) + 1;
+    return a;
+  }, {});
+  const dongTrangThai = Object.entries(theoTrangThai).map(([k, v]) => `${k}: ${v}`).join(' · ');
+  const khoi = ['## Trợ lý AI nghiệp vụ dân cử (phân hệ #/troly)'];
+
+  if (kienNghi.length) {
+    const dong = kienNghi.slice(0, 25).map((k) =>
+      `- ${k.diaBan || 'chưa rõ địa bàn'} | ${k.linhVuc || 'chưa phân lĩnh vực'} | ${k.trangThai || 'Chưa rõ'}`
+      + ` | ${String(k.noiDung || '').slice(0, 160)}`).join('\n');
+    khoi.push(`### Kiến nghị cử tri đã ghi nhận (${kienNghi.length})\n`
+      + `${dongTrangThai}\n`
+      + dong
+      + (kienNghi.length > 25 ? `\n(Chỉ liệt kê 25/${kienNghi.length} kiến nghị.)` : ''));
+  }
+
+  if (taiLieu.length) {
+    const ten = taiLieu.slice(0, 30).map((t) => `- ${t.ten || '(chưa đặt tên)'}${t.nhom ? ` [${t.nhom}]` : ''}`).join('\n');
+    khoi.push(`### Thư viện tài liệu (${taiLieu.length} tài liệu)\n`
+      + ten
+      + '\nBot chỉ biết TÊN tài liệu, không nạp nội dung — muốn dùng nội dung thì mở phân hệ Trợ lý AI.');
+  }
+
+  return { meta: { kienNghi: kienNghi.length, taiLieu: taiLieu.length }, text: khoi.join('\n\n') };
+}
+
+// ---------------------------------------------------------------------------
 //  Chọn nạp phần nào theo câu hỏi — tránh nhồi hết dữ liệu vào mỗi lượt chat.
 // ---------------------------------------------------------------------------
 const KW = {
@@ -242,6 +291,13 @@ const KW = {
     'chờ duyệt', 'cho duyet', 'địa điểm', 'dia diem', 'thành phần', 'thanh phan', 'tiếp công dân'],
   bq: ['biểu quyết', 'bieu quyet', 'nghị quyết', 'nghi quyet', 'kỳ họp', 'ky hop', 'tán thành', 'tan thanh',
     'thông qua', 'thong qua', 'lá phiếu', 'la phieu', 'bỏ phiếu', 'bo phieu', 'kiểm phiếu', 'kiem phieu', 'đại biểu', 'dai bieu'],
+  gs: ['giám sát', 'giam sat', 'thẩm định', 'tham dinh', 'rà soát', 'ra soat', 'trái pháp luật', 'trai phap luat',
+    'kiến nghị cử tri', 'kien nghi cu tri', 'cử tri', 'cu tri', 'phản ánh', 'phan anh', 'mã tra cứu', 'ma tra cuu',
+    'sau giám sát', 'sau giam sat', 'gs-01', 'gs-02', 'gs-07', 'gs-11', 'gs-12', 'nhiệm vụ quá hạn', 'đôn đốc', 'don doc'],
+  od: ['một dữ liệu', 'mot du lieu', 'onedata', 'kho dữ liệu dùng chung', 'chỉ tiêu', 'chi tieu',
+    'không báo cáo lại', 'khong bao cao lai', 'dữ liệu mở', 'du lieu mo', 'không dùng tiền mặt', 'dịch vụ công trực tuyến'],
+  vb: ['thẩm tra', 'tham tra', 'soạn thảo', 'soan thao', 'bài phát biểu', 'bai phat bieu', 'soát xét', 'soat xet',
+    'thư viện tài liệu', 'thu vien tai lieu', 'trợ lý ai', 'tro ly ai', 'văn bản mẫu', 'nghị định 30', 'nd 30'],
   db: ['số điện thoại', 'so dien thoai', 'điện thoại của', 'dien thoai cua', 'danh bạ', 'danh ba', 'sđt', 'sdt',
     'số máy', 'so may', 'số của', 'so cua', 'gọi cho', 'goi cho', 'liên lạc với', 'lien lac voi', 'hotline'],
 };
@@ -254,7 +310,11 @@ export async function gatherFacts(question, { isAdmin = false, danhBa = true } =
   const wantLich = hasLich() && hit(q, KW.lich);
   const wantBQ = hit(q, KW.bq);
   const wantDB = danhBa && hit(q, KW.db);
-  const wantKP = hit(q, KW.kp) || (!wantTC && !wantHR && !wantLich && !wantBQ && !wantDB); // mặc định nạp kỳ đánh giá
+  const wantGS = hit(q, KW.gs);
+  const wantOD = hit(q, KW.od);
+  const wantVB = isAdmin && hit(q, KW.vb);
+  const wantKP = hit(q, KW.kp)
+    || (!wantTC && !wantHR && !wantLich && !wantBQ && !wantDB && !wantGS && !wantVB && !wantOD); // mặc định nạp kỳ đánh giá
 
   const jobs = [];
   if (wantKP) jobs.push(periodFacts().catch((e) => ({ text: `(Không đọc được kỳ đánh giá: ${e.message})` })));
@@ -262,7 +322,10 @@ export async function gatherFacts(question, { isAdmin = false, danhBa = true } =
   if (wantLich) jobs.push(lichFacts().catch((e) => ({ text: `(Không đọc được lịch công tác: ${e.message})` })));
   if (wantBQ) jobs.push(bieuQuyetFacts().catch((e) => ({ text: `(Không đọc được kết quả biểu quyết: ${e.message})` })));
   if (wantDB) jobs.push(danhBaFacts().catch((e) => ({ text: `(Không đọc được danh bạ: ${e.message})` })));
+  if (wantGS) jobs.push(giamSatFacts().catch((e) => ({ text: `(Không đọc được phân hệ Giám sát số: ${e.message})` })));
+  if (wantOD) jobs.push(oneDataFacts().catch((e) => ({ text: `(Không đọc được phân hệ Một dữ liệu: ${e.message})` })));
   if (wantHR) jobs.push(nhanSuFacts().catch((e) => ({ text: `(Không đọc được dữ liệu nhân sự: ${e.message})` })));
+  if (wantVB) jobs.push(vanBanFacts().catch((e) => ({ text: `(Không đọc được phân hệ Trợ lý AI: ${e.message})` })));
 
   const parts = (await Promise.all(jobs)).map((r) => r.text).filter(Boolean);
   return parts.join('\n\n');

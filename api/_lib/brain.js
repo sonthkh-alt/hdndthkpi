@@ -6,7 +6,9 @@
 //  rồi để AI diễn đạt. Nhờ vậy bot vừa trả lời đúng số của cơ quan, vừa trả lời
 //  được các câu hỏi ngoài hệ thống.
 // ============================================================================
-import { gatherFacts, periodFacts, tieuChiFacts, nhanSuFacts } from './facts.js';
+import { gatherFacts, periodFacts, tieuChiFacts, nhanSuFacts, vanBanFacts } from './facts.js';
+import { giamSatFacts } from './giamsat.js';
+import { oneDataFacts } from './onedata.js';
 import { lichFacts, hasLich } from './lich.js';
 import { KNOWLEDGE, SYSTEM_PROMPT, SITE } from './knowledge.js';
 import { askAI, hasAI, provider, modelName, endpointHost } from './ai.js';
@@ -22,6 +24,8 @@ Cứ hỏi tôi bằng tiếng Việt bình thường, ví dụ:
 • "Sáng mai có cuộc họp nào, ở đâu, đi xe nào?"
 • "Còn mục lịch nào đang chờ duyệt không?"
 • "Còn ai chưa được phê duyệt?"
+• "Có bao nhiêu kiến nghị cử tri quá hạn trả lời?"
+• "Tỷ lệ chi trả không dùng tiền mặt của xã nào thấp nhất?"
 • "Phường Hạc Thành xếp loại gì, vì sao chưa đạt Xuất sắc?"
 • "Muốn xếp loại Xuất sắc thì cần điều kiện gì?"
 Ngoài số liệu của hệ thống, tôi cũng trả lời được các câu hỏi chung khác.
@@ -50,6 +54,16 @@ async function statusText() {
       lines.push(`Tiêu chí HĐND: ${t.meta ? `${t.meta.units} đơn vị, năm ${t.meta.year}` : 'chưa có dữ liệu'}`);
     } catch (e) { lines.push(`Lỗi đọc dữ liệu: ${e.message}`); }
   }
+  // Hai phân hệ ngoài đọc bằng dữ liệu công khai nên không cần khóa — chỉ cần mạng.
+  try {
+    const g = await giamSatFacts();
+    lines.push(`Giám sát số: ${g.meta ? `✅ ${g.meta.nghiQuyet} nghị quyết · ${g.meta.ketQua} kết quả thẩm định · ${g.meta.nhiemVu} nhiệm vụ · ${g.meta.kienNghi} kiến nghị cử tri` : '⚠️ đọc được nhưng chưa có bản ghi nào'}`);
+  } catch (e) { lines.push(`Giám sát số: lỗi đọc — ${e.message}`); }
+  try {
+    const o = await oneDataFacts();
+    lines.push(`Một dữ liệu: ${o.meta ? `✅ ${o.meta.chiTieu} chỉ tiêu, kỳ ${o.meta.ky}` : '⚠️ máy chủ bên đó đang ngủ, lượt này chưa lấy được số liệu'}`);
+  } catch (e) { lines.push(`Một dữ liệu: lỗi đọc — ${e.message}`); }
+
   if (!hasLich()) lines.push('Lịch công tác tuần: ❌ chưa cấu hình CAL_SUPABASE_URL / CAL_SUPABASE_SERVICE_ROLE_KEY');
   else {
     try { const l = await lichFacts(); lines.push(`Lịch công tác tuần: ✅ ${l.meta?.count ?? 0} mục (tuần này và tuần sau), chờ duyệt ${l.meta?.cho_duyet ?? 0}`); }
@@ -83,7 +97,10 @@ export async function reply({ text, chatKey, isAdmin = false, moc = {} }) {
       periodFacts().catch((e) => ({ text: `(lỗi: ${e.message})` })),
       tieuChiFacts().catch(() => ({ text: '' })),
       lichFacts().catch(() => ({ text: '' })),
+      giamSatFacts().catch(() => ({ text: '' })),
+      oneDataFacts().catch(() => ({ text: '' })),
       isAdmin ? nhanSuFacts().catch(() => ({ text: '' })) : Promise.resolve({ text: '' }),
+      isAdmin ? vanBanFacts().catch(() => ({ text: '' })) : Promise.resolve({ text: '' }),
     ]);
     // Có tới 3 khối số liệu (2 phân hệ chấm điểm + tiêu chí HĐND); telegram.js tự cắt thành nhiều tin.
     const out = parts.map((p) => p.text).filter(Boolean).join('\n\n');
