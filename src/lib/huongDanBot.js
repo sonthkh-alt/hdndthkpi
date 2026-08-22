@@ -20,10 +20,10 @@ export const boDau = (s) => String(s || '').toLowerCase().normalize('NFD').repla
 /** Lời chào mở đầu của người hướng dẫn. */
 export const CHAO = {
   id: 'chao',
+  // Lời chào để NGẮN. Cơ chế hết lượt tự chuyển sang chat miễn phí vẫn chạy y nguyên,
+  // chỉ là không giải thích trước nữa — khi nào chuyển thật thì mới báo (xem NguoiHuongDan.jsx).
   text: 'Xin chào! Tôi là người hướng dẫn của hệ thống.\n'
-    + '• Mặc định tôi trả lời bằng AI — miễn phí 3 lượt mỗi ngày.\n'
-    + '• Hết lượt, tôi TỰ CHUYỂN sang chat miễn phí của hệ thống (trả lời theo kịch bản có sẵn, không giới hạn); muốn hỏi AI tiếp thì sang Zalo/Telegram bên dưới.\n'
-    + '• Muốn tiết kiệm lượt: tắt nút [AI] cạnh ô nhập — câu có sẵn sẽ được trả lời miễn phí trước, cần thì bấm "Hỏi AI ngay" dưới câu trả lời.',
+    + 'Mặc định tôi trả lời bằng AI — miễn phí 3 lượt mỗi ngày.',
   lienKet: [],
 };
 
