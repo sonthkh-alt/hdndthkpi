@@ -1,9 +1,11 @@
 # Bản tin pháp luật hằng ngày — nơi đặt ảnh
 
 Trang chủ (`https://hdndthkpi.vercel.app/`) hiển thị ảnh bản tin ngay phía trên lưới phân hệ.
-Ảnh do **tác vụ định kỳ `ban-tin-phap-luat-hang-ngay` của Claude** sinh ra rồi đẩy thẳng vào
-thư mục này. Đẩy xong Vercel tự triển khai lại (1-2 phút) là Trang chủ có ảnh mới —
-không cần máy chủ, không cần cơ sở dữ liệu, không phải sửa mã nguồn.
+Ảnh do **bộ chạy tại chỗ `tools/bantin/`** sinh ra mỗi sáng 07:30 trên máy của Văn phòng
+(tác vụ Windows `BanTinPhapLuat`): lấy tin từ RSS chính thống → vẽ ảnh bằng Pillow → ghi
+vào thư mục này → `git push`. Vercel triển khai lại sau 1-2 phút là Trang chủ có ảnh mới.
+**Không cần khóa API, không cần token, không gọi AI.** Cách chạy và cách sửa: xem
+`tools/bantin/README.md`.
 
 **Chưa có ảnh thì khối bản tin tự ẩn hẳn** khỏi Trang chủ (không hiện khung ảnh vỡ).
 
@@ -41,23 +43,13 @@ Mỗi phần tử trong `tin` viết dạng chuỗi hoặc `{tieuDe, nguon}` đ�
 Thiếu trường nào thì Trang chủ tự bỏ qua trường đó. Sai định dạng ngày thì chỉ mất cái
 huy hiệu ngày, ảnh vẫn hiện bình thường.
 
-## Cấu hình cho `push_to_github.py`
+## Muốn đổi nguồn tin, giờ chạy hay cách vẽ ảnh
 
-Điền vào `outputs/github-config.json` của tác vụ định kỳ:
+Sửa trong `tools/bantin/` rồi chạy `python tools/bantin/kiem_thu.py` cho chắc. Đường dẫn
+ba tệp ở trên là hợp đồng giữa bộ sinh ảnh và Trang chủ — đổi tên tệp thì phải đổi cả
+`src/lib/banTin.js`.
 
-| Thông tin | Giá trị |
-|---|---|
-| Chủ kho | `sonthkh-alt` |
-| Tên kho | `hdndthkpi` |
-| Nhánh | `main` |
-| Đường dẫn ảnh gốc | `public/bantin/moi-nhat.png` |
-| Đường dẫn ảnh nhẹ | `public/bantin/moi-nhat.jpg` |
-| Đường dẫn chú thích | `public/bantin/moi-nhat.json` |
-
-Thông điệp commit gợi ý: `bantin: bản tin pháp luật ngày DD/MM/YYYY`.
-
-⚠️ **Kho này CÔNG KHAI.** Chỉ đẩy ảnh bản tin và chú thích. Không đẩy token, không đẩy
-tệp cấu hình có khóa bí mật.
+⚠️ **Kho này CÔNG KHAI.** Chỉ đẩy ảnh bản tin và chú thích, không đẩy khóa bí mật.
 
 ## Muốn lưu trữ các bản tin cũ
 
