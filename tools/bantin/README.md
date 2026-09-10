@@ -68,14 +68,28 @@ thì xem `nhat-ky.log`. `LastTaskResult = 0` là chạy xong bình thường.
 $repo = "C:\Users\Admin\OneDrive\App\GoogleAnti\HDNDKPI"
 $py   = "C:\Users\Admin\AppData\Local\Programs\Python\Python314\pythonw.exe"
 $act = New-ScheduledTaskAction -Execute $py -Argument "`"$repo\tools\bantin\chay.py`"" -WorkingDirectory $repo
-$trg = New-ScheduledTaskTrigger -Daily -At 7:30am
-$set = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable `
+$trg1 = New-ScheduledTaskTrigger -Daily -At 7:30am
+$trg2 = New-ScheduledTaskTrigger -AtLogOn -User "Admin"
+$trg2.Delay = "PT3M"
+$set = New-ScheduledTaskSettingsSet -StartWhenAvailable `
        -ExecutionTimeLimit (New-TimeSpan -Minutes 20) -MultipleInstances IgnoreNew `
-       -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries
-Register-ScheduledTask -TaskName "BanTinPhapLuat" -Action $act -Trigger $trg -Settings $set -Force
+       -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries `
+       -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10)
+Register-ScheduledTask -TaskName "BanTinPhapLuat" -Action $act -Trigger $trg1,$trg2 -Settings $set -Force
 ```
 
 `-StartWhenAvailable` để máy tắt lúc 07:30 thì bật lên vẫn chạy bù.
+
+⚠️ **Bài học ngày 10/9/2026: tác vụ KHÔNG chạy sáng hôm đó.** Hai nguyên nhân, đã vá:
+
+1. **`-RunOnlyIfNetworkAvailable` phản tác dụng.** Máy vừa bật, Windows chưa kết luận
+   được là "đã có mạng" nên hủy luôn lượt chạy và không thử lại. Điều kiện này thừa vì
+   `chay.py` đã tự xử lý mất mạng: dừng lại và **không ghi đè bản tin cũ**. Nay bỏ hẳn.
+2. **Chỉ có một mốc kích hoạt 07:30.** Máy không bật đúng lúc đó là mất cả ngày.
+   Nay thêm **mốc kích hoạt khi đăng nhập** (trễ 3 phút cho mạng lên) — chạy nhiều lần
+   trong ngày là vô hại vì script tự bỏ qua khi không đủ tin mới và không tạo commit rỗng.
+
+Thêm `-RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10)` để lỡ hỏng thì thử lại.
 
 ## Khi nào KHÔNG ra bản tin
 
