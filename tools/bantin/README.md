@@ -22,11 +22,22 @@ python tools/bantin/kiem_thu.py      # kiểm thử, không chạm mạng
 |---|---|
 | `tin.py` | Lấy và lọc tin. `doc_rss()` là chỗ **duy nhất** chạm mạng, phần còn lại là logic thuần nên kiểm thử được |
 | `poster.py` | Vẽ ảnh 3508×2480 bằng Pillow, phông Segoe UI/Arial của Windows |
-| `chay.py` | Nối cả dây: lấy tin → vẽ → ghi `public/bantin/` → commit → push |
+| `chay.py` | Nối cả dây: lấy tin → vẽ → ghi `public/bantin/` → **lưu vào kho** → commit → push |
 | `kiem_thu.py` | 36 phép kiểm, không cần mạng |
 
 Sổ chống trùng tin nằm ở `da-dua-tin.json` (giữ 200 tin gần nhất, có commit lên GitHub để
 máy khác biết đã đưa tin gì). Nhật ký chạy ở `nhat-ky.log` (không commit).
+
+## Kho lưu trữ bản tin cũ
+
+Mỗi lượt chạy chép thêm một bản vào `public/bantin/luu-tru/<ngày>.jpg` + `.json` rồi dựng
+lại `public/bantin/muc-luc.json`. Có từ **2 ngày trở lên** thì huy hiệu ngày trên Trang chủ
+biến thành **hộp chọn ngày** để xem lại bản tin cũ.
+
+Kho chỉ giữ **ảnh nhẹ**, không giữ bản PNG khổ lớn: mỗi ngày một tệp 1 MB thì một năm đã
+hơn 400 MB nằm trong kho mã. Giữ **90 ngày gần nhất** (~21 MB), bản cũ hơn tự bị dọn —
+đổi `SO_NGAY_LUU` trong `tin.py` nếu muốn khác. Số ngày tính theo **lịch** chứ không theo
+số tệp: máy tắt vài hôm thì kho vẫn phủ đủ khoảng thời gian đó.
 
 ## Nguồn tin
 

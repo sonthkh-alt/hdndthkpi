@@ -5,10 +5,13 @@
 //  repo này theo ĐƯỜNG DẪN CỐ ĐỊNH bên dưới. Đẩy xong Vercel tự triển khai lại
 //  (1-2 phút) là Trang chủ có ảnh mới — không cần máy chủ, không cần cơ sở dữ liệu.
 //
-//  Hợp đồng với tác vụ định kỳ (xem thêm public/bantin/README.md):
-//    public/bantin/moi-nhat.png   — ẢNH KHỔ LỚN 3508x2480 (bắt buộc, ghi đè mỗi ngày)
-//    public/bantin/moi-nhat.jpg   — ảnh xem trước nhẹ ~1404x992 (tùy chọn nhưng NÊN có)
-//    public/bantin/moi-nhat.json  — chú thích: ngày, tiêu đề, danh sách tin (tùy chọn)
+//  Hợp đồng với bộ sinh bản tin (xem thêm public/bantin/README.md):
+//    public/bantin/moi-nhat.png        — ẢNH KHỔ LỚN 3508x2480 (bắt buộc, ghi đè mỗi ngày)
+//    public/bantin/moi-nhat.jpg        — ảnh xem trước nhẹ ~1404x992 (tùy chọn nhưng NÊN có)
+//    public/bantin/moi-nhat.json       — chú thích: ngày, tiêu đề, danh sách tin (tùy chọn)
+//    public/bantin/muc-luc.json        — LƯU TRỮ: danh sách ngày đã có bản tin (tùy chọn)
+//    public/bantin/luu-tru/<ngày>.jpg  — ảnh bản tin của ngày đó
+//    public/bantin/luu-tru/<ngày>.json — chú thích của ngày đó
 //
 //  Vì sao cần ảnh xem trước: ảnh gốc 3508x2480 nặng vài MB. Bắt mọi người tải
 //  ngần ấy chỉ để xem Trang chủ là quá đắt, nhất là khi mở bằng điện thoại.
@@ -20,6 +23,8 @@ export const THU_MUC = 'bantin';
 export const TEN_ANH = 'moi-nhat.png';
 export const TEN_ANH_NHE = 'moi-nhat.jpg';
 export const TEN_CHU_THICH = 'moi-nhat.json';
+export const TEN_MUC_LUC = 'muc-luc.json';
+export const THU_MUC_LUU = 'luu-tru';
 
 /** Tỷ lệ khung ảnh gốc (3508x2480) — đặt sẵn để trình duyệt không bị giật bố cục khi ảnh tải xong. */
 export const TY_LE_ANH = 3508 / 2480;
@@ -39,6 +44,25 @@ export function mocNgay(bayGio = Date.now()) {
 export function duongDan(goc, ten, moc) {
   const q = moc ? `?v=${encodeURIComponent(moc)}` : '';
   return `${bo(goc)}/${THU_MUC}/${ten}${q}`;
+}
+
+/** Đường dẫn tệp bản tin của MỘT NGÀY trong kho lưu trữ. */
+export function duongDanLuuTru(goc, ngay, duoi) {
+  // Tệp lưu trữ ghi một lần rồi không đổi nữa nên KHÔNG cần mốc phá bộ nhớ đệm —
+  // để trình duyệt giữ lại càng tốt, xem lại bản tin cũ là có ngay.
+  return `${bo(goc)}/${THU_MUC}/${THU_MUC_LUU}/${ngay}.${duoi}`;
+}
+
+/**
+ * Chuẩn hóa mục lục lưu trữ -> mảng ngày ISO hợp lệ, MỚI NHẤT TRƯỚC, không trùng.
+ * Mục lục hỏng hay thiếu thì trả mảng rỗng: Trang chủ chỉ mất phần chọn ngày,
+ * bản tin mới nhất vẫn hiện bình thường.
+ */
+export function docMucLuc(raw) {
+  const ds = Array.isArray(raw) ? raw : Array.isArray(raw?.ngay) ? raw.ngay : [];
+  return [...new Set(ds.filter((x) => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x)))]
+    .sort()
+    .reverse();
 }
 
 /**

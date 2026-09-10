@@ -109,6 +109,17 @@ with tempfile.TemporaryDirectory() as thu_muc:
     T.ghi_so(so, T.doc_so(so), [m(f"Tin số {i}") for i in range(300)])
     ok(len(T.doc_so(so)) <= T.GIU_TOI_DA, "sổ không phình quá giới hạn", str(len(T.doc_so(so))))
 
+print("=== 7b. Kho lưu trữ bản tin cũ ===")
+giu, bo = T.loc_ngay_giu(["2026-09-10", "2026-09-09", "2026-06-01"], "2026-09-10", so_ngay=3)
+ok(giu == ["2026-09-10", "2026-09-09"], "giữ đúng các ngày trong khoảng", str(giu))
+ok(bo == ["2026-06-01"], "bỏ ngày quá cũ", str(bo))
+ok(T.loc_ngay_giu(["2026-09-09", "2026-09-09"], "2026-09-10")[0] == ["2026-09-09"], "bỏ ngày trùng")
+ok(T.loc_ngay_giu(["bay", ""], "2026-09-10") == ([], []), "ngày sai định dạng bị loại, không gãy")
+# Giữ theo LỊCH chứ không theo số tệp: máy tắt vài hôm thì kho vẫn phủ đủ khoảng đó.
+giu2, bo2 = T.loc_ngay_giu(["2026-09-10", "2026-09-05"], "2026-09-10", so_ngay=3)
+ok(giu2 == ["2026-09-10"] and bo2 == ["2026-09-05"], "cách 5 ngày thì ngoài khoảng 3 ngày", str(giu2))
+ok(T.loc_ngay_giu([], "2026-09-10") == ([], []), "kho rỗng không gãy")
+
 print("=== 8. Vẽ ảnh ===")
 from poster import CAO, RONG, ve_ban_tin  # noqa: E402
 

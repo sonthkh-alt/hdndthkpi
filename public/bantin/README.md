@@ -9,13 +9,18 @@ vào thư mục này → `git push`. Vercel triển khai lại sau 1-2 phút là
 
 **Chưa có ảnh thì khối bản tin tự ẩn hẳn** khỏi Trang chủ (không hiện khung ảnh vỡ).
 
-## Ba tệp — đúng tên, ghi đè mỗi ngày
+## Các tệp — đúng tên, ghi đè mỗi ngày
 
 | Tệp | Bắt buộc | Nội dung |
 |---|---|---|
-| `moi-nhat.png` | **Có** | Ảnh gốc khổ lớn 3508×2480 |
-| `moi-nhat.jpg` | Nên có | Ảnh xem trước nhẹ (~1404×992) — chính là `prev_full.jpg` mà script đã tạo sẵn |
-| `moi-nhat.json` | Tùy chọn | Ngày, tiêu đề và danh sách tin dạng CHỮ |
+| `public/bantin/moi-nhat.png` | **Có** | Ảnh gốc khổ lớn 3508×2480 |
+| `public/bantin/moi-nhat.jpg` | Nên có | Ảnh xem trước nhẹ (~1404×992) |
+| `public/bantin/moi-nhat.json` | Tùy chọn | Ngày, tiêu đề và danh sách tin dạng CHỮ |
+| `public/bantin/muc-luc.json` | Tùy chọn | **Kho lưu trữ**: danh sách ngày đã có bản tin |
+| `public/bantin/luu-tru/<ngày>.jpg` | Tùy chọn | Ảnh bản tin của ngày đó (`<ngày>` dạng `2026-09-10`) |
+| `public/bantin/luu-tru/<ngày>.json` | Tùy chọn | Chú thích của ngày đó |
+
+Kho mã là `sonthkh-alt/hdndthkpi`, nhánh `main`.
 
 **Vì sao nên có `moi-nhat.jpg`:** ảnh gốc nặng vài MB. Bắt mọi người tải ngần ấy chỉ để
 xem Trang chủ là quá đắt, nhất là khi mở bằng điện thoại. Có ảnh nhẹ thì Trang chủ dùng
@@ -51,10 +56,23 @@ ba tệp ở trên là hợp đồng giữa bộ sinh ảnh và Trang chủ — 
 
 ⚠️ **Kho này CÔNG KHAI.** Chỉ đẩy ảnh bản tin và chú thích, không đẩy khóa bí mật.
 
-## Muốn lưu trữ các bản tin cũ
+## Kho lưu trữ và hộp chọn ngày
 
-Đẩy thêm một bản sao theo ngày vào `public/bantin/luu-tru/ban-tin-phap-luat-DD-MM-YYYY.png`.
-Trang chủ chỉ đọc `moi-nhat.*` nên thư mục lưu trữ không ảnh hưởng gì tới hiển thị.
+Có `muc-luc.json` với **từ 2 ngày trở lên** thì huy hiệu ngày trên Trang chủ biến thành
+**hộp chọn ngày** — người xem chọn một ngày là hiện lại bản tin hôm đó. Chỉ có một ngày
+thì vẫn là huy hiệu tĩnh (không tạo nút bấm mà bấm vào chẳng có gì).
+
+```json
+{ "capNhat": "2026-09-10T15:32:18+07:00", "ngay": ["2026-09-10", "2026-09-09"] }
+```
+
+Nhận cả dạng mảng trần `["2026-09-10", …]`. Ngày sai định dạng bị bỏ qua; mục lục hỏng
+thì Trang chủ chỉ mất phần chọn ngày, bản tin mới nhất vẫn hiện bình thường.
+
+**Kho chỉ giữ ảnh NHẸ, không giữ bản PNG khổ lớn.** Mỗi ngày một tệp 1 MB thì một năm
+đã hơn 400 MB nằm trong kho mã. Ảnh nhẹ 1404×992 phóng to vẫn đọc được chữ trong thẻ tin.
+Bộ sinh giữ **90 ngày gần nhất** (~21 MB) và tự dọn bản cũ hơn — sửa `SO_NGAY_LUU`
+trong `tools/bantin/tin.py` nếu muốn khác.
 
 ## Kiểm tra nhanh sau khi đẩy
 

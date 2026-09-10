@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Newspaper, Maximize2, Download } from 'lucide-react';
+import { Newspaper, Maximize2, Download, CalendarDays } from 'lucide-react';
 import {
-  TEN_ANH, TEN_ANH_NHE, TEN_CHU_THICH, TY_LE_ANH,
-  docChuThich, duongDan, hienNgay, laBanTinCu, mocNgay,
+  TEN_ANH, TEN_ANH_NHE, TEN_CHU_THICH, TEN_MUC_LUC, TY_LE_ANH,
+  docChuThich, docMucLuc, duongDan, duongDanLuuTru, hienNgay, laBanTinCu, mocNgay,
 } from './lib/banTin';
 
 // ============================================================================
@@ -27,12 +27,28 @@ async function coTep(url) {
   }
 }
 
-export default function BanTin() {
-  const [tt, datTT] = useState(null); // null = đang dò; false = không có ảnh
+const GOC = () => String(import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
 
+/** Đọc một tệp JSON; hỏng hoặc thiếu thì trả null chứ không ném lỗi. */
+async function docJson(url) {
+  try {
+    const r = await fetch(url, { cache: 'no-cache' });
+    return r.ok ? await r.json() : null;
+  } catch {
+    return null;
+  }
+}
+
+export default function BanTin() {
+  const [tt, datTT] = useState(null);      // null = đang dò; false = không có ảnh
+  const [mucLuc, datMucLuc] = useState([]); // các ngày có trong kho lưu trữ
+  const [chonNgay, datChonNgay] = useState(''); // '' = bản tin mới nhất
+  const [dangTai, datDangTai] = useState(false);
+
+  // ---- Bản tin MỚI NHẤT + mục lục lưu trữ (chạy một lần khi mở trang) ----
   useEffect(() => {
     let con = true;
-    const goc = String(import.meta.env.BASE_URL || '/').replace(/\/+$/, '');
+    const goc = GOC();
     const moc = mocNgay();
 
     (async () => {
@@ -41,24 +57,54 @@ export default function BanTin() {
       if (!con) return;
       if (!anhGoc) { datTT(false); return; }
 
-      // Ảnh nhẹ và chú thích đều TÙY CHỌN — thiếu vẫn chạy.
-      const [anhNhe, chuThich] = await Promise.all([
+      // Ảnh nhẹ, chú thích và mục lục đều TÙY CHỌN — thiếu vẫn chạy.
+      const [anhNhe, chuThich, ml] = await Promise.all([
         coTep(duongDan(goc, TEN_ANH_NHE, moc)),
-        fetch(duongDan(goc, TEN_CHU_THICH, moc), { cache: 'no-cache' })
-          .then((r) => (r.ok ? r.json() : null))
-          .catch(() => null),
+        docJson(duongDan(goc, TEN_CHU_THICH, moc)),
+        docJson(duongDan(goc, TEN_MUC_LUC, moc)),
       ]);
       if (!con) return;
       datTT({ anhGoc, anhHien: anhNhe || anhGoc, ...docChuThich(chuThich) });
+      datMucLuc(docMucLuc(ml));
     })();
 
     return () => { con = false; };
   }, []);
 
+  // ---- Đổi sang một ngày trong kho lưu trữ ----
+  useEffect(() => {
+    if (!chonNgay) return undefined;
+    let con = true;
+    datDangTai(true);
+    const goc = GOC();
+    const anh = duongDanLuuTru(goc, chonNgay, 'jpg');
+
+    (async () => {
+      const [co, chuThich] = await Promise.all([
+        coTep(anh),
+        docJson(duongDanLuuTru(goc, chonNgay, 'json')),
+      ]);
+      if (!con) return;
+      datDangTai(false);
+      if (!co) {
+        // Mục lục có ngày mà tệp lại thiếu -> nói thật, đừng để khung ảnh vỡ.
+        datTT((cu) => (cu ? { ...cu, thieuTep: true, ngay: chonNgay } : cu));
+        return;
+      }
+      // Bản lưu trữ chỉ có MỘT ảnh nhẹ (xem giải thích ở public/bantin/README.md),
+      // nên ảnh hiển thị và ảnh "xem khổ lớn" là cùng một tệp.
+      datTT({ anhGoc: anh, anhHien: anh, thieuTep: false, ...docChuThich(chuThich) });
+    })();
+
+    return () => { con = false; };
+  }, [chonNgay]);
+
   if (!tt) return null;
 
   const ngay = hienNgay(tt.ngay);
-  const cu = laBanTinCu(tt.ngay);
+  // Đang xem bản lưu trữ thì không gắn nhãn "chưa có bản mới hơn" — người xem tự chọn ngày cũ.
+  const cu = !chonNgay && laBanTinCu(tt.ngay);
+  const ngayMoiNhat = mucLuc[0] || '';
 
   return (
     <section aria-labelledby="tieu-de-ban-tin" className="mb-8 sm:mb-10">
@@ -75,12 +121,37 @@ export default function BanTin() {
               Tin pháp luật cả nước và tỉnh Thanh Hóa{tt.nguon ? ` · Nguồn: ${tt.nguon}` : ''}
             </p>
           </div>
-          {ngay && (
-            <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${
-              cu ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'
-            }`}>
-              {cu ? `Bản tin ngày ${ngay} (chưa có bản mới hơn)` : `Ngày ${ngay}`}
-            </span>
+          {/*
+            Có kho lưu trữ thì huy hiệu ngày thành HỘP CHỌN để xem lại bản tin cũ.
+            Dùng thẻ <select> của trình duyệt chứ không tự dựng menu: bàn phím dùng được,
+            điện thoại hiện bộ chọn quen thuộc, và không phải viết mã đóng/mở.
+          */}
+          {mucLuc.length > 1 ? (
+            <label className="shrink-0 inline-flex items-center gap-1.5">
+              <span className="sr-only">Chọn ngày bản tin</span>
+              <CalendarDays className="w-3.5 h-3.5 text-slate-400" aria-hidden="true" />
+              <select
+                value={chonNgay || ngayMoiNhat}
+                onChange={(e) => datChonNgay(e.target.value === ngayMoiNhat ? '' : e.target.value)}
+                disabled={dangTai}
+                title="Chọn ngày để xem lại bản tin đã đăng"
+                className="text-[11px] font-bold px-2.5 py-1 rounded-full border bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200 cursor-pointer disabled:opacity-60"
+              >
+                {mucLuc.map((d, i) => (
+                  <option key={d} value={d}>
+                    {i === 0 ? `Ngày ${hienNgay(d)} (mới nhất)` : `Ngày ${hienNgay(d)}`}
+                  </option>
+                ))}
+              </select>
+            </label>
+          ) : (
+            ngay && (
+              <span className={`inline-flex items-center text-[11px] font-bold px-2.5 py-1 rounded-full border shrink-0 ${
+                cu ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-100 text-slate-700 border-slate-200'
+              }`}>
+                {cu ? `Bản tin ngày ${ngay} (chưa có bản mới hơn)` : `Ngày ${ngay}`}
+              </span>
+            )
           )}
         </div>
 

@@ -259,6 +259,25 @@ def ghi_so(duong_dan, da_dua: set[str], moi: list[dict]) -> None:
                    "daDua": gop}, f, ensure_ascii=False, indent=1)
 
 
+# ---------------------------------------------------------------------------
+#  Kho lưu trữ bản tin cũ
+# ---------------------------------------------------------------------------
+
+# Số ngày giữ lại trong kho. Mỗi ngày tốn ~230 KB (một ảnh nhẹ + chú thích), nên
+# 90 ngày ≈ 21 MB — vừa đủ để tra lại một quý, vừa không làm phình kho mã.
+SO_NGAY_LUU = 90
+
+
+def loc_ngay_giu(ngay: list[str], hom_nay: str, so_ngay: int = SO_NGAY_LUU) -> tuple[list[str], list[str]]:
+    """
+    Chia danh sách ngày thành (GIỮ, BỎ). Giữ `so_ngay` ngày gần nhất tính theo LỊCH
+    chứ không theo số tệp: máy tắt vài hôm thì kho vẫn phải phủ đủ khoảng thời gian đó.
+    """
+    moc = (datetime.strptime(hom_nay, "%Y-%m-%d") - timedelta(days=so_ngay - 1)).strftime("%Y-%m-%d")
+    hop_le = sorted({d for d in ngay if re.fullmatch(r"\d{4}-\d{2}-\d{2}", str(d))}, reverse=True)
+    return [d for d in hop_le if d >= moc], [d for d in hop_le if d < moc]
+
+
 def lay_tat_ca() -> tuple[list[dict], list[dict], list[str]]:
     """Đọc mọi kênh. Kênh nào hỏng thì ghi vào danh sách lỗi và đi tiếp."""
     ca_nuoc, thanh_hoa, loi = [], [], []

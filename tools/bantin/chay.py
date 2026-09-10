@@ -24,6 +24,8 @@ from pathlib import Path
 THU_MUC = Path(__file__).resolve().parent
 KHO = THU_MUC.parent.parent                    # gốc kho hdndthkpi
 DICH = KHO / "public" / "bantin"
+LUU_TRU = DICH / "luu-tru"          # bản tin các ngày trước
+MUC_LUC = DICH / "muc-luc.json"     # danh sách ngày đã có bản tin
 SO_DA_DUA = THU_MUC / "da-dua-tin.json"
 
 sys.path.insert(0, str(THU_MUC))
@@ -78,9 +80,9 @@ def chay_git(*doi_so) -> subprocess.CompletedProcess:
 
 def day_len_github(nhan_ngay: str) -> bool:
     """Commit và đẩy 3 tệp bản tin. Trả True nếu đã đẩy."""
-    duong_dan = ["public/bantin/moi-nhat.png", "public/bantin/moi-nhat.jpg",
-                 "public/bantin/moi-nhat.json", "tools/bantin/da-dua-tin.json"]
-    chay_git("add", *duong_dan)
+    # `-A` để bắt cả tệp lưu trữ MỚI THÊM lẫn tệp quá cũ VỪA XÓA.
+    duong_dan = ["public/bantin", "tools/bantin/da-dua-tin.json"]
+    chay_git("add", "-A", "--", *duong_dan)
 
     # Không có gì đổi thì thôi, không tạo commit rỗng.
     if chay_git("diff", "--cached", "--quiet", "--", *duong_dan).returncode == 0:
@@ -162,6 +164,25 @@ def main() -> int:
     png_mb = (DICH / "moi-nhat.png").stat().st_size / 1e6
     jpg_kb = (DICH / "moi-nhat.jpg").stat().st_size / 1e3
     ghi(f"✓ Đã ghi ảnh: PNG {png_mb:.1f} MB · JPG {jpg_kb:.0f} KB")
+
+    # 4b. Lưu vào kho để Trang chủ xem lại được bản tin cũ.
+    #     CHỈ lưu ảnh nhẹ, KHÔNG lưu bản PNG khổ lớn: mỗi ngày một tệp 1 MB thì
+    #     một năm đã hơn 400 MB trong kho mã. Ảnh nhẹ 1404x992 phóng to vẫn đọc được.
+    ngay_iso = bay_gio.strftime("%Y-%m-%d")
+    LUU_TRU.mkdir(parents=True, exist_ok=True)
+    import shutil
+    shutil.copyfile(DICH / "moi-nhat.jpg", LUU_TRU / f"{ngay_iso}.jpg")
+    shutil.copyfile(DICH / "moi-nhat.json", LUU_TRU / f"{ngay_iso}.json")
+
+    co = sorted({t.stem for t in LUU_TRU.glob("*.jpg")}, reverse=True)
+    giu, bo = mod_tin.loc_ngay_giu(co, ngay_iso)
+    for d in bo:  # dọn bản quá cũ cho kho mã khỏi phình
+        for duoi in ("jpg", "json"):
+            (LUU_TRU / f"{d}.{duoi}").unlink(missing_ok=True)
+    with io.open(MUC_LUC, "w", encoding="utf-8") as f:
+        json.dump({"capNhat": bay_gio.isoformat(timespec="seconds"), "ngay": giu},
+                  f, ensure_ascii=False, indent=1)
+    ghi(f"✓ Kho lưu trữ: {len(giu)} ngày" + (f", đã dọn {len(bo)} ngày quá cũ" if bo else ""))
 
     # 5. Ghi sổ đã đưa tin rồi đẩy
     mod_tin.ghi_so(SO_DA_DUA, da_dua, chon_cn + chon_th)
