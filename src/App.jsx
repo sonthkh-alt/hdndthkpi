@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useRef, lazy, Suspense, Fragment } from 'react';
-import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings, Home } from 'lucide-react';
+import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldCheck, Cpu, ChevronDown, CheckCircle2, AlertTriangle, User, Target, ClipboardList, LayoutDashboard, UserPlus, Link2, Activity, TrendingUp, CalendarDays, Users, FileSpreadsheet, FileText, Cloud, CloudOff, Save, LogOut, LogIn, KeyRound, Phone, Mail, Send, MessageSquare, ListChecks, Eye, EyeOff, Compass, Settings, Home, Info } from 'lucide-react';
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
@@ -1052,6 +1052,18 @@ function officialNamesOf(version) {
   Object.entries(officialNamesCache).forEach(([v, set]) => { if (v !== version) set.forEach((n) => others.add(n)); });
   return others;
 }
+// Đưa hồ sơ một cán bộ về ĐẦU KỲ: giữ nhân thân/chức vụ/đơn vị, xóa sạch phần chấm điểm,
+// nhận xét và phê duyệt của kỳ trước. Dùng chung cho nút "Sao chép cán bộ từ kỳ …" và cho
+// việc TỰ CHUYỂN TIẾP danh sách khi mở một kỳ chưa có dữ liệu.
+function resetForNewPeriod(p) {
+  return {
+    ...p, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false,
+    tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 },
+    selfNote: '', mgrNote: '', trackings: [],
+    approved: false, approvedBy: '', approvedRole: '', approvedAt: '',
+  };
+}
+
 function mergeOfficialPeople(saved, official, version) {
   const mine = new Set((official || []).map(pKey));
   const others = officialNamesOf(version);
@@ -1160,8 +1172,18 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const ROMAN = ['I', 'II', 'III', 'IV'];
   const th = VERSION_THEME[version] || VERSION_THEME.classic; // theme màu theo phiên bản
   const [tab, setTab] = useState(initialTab || 'dash'); // tab mở sẵn khi vào từ Trang chủ (vd: 'hr', 'guide')
-  const [period, setPeriod] = useState({ month: String(new Date().getMonth() + 1), year: String(new Date().getFullYear()) });
+  // Bản Kiểm điểm chấm theo QUÝ nên kỳ luôn quy về THÁNG CUỐI QUÝ (3/6/9/12) — cả quý
+  // dùng CHUNG một bản ghi. Trước đây kỳ khởi tạo lấy đúng tháng lịch, nên tháng 8 và
+  // tháng 9 (cùng Quý III) lại ghi vào hai bản ghi khác nhau, mở quý sang tháng mới là
+  // không thấy dữ liệu đã chấm.
+  const [period, setPeriod] = useState(() => {
+    const now = new Date(), m = now.getMonth() + 1;
+    return { month: String(isKD ? Math.ceil(m / 3) * 3 : m), year: String(now.getFullYear()) };
+  });
   const quarterLabel = `Quý ${ROMAN[QUARTER_OF(period.month) - 1]}/${period.year}`; // nhãn quý (bản Kiểm điểm)
+  // Nhãn một kỳ bất kỳ: bản Kiểm điểm tính theo QUÝ, các bản còn lại theo THÁNG.
+  const kyLabel = (k) => (isKD ? `Quý ${ROMAN[QUARTER_OF(k.month) - 1]}/${k.year}` : `tháng ${k.month}/${k.year}`);
+  const kyLabelHoa = (k) => (isKD ? kyLabel(k) : `Kỳ ${kyLabel(k)}`); // dạng đứng đầu câu
   const [trackingDate, setTrackingDate] = useState(new Date().toISOString().split('T')[0]);
   const [unit] = useState('Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa');
   const [objectives, setObjectives] = useState([
@@ -1179,7 +1201,10 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     ] },
   ]);
   const [people, setPeople] = useState(() => seedDemoPeople(version));
-  const [curId, setCurId] = useState(people[0].id);
+  // ⚠️ PHẢI dùng hàm khởi tạo LƯỜI: biểu thức truyền vào useState vẫn được TÍNH ở MỌI lần
+  // render (React chỉ bỏ qua GIÁ TRỊ, không bỏ qua việc tính). Kỳ chưa có dữ liệu thì
+  // `people` rỗng -> `people[0].id` làm sập cả phân hệ ("Cannot read properties of undefined").
+  const [curId, setCurId] = useState(() => people[0]?.id ?? null);
   const [open, setOpen] = useState(null);
   const [cloud, setCloud] = useState({ ready: false, saving: false });
   const [session, setSession] = useState(undefined); // undefined = đang kiểm tra; 'guest' = khách mặc định
@@ -1202,6 +1227,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const serverTsRef = useRef(null);     // updated_at đã nạp về (khóa lạc quan)
   const [conflict, setConflict] = useState(false);
   const [seedFrom, setSeedFrom] = useState(null); // kỳ gần nhất có dữ liệu để sao chép
+  const [carriedFrom, setCarriedFrom] = useState(null); // kỳ vừa được TỰ chuyển tiếp sang kỳ đang mở
   const [trends, setTrends] = useState([]);
   const [catalog, setCatalog] = useState({ custom: [], hidden: [] }); // danh mục công việc do quản trị tùy chỉnh (theo kỳ)
   const [instKpi, setInstKpi] = useState(SG_INST_KPI_DEFAULT); // KPI thiết chế (Tầng A, bản Singapore) — lưu theo kỳ
@@ -1248,11 +1274,38 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     }).sort((a, b) => (Number(a.year) - Number(b.year)) || (Number(a.month) - Number(b.month))));
   };
 
+  // Kỳ gần nhất để chuyển tiếp: ưu tiên kỳ NGAY TRƯỚC kỳ đang mở (danh sách `listPeriods`
+  // đã xếp mới nhất trước); không có kỳ nào trước đó thì lấy kỳ mới nhất hiện có.
+  const pickSeedPeriod = (others, p) => {
+    if (!others.length) return null;
+    const ord = (o) => Number(o.year) * 12 + Number(o.month);
+    return others.find((o) => ord(o) < ord(p)) || others[0];
+  };
+
+  // Chuyển tiếp danh sách cán bộ của kỳ `src` sang kỳ đang mở: GIỮ người (đã chốt lại theo
+  // hồ sơ 2C), ĐẶT LẠI phần chấm điểm về đầu kỳ. Chưa ghi gì lên máy chủ — autosave sẽ tạo
+  // bản ghi cho kỳ mới khi người có thẩm quyền đăng nhập. Trả về false nếu kỳ nguồn trống.
+  const carryOverPeriod = async (src, reset = true) => {
+    const res = await loadState({ year: src.year, month: src.month }, dataNs);
+    const ppl0 = res.state?.people || [];
+    if (!ppl0.length) return false;
+    const merged = applyRoster(mergeOfficialPeople(ppl0, seedDemoPeople(version), version));
+    const ppl = reset ? merged.map(resetForNewPeriod) : merged;
+    if (!ppl.length) return false;
+    setPeople(ppl); setCurId(ppl[0]?.id ?? null);
+    setObjectives(res.state.objectives || []);
+    setCatalog(res.state.catalog || { custom: [], hidden: [] });
+    setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
+    setCarriedFrom({ ...src, reset });
+    bumpCounters(ppl);
+    return true;
+  };
+
   const loadPeriod = async (rawP) => {
     const p = clampPeriod(rawP);
     if (p.month !== rawP?.month || p.year !== rawP?.year) setPeriod(p); // sửa lại ô nhập nếu gõ sai
     loadingRef.current = true;
-    setConflict(false); setSeedFrom(null);
+    setConflict(false); setSeedFrom(null); setCarriedFrom(null);
     // MỘT NGUỒN DỮ LIỆU DUY NHẤT: khách và người đăng nhập đều ĐỌC cùng bản ghi trên
     // máy chủ, nên hai bên luôn thấy GIỐNG NHAU. Khách chỉ khác ở chỗ KHÔNG được ghi
     // (autosave/Lưu ngay đã chặn) nên không giữ mốc thời gian khóa lạc quan.
@@ -1271,11 +1324,21 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
       bumpCounters(ppl);
     } else {
+      // KỲ MỚI CHƯA CÓ DỮ LIỆU (sang tháng/quý mới là gặp ngay). Trước đây để màn hình
+      // TRỐNG kèm nút "Sao chép cán bộ từ kỳ …" — nhưng khách và người chỉ-xem không bấm
+      // được nút đó, nên cả phân hệ coi như trắng cho tới khi có người quản trị đăng nhập.
+      // Nay TỰ CHUYỂN TIẾP danh sách cán bộ từ kỳ gần nhất (giữ người, đặt lại phần chấm
+      // điểm); không có kỳ nào trước đó thì nạp danh sách chính thống của phân hệ.
       const others = (await listPeriods(dataNs)).filter((o) => !(o.year === p.year && o.month === p.month));
-      if (others.length) { setPeople([]); setCurId(null); setSeedFrom(others[0]); }
-      // Kỳ đầu tiên của phân hệ -> nạp DANH SÁCH CHÍNH THỐNG của phân hệ đó. Người đăng
-      // nhập thật sẽ được autosave ghi lên máy chủ, thành dữ liệu chính thức dùng chung.
-      else loadDemoPeople();
+      // Bản Kiểm điểm: bản ghi của CHÍNH QUÝ NÀY có thể nằm ở tháng khác trong quý (di chứng
+      // của cách đặt kỳ cũ). Nhận lại NGUYÊN VẸN, KHÔNG đặt lại điểm — vẫn là kỳ đó.
+      const sameQ = isKD ? others.filter((o) => o.year === p.year && QUARTER_OF(o.month) === QUARTER_OF(p.month)) : [];
+      if (sameQ.length && await carryOverPeriod(sameQ[0], false)) { setSeedFrom(null); }
+      else {
+        const src = pickSeedPeriod(others, p);
+        setSeedFrom(src);
+        if (!src || !(await carryOverPeriod(src))) loadDemoPeople();
+      }
     }
     setCloud({ ready: !!supabase, saving: false });
     loaded.current = true;
@@ -1345,11 +1408,11 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const copyFromPeriod = async (src) => {
     const res = await loadState({ year: src.year, month: src.month }, dataNs);
     if (!res.state) return;
-    const ppl = (res.state.people || []).map((p) => ({ ...p, id: pid++, selfScores: {}, mgrScores: {}, deduction: 0, disciplined: false, tasks335: [newTask335()], leadScores: { d: 100, dd: 100, e: 100 }, selfNote: '', mgrNote: '', trackings: [], approved: false, approvedBy: '', approvedRole: '', approvedAt: '' }));
+    const ppl = (res.state.people || []).map((p) => ({ ...resetForNewPeriod(p), id: pid++ }));
     setObjectives(res.state.objectives || []);
     setCatalog(res.state.catalog || { custom: [], hidden: [] }); // mang theo danh mục tùy chỉnh sang kỳ mới
     setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
-    setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null);
+    setPeople(ppl); setCurId(ppl[0]?.id ?? null); setSeedFrom(null); setCarriedFrom(null);
   };
 
   const handleManualSave = async () => {
@@ -1988,6 +2051,21 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
               <p className="text-xs text-rose-600 mt-0.5">Để tránh ghi đè lên thay đổi của người khác, hãy tải lại dữ liệu mới nhất rồi chỉnh sửa tiếp.</p>
             </div>
             <button onClick={() => loadPeriod(period)} className="shrink-0 flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold"><RotateCcw className="w-3.5 h-3.5" /> Tải lại</button>
+          </div>
+        )}
+
+        {carriedFrom && people.length > 0 && !['hr', 'guide'].includes(tab) && (
+          <div className="mb-4 bg-amber-50 border border-amber-200 rounded-2xl p-4 flex items-start gap-3">
+            <Info className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              {carriedFrom.reset ? (<>
+                <p className="text-sm text-amber-800 font-semibold">{kyLabelHoa(period)} chưa có dữ liệu — đã tự chuyển tiếp danh sách cán bộ từ {kyLabel(carriedFrom)}.</p>
+                <p className="text-xs text-amber-700 mt-0.5">Danh sách cán bộ được giữ nguyên, toàn bộ phần chấm điểm và phê duyệt đặt lại từ đầu kỳ. {readOnly ? 'Kết quả chỉ được lưu khi người có thẩm quyền đăng nhập và chấm điểm.' : 'Kỳ mới sẽ được lưu lên máy chủ ngay khi bạn bắt đầu chấm.'}</p>
+              </>) : (<>
+                <p className="text-sm text-amber-800 font-semibold">Đã nhận lại bản đã chấm của {kyLabel(period)} (bản lưu ở tháng {carriedFrom.month}/{carriedFrom.year}).</p>
+                <p className="text-xs text-amber-700 mt-0.5">Kỳ kiểm điểm tính theo quý nên từ nay cả quý dùng chung một bản ghi (tháng cuối quý). Điểm đã chấm được giữ nguyên. {readOnly ? '' : 'Bấm “Lưu ngay” để chốt lại vào đúng bản ghi của quý.'}</p>
+              </>)}
+            </div>
           </div>
         )}
 
