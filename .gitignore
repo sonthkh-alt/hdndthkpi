@@ -19,3 +19,8 @@ reinject.py
 # không commit; dữ liệu được Quản trị nhập vào hr_data qua phân hệ Quản lý cán bộ.
 docs/*danh bạ*
 docs/*danh ba*
+
+# Hồ sơ đánh giá CÁ NHÂN (bản tự đánh giá, kế hoạch quý của từng đồng chí) — là tài
+# liệu làm việc nội bộ, repo này CÔNG KHAI nên không commit. Dùng làm mẫu để dựng
+# biểu mẫu trong phần mềm, không đưa nguyên văn vào mã nguồn.
+docs/Pri/

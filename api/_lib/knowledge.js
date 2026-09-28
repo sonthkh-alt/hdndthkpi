@@ -24,9 +24,16 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Bốn mức xếp loại: Hoàn thành xuất sắc nhiệm vụ (≥90) · Hoàn thành tốt (≥70) · Hoàn thành (≥50) · Không hoàn thành (<50), kèm điều kiện Điều 8: muốn xuất sắc phải đạt đủ 100% số lượng mọi nhiệm vụ và có ≥30% nhiệm vụ vượt mức; bị kỷ luật thì xếp Không hoàn thành. Trần: số người xuất sắc ≤ 20% số người hoàn thành tốt.
 3. Kiểm điểm, đánh giá, xếp loại đảng viên — ${SITE}/#/kiemdiem
    Chấm hằng QUÝ, cho cán bộ diện Ban Thường vụ Tỉnh ủy quản lý, theo Hướng dẫn 03-HD/TU.
-   Thang 100 = Nhóm A tiêu chí chung 30đ (chấm nhị phân: đảm bảo hoặc không) + Nhóm B 70đ theo 6 trục kết quả trọng tâm.
-   Mỗi trục: Điểm = KPI% × điểm tối đa của trục; KPI của trục = trung bình có trọng số các nhiệm vụ, mỗi nhiệm vụ chọn Mức độ hoàn thành (Xuất sắc 100% · Tốt 90% · Cơ bản 75% · Chưa hoàn thành 55% · Không hoàn thành 30%) và Tầm quan trọng (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2).
-   Xuất Word đúng Phụ lục 3A (bản tự đánh giá cá nhân) và Phụ lục 4 (bảng tổng hợp).
+   Quy trình HAI BƯỚC theo đúng biểu mẫu của Hướng dẫn 03-HD/TU:
+     • ĐẦU KỲ — "Kế hoạch sản phẩm/công việc và kết quả cần đạt được của cá nhân": đăng ký nhiệm vụ theo 6 trục, mỗi nhiệm vụ ghi Mục tiêu/nhiệm vụ đề ra, Kết quả cần đạt, Thời gian hoàn thành; CÁ NHÂN TỰ ĐỀ XUẤT điểm tối đa cho từng trục theo thứ tự ưu tiên công việc (tổng 6 trục = 70 điểm) và ghi rõ trục nào là "trục chính, chủ yếu", trục nào là "trục phụ, phối hợp, hỗ trợ"; tập thể lãnh đạo cơ quan phê duyệt kế hoạch.
+     • CUỐI KỲ — "Bản tự đánh giá, xếp loại của cá nhân": ghi Kết quả sản phẩm thực tế và chấm điểm ngay trên kế hoạch đã duyệt.
+   Điểm tối đa của từng trục KHÔNG CỐ ĐỊNH và thay đổi theo từng quý, từng chức danh — đừng nói là 15/10/10/15/10/10.
+   Thang 100 = Nhóm A tiêu chí chung 30đ (chấm NHỊ PHÂN: "Đảm bảo" = đủ điểm tối đa của mục, "Không đảm bảo" = 0 điểm; 3 nhóm mỗi nhóm 10đ) + Nhóm B 70đ theo 6 trục kết quả trọng tâm.
+   Mỗi trục: Điểm đạt = Điểm KPI (%) × Điểm tối đa của trục; KPI tự tính = trung bình có trọng số các nhiệm vụ đã chấm, mỗi nhiệm vụ chọn Mức độ hoàn thành (Xuất sắc 100% · Tốt 90% · Cơ bản 75% · Chưa hoàn thành 55% · Không hoàn thành 30%) và Tầm quan trọng (Thường ×1 · Quan trọng ×1,5 · Trọng tâm ×2); cấp có thẩm quyền được điều chỉnh lại con số KPI của trục.
+   Sáu trục: (1) Thực hiện mục tiêu phát triển kinh tế - xã hội và nhiệm vụ chính trị được giao; (2) Hoàn thiện thể chế, đẩy mạnh phân cấp, phân quyền gắn với kiểm tra, giám sát; (3) Thúc đẩy phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số; (4) Xây dựng Đảng và hệ thống chính trị trong sạch, vững mạnh, phòng chống tham nhũng, lãng phí, tiêu cực; (5) Phát triển văn hóa, con người, bảo đảm an sinh xã hội, nâng cao đời sống và hạnh phúc cho Nhân dân; (6) Củng cố quốc phòng, an ninh, nâng cao hiệu quả đối ngoại và hội nhập quốc tế.
+   Phần mềm có sẵn MẪU KẾ HOẠCH theo từng chức danh (Phó Chủ tịch Thường trực HĐND tỉnh, Phó Chủ tịch HĐND tỉnh, Trưởng/Phó Trưởng 4 Ban, Phó Trưởng đoàn ĐBQH, ĐBQH chuyên trách, Chánh Văn phòng, hai Phó Chánh Văn phòng) — bấm "Nạp mẫu nhiệm vụ theo chức danh" là có sẵn nhiệm vụ và phân bổ điểm, sửa lại cho đúng việc của mình.
+   Xếp loại 4 mức (Điều 13 QĐ 73-QĐ/TU): HTXS ≥ 90 và hoàn thành 100% nhiệm vụ và ≥ 30% nhiệm vụ vượt mức · HTT ≥ 70 · HT ≥ 50 · KHTNV khi dưới 50 điểm, hoặc trên 50% nhiệm vụ không hoàn thành, hoặc bị kỷ luật trong kỳ. Trần HTXS ≤ 20% số người HTT.
+   Xuất Word: Kế hoạch quý, Bản tự đánh giá cá nhân (Phụ lục 3A) và Bảng tổng hợp tập thể (Phụ lục 4).
 4. Đánh giá tiêu chí HĐND tỉnh, xã, phường — ${SITE}/#/tieuchi
    Theo Khung tiêu chí nhiệm kỳ 2026-2031. Phụ lục I cho HĐND cấp tỉnh, Phụ lục II cho cấp xã, phường.
    Tổng = 7 nhóm tiêu chí (100đ) + nhóm VIII điểm thưởng (tối đa 10đ) − nhóm IX điểm trừ (tối đa 20đ), kẹp trong khoảng 0–110.

@@ -44,8 +44,9 @@ const SCORING = [
     scale: 'Thang 100 điểm = Nhóm A (30đ) + Nhóm B (70đ), đánh giá hằng QUÝ',
     rows: [
       ['Nhóm A — Tiêu chí chung (30đ)', 'Chấm nhị phân theo từng mục: Đảm bảo = đủ điểm, Không đảm bảo = 0 điểm.'],
-      ['Nhóm B — Kết quả 6 trục (70đ)', 'Mỗi trục: Điểm = KPI% × điểm tối đa của trục. KPI của trục là trung bình có trọng số các nhiệm vụ (Mức độ hoàn thành × Tầm quan trọng ×1 / ×1,5 / ×2).'],
-      ['Xếp loại', '04 mức: HTXS ≥ 90 · HTT ≥ 80 · HT ≥ 65 · KHTNV, kèm điều kiện tại Điều 13 (tỷ lệ vượt mức, tỷ lệ không hoàn thành, kỷ luật) và trần HTXS ≤ 20% số HTT.'],
+      ['Kế hoạch quý (đầu kỳ)', 'Cá nhân đăng ký nhiệm vụ theo 6 trục (Mục tiêu, nhiệm vụ đề ra · Kết quả cần đạt · Thời gian hoàn thành) và TỰ ĐỀ XUẤT điểm tối đa cho từng trục theo thứ tự ưu tiên công việc (tổng 6 trục = 70đ), ghi rõ trục chính, chủ yếu / trục phụ, phối hợp, hỗ trợ; tập thể lãnh đạo cơ quan phê duyệt.'],
+      ['Nhóm B — Kết quả 6 trục (70đ)', 'Cuối kỳ ghi Kết quả sản phẩm thực tế và chọn Mức độ hoàn thành cho từng nhiệm vụ. Mỗi trục: Điểm đạt = Điểm KPI (%) × Điểm tối đa của trục; KPI là trung bình có trọng số các nhiệm vụ (Mức độ hoàn thành × Tầm quan trọng ×1 / ×1,5 / ×2), cấp có thẩm quyền điều chỉnh được.'],
+      ['Xếp loại', '04 mức: HTXS ≥ 90 · HTT ≥ 70 · HT ≥ 50 · KHTNV < 50, kèm điều kiện tại Điều 13 (hoàn thành 100% nhiệm vụ và ≥ 30% vượt mức mới đạt HTXS; trên 50% nhiệm vụ không hoàn thành hoặc bị kỷ luật → KHTNV) và trần HTXS ≤ 20% số HTT.'],
     ],
   },
   {
@@ -273,7 +274,7 @@ export default function HuongDan({ onHome, onOpenModule }) {
             <div className="grid md:grid-cols-3 gap-3">
               {[
                 { t: 'OKR/KPI — hằng tháng', c: ['Ngày 20 hằng tháng: cán bộ hoàn thành tự đánh giá.', 'Ngày 22: trưởng phòng rà soát, chấm cột Cấp duyệt.', 'Ngày 25: Hội đồng xem xét, phê duyệt và xuất phiếu.', 'Riêng tháng 12 hoàn thành trước ngày 15/12.'] },
-                { t: 'Kiểm điểm đảng viên — hằng quý', c: ['Cuối quý: cá nhân tự kiểm điểm, chấm Nhóm A và Nhóm B.', 'Cấp có thẩm quyền nhận xét, chấm điểm và xếp loại.', 'Xuất Bản tự đánh giá (Phụ lục 3A) và Bảng tổng hợp (Phụ lục 4).'] },
+                { t: 'Kiểm điểm đảng viên — hằng quý', c: ['Đầu quý: cá nhân lập KẾ HOẠCH sản phẩm/công việc theo 6 trục và đề xuất điểm tối đa từng trục (tổng 70đ), trình tập thể lãnh đạo phê duyệt.', 'Cuối quý: cá nhân ghi kết quả thực tế, chấm Nhóm A và Nhóm B ngay trên kế hoạch đã duyệt, tự đề xuất xếp loại.', 'Cấp có thẩm quyền nhận xét, chấm điểm, đánh giá mức độ đáp ứng mục tiêu, nhiệm vụ then chốt và xếp loại.', 'Xuất Kế hoạch quý, Bản tự đánh giá (Phụ lục 3A) và Bảng tổng hợp (Phụ lục 4).'] },
                 { t: 'Tiêu chí HĐND — hằng năm', c: ['Trước ngày 25/12: đơn vị gửi kết quả tự đánh giá và hồ sơ minh chứng.', 'Tổ công tác thẩm định; các Ban tham gia ý kiến theo lĩnh vực.', 'Quý I năm liền kề: Thường trực HĐND tỉnh bình xét, công bố kết quả.'] },
               ].map((b) => (
                 <div key={b.t} className="rounded-2xl border border-slate-200 bg-white p-4">

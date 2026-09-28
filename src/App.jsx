@@ -10,7 +10,7 @@ import { deptSummary } from './lib/dash';
 const DashboardCharts = lazy(() => import('./lib/DashboardCharts.jsx'));
 import { ND335_CATALOG } from './lib/nd335';
 import { computeSG, sgGradeInfo, defaultSG, SingaporeAppraisal, SingaporeDashboard, SingaporeInstitution, SG_INST_KPI_DEFAULT } from './SingaporeAppraisal.jsx';
-import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_TAM, tamOf } from './KiemDiemAppraisal.jsx';
+import { computeKD, kdGradeInfo, defaultKD, KiemDiemAppraisal, KiemDiemDashboard, KD_TRUC, trucTasks, mucOf, kdNhomABreakdown, KD_TAM, tamOf, trucCfgOf, vaiTroOf, mauKeyFor, KD_TONG_B } from './KiemDiemAppraisal.jsx';
 const CanBoManager = lazy(() => import('./CanBoManager.jsx'));
 import { fetchHR, saveHR, readHR, EMPTY_HR } from './lib/hrStore';
 import { syncStaffFromPeople, syncPeopleFromStaff, staffForModule } from './lib/hr';
@@ -1107,8 +1107,16 @@ function ensureRoster(staff) {
 // Phó Trưởng đoàn ĐBQH + ĐBQH chuyên trách; Chánh Văn phòng + 2 Phó Chánh Văn phòng).
 // Mỗi người có sẵn person.kd (defaultKD) theo hồ sơ — đã chấm điểm Nhóm A/B + tự kiểm điểm.
 function seedKiemDiemPeople() {
-  const mk = (name, department, position, profile, email = '') =>
-    ({ ...newPerson(name, 'leader'), position, department, role: 'canbo', email, kd: defaultKD(profile) });
+  // Mỗi đồng chí được gắn MẪU KẾ HOẠCH theo đúng chức danh (điểm tối đa 6 trục +
+  // danh sách nhiệm vụ đặc thù); `mau` chỉ cần khai khi không suy được từ chức vụ
+  // (hai Phó Chánh Văn phòng khác nhau ở khối phụ trách).
+  const mk = (name, department, position, profile, email = '', mau = '') => {
+    const p = { ...newPerson(name, 'leader'), position, department, role: 'canbo', email };
+    const key = mau || mauKeyFor(p);
+    p.mauKD = key;
+    p.kd = defaultKD(profile, key);
+    return p;
+  };
   const KTNS = 'Ban Kinh tế - Ngân sách', VHXH = 'Ban Văn hóa - Xã hội', PC = 'Ban Pháp chế', DT = 'Ban Dân tộc';
   return [
     mk('Lê Tiến Lam', 'HĐND tỉnh', 'Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch Thường trực HĐND tỉnh', 'A'),
@@ -1124,8 +1132,8 @@ function seedKiemDiemPeople() {
     mk('Lương Thị Hoa', 'Đoàn ĐBQH tỉnh', 'Tỉnh ủy viên, Phó Trưởng đoàn ĐBQH tỉnh', 'B'),
     mk('Bùi Văn Dũng', 'Đoàn ĐBQH tỉnh', 'Đại biểu Quốc hội chuyên trách tỉnh', 'B'),
     mk('Trần Mạnh Long', 'Văn phòng', 'Tỉnh ủy viên, Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'A'),
-    mk('Hà Ngọc Sơn', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B', 'sonthkh@gmail.com'),
-    mk('Lê Văn Mạnh', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B'),
+    mk('Hà Ngọc Sơn', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B', 'sonthkh@gmail.com', 'pho_vp_hdnd'),
+    mk('Lê Văn Mạnh', 'Văn phòng', 'Phó Chánh Văn phòng Đoàn ĐBQH và HĐND tỉnh', 'B', '', 'pho_vp_dbqh'),
   ];
 }
 
@@ -1244,7 +1252,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   const personFromStaff = (s) => {
     const p = { ...newPerson(s.name || 'Cán bộ mới', 'staff'), position: s.position || '', department: s.department || '', email: s.email || '' };
     p.type = isSonHa ? sonhaTypeOf(p) : isKD ? 'leader' : p.type;
-    if (isKD) p.kd = defaultKD('B');
+    if (isKD) { p.mauKD = mauKeyFor(p); p.kd = defaultKD('B', p.mauKD); }
     return p;
   };
   // Áp danh sách hồ sơ 2C vào danh sách của phân hệ (giữ nguyên mọi điểm đã chấm).
@@ -1254,6 +1262,30 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     if (!(isSonHa || isKD) || !staff.length) return ppl;
     if (!staffForModule(staff, version).length) return ppl;   // chưa có ai trong phạm vi -> đừng xóa trắng
     return syncPeopleFromStaff(ppl, staff, version, personFromStaff);
+  };
+
+  // NÂNG CẤP BẢN LƯU KIỂM ĐIỂM THEO MÔ HÌNH CŨ. Bản cũ chưa có `trucCfg` (phân bổ điểm
+  // 6 trục do cá nhân đề xuất) và danh sách nhiệm vụ chỉ có tên, thiếu hai cột bắt buộc
+  // của biểu mẫu là "Kết quả cần đạt" và "Thời gian hoàn thành". Dựng lại KẾ HOẠCH QUÝ
+  // từ MẪU THEO CHỨC DANH, GIỮ NGUYÊN phần Nhóm A đã chấm, phần tự luận và xếp loại.
+  const hoSoTuXepLoai = (kd) => ({ HTXS: 'A', HT: 'C', KHT: 'D' }[kd.grade || kd.selfGrade] || 'B');
+  const napKeHoachKD = (ppl) => {
+    if (!isKD) return ppl;
+    return ppl.map((p) => {
+      const kd = p.kd || {};
+      if (kd.trucCfg) return p;                       // đã theo mô hình mới -> để nguyên
+      const key = mauKeyFor({ ...p, mauKD: kd.mauKD });
+      const moi = defaultKD(hoSoTuXepLoai(kd), key);
+      return { ...p, mauKD: key, kd: {
+        ...moi,
+        aSelf: kd.aSelf || {}, aMgr: kd.aMgr || {},
+        selfGrade: kd.selfGrade || '', grade: kd.grade || '', disciplined: !!kd.disciplined,
+        noiBat: kd.noiBat || kd.uudiem || moi.noiBat,
+        hanche: kd.hanche || moi.hanche,
+        phuonghuong: kd.phuonghuong || moi.phuonghuong,
+        mgrNote: kd.mgrNote || '', exemptNote: kd.exemptNote || '',
+      } };
+    });
   };
 
   const bumpCounters = (ppl) => {
@@ -1290,7 +1322,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     const ppl0 = res.state?.people || [];
     if (!ppl0.length) return false;
     const merged = applyRoster(mergeOfficialPeople(ppl0, seedDemoPeople(version), version));
-    const ppl = reset ? merged.map(resetForNewPeriod) : merged;
+    const ppl = napKeHoachKD(reset ? merged.map(resetForNewPeriod) : merged);
     if (!ppl.length) return false;
     setPeople(ppl); setCurId(ppl[0]?.id ?? null);
     setObjectives(res.state.objectives || []);
@@ -1318,7 +1350,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
     if (ppl0.length) {
       // Bản lưu cũ thiếu đồng chí nào so với danh sách chính thống thì bổ sung (không mất điểm đã chấm),
       // rồi chốt lại theo hồ sơ 2C nếu đọc được (hồ sơ 2C là danh sách cán bộ duy nhất của hệ thống).
-      const ppl = applyRoster(mergeOfficialPeople(ppl0, seedDemoPeople(version), version));
+      const ppl = napKeHoachKD(applyRoster(mergeOfficialPeople(ppl0, seedDemoPeople(version), version)));
       setPeople(ppl); setCurId(ppl[0]?.id ?? null); setObjectives(res.state.objectives || []);
       setCatalog(res.state.catalog || { custom: [], hidden: [] });
       setInstKpi(Array.isArray(res.state.instKpi) && res.state.instKpi.length ? res.state.instKpi : SG_INST_KPI_DEFAULT);
@@ -1349,7 +1381,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
   // Tỉnh ủy quản lý, OKR/KPI = CBCCVC-LĐ Văn phòng…). Đây là dữ liệu chuẩn của bản demo,
   // được coi như dữ liệu thật: hiện cho MỌI người dùng và được ghi lên máy chủ.
   const loadDemoPeople = () => {
-    const demo = applyRoster(seedDemoPeople(version));
+    const demo = napKeHoachKD(applyRoster(seedDemoPeople(version)));
     setSeedFrom(null);
     setPeople(demo); setCurId(demo[0]?.id ?? null);
     bumpCounters(demo);
@@ -1555,19 +1587,72 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
       selfComment: sg.selfComment || '', supComment: sg.supComment || '',
     });
   };
+  // ---- Dựng dữ liệu 6 trục cho hai biểu mẫu Kiểm điểm (Kế hoạch quý & Bản tự đánh giá).
+  // Cột "Mục tiêu, nhiệm vụ đề ra" gom 3 dòng của kế hoạch (nhiệm vụ · kết quả cần đạt ·
+  // thời gian hoàn thành); cột "Kết quả sản phẩm thực tế" gom kết quả + mức độ đã chấm.
+  const NL = String.fromCharCode(10); // ký tự xuống dòng trong ô bảng Word (TCML tự tách dòng)
+  const kdTrucRows = (kd, c) => KD_TRUC.map((t) => {
+    const d = (kd.truc || {})[t.id] || {};
+    const cfg = trucCfgOf(kd, t.id);
+    const tasks = trucTasks(d);
+    const muctieu = tasks.map((x, i) => {
+      const dong = [`${i + 1}. ${x.name || '(chưa đặt tên nhiệm vụ)'}`];
+      if (x.ketQuaCanDat) dong.push(`- Kết quả cần đạt: ${x.ketQuaCanDat}`);
+      if (x.thoiGian) dong.push(`- Thời gian hoàn thành: ${x.thoiGian}`);
+      return dong.join(NL);
+    }).join(NL);
+    const daCham = tasks.filter((x) => x && x.muc);
+    const ketqua = tasks.map((x, i) => {
+      const m = x.muc ? mucOf(x.muc).short : 'chưa đánh giá';
+      return `${i + 1}. ${x.ketQuaThucTe || '(chưa ghi kết quả)'} (${m})`;
+    }).join(NL);
+    const soVuot = daCham.filter((x) => mucOf(x.muc).exceed).length;
+    const ghiChu = tasks.length
+      ? `Hoàn thành ${daCham.filter((x) => !mucOf(x.muc).fail).length}/${tasks.length} nhiệm vụ` + (soVuot ? `; ${soVuot} nhiệm vụ vượt mức` : '')
+      : '';
+    const kpi = (c.kpiByTruc || {})[t.id] || 0;
+    return {
+      code: t.code, name: t.name, vaiTro: vaiTroOf(cfg.vaiTro).label, indicators: t.indicators || [],
+      max: cfg.max, kpi, diem: kpi / 100 * cfg.max, muctieu, ketqua, ghiChu, soNv: tasks.length,
+    };
+  });
+
+  const kdThongTin = (person) => {
+    const kd = person.kd || {};
+    return {
+      name: person.name, department: person.department,
+      ngaySinh: kd.ngaySinh || '', chucVuDang: kd.chucVuDang || '',
+      position: kd.chucVuChinhQuyen || person.position || '', chucVuDoanThe: kd.chucVuDoanThe || '',
+    };
+  };
+
+  // Xuất KẾ HOẠCH sản phẩm/công việc và kết quả cần đạt được của cá nhân trong quý.
+  const doKDKeHoach = async () => {
+    const { exportKiemDiemKeHoach } = await import('./lib/exporters');
+    const kd = cur.kd || {};
+    exportKiemDiemKeHoach({
+      unit, ...kdThongTin(cur),
+      quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
+      nhomA_groups: kdNhomABreakdown(kd),
+      trucs: kdTrucRows(kd, curC), tongMax: curC.tongMax, tongB: KD_TONG_B,
+    });
+  };
+
   // Xuất Bản tự đánh giá xếp loại quý của cá nhân (Phụ lục 3A) — bản Kiểm điểm.
   const doKDWord = async () => {
     const { exportKiemDiemCaNhan } = await import('./lib/exporters');
     const kd = cur.kd || {};
     exportKiemDiemCaNhan({
-      unit, name: cur.name, position: cur.position, department: cur.department,
+      unit, ...kdThongTin(cur),
       quarter: ROMAN[QUARTER_OF(period.month) - 1], year: period.year,
       nhomA: curC.nhomA, nhomB: curC.nhomB, total: curC.total,
       nhomA_groups: kdNhomABreakdown(kd),
-      trucs: KD_TRUC.map((t) => { const d = (kd.truc || {})[t.id] || {}; const kpi = curC.kpiByTruc[t.id] || 0; const done = trucTasks(d).filter((x) => x && x.muc); const ketqua = done.map((x) => `${x.name || '(chưa đặt tên)'} — ${mucOf(x.muc).short}`).join('; '); return { code: t.code, name: t.name, max: t.max, indicators: t.indicators || [], kpi, diem: kpi / 100 * t.max, muctieu: d.note || '', ketqua }; }),
+      trucs: kdTrucRows(kd, curC), tongMax: curC.tongMax, tongB: KD_TONG_B,
       selfGradeName: kd.selfGrade ? kdGradeInfo(kd.selfGrade).name : '', gradeName: result.name, autoGradeName: kdGradeInfo(curC.autoGrade).name,
-      exemptNote: kd.exemptNote || '', selfNote: kd.selfNote || '', mgrNote: kd.mgrNote || '',
-      uudiem: kd.uudiem || '', hanche: kd.hanche || '', phuonghuong: kd.phuonghuong || '',
+      exemptNote: kd.exemptNote || '', mgrNote: kd.mgrNote || '', mgrThenChot: kd.mgrThenChot || '',
+      ketQuaChung: kd.ketQuaChung || '', noiBat: kd.noiBat || kd.uudiem || '',
+      hanche: kd.hanche || '', phuonghuong: kd.phuonghuong || '',
+      planApproved: !!kd.planApproved,
       disciplined: !!kd.disciplined, gradeReasons: curC.gradeReasons || [],
     });
   };
@@ -2276,7 +2361,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
                 {isKD && (
                   <section className="bg-gradient-to-br from-rose-50 to-amber-50 border border-rose-200 rounded-2xl p-5">
                     <h2 className="flex items-center gap-2 font-bold text-rose-900"><Award className="w-5 h-5 text-rose-700" /> Phiên bản Kiểm điểm — đánh giá hằng QUÝ ({quarterLabel})</h2>
-                    <p className="text-sm text-rose-900/80 mt-1.5 leading-relaxed">Theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b> của Ban Thường vụ Tỉnh ủy, áp dụng cho <b>cán bộ diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan. Thang 100 = <b>Nhóm A (30đ)</b> tiêu chí chung (chấm điểm theo thang từng mục) + <b>Nhóm B (70đ)</b> kết quả nhiệm vụ theo <b>6 trục trọng tâm</b>, mỗi trục <b>Điểm = KPI% × điểm tối đa</b>, KPI = (A+B+C+D)/4. Xếp loại 4 mức: HTXS / HTT / HT / Không HT.</p>
+                    <p className="text-sm text-rose-900/80 mt-1.5 leading-relaxed">Theo <b>Hướng dẫn 03-HD/TU ngày 02/7/2026</b> của Ban Thường vụ Tỉnh ủy, áp dụng cho <b>cán bộ diện Ban Thường vụ Tỉnh ủy quản lý</b> tại cơ quan. Thang 100 = <b>Nhóm A (30đ)</b> tiêu chí chung (chấm <b>nhị phân</b>: Đảm bảo = đủ điểm mục, Không đảm bảo = 0) + <b>Nhóm B (70đ)</b> kết quả nhiệm vụ theo <b>6 trục trọng tâm</b>. ⚠️ <b>Điểm tối đa từng trục do cá nhân đề xuất</b> trong Kế hoạch quý (tổng 6 trục = 70đ, tập thể lãnh đạo phê duyệt), mỗi trục ghi rõ là <i>trục chính, chủ yếu</i> hay <i>trục phụ, phối hợp, hỗ trợ</i>. Mỗi trục <b>Điểm đạt = Điểm KPI (%) × Điểm tối đa</b>; KPI tự tính từ mức độ hoàn thành các nhiệm vụ (trọng số theo tầm quan trọng), cấp có thẩm quyền điều chỉnh được. Xếp loại 4 mức: HTXS / HTT / HT / Không HT.</p>
                   </section>
                 )}
                 {!selfEditable && !mgrEditable && (
@@ -2317,7 +2402,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
                   )}
                 </section>}
                 {isSG && <SingaporeAppraisal person={cur} c={curC} objectives={objectives} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurSG} onWord={doSGWord} />}
-                {isKD && <KiemDiemAppraisal person={cur} c={curC} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurKD} onWord={doKDWord}
+                {isKD && <KiemDiemAppraisal person={cur} c={curC} selfEditable={selfEditable} mgrEditable={mgrEditable} onPatch={upCurKD} onWord={doKDWord} onWordKeHoach={doKDKeHoach} quarterLabel={quarterLabel}
                   approval={{ approved: !!cur.approved, by: cur.approvedBy, role: cur.approvedRole, at: cur.approvedAt, canApprove: mgrEditable && !isGuest, onToggle: toggleApprove }} />}
                 {!isSG && !isKD && (<>
                 {isSonHa && <SonHaConnectors canEdit={taskEditable} />}
@@ -2610,7 +2695,7 @@ export default function App({ version = 'classic', onPickVersion, onHome, initia
             <div className={`rounded-xl border p-4 ${isKD ? 'bg-rose-50 border-rose-200' : isSG ? 'bg-violet-50 border-violet-200' : isImproved ? 'bg-cyan-50 border-cyan-200' : 'bg-red-50 border-red-200'}`}>
               <p className={`font-bold mb-1 ${isKD ? 'text-rose-800' : isSG ? 'text-indigo-800' : isImproved ? 'text-cyan-800' : 'text-red-800'}`}>Đang xem hướng dẫn cho: Phiên bản {vName(version)}</p>
               <p className="text-sm text-slate-700 leading-relaxed">{isKD
-                ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm điểm theo thang từng mục) + Nhóm B (70đ, kết quả nhiệm vụ theo 6 trục trọng tâm, mỗi trục Điểm = KPI% × điểm tối đa với KPI = (A+B+C+D)/4). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: bản tự đánh giá cá nhân (Phụ lục 3A) và bảng tổng hợp tập thể (Phụ lục 4).'
+                ? 'Đánh giá định kỳ HẰNG QUÝ đối với cán bộ lãnh đạo, quản lý diện Ban Thường vụ Tỉnh ủy quản lý — theo Hướng dẫn 03-HD/TU ngày 02/7/2026. Quy trình hai bước: ĐẦU KỲ lập KẾ HOẠCH sản phẩm/công việc (đăng ký nhiệm vụ theo 6 trục kèm kết quả cần đạt, thời gian hoàn thành và ĐỀ XUẤT điểm tối đa cho từng trục — tổng 70đ), trình tập thể lãnh đạo phê duyệt; CUỐI KỲ tự đánh giá ngay trên kế hoạch đó. Thang 100 = Nhóm A (30đ, tiêu chí chung, chấm nhị phân Đảm bảo/Không đảm bảo) + Nhóm B (70đ, mỗi trục Điểm đạt = Điểm KPI (%) × Điểm tối đa của trục). Xếp loại 4 mức HTXS/HTT/HT/Không HT. Sản phẩm: Kế hoạch quý, Bản tự đánh giá cá nhân (Phụ lục 3A) và Bảng tổng hợp tập thể (Phụ lục 4).'
                 : isSG
                 ? 'Mô hình quản lý hiệu suất khu vực công Singapore (THAM KHẢO) — KHÔNG dùng thang 30/70 và Điều 8. Đánh giá theo HAI tầng: (A) Bảng điểm THIẾT CHẾ của cơ quan chấm theo dải màu Xanh/Vàng/Đỏ; (B) Phiếu CÁ NHÂN gồm Kết quả công việc (Work Review) + Năng lực (AIM) + Giá trị (ISE) → Xếp loại A–E, kèm Tiềm năng (CEP). Đại biểu dân cử không chấm điểm cá nhân.'
                 : isImproved
