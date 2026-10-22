@@ -1965,7 +1965,8 @@ export async function exportBaoCaoSoTay({ doc, tienDo, thoiGian }) {
 
   children.push(P('I. KHÁI QUÁT', { bold: true, size: 26, spacingAfter: 40 }));
   children.push(P(`Thực hiện nhiệm vụ đột phá đã đăng ký, Tổ công tác đã xây dựng ${(doc.soTay || []).length} sổ tay AI theo lĩnh vực của cơ quan dân cử, tổ chức nạp và kiểm tra nguồn văn bản, lập ngân hàng câu hỏi mẫu, xây dựng Quy tắc sử dụng trí tuệ nhân tạo và hướng dẫn cán bộ, công chức sử dụng.`, { spacingAfter: 40 }));
-  children.push(P('Nguyên tắc xuyên suốt: công cụ chỉ trả lời dựa trên các đoạn văn bản đã được nạp và kiểm tra, mỗi câu trả lời đều gắn trích dẫn đến từng điều, khoản; chỉ nạp văn bản công khai, không mật; kết quả chỉ có giá trị tham khảo, người sử dụng phải mở văn bản gốc để kiểm chứng.', { spacingAfter: 120 }));
+  children.push(P('Cách tổ chức: mỗi sổ tay là một notebook trên NotebookLM do Văn phòng lập và chia sẻ; cán bộ, công chức và đại biểu tự đăng nhập tài khoản Google của mình để mở sổ tay và hỏi đáp, do đó cơ quan không phát sinh kinh phí. Hệ thống này giữ vai trò cổng vào, quản lý danh mục nguồn đã kiểm tra, ngân hàng câu hỏi mẫu, Quy tắc sử dụng trí tuệ nhân tạo và theo dõi tiến độ thí điểm.', { spacingAfter: 40 }));
+  children.push(P('Nguyên tắc xuyên suốt: chỉ trả lời dựa trên các nguồn đã được kiểm tra và nạp vào sổ tay, mỗi câu trả lời đều gắn trích dẫn đến từng điều, khoản; chỉ nạp văn bản công khai, không mật; kết quả chỉ có giá trị tham khảo, người sử dụng phải mở văn bản gốc để kiểm chứng.', { spacingAfter: 120 }));
 
   children.push(P('II. KẾT QUẢ THỰC HIỆN CÁC CHỈ TIÊU', { bold: true, size: 26, spacingAfter: 60 }));
   const rows = [
@@ -1997,18 +1998,19 @@ export async function exportBaoCaoSoTay({ doc, tienDo, thoiGian }) {
     const ds = (doc.nguon || []).filter((x) => x.soTayId === s.id);
     children.push(P(`${s.ma}. ${s.ten}`, { bold: true, size: 24, spacingAfter: 20 }));
     if (!ds.length) { children.push(P('(Chưa có văn bản nguồn)', { italics: true, size: 22, spacingAfter: 60 })); continue; }
+    children.push(P(s.notebookLM ? `Sổ tay trên NotebookLM: ${s.notebookLM}` : 'Sổ tay trên NotebookLM: (chưa gắn liên kết)', { italics: true, size: 20, spacingAfter: 20 }));
     const r2 = [new TableRow({ tableHeader: true, children: [
       TC('TT', { bold: true, align: C, shade: SH, width: 5 }),
-      TC('Tên văn bản', { bold: true, align: C, shade: SH, width: 38 }),
-      TC('Số, ký hiệu', { bold: true, align: C, shade: SH, width: 17 }),
-      TC('Hiệu lực', { bold: true, align: C, shade: SH, width: 14 }),
-      TC('Kiểm tra nguồn', { bold: true, align: C, shade: SH, width: 16 }),
-      TC('Đã nạp', { bold: true, align: C, shade: SH, width: 10 }),
+      TC('Tên văn bản', { bold: true, align: C, shade: SH, width: 36 }),
+      TC('Số, ký hiệu', { bold: true, align: C, shade: SH, width: 16 }),
+      TC('Hiệu lực', { bold: true, align: C, shade: SH, width: 13 }),
+      TC('Kiểm tra nguồn', { bold: true, align: C, shade: SH, width: 15 }),
+      TC('Đã nạp lên NotebookLM', { bold: true, align: C, shade: SH, width: 15 }),
     ] })];
     ds.forEach((x, i) => r2.push(new TableRow({ children: [
       TC(String(i + 1), { align: C, size: 20 }), TC(x.ten || '', { size: 20 }), TC(x.soHieu || '', { size: 20 }),
       TC(nhanHL[x.hieuLuc] || 'Chưa xác định', { size: 20 }), TC(nhanKT[x.kiemTra] || 'Chưa kiểm tra', { size: 20 }),
-      TC(x.soKyTu > 0 ? 'Rồi' : 'Chưa', { align: C, size: 20 }),
+      TC(x.napNLM ? `Rồi${x.ngayNapNLM ? ` (${ng(x.ngayNapNLM)})` : ''}` : 'Chưa', { align: C, size: 20 }),
     ] })));
     children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: r2 }));
     children.push(P('', { spacingAfter: 80 }));

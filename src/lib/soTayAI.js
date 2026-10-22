@@ -367,18 +367,29 @@ const so = (v, d = 0) => { const n = Number(v); return isFinite(n) ? n : d; };
 
 /** Thống kê một sổ tay: số nguồn, số đoạn đã lập chỉ mục, số câu hỏi… */
 export function thongKeSoTay(doc, soTayId) {
+  const st = mang(doc?.soTay).find((x) => x.id === soTayId);
   const nguon = mang(doc?.nguon).filter((n) => n.soTayId === soTayId);
   const dung = nguon.filter((n) => n.kiemTra !== 'loai');
   const cauHoi = mang(doc?.cauHoi).filter((c) => c.soTayId === soTayId);
+  const nguonDat = nguon.filter((n) => n.kiemTra === 'dat');
+  const daNapNLM = nguon.filter((n) => n.napNLM).length;
   return {
+    coNotebook: daGanNLM(st),
+    lienKetNLM: chuanHoaNLM(st?.notebookLM).url,
+    napNLM: daNapNLM,
+    conPhaiNap: nguonDat.filter((n) => !n.napNLM).length,
     nguon: nguon.length,
-    nguonDat: nguon.filter((n) => n.kiemTra === 'dat').length,
+    nguonDat: nguonDat.length,
     nguonConHieuLuc: nguon.filter((n) => n.hieuLuc === 'con').length,
     coNguyenVan: dung.filter((n) => (n.soKyTu || 0) > 0).length,
     kyTu: dung.reduce((s, n) => s + so(n.soKyTu), 0),
     cauHoi: cauHoi.length,
     cauHoiDat: cauHoi.filter((c) => c.trangThai === 'doi-chieu').length,
+    // `sanSang` = tra nhanh TẠI CHỖ được (đã có nguyên văn trong phân hệ này).
     sanSang: dung.some((n) => (n.soKyTu || 0) > 0),
+    // `sanSangNLM` = dùng được theo đúng định hướng: đã có notebook, nguồn đã
+    // kiểm tra và đã nạp lên notebook, có câu hỏi mẫu đã đối chiếu.
+    sanSangNLM: daGanNLM(st) && nguonDat.length > 0 && daNapNLM > 0,
   };
 }
 
@@ -401,9 +412,13 @@ export function giamThoiGian(doc) {
 /** Bảng tiến độ 4 chỉ tiêu của nhiệm vụ đột phá — dùng cho thẻ số liệu + báo cáo. */
 export function tienDoNhiemVu(doc, { tongCBCC = 0 } = {}) {
   const soTay = mang(doc?.soTay);
+  // Sổ tay được tính là XONG khi dùng được thật: đã gắn notebook trên
+  // NotebookLM, nguồn đã kiểm tra và đã nạp lên notebook, có câu hỏi mẫu đã
+  // đối chiếu. (Nạp nguyên văn vào phân hệ này chỉ phục vụ tra nhanh dự phòng
+  // nên KHÔNG phải điều kiện bắt buộc.)
   const xong = soTay.filter((s) => {
     const t = thongKeSoTay(doc, s.id);
-    return t.sanSang && t.nguonDat > 0 && t.cauHoiDat > 0;
+    return t.sanSangNLM && t.cauHoiDat > 0;
   }).length;
   const cauHoiDat = mang(doc?.cauHoi).filter((c) => c.trangThai === 'doi-chieu').length;
   const hd = mang(doc?.huongDan);
@@ -414,8 +429,9 @@ export function tienDoNhiemVu(doc, { tongCBCC = 0 } = {}) {
   const quyTac = !!(doc?.quyTac?.banHanh);
 
   const muc = (daLam, chiTieu) => Math.max(0, Math.min(100, chiTieu > 0 ? (daLam / chiTieu) * 100 : 0));
+  const daGan = soTay.filter(daGanNLM).length;
   return {
-    soTay: { daLam: xong, tong: soTay.length, chiTieu: CHI_TIEU.soTay, pct: muc(xong, CHI_TIEU.soTay), dat: xong >= CHI_TIEU.soTay },
+    soTay: { daLam: xong, tong: soTay.length, daGanNotebook: daGan, chiTieu: CHI_TIEU.soTay, pct: muc(xong, CHI_TIEU.soTay), dat: xong >= CHI_TIEU.soTay },
     cauHoi: { daLam: cauHoiDat, tong: mang(doc?.cauHoi).length, chiTieu: CHI_TIEU.cauHoi, pct: muc(cauHoiDat, CHI_TIEU.cauHoi), dat: cauHoiDat >= CHI_TIEU.cauHoi },
     huongDan: { daLam: daHD, tong, chiTieu: CHI_TIEU.huongDan, pct: tyLeHD, dat: tong > 0 && daHD >= tong },
     thoiGian: { ...tg, chiTieu: CHI_TIEU.giamThoiGian, pct: muc(tg.giam, CHI_TIEU.giamThoiGian) },
@@ -443,6 +459,67 @@ export function loc(ds, tuKhoa, truong) {
   if (!q) return ds;
   return ds.filter((x) => truong.some((t) => boDau(x[t]).includes(q)));
 }
+
+// ---------------------------------------------------------------------------
+//  8. NOTEBOOKLM — nơi cán bộ THỰC SỰ hỏi đáp
+//
+//  Định hướng sử dụng: mỗi sổ tay là MỘT NOTEBOOK trên NotebookLM do Văn phòng
+//  lập và chia sẻ; cán bộ **tự đăng nhập tài khoản Google của mình** rồi mở
+//  notebook đó để hỏi. Nhờ vậy không phát sinh kinh phí cho cơ quan và hạn mức
+//  hỏi đáp tính trên tài khoản từng người.
+//
+//  ⚠️ TÊN MIỀN: Google đã chuyển `notebooklm.google.com` sang
+//     `notebook.google.com` (tên miền cũ trả 301 về tên miền mới). Nhận CẢ HAI
+//     khi người dùng dán vào, nhưng luôn lưu về tên miền hiện hành.
+//  ⚠️ Mở liên kết khi chưa đăng nhập sẽ bị đẩy sang trang đăng nhập của Google —
+//     đó là hành vi đúng, không phải lỗi liên kết.
+// ---------------------------------------------------------------------------
+export const NLM_HOST = 'notebook.google.com';
+export const NLM_HOST_CU = 'notebooklm.google.com';
+export const NLM_MAU = `https://${NLM_HOST}/notebook/<mã sổ tay>`;
+
+const RE_MA_NLM = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+/**
+ * Chuẩn hóa liên kết notebook. Nhận: địa chỉ đầy đủ (tên miền mới hoặc cũ),
+ * hoặc chỉ dán mã sổ tay. Trả { ok, url, ma, loi }.
+ */
+export function chuanHoaNLM(v) {
+  const t = String(v || '').trim();
+  if (!t) return { ok: false, url: '', ma: '', loi: '' };
+  if (RE_MA_NLM.test(t)) return { ok: true, url: `https://${NLM_HOST}/notebook/${t.toLowerCase()}`, ma: t.toLowerCase(), loi: '' };
+  let u;
+  try { u = new URL(t.startsWith('http') ? t : `https://${t}`); } catch { return { ok: false, url: '', ma: '', loi: 'Không đọc được địa chỉ.' }; }
+  const host = u.hostname.toLowerCase();
+  if (host !== NLM_HOST && host !== NLM_HOST_CU) {
+    return { ok: false, url: '', ma: '', loi: `Địa chỉ phải thuộc ${NLM_HOST} (hoặc ${NLM_HOST_CU} là tên miền cũ).` };
+  }
+  const m = u.pathname.match(/\/notebook\/([^/?#]+)/i);
+  if (!m) return { ok: false, url: '', ma: '', loi: `Thiếu phần /notebook/<mã>. Mẫu đúng: ${NLM_MAU}` };
+  const ma = decodeURIComponent(m[1]).toLowerCase();
+  return { ok: true, url: `https://${NLM_HOST}/notebook/${ma}`, ma, loi: '' };
+}
+
+/** Sổ tay đã gắn notebook chưa (dùng cho thẻ, tiến độ và báo cáo). */
+export const daGanNLM = (s) => chuanHoaNLM(s?.notebookLM).ok;
+
+/** Các bước cán bộ làm để dùng sổ tay — hiển thị ở tab hướng dẫn và in vào báo cáo. */
+export const BUOC_DUNG_NLM = [
+  { ten: 'Đăng nhập tài khoản Google của chính mình', chiTiet: 'Mở notebook.google.com và đăng nhập bằng tài khoản Google cá nhân hoặc tài khoản do cơ quan cấp. Mỗi người dùng tài khoản riêng nên hạn mức hỏi đáp tính theo từng người, cơ quan không phát sinh kinh phí.' },
+  { ten: 'Mở sổ tay được Văn phòng chia sẻ', chiTiet: 'Bấm nút "Mở trên NotebookLM" ở từng sổ tay trong phân hệ này. Nếu chưa đăng nhập, Google sẽ đưa sang trang đăng nhập trước rồi mới mở sổ tay — đó là hành vi bình thường.' },
+  { ten: 'Hỏi bằng tiếng Việt, đọc kỹ trích dẫn', chiTiet: 'Gõ câu hỏi vào ô chat. NotebookLM chỉ trả lời dựa trên các nguồn trong sổ tay và gắn số trích dẫn; bấm vào số đó để nhảy tới đúng đoạn trong văn bản gốc.' },
+  { ten: 'Kiểm chứng trước khi dùng', chiTiet: 'Mở văn bản gốc theo trích dẫn để đối chiếu trước khi đưa nội dung vào văn bản tham mưu, báo cáo hay phát biểu. Không trích dẫn trí tuệ nhân tạo làm căn cứ pháp lý.' },
+];
+
+/** Việc của người lập sổ tay (chủ notebook) — hướng dẫn cho Tổ công tác. */
+export const BUOC_LAP_NLM = [
+  'Tạo một notebook riêng cho từng lĩnh vực, đặt tên trùng với mã và tên sổ tay (ví dụ: "ST-03 Hoạt động giám sát").',
+  'Nạp vào notebook các văn bản ĐÃ KIỂM TRA ở tab "Nguồn của sổ tay" (tải tệp hoặc dán đường dẫn bản công khai).',
+  'Chỉ nạp văn bản CÔNG KHAI, KHÔNG MẬT — nguồn tải lên được gửi và lưu trên máy chủ của Google.',
+  'Chia sẻ notebook cho cán bộ theo quyền CHỈ XEM để người dùng hỏi đáp được nhưng không sửa, không xóa nguồn.',
+  'Dán địa chỉ notebook vào ô "Liên kết NotebookLM" của sổ tay tương ứng trong phân hệ này.',
+  'Văn bản được sửa đổi, thay thế hoặc hết hiệu lực thì cập nhật lại nguồn trong notebook và đánh dấu lại ở tab "Nguồn của sổ tay".',
+];
 
 // ---------------------------------------------------------------------------
 //  7. MÔ HÌNH DỮ LIỆU (thuần — để kiểm thử được bằng Node; phần đọc/ghi máy chủ
@@ -477,6 +554,7 @@ export const chuanHoaST = (d) => ({
     congKhai: !!n?.congKhai, kiemTra: chuoi(n?.kiemTra) || 'chua',
     nguoiKiemTra: chuoi(n?.nguoiKiemTra), ngayKiemTra: chuoi(n?.ngayKiemTra),
     ghiChu: chuoi(n?.ghiChu),
+    napNLM: !!n?.napNLM, ngayNapNLM: chuoi(n?.ngayNapNLM),
     text: chuoi(n?.text).slice(0, MAX_CHU_MOI_NGUON),
     soKyTu: Math.min(Number(n?.soKyTu) || 0, MAX_CHU_MOI_NGUON),
     demo: !!n?.demo,
@@ -520,7 +598,7 @@ export const newId = (p = 'x') => `${p}${Date.now().toString(36)}${(++seq).toStr
 export const newNguon = (soTayId, v = {}) => ({
   id: newId('ng'), soTayId, soHieu: '', ten: '', coQuan: '', ngayBanHanh: '',
   hieuLuc: 'chua-ro', lienKet: '', congKhai: false, kiemTra: 'chua',
-  nguoiKiemTra: '', ngayKiemTra: '', ghiChu: '', text: '', soKyTu: 0, ...v,
+  nguoiKiemTra: '', ngayKiemTra: '', ghiChu: '', napNLM: false, ngayNapNLM: '', text: '', soKyTu: 0, ...v,
 });
 export const newCauHoi = (soTayId, v = {}) => ({
   id: newId('ch'), soTayId, cauHoi: '', dapAn: '', trichDan: [],

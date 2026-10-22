@@ -21,6 +21,7 @@ import {
   Home, BookOpen, Search, Library, ListChecks, ShieldAlert, GraduationCap, FileBarChart,
   Plus, Trash2, Upload, Link2, CheckCircle2, AlertTriangle, Loader2, Send, Clock,
   FileText, ExternalLink, Sparkles, Info, RotateCcw, Save, Download, Target,
+  NotebookPen, Copy, LogIn, Share2, CloudUpload,
 } from 'lucide-react';
 import { getSession, onAuthChange } from './lib/auth';
 import { docTaiLieu } from './lib/troLyAI';
@@ -30,16 +31,21 @@ import {
   HIEU_LUC, hieuLucOf, KIEM_TRA, kiemTraOf, TRANG_THAI_SO_TAY, trangThaiOf,
   TRANG_THAI_CAU_HOI, cauHoiOf, HINH_THUC_HD, CHI_TIEU,
   newNguon, newCauHoi, newHuongDan, ganNguyenVan, kichThuoc, newId, CANH_BAO_KB,
+  chuanHoaNLM, daGanNLM, NLM_HOST, NLM_MAU, BUOC_DUNG_NLM, BUOC_LAP_NLM,
 } from './lib/soTayAI';
 import { fetchST, saveST, khoiTaoNeuTrong, hoiSoTay, xemHanMucSoTay } from './lib/soTayStore';
 
+// Thứ tự tab theo ĐÚNG đường đi của người dùng: xem tiến độ → mở sổ tay trên
+// NotebookLM (nơi hỏi đáp CHÍNH) → chuẩn bị nguồn → câu hỏi mẫu → quy tắc →
+// hướng dẫn cán bộ → tra nhanh tại chỗ (chỉ là lối dự phòng) → báo cáo.
 const TABS = [
   { k: 'tongquan', ten: 'Tổng quan', icon: Target },
-  { k: 'tracuu', ten: 'Tra cứu', icon: Search },
+  { k: 'notebook', ten: 'Sổ tay trên NotebookLM', icon: NotebookPen },
   { k: 'nguon', ten: 'Nguồn của sổ tay', icon: Library },
   { k: 'cauhoi', ten: 'Câu hỏi mẫu', icon: ListChecks },
   { k: 'quytac', ten: 'Quy tắc dùng AI', icon: ShieldAlert },
   { k: 'huongdan', ten: 'Hướng dẫn cán bộ', icon: GraduationCap },
+  { k: 'tracuu', ten: 'Tra nhanh tại chỗ', icon: Search },
   { k: 'baocao', ten: 'Báo cáo', icon: FileBarChart },
 ];
 
@@ -148,7 +154,8 @@ export default function SoTayAI({ onHome }) {
       )}
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6 space-y-6">
-        {tab === 'tongquan' && <TongQuan doc={doc} onMo={(id) => { setSoTayId(id); setTab('tracuu'); }} onTab={setTab} />}
+        {tab === 'tongquan' && <TongQuan doc={doc} onMo={(id) => { setSoTayId(id); setTab('notebook'); }} onTab={setTab} />}
+        {tab === 'notebook' && <SoTayNotebook doc={doc} onLuu={luu} coQuyenGhi={coQuyenGhi} onTab={setTab} onChon={setSoTayId} bao={bao} />}
         {tab === 'tracuu' && <TraCuu doc={doc} soTay={soTay} hienTai={hienTai} onChon={setSoTayId} onLuu={luu} coQuyenGhi={coQuyenGhi} bao={bao} />}
         {tab === 'nguon' && <KhoNguon doc={doc} soTay={soTay} hienTai={hienTai} onChon={setSoTayId} onLuu={luu} coQuyenGhi={coQuyenGhi} bao={bao} />}
         {tab === 'cauhoi' && <NganHangCauHoi doc={doc} soTay={soTay} onLuu={luu} coQuyenGhi={coQuyenGhi} />}
@@ -202,7 +209,7 @@ function TongQuan({ doc, onMo, onTab }) {
 
       <section className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <TheChiTieu ten="Sổ tay AI theo lĩnh vực" daLam={td.soTay.daLam} chiTieu={CHI_TIEU.soTay} donVi="sổ tay" pct={td.soTay.pct} dat={td.soTay.dat}
-          ghiChu="Sổ tay được tính là xong khi đã nạp nguyên văn, có nguồn đã kiểm tra và có câu hỏi mẫu đã đối chiếu." onClick={() => onTab('nguon')} />
+          ghiChu={`Đã gắn notebook: ${td.soTay.daGanNotebook}/${td.soTay.tong}. Sổ tay tính là xong khi đã có notebook, nguồn đã kiểm tra và nạp lên notebook, có câu hỏi mẫu đã đối chiếu.`} onClick={() => onTab('notebook')} />
         <TheChiTieu ten="Câu hỏi mẫu đã đối chiếu nguồn" daLam={td.cauHoi.daLam} chiTieu={CHI_TIEU.cauHoi} donVi="câu" pct={td.cauHoi.pct} dat={td.cauHoi.dat}
           ghiChu={`Ngân hàng hiện có ${td.cauHoi.tong} câu; chỉ tiêu là ≥ ${CHI_TIEU.cauHoi} câu ĐÃ đối chiếu nguồn.`} onClick={() => onTab('cauhoi')} />
         <TheChiTieu ten="Cán bộ, công chức được hướng dẫn" daLam={td.huongDan.daLam} chiTieu={td.huongDan.tong || 0} donVi="người" pct={td.huongDan.pct} dat={td.huongDan.dat}
@@ -241,11 +248,13 @@ function TongQuan({ doc, onMo, onTab }) {
                 </div>
                 <p className="text-[14px] font-bold text-slate-800 mt-2 leading-snug">{s.ten}</p>
                 <p className="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">{s.moTa}</p>
-                <div className="flex items-center gap-3 mt-3 text-[11px]">
-                  <span className={t.sanSang ? 'text-emerald-700 font-semibold' : 'text-slate-400'}>
-                    {t.sanSang ? `${t.coNguyenVan}/${t.nguon} nguồn đã nạp` : 'Chưa nạp nguyên văn'}
+                <div className="flex items-center gap-2 mt-3 text-[11px] flex-wrap">
+                  <span className={t.coNotebook ? 'text-violet-700 font-semibold' : 'text-amber-700 font-semibold'}>
+                    {t.coNotebook ? 'Đã có notebook' : 'Chưa gắn notebook'}
                   </span>
-                  <span className="text-slate-400">·</span>
+                  <span className="text-slate-300">·</span>
+                  <span className="text-slate-500">{t.nguonDat}/{t.nguon} nguồn đã kiểm tra</span>
+                  <span className="text-slate-300">·</span>
                   <span className="text-slate-500">{t.cauHoiDat}/{t.cauHoi} câu đã đối chiếu</span>
                 </div>
               </button>
@@ -273,7 +282,151 @@ function TheChiTieu({ ten, daLam, chiTieu, donVi, pct, dat, ghiChu, onClick, soL
 }
 
 // ============================================================================
-//  TAB 2 — TRA CỨU (màn chính): hỏi → truy hồi đoạn → AI trả lời có trích dẫn
+//  TAB 2 — SỔ TAY TRÊN NOTEBOOKLM (nơi cán bộ THỰC SỰ hỏi đáp)
+//  Mỗi sổ tay là một notebook do Văn phòng lập và chia sẻ; cán bộ tự đăng nhập
+//  tài khoản Google của mình để mở. Phân hệ này giữ vai trò CỔNG VÀO + quản lý
+//  nguồn, câu hỏi mẫu, quy tắc và tiến độ thí điểm.
+// ============================================================================
+function SoTayNotebook({ doc, onLuu, coQuyenGhi, onTab, onChon, bao }) {
+  const [sua, setSua] = useState('');     // id sổ tay đang sửa liên kết
+  const [nhap, setNhap] = useState('');
+  const kiemTra = chuanHoaNLM(nhap);
+
+  const luuLienKet = (id) => {
+    if (nhap.trim() && !kiemTra.ok) { bao('loi', kiemTra.loi); return; }
+    onLuu({ ...doc, soTay: doc.soTay.map((s) => (s.id === id ? { ...s, notebookLM: kiemTra.url } : s)) });
+    setSua(''); setNhap('');
+    bao('ok', kiemTra.url ? 'Đã gắn liên kết notebook.' : 'Đã gỡ liên kết notebook.');
+  };
+
+  const daGan = (doc.soTay || []).filter(daGanNLM).length;
+
+  return (
+    <>
+      <section className="rounded-2xl border border-violet-200 bg-gradient-to-br from-violet-50 to-white p-5">
+        <div className="flex items-start gap-3">
+          <span className="shrink-0 w-10 h-10 rounded-xl bg-violet-100 text-violet-700 flex items-center justify-center"><NotebookPen className="w-5 h-5" /></span>
+          <div className="flex-1">
+            <p className="text-[15px] font-extrabold text-slate-800">Hỏi đáp thực hiện trên NotebookLM</p>
+            <p className="text-[12.5px] text-slate-600 mt-1 leading-relaxed">
+              Mỗi sổ tay là một <b>notebook</b> do Văn phòng lập và chia sẻ. Cán bộ <b>tự đăng nhập tài khoản Google của mình</b> rồi mở sổ tay để hỏi —
+              nhờ vậy hạn mức hỏi đáp tính trên từng người và cơ quan <b>không phát sinh kinh phí</b>.
+              Phân hệ này giữ vai trò cổng vào, quản lý danh mục nguồn đã kiểm tra, ngân hàng câu hỏi mẫu, Quy tắc sử dụng AI và tiến độ thí điểm.
+            </p>
+            <p className="text-[12px] text-violet-900 bg-violet-100/70 border border-violet-200 rounded-lg px-3 py-2 mt-3">
+              Đã gắn notebook cho <b>{daGan}/{(doc.soTay || []).length}</b> sổ tay. Địa chỉ đúng có dạng <code className="font-mono">{NLM_MAU}</code>.
+              Tên miền cũ <code className="font-mono">notebooklm.google.com</code> vẫn vào được (Google tự chuyển sang <code className="font-mono">{NLM_HOST}</code>).
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section className="grid sm:grid-cols-2 gap-3">
+        {(doc.soTay || []).map((s) => {
+          const t = thongKeSoTay(doc, s.id);
+          const tt = trangThaiOf(s.trangThai);
+          const dangSua = sua === s.id;
+          return (
+            <div key={s.id} className={`rounded-2xl border bg-white p-4 ${t.coNotebook ? 'border-violet-200' : 'border-slate-200'}`}>
+              <div className="flex items-center justify-between gap-2">
+                <span className="text-[10px] font-extrabold tracking-wider text-violet-700 bg-violet-50 border border-violet-200 rounded px-1.5 py-0.5">{s.ma}</span>
+                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full border ${tt.tone}`}>{tt.ten}</span>
+              </div>
+              <p className="text-[14px] font-bold text-slate-800 mt-2 leading-snug">{s.ten}</p>
+              <p className="text-[11px] text-slate-500 mt-1 leading-relaxed line-clamp-2">{s.moTa}</p>
+
+              <div className="flex flex-wrap items-center gap-2 mt-3 text-[11px]">
+                <span className={`px-2 py-0.5 rounded-full border ${t.nguonDat > 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                  {t.nguonDat}/{t.nguon} nguồn đã kiểm tra
+                </span>
+                <span className={`px-2 py-0.5 rounded-full border ${t.napNLM > 0 && t.conPhaiNap === 0 ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : t.napNLM > 0 ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-500 border-slate-200'}`}>
+                  {t.napNLM} nguồn đã nạp lên notebook{t.conPhaiNap ? ` · còn ${t.conPhaiNap}` : ''}
+                </span>
+                <span className="px-2 py-0.5 rounded-full border bg-slate-100 text-slate-500 border-slate-200">{t.cauHoiDat}/{t.cauHoi} câu hỏi mẫu</span>
+              </div>
+
+              {t.coNotebook ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <a href={t.lienKetNLM} target="_blank" rel="noopener noreferrer" className={nutChinh}>
+                    <ExternalLink className="w-4 h-4" /> Mở trên NotebookLM
+                  </a>
+                  <button onClick={() => { navigator.clipboard?.writeText(t.lienKetNLM); bao('ok', 'Đã sao chép địa chỉ sổ tay.'); }} className={nutPhu}>
+                    <Copy className="w-3.5 h-3.5" /> Sao chép địa chỉ
+                  </button>
+                  {coQuyenGhi && <button onClick={() => { setSua(s.id); setNhap(s.notebookLM || ''); }} className={nutPhu}>Sửa liên kết</button>}
+                </div>
+              ) : (
+                <div className="mt-3">
+                  <p className="text-[11.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2">
+                    Chưa gắn notebook. {coQuyenGhi ? 'Lập notebook trên NotebookLM rồi dán địa chỉ vào đây.' : 'Liên hệ Tổ công tác để được chia sẻ sổ tay.'}
+                  </p>
+                  {coQuyenGhi && <button onClick={() => { setSua(s.id); setNhap(''); }} className={`${nutPhu} mt-2`}><Link2 className="w-3.5 h-3.5" /> Gắn liên kết</button>}
+                </div>
+              )}
+
+              {dangSua && coQuyenGhi && (
+                <div className="mt-3 rounded-xl border border-violet-200 bg-violet-50/50 p-3">
+                  <span className={lab}>Địa chỉ notebook (dán cả địa chỉ hoặc chỉ mã sổ tay đều được)</span>
+                  <input value={nhap} onChange={(e) => setNhap(e.target.value)} placeholder={NLM_MAU} className={`${inp} font-mono text-[12px]`} />
+                  {!!nhap.trim() && (
+                    <p className={`text-[11px] mt-1.5 ${kiemTra.ok ? 'text-emerald-700' : 'text-rose-600'}`}>
+                      {kiemTra.ok ? `Hợp lệ → ${kiemTra.url}` : kiemTra.loi}
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 mt-2">
+                    <button onClick={() => luuLienKet(s.id)} className={nutChinh}><Save className="w-4 h-4" /> Lưu</button>
+                    <button onClick={() => { setSua(''); setNhap(''); }} className={nutPhu}>Hủy</button>
+                  </div>
+                </div>
+              )}
+
+              <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
+                <button onClick={() => { onChon(s.id); onTab('nguon'); }} className="text-[11.5px] font-semibold text-violet-700 hover:text-violet-900">Chuẩn bị nguồn →</button>
+                <button onClick={() => onTab('cauhoi')} className="text-[11.5px] font-semibold text-slate-500 hover:text-slate-800">Câu hỏi mẫu →</button>
+              </div>
+            </div>
+          );
+        })}
+      </section>
+
+      <section className="grid lg:grid-cols-2 gap-4">
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="bg-gradient-to-r from-violet-800 to-violet-700 text-white px-5 py-3 flex items-center gap-2">
+            <LogIn className="w-4 h-4 text-amber-300" /><h2 className="font-bold text-sm">Cán bộ dùng sổ tay như thế nào</h2>
+          </div>
+          <ol className="divide-y divide-slate-100">
+            {BUOC_DUNG_NLM.map((b, i) => (
+              <li key={i} className="px-5 py-3.5 flex gap-3">
+                <span className="shrink-0 w-6 h-6 rounded-full bg-violet-100 text-violet-700 flex items-center justify-center text-[11px] font-extrabold">{i + 1}</span>
+                <div><p className="text-[13px] font-bold text-slate-800">{b.ten}</p>
+                  <p className="text-[12px] text-slate-600 leading-relaxed mt-0.5">{b.chiTiet}</p></div>
+              </li>
+            ))}
+          </ol>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          <div className="bg-gradient-to-r from-slate-800 to-slate-700 text-white px-5 py-3 flex items-center gap-2">
+            <Share2 className="w-4 h-4 text-amber-300" /><h2 className="font-bold text-sm">Việc của Tổ công tác khi lập sổ tay</h2>
+          </div>
+          <ol className="px-5 py-3 space-y-2 list-decimal list-inside">
+            {BUOC_LAP_NLM.map((b, i) => <li key={i} className="text-[12.5px] text-slate-600 leading-relaxed">{b}</li>)}
+          </ol>
+          <p className="mx-5 mb-4 text-[12px] text-rose-800 bg-rose-50 border border-rose-200 rounded-lg px-3 py-2 flex items-start gap-1.5">
+            <AlertTriangle className="w-3.5 h-3.5 shrink-0 mt-0.5" />
+            <span>Nguồn tải lên NotebookLM được gửi và lưu trên máy chủ của Google. <b>Chỉ nạp văn bản công khai, không mật</b>; tuyệt đối không nạp dự thảo chưa công bố, hồ sơ khiếu nại, tố cáo hay thông tin cá nhân.</span>
+          </p>
+        </div>
+      </section>
+    </>
+  );
+}
+
+// ============================================================================
+//  TAB TRA NHANH TẠI CHỖ — LỐI DỰ PHÒNG khi chưa mở được NotebookLM
+//  (chưa đăng nhập được tài khoản Google, notebook chưa chia sẻ kịp, hoặc muốn
+//   thử nhanh một câu). Hỏi → truy hồi đoạn trong kho của phân hệ → AI trả lời
+//   có trích dẫn. Nơi hỏi đáp CHÍNH THỨC vẫn là NotebookLM.
 // ============================================================================
 function TraCuu({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
   const [cauHoi, setCauHoi] = useState('');
@@ -356,6 +509,15 @@ function TraCuu({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
 
   return (
     <>
+      <div className="rounded-2xl border border-slate-200 bg-slate-50 p-4 flex items-start gap-3">
+        <Info className="w-5 h-5 text-slate-500 shrink-0 mt-0.5" />
+        <p className="text-[12.5px] text-slate-600 leading-relaxed">
+          Đây là <b>lối tra nhanh tại chỗ</b>, dùng khi chưa mở được NotebookLM. Nơi hỏi đáp chính thức của nhiệm vụ là
+          <b> notebook trên NotebookLM</b> — mỗi người đăng nhập tài khoản Google của mình, mở sổ tay được chia sẻ ở tab
+          <b> “Sổ tay trên NotebookLM”</b>. Lối tra nhanh này chỉ đọc được những văn bản đã dán nguyên văn vào phân hệ và có giới hạn lượt gọi theo ngày.
+        </p>
+      </div>
+
       <ChonSoTay soTay={soTay} hienTai={hienTai} onChon={onChon} thongKe={thongKe} />
 
       {!chiMuc.doan.length && (
@@ -498,9 +660,9 @@ function ChonSoTay({ soTay, hienTai, onChon, thongKe }) {
         )}
       </div>
       {hienTai?.moTa && <p className="text-[12px] text-slate-500 mt-2.5 leading-relaxed">{hienTai.moTa}</p>}
-      {hienTai?.notebookLM && (
-        <a href={hienTai.notebookLM} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-[12px] font-semibold text-violet-700 hover:text-violet-900">
-          <ExternalLink className="w-3.5 h-3.5" /> Mở notebook tương ứng trên NotebookLM
+      {daGanNLM(hienTai) && (
+        <a href={chuanHoaNLM(hienTai.notebookLM).url} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 mt-2 text-[12px] font-semibold text-violet-700 hover:text-violet-900">
+          <ExternalLink className="w-3.5 h-3.5" /> Mở sổ tay này trên NotebookLM
         </a>
       )}
     </section>
@@ -585,6 +747,16 @@ function KhoNguon({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
         </div>
       </div>
 
+      {!!hienTai && (() => { const t = thongKeSoTay(doc, hienTai.id); return t.nguonDat > 0 && t.conPhaiNap > 0 ? (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex items-start gap-3">
+          <CloudUpload className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+          <p className="text-[12.5px] text-amber-800 leading-relaxed">
+            Còn <b>{t.conPhaiNap}</b> văn bản đã kiểm tra nhưng <b>chưa nạp lên notebook</b> của sổ tay này.
+            Cán bộ chỉ hỏi được trên NotebookLM những gì đã có trong notebook — hãy tải các văn bản đó lên rồi tích “Đã nạp lên NotebookLM”.
+          </p>
+        </div>
+      ) : null; })()}
+
       <section className="rounded-2xl border border-slate-200 bg-white overflow-hidden">
         <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between gap-3 flex-wrap">
           <p className="text-[13px] font-bold text-slate-800">Văn bản nguồn ({ds.length})</p>
@@ -638,6 +810,11 @@ function KhoNguon({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
                         <input type="checkbox" checked={!!n.congKhai} disabled={!coQuyenGhi} onChange={(e) => capNhat(n.id, { congKhai: e.target.checked })} className="w-4 h-4 accent-sky-600" />
                         Tôi xác nhận văn bản này <b>công khai, không mật</b>
                       </label>
+                      <label className={`flex items-center gap-1.5 text-[11.5px] ${n.napNLM ? 'text-violet-800' : 'text-slate-700'}`} title="Đã tải văn bản này lên notebook tương ứng trên NotebookLM chưa">
+                        <input type="checkbox" checked={!!n.napNLM} disabled={!coQuyenGhi}
+                          onChange={(e) => capNhat(n.id, { napNLM: e.target.checked, ngayNapNLM: e.target.checked ? homNay() : '' })} className="w-4 h-4 accent-violet-600" />
+                        <CloudUpload className="w-3.5 h-3.5" /> Đã nạp lên <b>NotebookLM</b>{n.ngayNapNLM ? ` (${ngayVN(n.ngayNapNLM)})` : ''}
+                      </label>
                       <label className="flex items-center gap-1.5 text-[11.5px] text-slate-700">
                         <span>Kiểm tra nguồn:</span>
                         <select value={n.kiemTra} disabled={!coQuyenGhi} onChange={(e) => capNhat(n.id, { kiemTra: e.target.value, ngayKiemTra: e.target.value === 'dat' ? homNay() : n.ngayKiemTra })} className="text-[11.5px] border border-slate-200 rounded-lg px-2 py-1 outline-none focus:border-violet-400">
@@ -654,6 +831,7 @@ function KhoNguon({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
                         {dangDoc === n.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />} Nạp từ tệp
                       </button>
                       <button onClick={() => { setDanId(n.id); setChu(n.text || ''); }} className={nutPhu}><FileText className="w-3.5 h-3.5" /> Dán nguyên văn</button>
+                      <p className="text-[10px] text-slate-400 leading-snug max-w-[11rem]">Nạp nguyên văn vào đây là <b>tùy chọn</b>, chỉ để tra nhanh tại chỗ. Nơi hỏi đáp chính là NotebookLM.</p>
                     </>)}
                     {n.lienKet && <a href={n.lienKet} target="_blank" rel="noopener noreferrer" className={nutPhu}><Link2 className="w-3.5 h-3.5" /> Mở bản gốc</a>}
                     {coQuyenGhi && <button onClick={() => xoa(n.id)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 text-xs font-semibold"><Trash2 className="w-3.5 h-3.5" /> Xóa</button>}
@@ -680,8 +858,10 @@ function KhoNguon({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
 
       {hienTai && coQuyenGhi && (
         <section className="rounded-2xl border border-slate-200 bg-white p-4 grid sm:grid-cols-3 gap-3">
-          <label className="sm:col-span-2"><span className={lab}>Liên kết notebook tương ứng trên NotebookLM (nếu có)</span>
-            <input value={hienTai.notebookLM} onChange={(e) => onLuu({ ...doc, soTay: doc.soTay.map((s) => (s.id === hienTai.id ? { ...s, notebookLM: e.target.value } : s)) })} placeholder="https://notebooklm.google.com/notebook/…" className={inp} /></label>
+          <label className="sm:col-span-2"><span className={lab}>Liên kết NotebookLM</span>
+            <p className="text-[12px] text-slate-600 bg-slate-50 border border-slate-200 rounded-lg px-2.5 py-2">
+              {daGanNLM(hienTai) ? <a href={chuanHoaNLM(hienTai.notebookLM).url} target="_blank" rel="noopener noreferrer" className="text-violet-700 font-semibold break-all">{chuanHoaNLM(hienTai.notebookLM).url}</a> : 'Chưa gắn — sửa ở tab “Sổ tay trên NotebookLM”.'}
+            </p></label>
           <label><span className={lab}>Trạng thái sổ tay</span>
             <select value={hienTai.trangThai} onChange={(e) => onLuu({ ...doc, soTay: doc.soTay.map((s) => (s.id === hienTai.id ? { ...s, trangThai: e.target.value } : s)) })} className={inp}>
               {TRANG_THAI_SO_TAY.map((x) => <option key={x.k} value={x.k}>{x.ten}</option>)}
@@ -765,6 +945,7 @@ function NganHangCauHoi({ doc, soTay, onLuu, coQuyenGhi }) {
                     {TRANG_THAI_CAU_HOI.map((x) => <option key={x.k} value={x.k}>{x.ten}</option>)}
                   </select>
                   <input value={c.nguoiDoiChieu} disabled={!coQuyenGhi} onChange={(e) => capNhat(c.id, { nguoiDoiChieu: e.target.value })} placeholder="Người đối chiếu" className="text-[11.5px] border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-violet-400 w-36" />
+                  <button onClick={() => navigator.clipboard?.writeText(c.cauHoi)} title="Sao chép câu hỏi để dán sang NotebookLM" className="text-slate-400 hover:text-violet-700 hover:bg-violet-50 p-1.5 rounded-lg"><Copy className="w-3.5 h-3.5" /></button>
                   {coQuyenGhi && <button onClick={() => onLuu({ ...doc, cauHoi: (doc.cauHoi || []).filter((x) => x.id !== c.id) })} className="text-rose-400 hover:bg-rose-50 p-1.5 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>}
                 </div>
               </div>
