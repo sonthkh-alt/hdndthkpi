@@ -10,6 +10,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/bieuquyet   → Biểu quyết Online (82 đại biểu HĐND tỉnh) (module riêng)
 //    #/tieuchi     → Đánh giá tiêu chí HĐND tỉnh, xã, phường   (module riêng)
 //    #/troly       → Trợ lý AI nghiệp vụ dân cử                (module riêng, cần đăng nhập)
+//    #/sotay       → Sổ tay AI (hỏi đáp có trích dẫn nguồn)     (module riêng)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
 //    #/giamsat     → Giám sát số Thanh Hóa                     (hệ thống RIÊNG, tự chuyển tiếp)
@@ -23,6 +24,7 @@ const TieuChiHDND = lazy(() => import('./TieuChiHDND.jsx'));
 const HuongDan = lazy(() => import('./HuongDan.jsx'));
 const TroLyAI = lazy(() => import('./TroLyAI.jsx'));
 const BieuQuyet = lazy(() => import('./BieuQuyet.jsx'));
+const SoTayAI = lazy(() => import('./SoTayAI.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -35,6 +37,7 @@ function parseHash() {
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
   if (m.target.kind === 'bieuquyet') return { view: 'bieuquyet', moduleId: m.id };
   if (m.target.kind === 'troly') return { view: 'troly', moduleId: m.id };
+  if (m.target.kind === 'sotay') return { view: 'sotay', moduleId: m.id };
   if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
   // Phân hệ chạy ở địa chỉ riêng: giữ đường dẫn #/<route> để chia sẻ được, mở ra thì tự chuyển tiếp.
   if (isExternal(m)) return { view: 'external', moduleId: m.id, url: m.target.url, title: m.title };
@@ -111,6 +114,7 @@ export default function Root() {
     if (state.view === 'bieuquyet') return <BieuQuyet onHome={goHome} />;
     if (state.view === 'tieuchi') return <TieuChiHDND onHome={goHome} />;
     if (state.view === 'troly') return <TroLyAI onHome={goHome} />;
+    if (state.view === 'sotay') return <SoTayAI onHome={goHome} />;
     if (state.view === 'huongdan') return <HuongDan onHome={goHome} onOpenModule={goRoute} />;
     // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
     // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.

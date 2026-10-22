@@ -5,6 +5,7 @@
 //    { kind: 'bieuquyet' }          → mở module Biểu quyết Online
 //    { kind: 'tieuchi' }            → mở module Đánh giá tiêu chí HĐND tỉnh, xã, phường
 //    { kind: 'troly' }              → mở module Trợ lý AI nghiệp vụ dân cử
+//    { kind: 'sotay' }              → mở module Sổ tay AI (hỏi đáp có trích dẫn nguồn)
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
 //    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
 //                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
@@ -55,6 +56,15 @@ export const MODULES = [
     tags: ['Chuẩn NĐ 30/2020', 'Xuất Word', 'Khách thử 1 lượt/ngày'],
     icon: 'Sparkles', tone: 'cyan', badge: 'Mới',
     target: { kind: 'troly' },
+  },
+  {
+    id: 'sotay', route: 'sotay', group: 'main',
+    title: 'Sổ tay AI — hỏi đáp, tra cứu có trích dẫn nguồn',
+    short: 'Sổ tay AI',
+    desc: 'Sáu sổ tay AI theo lĩnh vực của cơ quan dân cử (tổ chức và hoạt động HĐND; kỳ họp, thẩm tra; giám sát; dân nguyện, khiếu nại tố cáo; nghị quyết HĐND tỉnh; đánh giá cán bộ). Hỏi bằng tiếng Việt, máy tìm trong chính kho văn bản đã được kiểm tra của sổ tay rồi trả lời kèm trích dẫn tới từng điều, khoản — không có nguồn thì không trả lời.',
+    tags: ['Nhiệm vụ đột phá', 'Trích dẫn tới điều, khoản', 'Chỉ văn bản công khai'],
+    icon: 'BookMarked', tone: 'violet', badge: 'Mới',
+    target: { kind: 'sotay' },
   },
   {
     id: 'giamsat', route: 'giamsat', group: 'main',

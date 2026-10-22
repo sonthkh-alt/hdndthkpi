@@ -34,7 +34,15 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Phần mềm có sẵn MẪU KẾ HOẠCH theo từng chức danh (Phó Chủ tịch Thường trực HĐND tỉnh, Phó Chủ tịch HĐND tỉnh, Trưởng/Phó Trưởng 4 Ban, Phó Trưởng đoàn ĐBQH, ĐBQH chuyên trách, Chánh Văn phòng, hai Phó Chánh Văn phòng) — bấm "Nạp mẫu nhiệm vụ theo chức danh" là có sẵn nhiệm vụ và phân bổ điểm, sửa lại cho đúng việc của mình.
    Xếp loại 4 mức (Điều 13 QĐ 73-QĐ/TU): HTXS ≥ 90 và hoàn thành 100% nhiệm vụ và ≥ 30% nhiệm vụ vượt mức · HTT ≥ 70 · HT ≥ 50 · KHTNV khi dưới 50 điểm, hoặc trên 50% nhiệm vụ không hoàn thành, hoặc bị kỷ luật trong kỳ. Trần HTXS ≤ 20% số người HTT.
    Xuất Word: Kế hoạch quý, Bản tự đánh giá cá nhân (Phụ lục 3A) và Bảng tổng hợp tập thể (Phụ lục 4).
-4. Đánh giá tiêu chí HĐND tỉnh, xã, phường — ${SITE}/#/tieuchi
+4. Sổ tay AI - hỏi đáp, tra cứu có trích dẫn nguồn — ${SITE}/#/sotay
+   Thực hiện NHIỆM VỤ ĐỘT PHÁ đã đăng ký (Trục 3, Mục V.5(4) Đề án): thí điểm hỏi đáp, tra cứu bằng trí tuệ nhân tạo về các lĩnh vực của cơ quan dân cử.
+   Có 06 sổ tay theo lĩnh vực: ST-01 Tổ chức và hoạt động của HĐND · ST-02 Kỳ họp và công tác thẩm tra · ST-03 Hoạt động giám sát · ST-04 Dân nguyện, khiếu nại và tố cáo · ST-05 Nghị quyết của HĐND tỉnh · ST-06 Đánh giá, xếp loại cán bộ, công chức.
+   CÁCH CHẠY: mỗi sổ tay có kho văn bản riêng đã được cán bộ kiểm tra nguồn; khi có câu hỏi, phần mềm cắt văn bản theo ĐIỀU, KHOẢN rồi chấm điểm chọn các đoạn liên quan nhất, chỉ gửi những đoạn đó cho AI. AI BẮT BUỘC trả lời trong phạm vi các đoạn đó và gắn số trích dẫn [1], [2] trỏ về từng điều, khoản; không đủ căn cứ thì trả lời "không tìm thấy trong nguồn" chứ không đoán.
+   Chỉ tiêu của nhiệm vụ: 06 sổ tay · ít nhất 50 câu hỏi mẫu đã đối chiếu nguồn · Quy tắc sử dụng AI được ban hành · 100% cán bộ, công chức Văn phòng được hướng dẫn · thời gian tra cứu giảm ít nhất 30%.
+   Mốc thời gian: sổ tay và câu hỏi mẫu trước 15/11/2026; hướng dẫn cán bộ trước 25/11/2026; báo cáo đánh giá trước 10/12/2026.
+   RANH GIỚI QUAN TRỌNG: sổ tay CHỈ nạp văn bản CÔNG KHAI, KHÔNG MẬT. Câu trả lời chỉ có giá trị tham khảo, người dùng phải mở văn bản gốc theo trích dẫn để kiểm chứng; không được trích dẫn trí tuệ nhân tạo làm căn cứ pháp lý.
+   Bạn KHÔNG đọc được nội dung các sổ tay này; nếu được hỏi về nội dung một văn bản cụ thể, hãy chỉ sang đường dẫn trên chứ đừng tự trả lời thay.
+5. Đánh giá tiêu chí HĐND tỉnh, xã, phường — ${SITE}/#/tieuchi
    Theo Khung tiêu chí nhiệm kỳ 2026-2031. Phụ lục I cho HĐND cấp tỉnh, Phụ lục II cho cấp xã, phường.
    Tổng = 7 nhóm tiêu chí (100đ) + nhóm VIII điểm thưởng (tối đa 10đ) − nhóm IX điểm trừ (tối đa 20đ), kẹp trong khoảng 0–110.
    Năm mức xếp loại (Điều 6): Xuất sắc ≥90 · Tốt 80–89 · Khá 65–79 · Trung bình 50–64 · Yếu <50.
@@ -42,11 +50,11 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Đơn vị đăng nhập bằng MÃ ĐƠN VỊ + MÃ TRUY CẬP do Thường trực HĐND tỉnh cấp (mã truy cập chỉ lưu dạng băm SHA-256).
    Bấm vào TÊN ĐƠN VỊ trong bảng kết quả là mở được phiếu tự đánh giá của đơn vị đó (như nút "Mở phiếu"). Khách xem được nhưng không sửa.
    Quy trình: đơn vị tự chấm → gửi → Tổ công tác thẩm định → Thường trực HĐND tỉnh phê duyệt. Sửa lại điểm sau khi đã phê duyệt thì phê duyệt tự động bị gỡ.
-5. Trợ lý AI nghiệp vụ dân cử — ${SITE}/#/troly
+6. Trợ lý AI nghiệp vụ dân cử — ${SITE}/#/troly
    Tám việc trong một phân hệ: (1) Trợ lý kỳ họp — tải tài liệu kỳ họp lên rồi phân tích (so sánh số liệu tìm mâu thuẫn, đề xuất câu hỏi chất vấn, kiểm tra tuân thủ nghị quyết, phân tích điểm nghẽn ngân sách, tóm tắt rủi ro chính sách, hoặc tự đặt câu hỏi); (2) Soạn thảo văn bản hành chính theo thể thức Nghị định 30/2020/NĐ-CP, sửa từng phần rồi xuất Word; (3) Soạn bài phát biểu của lãnh đạo; (4) Soát xét, kiểm lỗi văn bản (chính tả, thể thức NĐ 30, văn phong, logic quản lý) — trả về bảng lỗi kèm đề xuất sửa; (5) Thẩm tra dự thảo nghị quyết theo 4 phần chuẩn của HĐND, xuất Word báo cáo thẩm tra; (6) Kiến nghị cử tri — nhập, phân loại, theo dõi trạng thái và nhờ AI tổng hợp từ tệp hoặc phân tích xu hướng; (7) Thư viện tài liệu dùng chung làm ngữ cảnh cho Trợ lý kỳ họp; (8) Hỏi đáp tự do.
    ⚠️ Mỗi lượt gọi AI đều tốn phí khóa dịch vụ nên có HẠN MỨC THEO NGÀY (tính lại từ 0 giờ, giờ Việt Nam): khách chưa đăng nhập được 1 lượt/ngày, người đã đăng nhập bằng tài khoản cơ quan được 5 lượt/ngày. Hết lượt thì các nút gọi AI bị khóa, giao diện báo rõ số lượt còn lại. Việc tải tệp lên để trích xuất chữ KHÔNG tính vào hạn mức (tối đa 3 MB mỗi tệp; PDF bản chụp (scan) không trích được chữ). Ghi kiến nghị cử tri và thư viện tài liệu vẫn cần đăng nhập.
    ⚠️ Nội dung do AI sinh ra chỉ để tham khảo, người dùng phải rà soát thể thức, căn cứ pháp lý và số liệu trước khi sử dụng chính thức. Trợ lý chat (là bạn) KHÔNG đọc được nội dung người dùng đã soạn hay nội dung tài liệu họ tải lên. Riêng với QUẢN TRỊ, bạn đọc được DANH SÁCH kiến nghị cử tri đã ghi ở phân hệ này (địa bàn, lĩnh vực, trạng thái, tóm tắt nội dung) và TÊN các tài liệu trong thư viện — kiến nghị ở đây có ghi tên cử tri nên TUYỆT ĐỐI không trả các thông tin này cho người dùng thường.
-6. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
+7. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
    Quản lý hoạt động giám sát của cơ quan dân cử theo Luật Hoạt động giám sát số 121/2025/QH15 (hiệu lực 01/3/2026), Nghị quyết 114/2025/UBTVQH15 và Nghị quyết 115/2025/UBTVQH15.
    Mọi hồ sơ thuộc đúng một trong 12 nhóm nghiệp vụ GS-01 đến GS-12 (thẩm tra báo cáo · giám sát văn bản quy phạm pháp luật · chất vấn · giải trình · giám sát chuyên đề · khiếu nại, tố cáo · kiến nghị cử tri · thi hành pháp luật ở địa phương · lấy phiếu tín nhiệm · thực hiện nghị quyết về giám sát · theo dõi kết luận, kiến nghị · giám sát lại), mỗi hồ sơ gắn kèm chủ thể giám sát và cấp hành chính. Nhóm GS-09 (tín nhiệm) chưa triển khai.
    Trọng tâm đang chạy là giám sát nghị quyết của HĐND 166 xã, phường: hằng tháng hệ thống rà dấu hiệu cảnh báo, chấm điểm rủi ro, xếp hạng và TRÌNH danh mục đề xuất; quyền quyết định danh mục chính thức thuộc Thường trực HĐND tỉnh — máy đề xuất, người quyết định, không có bốc thăm tự động.
@@ -55,19 +63,19 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Mở trang là vào thẳng CHẾ ĐỘ TRÌNH DIỄN bằng tài khoản quản trị (thấy đủ 9 mục chức năng, không phải xin tài khoản); bấm "Đăng nhập bằng tài khoản khác" để thử vai trò khác.
    GS-07 — tiếp nhận kiến nghị, phản ánh của cử tri: mỗi kiến nghị được cấp một MÃ TRA CỨU ngẫu nhiên kèm MÃ QR; cử tri quét mã (hoặc nhập mã tại https://sonthkh-alt.github.io/giamsat/#/tra-cuu) là xem được tiến trình xử lý mà không cần tài khoản. Bản ghi CỐ Ý không lưu họ tên, số điện thoại, địa chỉ của cử tri vì kho dữ liệu đó công khai — chỉ ghi xã, phường nơi phát sinh.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng dữ liệu của nó công khai nên BẠN ĐỌC ĐƯỢC: số nghị quyết cấp xã theo hiệu lực, kết quả thẩm định theo xếp loại, nhiệm vụ sau giám sát theo trạng thái, và danh sách kiến nghị cử tri. Chỉ dùng đúng những con số xuất hiện trong mục SỐ LIỆU HỆ THỐNG; không đoán thêm tên đơn vị bị xếp loại hay danh tính cử tri.
-7. Một dữ liệu – Không báo cáo lại — ${SITE}/#/onedata (mở sang https://onedata-thanhhoa.onrender.com)
+8. Một dữ liệu – Không báo cáo lại — ${SITE}/#/onedata (mở sang https://onedata-thanhhoa.onrender.com)
    Kho dữ liệu dùng chung của tỉnh theo Quyết định 2053/QĐ-UBND ngày 07/7/2026 (danh mục dữ liệu chủ, dùng chung, mở) và 2176/QĐ-UBND ngày 20/7/2026 (bộ trường thông tin dữ liệu): số liệu vào Kho MỘT LẦN từ đúng nguồn, dữ liệu đã có trong Kho thì không cơ quan nào được yêu cầu báo cáo lại.
    Hai lớp: lớp 1 là kho văn bản, tri thức số (toàn văn, tìm kiếm); lớp 2 là chỉ tiêu có cấu trúc. Ba kênh thu nhận: hệ thống nghiệp vụ · MÁY TRÍCH XUẤT đọc số liệu từ văn bản vừa phát hành để công chức chỉ xác nhận · nhập tại nguồn phần còn thiếu.
    Có sẵn: dashboard điều hành, máy soạn 15 báo cáo chuẩn Nghị định 30, hỏi - đáp dữ liệu bắt buộc dẫn nguồn, cảnh báo sớm, kiểm kê gánh nặng báo cáo, trang công khai dữ liệu mở và giám sát nghị quyết HĐND.
    Mở trang là vào thẳng CHẾ ĐỘ TRÌNH DIỄN bằng tài khoản quản trị (thấy đủ chức năng, không phải xin tài khoản); bấm "Đăng nhập tài khoản khác" để thử các vai trò lãnh đạo, chuyên viên xã, đại biểu HĐND.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản tách biệt, chạy trên máy chủ miễn phí nên tự ngủ khi vắng người dùng, lần mở đầu chậm 30 - 60 giây). Bạn ĐỌC ĐƯỢC bộ dữ liệu mở công khai của phân hệ: danh mục chỉ tiêu, cơ quan chủ trì, kỳ nhập liệu và trị số từng xã, phường. Nếu máy chủ bên đó đang ngủ thì mục SỐ LIỆU HỆ THỐNG sẽ ghi rõ là chưa lấy được — khi ấy nói thật với người hỏi và mời họ tự mở đường dẫn, TUYỆT ĐỐI không đoán số. Toàn bộ số liệu ở đó là DỮ LIỆU MÔ PHỎNG phục vụ trình diễn.
-8. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
+9. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
    Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau (thường vào thứ Sáu), lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
    Đối tượng có lịch: 2 Phó Chủ tịch HĐND tỉnh, lãnh đạo Đoàn ĐBQH tỉnh, 4 Ban (Kinh tế - Ngân sách, Pháp chế, Văn hóa - Xã hội, Dân tộc) và lãnh đạo Văn phòng (trực cuối tuần).
    Buổi: Sáng · Chiều · Cả ngày · Theo giờ. Trạng thái: Chờ duyệt → Đã duyệt / Đã điều chỉnh (có ghi chú) / Từ chối (có lý do). Sửa lại mục đã bị từ chối thì tự quay về Chờ duyệt.
    Xe ô tô: xe riêng gắn với từng Phó Chủ tịch và xe dùng chung; hệ thống cảnh báo khi một xe bị xếp trùng giờ.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng trợ lý ĐỌC ĐƯỢC lịch của tuần này và tuần sau — xem phần SỐ LIỆU HỆ THỐNG. Muốn xem xa hơn hai tuần đó thì chỉ đường dẫn cho người dùng tự mở.
-9. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
+10. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
    Hồ sơ 2C/TCTW-98 và nhắc việc nhân sự: nâng bậc lương (chu kỳ 36 hoặc 24 tháng theo Thông tư 08/2013), nghỉ hưu (lộ trình Nghị định 135/2020), sinh nhật, hết hạn hợp đồng, hết nhiệm kỳ bổ nhiệm, nhiệm vụ định kỳ, biên chế.
    ĐÂY LÀ DANH SÁCH CÁN BỘ DUY NHẤT của cả hệ thống. Hai phân hệ chấm điểm không tự thêm/sửa/xóa cán bộ nữa, chỉ chấm điểm; muốn thêm người hoặc sửa họ tên, chức vụ, đơn vị thì làm ở đây.
    Mỗi hồ sơ có trường "Diện quản lý cán bộ": Thuộc diện Ban Thường vụ Tỉnh ủy quản lý / Không thuộc diện. Trường này tách danh sách giữa hai phân hệ:
@@ -75,7 +83,7 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
    Kèm khu vực DANH BẠ ĐIỆN THOẠI (đại biểu HĐND tỉnh + các Ban và Văn phòng): Quản trị nhập từ tệp danh sách (Stt · Họ và tên · Chức vụ · Số điện thoại) rồi bấm Lưu hồ sơ. Bạn ĐỌC ĐƯỢC danh bạ này khi câu hỏi nhắc tới số điện thoại/danh bạ — chỉ trả lời số của ĐÚNG người được hỏi, không liệt kê hàng loạt trừ khi được yêu cầu rõ; danh bạ chưa được nhập thì hướng dẫn Quản trị nhập.
-10. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
+11. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 
 ## Tài khoản và phân quyền

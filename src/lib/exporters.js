@@ -1944,3 +1944,98 @@ export async function exportVanBanDonGian({ tieuDe = '', phuDe = '', text = '', 
   children.push(...vbBody(text));
   await vbSave(children, tenTep || vbTenTep(tieuDe, 'Van_ban'));
 }
+
+// ============================================================================
+// WORD — BÁO CÁO ĐÁNH GIÁ THÍ ĐIỂM "SỔ TAY AI" (phân hệ #/sotay).
+// Dựng đúng các kết quả cuối cùng đã đăng ký trong nhiệm vụ đột phá, kèm phụ lục
+// danh mục nguồn (có cột tình trạng kiểm tra) và ngân hàng câu hỏi mẫu.
+// ============================================================================
+export async function exportBaoCaoSoTay({ doc, tienDo, thoiGian }) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT, SH = 'EDE9FE';
+  const ng = (s) => { if (!s) return '…'; const [y, m, d] = String(s).split('-'); return d ? `${d}/${m}/${y}` : s; };
+  const n = new Date();
+  const children = [];
+
+  children.push(P('VĂN PHÒNG ĐOÀN ĐBQH VÀ HĐND TỈNH THANH HÓA', { bold: true, align: C, size: 24 }));
+  children.push(P('TỔ CÔNG TÁC VỀ KHOA HỌC, CÔNG NGHỆ, ĐỔI MỚI SÁNG TẠO VÀ CHUYỂN ĐỔI SỐ', { bold: true, align: C, size: 22, spacingAfter: 160 }));
+  children.push(P('BÁO CÁO', { bold: true, align: C, size: 32 }));
+  children.push(P('Kết quả thí điểm hỏi đáp, tra cứu bằng trí tuệ nhân tạo', { bold: true, align: C, size: 26 }));
+  children.push(P('về các lĩnh vực của cơ quan dân cử (sổ tay AI)', { bold: true, align: C, size: 26 }));
+  children.push(P('(Nhiệm vụ đột phá - Trục 3, Mục V.5(4) Đề án)', { italics: true, align: C, size: 22, spacingAfter: 200 }));
+
+  children.push(P('I. KHÁI QUÁT', { bold: true, size: 26, spacingAfter: 40 }));
+  children.push(P(`Thực hiện nhiệm vụ đột phá đã đăng ký, Tổ công tác đã xây dựng ${(doc.soTay || []).length} sổ tay AI theo lĩnh vực của cơ quan dân cử, tổ chức nạp và kiểm tra nguồn văn bản, lập ngân hàng câu hỏi mẫu, xây dựng Quy tắc sử dụng trí tuệ nhân tạo và hướng dẫn cán bộ, công chức sử dụng.`, { spacingAfter: 40 }));
+  children.push(P('Nguyên tắc xuyên suốt: công cụ chỉ trả lời dựa trên các đoạn văn bản đã được nạp và kiểm tra, mỗi câu trả lời đều gắn trích dẫn đến từng điều, khoản; chỉ nạp văn bản công khai, không mật; kết quả chỉ có giá trị tham khảo, người sử dụng phải mở văn bản gốc để kiểm chứng.', { spacingAfter: 120 }));
+
+  children.push(P('II. KẾT QUẢ THỰC HIỆN CÁC CHỈ TIÊU', { bold: true, size: 26, spacingAfter: 60 }));
+  const rows = [
+    new TableRow({ tableHeader: true, children: [
+      TC('TT', { bold: true, align: C, shade: SH, width: 6 }),
+      TC('Chỉ tiêu đã đăng ký', { bold: true, align: C, shade: SH, width: 44 }),
+      TC('Kết quả đạt được', { bold: true, align: C, shade: SH, width: 34 }),
+      TC('Đánh giá', { bold: true, align: C, shade: SH, width: 16 }),
+    ] }),
+  ];
+  const ct = [
+    ['06 sổ tay AI theo lĩnh vực', `${tienDo.soTay.daLam}/${tienDo.soTay.chiTieu} sổ tay hoàn chỉnh (đã nạp nguyên văn, nguồn đã kiểm tra, có câu hỏi mẫu đã đối chiếu)`, tienDo.soTay.dat],
+    ['Tối thiểu 50 câu hỏi mẫu đã đối chiếu nguồn', `${tienDo.cauHoi.daLam}/${tienDo.cauHoi.chiTieu} câu đã đối chiếu (ngân hàng có ${tienDo.cauHoi.tong} câu)`, tienDo.cauHoi.dat],
+    ['Quy tắc sử dụng trí tuệ nhân tạo', tienDo.quyTac ? `Đã ban hành ngày ${ng(doc.quyTac?.banHanh)}${doc.quyTac?.nguoiKy ? `, người ký: ${doc.quyTac.nguoiKy}` : ''}` : 'Chưa ban hành', tienDo.quyTac],
+    ['100% cán bộ, công chức Văn phòng được hướng dẫn', `${tienDo.huongDan.daLam}/${tienDo.huongDan.tong || 0} người (${Math.round(tienDo.huongDan.pct)}%)`, tienDo.huongDan.dat],
+    ['Thời gian tra cứu giảm tối thiểu 30%', thoiGian.soPhepDo ? `Giảm ${thoiGian.giam}% - trung bình ${thoiGian.giayAI} giây so với ${Math.round(thoiGian.giayThuCong / 60)} phút tra thủ công (${thoiGian.soPhepDo} phép đo)` : 'Chưa có phép đo', thoiGian.dat],
+  ];
+  ct.forEach(([a, b, dat], i) => rows.push(new TableRow({ children: [
+    TC(String(i + 1), { align: C, size: 22 }), TC(a, { size: 22 }), TC(b, { size: 22 }),
+    TC(dat ? 'Đạt' : 'Chưa đạt', { align: C, bold: true, size: 22 }),
+  ] })));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows }));
+  children.push(P('', { spacingAfter: 120 }));
+
+  children.push(P('III. PHỤ LỤC 1 - DANH MỤC NGUỒN CỦA TỪNG SỔ TAY', { bold: true, size: 26, spacingAfter: 60 }));
+  const nhanHL = { con: 'Còn hiệu lực', 'mot-phan': 'Hết hiệu lực một phần', het: 'Hết hiệu lực', 'chua-ro': 'Chưa xác định' };
+  const nhanKT = { chua: 'Chưa kiểm tra', dat: 'Đã kiểm tra - đạt', loai: 'Loại khỏi sổ tay' };
+  for (const s of (doc.soTay || [])) {
+    const ds = (doc.nguon || []).filter((x) => x.soTayId === s.id);
+    children.push(P(`${s.ma}. ${s.ten}`, { bold: true, size: 24, spacingAfter: 20 }));
+    if (!ds.length) { children.push(P('(Chưa có văn bản nguồn)', { italics: true, size: 22, spacingAfter: 60 })); continue; }
+    const r2 = [new TableRow({ tableHeader: true, children: [
+      TC('TT', { bold: true, align: C, shade: SH, width: 5 }),
+      TC('Tên văn bản', { bold: true, align: C, shade: SH, width: 38 }),
+      TC('Số, ký hiệu', { bold: true, align: C, shade: SH, width: 17 }),
+      TC('Hiệu lực', { bold: true, align: C, shade: SH, width: 14 }),
+      TC('Kiểm tra nguồn', { bold: true, align: C, shade: SH, width: 16 }),
+      TC('Đã nạp', { bold: true, align: C, shade: SH, width: 10 }),
+    ] })];
+    ds.forEach((x, i) => r2.push(new TableRow({ children: [
+      TC(String(i + 1), { align: C, size: 20 }), TC(x.ten || '', { size: 20 }), TC(x.soHieu || '', { size: 20 }),
+      TC(nhanHL[x.hieuLuc] || 'Chưa xác định', { size: 20 }), TC(nhanKT[x.kiemTra] || 'Chưa kiểm tra', { size: 20 }),
+      TC(x.soKyTu > 0 ? 'Rồi' : 'Chưa', { align: C, size: 20 }),
+    ] })));
+    children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: r2 }));
+    children.push(P('', { spacingAfter: 80 }));
+  }
+
+  children.push(P('IV. PHỤ LỤC 2 - NGÂN HÀNG CÂU HỎI MẪU', { bold: true, size: 26, spacingAfter: 60 }));
+  const maCua = (id) => (doc.soTay || []).find((s) => s.id === id)?.ma || '';
+  const nhanCH = { moi: 'Chưa đối chiếu', 'doi-chieu': 'Đã đối chiếu', 'can-sua': 'Cần sửa lại' };
+  const r3 = [new TableRow({ tableHeader: true, children: [
+    TC('TT', { bold: true, align: C, shade: SH, width: 5 }),
+    TC('Sổ tay', { bold: true, align: C, shade: SH, width: 9 }),
+    TC('Câu hỏi', { bold: true, align: C, shade: SH, width: 46 }),
+    TC('Nguồn đã đối chiếu', { bold: true, align: C, shade: SH, width: 25 }),
+    TC('Trạng thái', { bold: true, align: C, shade: SH, width: 15 }),
+  ] })];
+  (doc.cauHoi || []).forEach((c, i) => r3.push(new TableRow({ children: [
+    TC(String(i + 1), { align: C, size: 20 }), TC(maCua(c.soTayId), { align: C, size: 20 }),
+    TC(c.cauHoi || '', { size: 20 }), TC((c.trichDan || []).join('; '), { size: 20 }),
+    TC(nhanCH[c.trangThai] || 'Chưa đối chiếu', { size: 20 }),
+  ] })));
+  children.push(new Table({ width: { size: 100, type: WidthType.PERCENTAGE }, rows: r3 }));
+  children.push(P('', { spacingAfter: 200 }));
+
+  children.push(P(`Thanh Hóa, ngày ${String(n.getDate()).padStart(2, '0')} tháng ${String(n.getMonth() + 1).padStart(2, '0')} năm ${n.getFullYear()}`, { italics: true, align: R, size: 24 }));
+  children.push(P('TỔ TRƯỞNG TỔ CÔNG TÁC', { bold: true, align: R, size: 24 }));
+  children.push(P('(Ký, ghi rõ họ tên)', { italics: true, align: R, size: 20 }));
+
+  const d = new Document({ sections: [{ properties: { page: { size: { orientation: 'landscape' }, margin: { top: 800, bottom: 800, left: 900, right: 800 } } }, children }] });
+  saveAs(await Packer.toBlob(d), `BaoCao_SoTayAI_${n.getFullYear()}${String(n.getMonth() + 1).padStart(2, '0')}${String(n.getDate()).padStart(2, '0')}.docx`);
+}

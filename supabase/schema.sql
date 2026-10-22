@@ -265,3 +265,23 @@ end;
 $$;
 
 grant execute on function bq_vote(text, text, text) to anon, authenticated;
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 9. PHÂN HỆ "SỔ TAY AI" (id = 'st_data')
+--  ⚠️ NÊN CHẠY nếu muốn cán bộ, công chức và đại biểu TRA CỨU ĐƯỢC mà không
+--  phải đăng nhập. Chưa chạy thì phân hệ vẫn mở được nhưng khách chỉ thấy bản
+--  trên máy mình, không thấy kho sổ tay dùng chung.
+--
+--  • Cho ĐỌC công khai: theo ghi chú của nhiệm vụ đăng ký, sổ tay "chỉ nạp văn
+--    bản CÔNG KHAI, không mật" nên nội dung ở đây không có gì phải che.
+--  • GHI vẫn phải đăng nhập (chính sách app_state_auth_all ở BƯỚC 2): chỉ cán
+--    bộ có tài khoản mới thêm/sửa nguồn, đánh dấu đã kiểm tra, ban hành Quy tắc.
+--  • Nếu sau này cơ quan muốn đóng lại thì chỉ cần DROP policy này; giao diện
+--    tự lùi về chế độ "khách chỉ xem bản trên máy".
+--
+--  ⚠️ TUYỆT ĐỐI KHÔNG nạp tài liệu có độ mật, dự thảo chưa công bố hay thông
+--     tin cá nhân vào dòng này — nó đọc được công khai.
+-- ---------------------------------------------------------------------
+drop policy if exists "st_data_public_read" on app_state;
+create policy "st_data_public_read" on app_state
+  for select using (id = 'st_data');
