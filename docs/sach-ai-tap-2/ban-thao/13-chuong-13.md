@@ -22,7 +22,7 @@ Hai công cụ chung ba câu hỏi. AI được thấy dữ liệu nào? Mỗi l
 
 ### 13.1.1. Bài toán: biến câu lệnh tốt thành nút bấm
 
-Tập 1 đã trang bị khung lệnh V-B-V-D-R: Vai, Bối cảnh, Việc, Dạng, Ràng buộc. Dùng một thời gian, tôi thấy mỗi người một kiểu câu lệnh; câu lệnh hay nằm trong sổ tay riêng của người viết ra nó; người mới lại bắt đầu từ con số không. Những việc lặp lại mỗi kỳ họp Hội đồng nhân dân (HĐND), như dựng báo cáo thẩm tra bốn phần, kỳ nào cũng gõ lại từ đầu.
+Tập 1 (mục 3.2) đã trang bị khung VAI-BỐI-VIỆC-DẠNG-RÀNG: vai trò, bối cảnh, việc, dạng đầu ra, ràng buộc. Dùng một thời gian, tôi thấy mỗi người một kiểu câu lệnh; câu lệnh hay nằm trong sổ tay riêng của người viết ra nó; người mới lại bắt đầu từ con số không. Những việc lặp lại mỗi kỳ họp Hội đồng nhân dân (HĐND), như dựng báo cáo thẩm tra bốn phần, kỳ nào cũng gõ lại từ đầu.
 
 Văn phòng nào cũng có mẫu công văn, mẫu tờ trình để cán bộ không phải tự nghĩ ra thể thức. Trợ lý AI nghiệp vụ dân cử làm việc đó cho câu lệnh: câu lệnh tốt được viết một lần, thử nhiều lần, rồi gắn sau một nút bấm. Cán bộ chỉ điền vài ô; phần mềm ghép thành câu lệnh đầy đủ, gửi đi, nhận bản nháp về và đặt vào một khung sửa được.
 
@@ -62,7 +62,7 @@ Tách ô để bộ xuất Word đặt mỗi ô vào đúng vị trí thể th�
 
 Nghị định 30/2020/NĐ-CP ngày 05/3/2020 về công tác văn thư quy định thể thức và kỹ thuật trình bày văn bản hành chính. Nút "Xuất Word chuẩn NĐ 30" chỉ lo phần trình bày. Nội dung, căn cứ, thẩm quyền ký là việc của người soạn và người duyệt; ngay dưới nút có dòng nhắc rà soát thể thức, căn cứ, số liệu trước khi trình ký. Nghị quyết của HĐND còn có trình tự, thủ tục ban hành riêng, nên bản nháp của máy chỉ là điểm khởi đầu.
 
-**Soát xét: chỉ ra lỗi, không viết lại.** Câu lệnh cấm AI viết lại toàn văn; AI chỉ lập bảng sáu cột: số thứ tự, vị trí, nội dung gốc, đề xuất hiệu chỉnh, phân loại lỗi, lý do. Người dùng chọn trọng tâm trong bốn nhóm: chính tả và ngữ pháp, thể thức NĐ 30, văn phong hành chính, logic quản lý. Phần logic quản lý có sẵn một ví dụ: báo cáo sơ kết "01 năm" mà số liệu chỉ từ 01/7/2025 đến 15/5/2026. Đây là chiếc máy "X-quang văn bản" của Tập 1, đóng gói thành nút bấm. Cấm viết lại là cố ý: người soạn giữ trách nhiệm với văn bản của mình, nhìn bảng là biết chỗ nào đổi, đề xuất nào không đồng ý thì bỏ qua.
+**Soát xét: chỉ ra lỗi, không viết lại.** Câu lệnh cấm AI viết lại toàn văn; AI chỉ lập bảng sáu cột: số thứ tự, vị trí, nội dung gốc, đề xuất hiệu chỉnh, phân loại lỗi, lý do. Người dùng chọn trọng tâm trong bốn nhóm: chính tả và ngữ pháp, thể thức NĐ 30, văn phong hành chính, logic quản lý. Phần logic quản lý có sẵn một ví dụ: báo cáo sơ kết "01 năm" mà số liệu chỉ từ 01/7/2025 đến 15/5/2026. Đây chính là nhiệm vụ kiểm tra kỹ thuật văn bản và rà soát thống nhất nội tại của Tập 1 (mục 5.2), đóng gói thành nút bấm. Cấm viết lại là cố ý: người soạn giữ trách nhiệm với văn bản của mình, nhìn bảng là biết chỗ nào đổi, đề xuất nào không đồng ý thì bỏ qua.
 
 **Thẩm tra dự thảo nghị quyết.** Đồng chí chọn một trong bốn Ban (Kinh tế - Ngân sách, Pháp chế, Văn hóa - Xã hội, Dân tộc), tải tờ trình và dự thảo (cắt ở 40.000 ký tự), thêm văn bản liên quan (15.000 ký tự). AI dựng bốn phần: cơ sở pháp lý và thẩm quyền ban hành; sự phù hợp về nội dung, có đối chiếu tờ trình với dự thảo; khả năng cân đối nguồn lực, có phản biện nguồn kinh phí; kết luận và kiến nghị. Câu lệnh dặn đánh mục theo I., II., 1., a) của văn bản hành chính để bản tải về dùng được ngay. Báo cáo thẩm tra thể hiện ý kiến của Ban: AI dựng khung lập luận, còn thống nhất hay không là kết luận của tập thể Ban.
 
@@ -91,7 +91,7 @@ Hai tab lưu chung một dòng dữ liệu, thiết kế khác hẳn các phân 
 
 - Bấm "Tổng hợp từ tệp" là toàn bộ chữ trong tệp, tới 20.000 ký tự, được gửi cho nhà cung cấp AI; họ tên, địa chỉ, số điện thoại của cử tri trong tệp cũng đi theo.
 - "Phân tích xu hướng" không gửi cột tên cử tri, nhưng tên viết trong ô nội dung vẫn đi.
-- Chỉ đưa vào văn bản đã ẩn danh hoặc thuộc vùng XANH của Tập 1. Đơn thư khiếu nại, tố cáo, tài liệu mật thuộc vùng ĐỎ, không đưa vào công cụ AI nào trên Internet.
+- Chỉ đưa vào văn bản Cấp 1 Công khai hoặc đã ẩn danh theo cách của Tập 1 (mục 7.2). Kiến nghị còn tên người dân, đơn thư khiếu nại, tố cáo là dữ liệu Cấp 3 Hạn chế tiếp cận, không đưa danh tính lên dịch vụ AI công cộng; tài liệu Cấp 4 Bí mật nhà nước không đưa vào công cụ AI nào trên Internet. Khi không chắc chắn, chọn cấp cao hơn.
 - Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực 01/01/2026) chia dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực 01/3/2026), tại Điều 5, nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên thiết bị đang kết nối Internet, mạng viễn thông, mạng máy tính (trừ mạng LAN độc lập và trường hợp theo pháp luật về cơ yếu); khoản 10 của điều này cấm sử dụng hệ thống AI để xâm phạm bí mật nhà nước.
 :::
 
