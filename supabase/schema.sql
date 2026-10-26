@@ -285,3 +285,22 @@ grant execute on function bq_vote(text, text, text) to anon, authenticated;
 drop policy if exists "st_data_public_read" on app_state;
 create policy "st_data_public_read" on app_state
   for select using (id = 'st_data');
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 10. PHÂN HỆ "TỦ SÁCH" (id = 'sach_data')
+--  ⚠️ NÊN CHẠY: tủ sách là nơi GIỚI THIỆU sách nên khách vào xem được là đúng
+--  mục đích. Chưa chạy thì phân hệ vẫn mở được nhưng khách chỉ thấy bộ khởi
+--  tạo nằm trên máy mình, không thấy các đầu sách Văn phòng đã thêm.
+--
+--  • Cho ĐỌC công khai: dòng này chỉ chứa phần giới thiệu (tên sách, tóm tắt,
+--    mục lục, đường dẫn tệp) — không có dữ liệu cá nhân.
+--  • GHI vẫn phải đăng nhập (chính sách app_state_auth_all ở BƯỚC 2).
+--
+--  ⚠️ Bản toàn văn KHÔNG nằm ở đây mà là tệp tĩnh trong public/sach/ — tệp đặt
+--     ở đó là CÔNG KHAI với mọi người, bất kể cờ "Cho phép đọc, tải toàn văn"
+--     trong phân hệ. Cờ đó chỉ quyết định giao diện có hiện nút Đọc/Tải hay
+--     không. Sách chưa muốn phát hành thì ĐỪNG đặt tệp vào public/sach/.
+-- ---------------------------------------------------------------------
+drop policy if exists "sach_data_public_read" on app_state;
+create policy "sach_data_public_read" on app_state
+  for select using (id = 'sach_data');

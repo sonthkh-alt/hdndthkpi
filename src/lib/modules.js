@@ -6,6 +6,7 @@
 //    { kind: 'tieuchi' }            → mở module Đánh giá tiêu chí HĐND tỉnh, xã, phường
 //    { kind: 'troly' }              → mở module Trợ lý AI nghiệp vụ dân cử
 //    { kind: 'sotay' }              → mở module Sổ tay AI (hỏi đáp có trích dẫn nguồn)
+//    { kind: 'tusach' }             → mở module Tủ sách (giới thiệu sách của cán bộ cơ quan)
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
 //    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
 //                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
@@ -65,6 +66,15 @@ export const MODULES = [
     tags: ['Nhiệm vụ đột phá', 'Dùng NotebookLM · tài khoản riêng', 'Chỉ văn bản công khai'],
     icon: 'BookMarked', tone: 'violet', badge: 'Mới',
     target: { kind: 'sotay' },
+  },
+  {
+    id: 'tusach', route: 'tusach', group: 'main',
+    title: 'Tủ sách — sách của cán bộ cơ quan',
+    short: 'Tủ sách',
+    desc: 'Giới thiệu các công trình do cán bộ, công chức của cơ quan biên soạn: bìa sách, tóm tắt nội dung, điểm nổi bật, đối tượng bạn đọc, mục lục đầy đủ và tiểu sử tác giả; cuốn nào được tác giả cho phép thì đọc hoặc tải bản toàn văn ngay trên trang.',
+    tags: ['Sách chuyên môn', 'Cẩm nang nghiệp vụ', 'Đọc toàn văn'],
+    icon: 'Library', tone: 'amber', badge: 'Mới',
+    target: { kind: 'tusach' },
   },
   {
     id: 'giamsat', route: 'giamsat', group: 'main',

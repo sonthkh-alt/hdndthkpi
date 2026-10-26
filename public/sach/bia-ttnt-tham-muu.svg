@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 900" width="600" height="900" role="img"
+     aria-label="Bìa sách Trí tuệ nhân tạo trong công tác tham mưu — Hà Ngọc Sơn">
+  <title>Trí tuệ nhân tạo trong công tác tham mưu — Hà Ngọc Sơn</title>
+  <defs>
+    <linearGradient id="nen" x1="0" y1="0" x2="0.6" y2="1">
+      <stop offset="0" stop-color="#0b1026"/>
+      <stop offset="0.45" stop-color="#15215c"/>
+      <stop offset="1" stop-color="#2b1065"/>
+    </linearGradient>
+    <linearGradient id="vang" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#fcd34d"/>
+      <stop offset="1" stop-color="#f59e0b"/>
+    </linearGradient>
+    <radialGradient id="sang" cx="0.72" cy="0.22" r="0.55">
+      <stop offset="0" stop-color="#60a5fa" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#60a5fa" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Mạng nơ-ron cách điệu: ẩn dụ của trí tuệ nhân tạo -->
+    <g id="nut"><circle r="5" fill="#93c5fd"/><circle r="11" fill="none" stroke="#93c5fd" stroke-opacity="0.35" stroke-width="1.5"/></g>
+  </defs>
+
+  <rect width="600" height="900" fill="url(#nen)"/>
+  <rect width="600" height="900" fill="url(#sang)"/>
+
+  <!-- Gáy sách -->
+  <rect x="0" y="0" width="26" height="900" fill="#000" opacity="0.28"/>
+  <rect x="26" y="0" width="3" height="900" fill="#fcd34d" opacity="0.5"/>
+
+  <!-- Hoa văn mạng nơ-ron góc trên phải -->
+  <g opacity="0.55" stroke="#93c5fd" stroke-width="1.2" fill="none" stroke-opacity="0.5">
+    <path d="M400 120 L478 86 M400 120 L470 176 M400 120 L352 196 M478 86 L540 140 M470 176 L540 140 M470 176 L512 240 M352 196 L410 254 M410 254 L470 176 M410 254 L512 240"/>
+  </g>
+  <g opacity="0.9">
+    <use href="#nut" x="400" y="120"/><use href="#nut" x="478" y="86"/><use href="#nut" x="470" y="176"/>
+    <use href="#nut" x="540" y="140"/><use href="#nut" x="352" y="196"/><use href="#nut" x="410" y="254"/>
+    <use href="#nut" x="512" y="240"/>
+  </g>
+
+  <!-- Nhãn trên cùng -->
+  <text x="64" y="118" font-family="'Segoe UI', system-ui, sans-serif" font-size="17" letter-spacing="5"
+        fill="#93c5fd" font-weight="600">CẨM NANG THỰC HÀNH</text>
+  <rect x="64" y="134" width="96" height="3" fill="url(#vang)"/>
+
+  <!-- Tên sách -->
+  <text font-family="'Segoe UI', system-ui, sans-serif" font-weight="800" fill="#ffffff" letter-spacing="0.5">
+    <tspan x="64" y="330" font-size="62">TRÍ TUỆ</tspan>
+    <tspan x="64" y="398" font-size="62">NHÂN TẠO</tspan>
+  </text>
+  <text font-family="'Segoe UI', system-ui, sans-serif" font-weight="600" fill="#fcd34d" letter-spacing="1">
+    <tspan x="64" y="462" font-size="34">trong công tác</tspan>
+    <tspan x="64" y="506" font-size="34">tham mưu</tspan>
+  </text>
+
+  <rect x="64" y="546" width="180" height="4" fill="url(#vang)"/>
+
+  <!-- Phụ đề -->
+  <text font-family="'Segoe UI', system-ui, sans-serif" font-size="19" fill="#c7d2fe">
+    <tspan x="64" y="596">Dành cho cán bộ tham mưu</tspan>
+    <tspan x="64" y="626">cơ quan dân cử và hành chính</tspan>
+  </text>
+
+  <!-- Khối số liệu -->
+  <g font-family="'Segoe UI', system-ui, sans-serif" fill="#e0e7ff">
+    <text x="64" y="700" font-size="15" fill="#93c5fd">07 chương</text>
+    <text x="200" y="700" font-size="15" fill="#93c5fd">60 prompt mẫu</text>
+    <text x="380" y="700" font-size="15" fill="#93c5fd">03 phụ lục</text>
+  </g>
+  <rect x="64" y="716" width="472" height="1" fill="#93c5fd" opacity="0.3"/>
+
+  <!-- Tác giả -->
+  <text x="64" y="790" font-family="'Segoe UI', system-ui, sans-serif" font-size="30" font-weight="700" fill="#ffffff">HÀ NGỌC SƠN</text>
+  <text x="64" y="820" font-family="'Segoe UI', system-ui, sans-serif" font-size="16" fill="#c7d2fe">Tiến sĩ Quản lý Kinh tế</text>
+</svg>
