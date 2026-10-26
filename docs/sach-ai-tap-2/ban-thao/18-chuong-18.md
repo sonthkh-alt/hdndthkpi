@@ -15,7 +15,7 @@ Từ khi hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Qu�
 
 Lộ trình dựa trên ba nguyên tắc. **Ít mà đều:** mỗi ngày 15–45 phút, đều đặn hơn là học dồn. **Mỗi ngày một sản phẩm và một phép tự kiểm tra:** sản phẩm có thể chỉ là một câu lệnh đã lưu hay một tệp chạy được; phép tự kiểm tra trả lời bằng "có" hoặc "chưa", trả lời "chưa" thì ghi lý do, hôm sau làm bù. **An toàn đi trước:** suốt 30 ngày chỉ dùng văn bản đã công khai (vùng XANH theo cách phân loại của Tập 1) và dữ liệu giả do mình đặt ra. Người học thường lộ dữ liệu không phải vì cố ý, mà vì tiện tay dán một bảng tính thật vào khung chat.
 
-Bốn tuần ứng với bốn nấc của thang 5 bậc kiến tạo ở Chương 2: tuần thứ nhất dùng AI trò chuyện cho đúng cách (Bậc 0); tuần thứ hai đưa AI vào chính việc của mình; tuần thứ ba làm một bảng tính có công thức do AI viết và một trang công cụ chạy trong trình duyệt (Bậc 1–2); tuần thứ tư làm ứng dụng có cơ sở dữ liệu, có đăng nhập (Bậc 3). Hai ngày cuối dành cho tự đánh giá và trình bày. Bận kỳ họp thì lùi lịch, nhưng không bỏ phần tự kiểm tra.
+Bốn tuần ứng với bốn nấc của thang 5 bậc kiến tạo ở Chương 2: tuần thứ nhất dùng AI trò chuyện cho đúng cách (Bậc 0); tuần thứ hai đưa AI vào chính việc của mình; tuần thứ ba làm một bảng tính có công thức do AI viết và một trang công cụ chạy trong trình duyệt (Bậc 1–2); tuần thứ tư làm ứng dụng có cơ sở dữ liệu (database), có đăng nhập (Bậc 3). Hai ngày cuối dành cho tự đánh giá và trình bày. Bận kỳ họp thì lùi lịch, nhưng không bỏ phần tự kiểm tra.
 
 ::: {.thuchanh}
 **Thực hành: chuẩn bị trước ngày thứ nhất (khoảng 30 phút)**
@@ -29,7 +29,7 @@ Bốn tuần ứng với bốn nấc của thang 5 bậc kiến tạo ở Chươ
 
 ## 18.1. Tuần thứ nhất: làm quen AI trò chuyện an toàn (ngày 1–7)
 
-Mục tiêu của tuần là giao việc cho AI như cho một thư ký cao cấp, đúng tinh thần Tập 1, mà không để lọt thông tin không được phép. Chọn **một** trợ lý AI trò chuyện (Claude, ChatGPT hoặc Gemini); gói miễn phí đủ cho hai tuần đầu.
+Mục tiêu của tuần là giao việc cho AI như cho một thư ký cao cấp mà không để lọt thông tin không được phép. Chọn **một** trợ lý AI trò chuyện (Claude, ChatGPT hoặc Gemini); gói miễn phí đủ cho hai tuần đầu.
 
 | Ngày | Việc cần làm | Sản phẩm đầu ra | Tự kiểm tra |
 |---|---|---|---|
@@ -69,17 +69,17 @@ Tập 1 chia dữ liệu thành ba vùng: ĐỎ là tài liệu mật và dữ l
 | Danh bạ điện thoại nội bộ | ĐỎ | Số điện thoại là dữ liệu cá nhân |
 | Tài liệu có đóng dấu độ mật | ĐỎ | Bí mật nhà nước |
 
-Bảng của đồng chí có thể khác, tùy công việc. Khi phân vân, xếp lên vùng cao hơn. Tổng hợp kiến nghị cử tri chỉ xuống vùng VÀNG sau khi đã xóa sạch họ tên, địa chỉ, số điện thoại của người kiến nghị.
+Khi phân vân, xếp lên vùng cao hơn. Tổng hợp kiến nghị cử tri chỉ xuống vùng VÀNG sau khi đã xóa sạch họ tên, địa chỉ, số điện thoại của người kiến nghị.
 :::
 
-Danh bạ trong bảng không phải ví dụ ngẫu nhiên: vì kho mã của hệ thống là kho công khai, tệp danh bạ thật bị chặn khỏi kho mã, kèm một phép kiểm "không có số điện thoại nào trong mã nguồn".
+Danh bạ trong bảng không phải ví dụ ngẫu nhiên: kho mã nguồn (repository) của hệ thống là kho công khai, nên tệp danh bạ thật bị chặn khỏi kho, kèm phép kiểm "không có số điện thoại nào trong mã nguồn".
 
 ::: {.phaply}
 **Căn cứ pháp lý: vì sao phải phân loại trước khi gõ**
 
 - Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (Quốc hội thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026) chia dữ liệu cá nhân thành hai nhóm: dữ liệu cá nhân cơ bản và dữ liệu cá nhân nhạy cảm.
 - Nghị định 356/2025/NĐ-CP (có hiệu lực từ 01/01/2026, thay thế Nghị định 13/2023/NĐ-CP) liệt kê tại Điều 3 các dữ liệu cá nhân cơ bản, trong đó có họ tên, ngày sinh, số điện thoại, số định danh cá nhân, quan hệ gia đình; khoản 1 Điều 4 liệt kê dữ liệu nhạy cảm như quan điểm chính trị, tôn giáo, tín ngưỡng, tình trạng sức khỏe, đời sống riêng tư.
-- Các quy định về bảo vệ bí mật nhà nước nghiêm cấm soạn thảo, lưu giữ tài liệu có nội dung bí mật nhà nước trên máy tính, thiết bị đã hoặc đang kết nối Internet, trừ trường hợp theo quy định về cơ yếu.
+- Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (có hiệu lực từ 01/3/2026) tại Điều 5 nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập), trừ trường hợp theo pháp luật về cơ yếu; khoản 10 Điều 5 cấm sử dụng hệ thống trí tuệ nhân tạo hoặc công nghệ mới để xâm phạm bí mật nhà nước.
 - Luật Trí tuệ nhân tạo số 134/2025/QH15 (có hiệu lực từ 01/3/2026), khoản 2 Điều 4: "Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người."
 
 Đối chiếu đến ngày 26/10/2026; trước khi áp dụng, tra lại nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo.
@@ -137,7 +137,7 @@ Cuối câu trả lời, nhắc tôi tra lại từng văn bản trên nguồn c
 
 ### 18.1.4. Ngày 7: ôn tuần và ghi sổ
 
-Đọc lại sổ tay, lưu các câu lệnh dùng tốt vào một tệp riêng và tự trả lời năm câu hỏi dưới đây; câu nào chưa chắc thì làm lại đúng ngày đó.
+Đọc lại sổ tay học tập, lưu các câu lệnh dùng tốt vào một tệp riêng và tự trả lời năm câu hỏi dưới đây; câu nào chưa chắc thì làm lại đúng ngày đó.
 
 ::: {.ghinho}
 **Ghi nhớ: năm câu hỏi trước mỗi lần gõ vào khung chat**
@@ -186,7 +186,7 @@ có đáp án tính tay để tôi tự gõ vào kiểm tra.
 ```
 :::
 
-Câu lệnh này mô phỏng cách chấm từng nhiệm vụ của phân hệ Đánh giá OKR/KPI (Chương 9). Ca kiểm thử đầu tiên nên là ví dụ chuẩn trong dự thảo hướng dẫn lập danh mục sản phẩm, công việc: giao 10, hoàn thành 10, đạt chuẩn, chậm ít, kết quả (100 + 100 + 80) / 3 = 93,3%.
+Câu lệnh mô phỏng cách chấm từng nhiệm vụ ở phân hệ Đánh giá OKR/KPI (Chương 9). Ca kiểm thử (test case) đầu tiên nên là ví dụ chuẩn trong dự thảo hướng dẫn lập danh mục sản phẩm, công việc: giao 10, hoàn thành 10, đạt chuẩn, chậm ít, kết quả (100 + 100 + 80) / 3 = 93,3%.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: bảng tính trở thành thước nghiệm thu**
@@ -217,7 +217,7 @@ Thư viện không lưu kèm dữ liệu thật. Theo quy tắc 20/80 của Tậ
 
 ### 18.2.4. Ngày 13: sổ tay hỏi đáp có trích dẫn trên Gemini Notebook
 
-Gemini Notebook (trước đây là NotebookLM) của Google trả lời dựa trên các nguồn do người dùng nạp vào, kèm số trích dẫn bấm vào là xem được đoạn gốc. Google đổi tên sản phẩm ngày 16/7/2026; địa chỉ hiện hành là `notebook.google.com`. Phân hệ Sổ tay AI của Văn phòng dựa trên công cụ này (Chương 15).
+Gemini Notebook (trước đây là NotebookLM) của Google trả lời dựa trên nguồn do người dùng nạp, kèm số trích dẫn bấm vào xem được đoạn gốc. Google đổi tên sản phẩm ngày 16/7/2026; địa chỉ hiện hành là `notebook.google.com`. Phân hệ Sổ tay AI của Văn phòng dựa trên công cụ này (Chương 15).
 
 Trong 45 phút: đăng nhập tài khoản Google của mình; tạo một notebook đặt tên theo lĩnh vực; nạp 3–5 văn bản công khai đã tự kiểm tra còn hiệu lực; đặt 5 câu hỏi theo câu lệnh mẫu 18.4; bấm từng số trích dẫn xem đoạn gốc có thật sự nói điều đó không. Theo thông báo của Google, từ ngày 02/9/2026 hạn mức tính theo khối lượng tính toán, làm mới khoảng mỗi 5 giờ và có trần theo tuần.
 
@@ -240,14 +240,14 @@ kiểm chứng.
 
 - Nguồn tải lên được lưu trên máy chủ của Google. Chỉ nạp văn bản đã công khai; không nạp tài liệu mật, dự thảo chưa công bố, thông tin cá nhân, thông tin về người khiếu nại, tố cáo.
 - Khi chia sẻ, chọn quyền người xem. Kiểu liên kết chỉ hiện khung chat không phải cơ chế bảo mật: theo trợ giúp của Google, nó không thu hồi quyền truy cập vào nội dung bị ẩn.
-- Phần mềm không biết văn bản nào còn hiệu lực; kiểm tra hiệu lực là việc của người nạp nguồn. Phân hệ Sổ tay AI của Văn phòng đặt mọi nguồn gợi ý ở trạng thái "chưa xác định hiệu lực" cho tới khi có người đối chiếu xong.
+- Phần mềm không biết văn bản nào còn hiệu lực; kiểm tra hiệu lực là việc của người nạp nguồn. Phân hệ Sổ tay AI để mọi nguồn gợi ý ở trạng thái "chưa xác định hiệu lực" cho tới khi có người đối chiếu.
 :::
 
 Ngay tên miền mới cũng là bài học: ngày 22/10/2026, tác tử AI lập trình chỉ phát hiện tên miền cũ đã chuyển hướng khi kiểm tra đường dẫn thật tôi đưa; trí nhớ của nó đã lỗi thời.
 
 ### 18.2.5. Ngày 14: đo thời gian cho trung thực
 
-Lập bảng bốn cột cho 3 việc đã chọn ở ngày 8: tên việc; thời gian làm tay; thời gian có AI, **tính cả kiểm chứng và sửa**; ghi chú. Ghi cả những lần AI làm chậm hơn. Phân hệ Sổ tay AI đặt chỉ tiêu giảm ít nhất 30% thời gian tra cứu, nhưng đó là chỉ tiêu đã đăng ký, chưa phải kết quả. Đo đúng là nền của mọi báo cáo hiệu quả (Chương 17).
+Lập bảng bốn cột cho 3 việc đã chọn ở ngày 8: tên việc; thời gian làm tay; thời gian có AI, **tính cả kiểm chứng và sửa**; ghi chú. Ghi cả những lần AI làm chậm hơn. Nhiệm vụ thí điểm Sổ tay AI của Văn phòng đặt chỉ tiêu giảm ít nhất 30% thời gian tra cứu, nhưng đó là chỉ tiêu đã đăng ký, chưa phải kết quả. Đo đúng là nền của mọi báo cáo hiệu quả (Chương 17).
 
 ## 18.3. Tuần thứ ba: công cụ nhỏ đầu tiên (ngày 15–21)
 
@@ -285,19 +285,19 @@ Giải thích công thức bằng tiếng Việt cho người không chuyên.
 
 Ngày 17, đồng chí tự gõ cả sáu ca vào trang "Ca kiểm thử" và so với đáp án. Hai ca cuối có lý do: từ ngày 01/9/2026, ba phân hệ của hệ thống trắng trang vào đầu tháng, vì phần mềm luôn đọc "người đứng đầu danh sách" trong khi kỳ mới chưa có ai; bản vá được ghi nhận ngày 28/9/2026 (Chương 9). Lỗi theo lịch chỉ lộ khi sang kỳ mới. Hãy tập cả thói quen đếm tổng số dòng trước và sau mỗi lần gộp: hệ thống từng còn 27 người thay vì 28, vì hai đồng chí trùng họ tên bị ghép làm một.
 
-Dùng Google Trang tính thì có thể nhờ AI viết thêm đoạn Apps Script gửi email nhắc hạn; khi Google hỏi cấp quyền, đọc kỹ đoạn mã xin quyền gì rồi mới đồng ý.
+Dùng Google Trang tính thì có thể nhờ AI viết thêm đoạn Apps Script gửi email nhắc hạn; khi Google hỏi cấp quyền, đọc kỹ quyền nó xin.
 
 ### 18.3.2. Ngày 18–21: trang tra cứu, khánh thành và người dùng đầu tiên
 
-Ngày 18 có hai lối. **Lối đầy đủ** là dựng xưởng theo Chương 5. Theo trang giá của Anthropic, Claude Code không có trong gói miễn phí, gói thấp nhất là Pro 20 USD/tháng; GitHub Copilot có gói miễn phí với 2.000 gợi ý mã mỗi tháng (giá tham khảo tại thời điểm viết, 10/2026, có thể thay đổi). **Lối không cài đặt** dành cho máy bị khóa: nhờ trợ lý AI trò chuyện viết một tệp HTML duy nhất, lưu thành `index.html`, bấm đúp là chạy. Trang Bậc 2 không cần máy chủ, nên lối này vẫn đi tiếp được.
+Ngày 18 có hai lối. **Lối đầy đủ** là dựng xưởng theo Chương 5. Theo trang giá của Anthropic, Claude Code không có trong gói miễn phí, gói thấp nhất có Claude Code là Pro 20 USD/tháng; GitHub Copilot có gói miễn phí với 2.000 gợi ý mã mỗi tháng (giá tham khảo tại thời điểm viết, 10/2026, có thể thay đổi). **Lối không cài đặt** dành cho máy bị khóa: nhờ trợ lý AI trò chuyện viết một tệp HTML duy nhất, lưu thành `index.html`, bấm đúp là chạy. Trang Bậc 2 không cần máy chủ, nên lối này vẫn đi tiếp được.
 
 Ngày 19, làm trang tra cứu theo mục 5.4 và câu lệnh mẫu 5.1, với danh mục văn bản công khai của Ban mình. Thử thêm: gõ một từ không có trong danh mục (trang phải báo "không tìm thấy"); gõ "báo" xem có kéo nhầm dòng chứa "bão" không. Bộ sinh bản tin của Văn phòng từng nhận "họp báo thường kỳ" thành tin bão vì bỏ dấu khi so khớp (Chương 15).
 
-Ngày 20, đưa trang lên một kho GitHub **riêng tư**, triển khai trên Vercel, đầu trang ghi "Bản demo thử nghiệm". Ngày 21, mời một đồng nghiệp dùng thử năm phút, hỏi ba câu: tìm được thứ cần chưa, mất bao lâu; chỗ nào khó hiểu; có muốn dùng tiếp không. Ghi cả lời chê vào nhật ký.
+Ngày 20, đưa trang lên một kho GitHub **riêng tư**, triển khai (deploy) trên Vercel, đầu trang ghi "Bản demo thử nghiệm". Ngày 21, mời một đồng nghiệp dùng thử năm phút, hỏi ba câu: tìm được thứ cần chưa, mất bao lâu; chỗ nào khó hiểu; có muốn dùng tiếp không. Ghi cả lời chê vào nhật ký.
 
 ## 18.4. Tuần thứ tư: ứng dụng có dữ liệu dùng chung (ngày 22–28)
 
-Bậc 3 thay đổi về chất: nhiều người cùng đọc, cùng ghi một kho dữ liệu, nên xuất hiện những lỗi bảng tính không có, như người này ghi đè người kia. Mục tiêu của tuần là đi trọn một vòng Bậc 3 với dữ liệu giả và hiểu từng chốt an toàn.
+Bậc 3 thay đổi về chất: nhiều người cùng đọc, cùng ghi một kho dữ liệu, nên nảy sinh những lỗi bảng tính không có, như người này ghi đè người kia. Mục tiêu của tuần là đi trọn một vòng Bậc 3 với dữ liệu giả.
 
 | Ngày | Việc cần làm | Sản phẩm đầu ra | Tự kiểm tra |
 |---|---|---|---|
@@ -323,7 +323,7 @@ Các dịch vụ ở mức miễn phí đặt máy chủ ở nước ngoài và 
 Hãy hình dung một sổ đăng ký phòng họp dùng chung. Dữ liệu gồm tên cuộc họp, ngày, giờ, phòng, đơn vị đăng ký; không cần họ tên cá nhân. Khách xem lịch đã duyệt; người đăng nhập được đăng ký; Quản trị duyệt hoặc từ chối; phần mềm cảnh báo khi trùng giờ. Phần mềm chỉ cảnh báo, quyết định duyệt luôn là của người: máy đề xuất – người quyết định.
 :::
 
-Ngày 23, đồng chí tạo dự án Supabase và tệp `.env` theo mục 5.3. Hai điều cần thuộc lòng. Một, quyền thật nằm ở cơ sở dữ liệu: ẩn một nút chỉ là không chỉ đường, cửa vẫn mở; chính sách bảo mật theo dòng mới là "thẻ ra vào". Hai, khách và người đăng nhập đọc **cùng một nguồn**, chỉ khác quyền ghi; hệ thống của Văn phòng từng để khách dựng danh sách mẫu tại máy, thế là khách và Quản trị thấy hai danh sách cán bộ khác nhau (Chương 12).
+Ngày 23, đồng chí tạo dự án Supabase và tệp `.env` theo mục 5.3. Hai điều cần thuộc lòng. Một, quyền thật nằm ở cơ sở dữ liệu: ẩn một nút chỉ là không chỉ đường, cửa vẫn mở; chính sách bảo mật theo dòng (RLS) mới là "thẻ ra vào". Hai, khách và người đăng nhập đọc **cùng một nguồn**, chỉ khác quyền ghi; hệ thống của Văn phòng từng để khách dựng danh sách mẫu tại máy, thế là khách và Quản trị thấy hai danh sách cán bộ khác nhau (Chương 12).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 18.6 — Giao việc Bậc 3, bắt trình phương án trước**
@@ -342,7 +342,7 @@ nguyên; hai cửa sổ cùng sửa một dòng thì có cảnh báo, không ghi
 ```
 :::
 
-Ngày 24, sau khi duyệt phương án và để tác tử làm, phép thử đầu tiên là "lưu, tải lại trang, dữ liệu còn không", không phải nhìn dòng chữ "đã lưu". Danh bạ trong hệ thống của Văn phòng từng báo lưu thành công mà tải lại thì trống, vì hàm chuẩn hóa dữ liệu chỉ giữ những trường đã khai tên.
+Ngày 24, khi tác tử làm xong, phép thử đầu tiên là "lưu, tải lại trang, dữ liệu còn không", không phải nhìn dòng chữ "đã lưu". Danh bạ trong hệ thống của Văn phòng từng báo lưu thành công mà tải lại thì trống, vì hàm chuẩn hóa dữ liệu chỉ giữ những trường đã khai tên.
 
 ### 18.4.2. Ngày 25–28: kiểm thử, khánh thành, người dùng thử và nhật ký
 
@@ -371,7 +371,7 @@ Trình nội dung để tôi duyệt rồi mới commit và đẩy lên.
 
 ### 18.5.1. Nhịp của một buổi học
 
-Mỗi buổi chia bốn nhịp: đọc lại sổ tay hôm trước; làm việc của ngày; tự kiểm tra; ghi ba dòng sổ tay mới. Việc nào vượt 45 phút hai ngày liền là quá to, cần chia nhỏ. Khi AI đi lạc, sửa vòng vo hay sửa chỗ này hỏng chỗ kia, hãy dừng lại, quay về bản đã lưu gần nhất và giao một việc nhỏ hơn (Chương 6).
+Mỗi buổi chia bốn nhịp: đọc lại sổ tay học tập của hôm trước; làm việc của ngày; tự kiểm tra; ghi ba dòng sổ tay mới. Việc nào vượt 45 phút hai ngày liền là quá to, cần chia nhỏ. Khi AI đi lạc, sửa vòng vo hay sửa chỗ này hỏng chỗ kia, hãy dừng lại, quay về bản đã lưu gần nhất và giao một việc nhỏ hơn (Chương 6).
 
 ### 18.5.2. Ngày 29: tự đánh giá
 
@@ -401,7 +401,7 @@ Ngày cuối, đồng chí trình bày mười phút với lãnh đạo phòng h
 ::: {.lanhdao}
 **Dành cho lãnh đạo**
 
-- Một cán bộ đi hết lộ trình cần khoảng 30 phút mỗi ngày trong bốn tuần; nên coi đó là thời gian học tập trong giờ làm việc.
+- Một cán bộ cần khoảng 30 phút mỗi ngày trong bốn tuần; nên coi đó là thời gian học tập trong giờ làm việc.
 - Cung cấp bộ văn bản công khai của lĩnh vực; không giao dữ liệu thật của cơ quan để "làm thử".
 - Nghiệm thu bằng bảng tự đánh giá và buổi trình bày mười phút; hỏi về dữ liệu và an toàn trước, tính năng sau.
 - Không đòi kết quả nghiệp vụ chính thức từ bản demo; khuyến khích ghi cả những lần thất bại.

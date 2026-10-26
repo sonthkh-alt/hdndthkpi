@@ -12,7 +12,7 @@
 Dành cho: cán bộ muốn tự làm một hệ thống nhiều phân hệ; người làm công tác tổ chức cán bộ, văn phòng; chuyên viên phục vụ kỳ họp; lãnh đạo Văn phòng cần quyết định phạm vi, quyền xem và điều kiện để dùng thật.
 :::
 
-Ba chương trước, mỗi chương đi sâu vào một phân hệ chấm điểm. Chương này lùi lại một bước để nhìn cả "trụ sở". Một hệ thống nhiều phân hệ không chỉ là nhiều ứng dụng đặt cạnh nhau. Nó cần một sảnh chung để người dùng tìm đúng cửa, một sổ nhân sự chung để các phòng không mỗi nơi giữ một danh sách, và những quy ước chung về chỗ cất hồ sơ, ai được xem, ai được ghi.
+Ba chương trước, mỗi chương đi sâu vào một phân hệ chấm điểm. Chương này lùi lại một bước để nhìn cả "trụ sở". Một hệ thống nhiều phân hệ cần một sảnh chung để người dùng tìm đúng cửa, một sổ nhân sự chung để các phòng không mỗi nơi giữ một danh sách, và quy ước chung về chỗ cất hồ sơ, ai được xem, ai được ghi.
 
 Chất liệu của chương vẫn là hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa, địa chỉ hdndthkpi.vercel.app. Mỗi mục có cách tôi giao việc cho AI, sự cố đã gặp, gợi ý tự làm phiên bản nhỏ và điều lãnh đạo cần quyết.
 
@@ -49,7 +49,7 @@ Cách làm này đem lại năm lợi ích kiểm chứng được trong dự á
 4. **Quản trị ẩn, hiện được** thẻ của các bộ tiêu chí thử nghiệm; cấu hình lưu trên máy chủ nên áp dụng cho mọi người.
 5. **Chỉ tải phần cần dùng.** Trang chủ chỉ tải khoảng 33 kB, trước khi tách là khoảng 180 kB; bấm vào thẻ nào mới tải mã phân hệ đó (lazy-load). Sảnh không cần chất sẵn hồ sơ của mọi phòng.
 
-Một việc nhỏ nhưng tốn công là thống nhất đầu trang, vì các phân hệ ra đời ở những thời điểm khác nhau. Sau một đợt "đồng bộ giao diện", mọi phân hệ dùng chung bố cục: nút về Trang chủ, quốc huy, nhãn "Bản demo thử nghiệm", tên phân hệ, tên cơ quan, khu vực tài khoản. Thanh chọn bộ tiêu chí bị bỏ khỏi các phân hệ nghiệp vụ, chỉ còn ở Phòng thử nghiệm.
+Các phân hệ ra đời ở những thời điểm khác nhau nên đầu trang từng mỗi nơi một kiểu. Sau một đợt "đồng bộ giao diện", các phân hệ dùng chung một bố cục: nút về Trang chủ, quốc huy, nhãn "Bản demo thử nghiệm", tên phân hệ, khu vực tài khoản.
 
 ### 12.1.3. Danh sách cán bộ về một mối
 
@@ -93,24 +93,19 @@ Việc:
    KHÔNG dùng họ tên đơn thuần; liệt kê cho tôi mọi trường hợp trùng.
 Ràng buộc: giữ nguyên toàn bộ điểm đã chấm; người rời danh sách thì
 gắn cờ, không xóa; không đụng phân quyền hiện có.
-Nghiệm thu: đếm tổng số người trước và sau khi gộp ở từng phân hệ;
-viết phép kiểm cho ca trùng họ tên; chạy thử bằng vai khách và vai
-quản trị; báo cáo những chỗ khác đang đọc danh sách (xuất Word,
-bot chat, báo cáo tổng hợp) đã kiểm chưa.
+Nghiệm thu: đếm số người trước và sau khi gộp ở từng phân hệ; phép
+kiểm cho ca trùng họ tên; thử vai khách và vai quản trị; báo cáo các
+chỗ khác đang đọc danh sách (xuất Word, bot chat) đã kiểm chưa.
 ```
 :::
 
-::: {.ghinho}
-**Ghi nhớ**
-
-Một mối không có nghĩa là một bảng to chứa mọi thứ. Một mối nghĩa là mỗi loại thông tin chỉ có một nơi được sửa. Nơi khác chỉ đọc, và đọc đúng phần mình cần.
-:::
+Xin nhấn mạnh: một mối không có nghĩa là một bảng to chứa mọi thứ. Một mối nghĩa là mỗi loại thông tin chỉ có một nơi được sửa; nơi khác chỉ đọc, và đọc đúng phần mình cần.
 
 ## 12.2. Quản lý cán bộ: hồ sơ Mẫu 2C, nhắc việc, biên chế và danh bạ
 
 ### 12.2.1. Hồ sơ Mẫu 2C trên màn hình
 
-Phân hệ Quản lý cán bộ có đường dẫn `#/canbo` và chỉ mở cho Quản trị. Hồ sơ bám các mục của mẫu Sơ yếu lý lịch quen gọi là Mẫu 2C (phần mềm ghi theo ký hiệu 2C/TCTW-98): 37 mục thông tin cùng ba bảng là quá trình đào tạo, quá trình công tác và quan hệ gia đình. Mỗi hồ sơ thuộc một trong bốn loại đối tượng: ĐBQH chuyên trách, đại biểu HĐND tỉnh chuyên trách, công chức Văn phòng, hợp đồng lao động.
+Phân hệ Quản lý cán bộ (`#/canbo`) chỉ mở cho Quản trị. Hồ sơ bám các mục của mẫu Sơ yếu lý lịch quen gọi là Mẫu 2C (phần mềm ghi ký hiệu 2C/TCTW-98): 37 mục cùng ba bảng đào tạo, quá trình công tác, quan hệ gia đình. Mỗi hồ sơ thuộc một trong bốn loại: ĐBQH chuyên trách, đại biểu HĐND tỉnh chuyên trách, công chức Văn phòng, hợp đồng lao động.
 
 Màn hình chia năm khu vực: Nhắc việc, Hồ sơ cán bộ, Nhiệm vụ có hạn, Biên chế, Danh bạ điện thoại. Hồ sơ mở ra dạng ngăn trượt bảy thẻ, có thước đo "% hoàn thiện" tính trên 12 trường cốt lõi kèm danh sách mục còn thiếu, và nút xuất Sơ yếu lý lịch ra Word đúng bố cục mẫu.
 
@@ -164,20 +159,20 @@ Khu vực Biên chế so số người thực có của từng loại đối tư
 
 ### 12.2.4. Chỉ Quản trị được xem, và vì sao ẩn thẻ chưa đủ
 
-Hồ sơ 2C có gần như đủ các loại dữ liệu cá nhân mà pháp luật bảo vệ. Theo Điều 3 Nghị định 356/2025/NĐ-CP, ngày sinh, giới tính, quê quán, số điện thoại, số định danh cá nhân, tình trạng hôn nhân, quan hệ gia đình là dữ liệu cá nhân cơ bản. Theo khoản 1 Điều 4 của Nghị định này, tôn giáo, tình trạng sức khỏe là dữ liệu cá nhân nhạy cảm; hồ sơ 2C có cả hai trường đó.
-
 ::: {.phaply}
 **Căn cứ pháp lý**
 
-- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, Quốc hội thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026; phân dữ liệu cá nhân thành dữ liệu cá nhân cơ bản và dữ liệu cá nhân nhạy cảm.
-- Nghị định số 356/2025/NĐ-CP của Chính phủ quy định chi tiết một số điều và biện pháp thi hành Luật Bảo vệ dữ liệu cá nhân, có hiệu lực từ 01/01/2026, thay thế Nghị định 13/2023/NĐ-CP; Điều 3 liệt kê dữ liệu cơ bản, khoản 1 Điều 4 liệt kê dữ liệu nhạy cảm.
+- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026, phân dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm.
+- Nghị định số 356/2025/NĐ-CP quy định chi tiết Luật này, có hiệu lực từ 01/01/2026, thay thế Nghị định 13/2023/NĐ-CP. Theo Điều 3, ngày sinh, giới tính, quê quán, số điện thoại, số định danh cá nhân, tình trạng hôn nhân, quan hệ gia đình là dữ liệu cá nhân cơ bản. Theo khoản 1 Điều 4, tôn giáo, tình trạng sức khỏe là dữ liệu cá nhân nhạy cảm.
 :::
+
+Hồ sơ 2C có gần như đủ các loại dữ liệu nói trên, kể cả hai trường tôn giáo và sức khỏe thuộc nhóm nhạy cảm.
 
 Ban đầu, thẻ Quản lý cán bộ chỉ hiện với Quản trị, nhưng chính sách phân quyền cũ ở cơ sở dữ liệu cho mọi tài khoản đã đăng nhập đọc mọi dòng. Người dùng thường biết gọi thẳng vào cửa giao dịch (API) vẫn đọc được hồ sơ. Ẩn thẻ chỉ là gỡ tấm biển "Phòng lưu trữ", cửa vẫn mở.
 
 Bẫy kỹ thuật đáng nhớ: các quy tắc phân quyền theo dòng cộng dồn theo kiểu "hoặc", thêm quy tắc chặt không làm quy tắc lỏng cũ hết tác dụng, như dán thêm tờ "Cấm vào" khi tờ "Mời vào tự do" vẫn treo. Vì vậy bước thứ tư trong tệp lược đồ cơ sở dữ liệu phải sửa chính quy tắc chung để loại riêng dòng hồ sơ cán bộ, rồi mới thêm quy tắc chỉ cho hai email Quản trị đọc, ghi dòng đó, kèm cảnh báo: chưa chạy bước này thì hồ sơ không được bảo vệ.
 
-Bot chat (Chương 14) đi thêm một bước. Nhắc việc nhân sự chỉ được nạp khi người hỏi là Quản trị. Kể cả khi đó, số định danh, số bảo hiểm xã hội và quan hệ gia đình không bao giờ được đưa vào nội dung gửi cho AI. Lời dặn "đừng nói ra" không chắc bằng việc không đưa vào.
+Bot chat (Chương 14) chỉ nạp nhắc việc nhân sự khi người hỏi là Quản trị, và kể cả khi đó cũng không đưa số định danh, số bảo hiểm xã hội, quan hệ gia đình vào nội dung gửi cho AI. Lời dặn "đừng nói ra" không chắc bằng việc không đưa vào.
 
 ### 12.2.5. Danh bạ điện thoại: số thật không bao giờ vào kho mã
 
@@ -186,12 +181,12 @@ Bot chat (Chương 14) đi thêm một bước. Nhắc việc nhân sự chỉ �
 
 Tôi có tệp danh bạ gồm 82 đại biểu HĐND tỉnh và 29 cán bộ các Ban, Văn phòng, toàn số thật. Cách nhanh nhất để bot tra được số là nhúng danh bạ vào mã nguồn. Nhưng kho mã ở chế độ công khai, mã chạy trên trình duyệt ai cũng xem được; nhúng vào là dán danh bạ nội bộ lên bảng tin ngoài cổng.
 
-Cách làm được chọn: phần mềm chỉ có **bộ đọc** danh bạ, không chứa số điện thoại nào. Quản trị bấm "Nhập từ tệp" (Word, PDF hoặc văn bản thuần); phần mềm trích chữ, nhận dạng từng dòng "số thứ tự, họ tên, chức vụ, số điện thoại", rồi lưu vào hồ sơ cán bộ trên máy chủ, nơi chỉ Quản trị đọc được. Tệp `.gitignore` chặn mọi tệp danh bạ; một phép kiểm khẳng định "không có số điện thoại nào trong mã nguồn". Thử trên tệp thật, bộ đọc nhận đủ 111 trên 111 mục.
+Cách làm được chọn: phần mềm chỉ có **bộ đọc** danh bạ, không chứa số điện thoại nào. Quản trị bấm "Nhập từ tệp" (Word, PDF hoặc văn bản thuần); phần mềm trích chữ, nhận dạng từng dòng "số thứ tự, họ tên, chức vụ, số điện thoại", rồi lưu vào hồ sơ cán bộ trên máy chủ, nơi chỉ Quản trị đọc được. Tệp `.gitignore` chặn tệp danh bạ trong thư mục tài liệu; một phép kiểm khẳng định "không có số điện thoại nào trong mã nguồn". Thử trên tệp thật, bộ đọc nhận đủ 111 trên 111 mục.
 
 Rồi có lỗi: báo lưu thành công, tải lại trang thì danh bạ trống. Hàm chuẩn hóa hồ sơ là một "danh sách trắng", chỉ giữ các trường đã khai tên; trường danh bạ mới chưa được khai nên bị gọt mất. Sửa xong, dữ liệu đã mất không cứu được; Quản trị phải nhập lại một lần.
 :::
 
-Từ chuyện này, tôi giữ hai thói quen. Trước khi đặt bất kỳ tệp nào vào thư mục dự án, tự hỏi: "tệp này lên mặt báo thì sao?". Và phép thử đúng của chức năng lưu là "lưu, tải lại trang, còn không?", chứ không phải nhìn dòng chữ "đã lưu".
+Tôi giữ hai thói quen từ chuyện này: trước khi đặt tệp nào vào thư mục dự án, hỏi "tệp này lên mặt báo thì sao?"; và thử chức năng lưu bằng "lưu, tải lại trang, còn không?", không phải nhìn dòng chữ "đã lưu".
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 12.2 — Rà soát kho mã tìm dữ liệu cá nhân trước khi công khai**
@@ -214,16 +209,16 @@ lịch sử commit (xóa tệp hiện tại không xóa được lịch sử).
 
 ### 12.2.6. Phiên bản nhỏ: sổ nhắc mốc nhân sự trên bảng tính
 
-Không phải cơ quan nào cũng cần một phân hệ như trên. Với một phòng vài chục người, một bảng tính có công thức do AI viết là đủ, và an toàn hơn vì dữ liệu nằm trên máy của cơ quan.
+Với một phòng vài chục người, một bảng tính có công thức do AI viết là đủ, và an toàn hơn vì dữ liệu nằm trên máy của cơ quan.
 
 ::: {.thuchanh}
 **Thực hành: lập sổ nhắc mốc nhân sự trong một buổi**
 
-1. Mở bảng tính mới, tạo các cột: Mã cán bộ, Giới tính, Ngày sinh, Ngạch, Bậc, Ngày hưởng bậc, Ngày hết hạn hợp đồng. Không cần cột họ tên khi nhờ AI viết công thức.
-2. Dùng Câu lệnh mẫu 12.3 để nhờ AI viết công thức. Chỉ mô tả cấu trúc cột, tuyệt đối không dán dữ liệu thật của cán bộ vào AI công cộng: đây là dữ liệu vùng ĐỎ theo cách phân loại của Tập 1.
-3. Nhập năm, sáu dòng giả định có đáp án biết trước, như ba ca ở ví dụ minh họa mục 12.2.2. So kết quả.
-4. Thêm cột "Còn bao nhiêu ngày" và tô màu có điều kiện: đỏ khi quá hạn, vàng khi sắp tới hạn.
-5. Khi công thức đúng hết các ca thử, mới nhập dữ liệu thật trên máy của cơ quan và đặt mật khẩu cho tệp.
+1. Tạo các cột: Mã cán bộ, Giới tính, Ngày sinh, Ngạch, Bậc, Ngày hưởng bậc, Ngày hết hạn hợp đồng.
+2. Dùng Câu lệnh mẫu 12.3 nhờ AI viết công thức. Chỉ mô tả cấu trúc cột, không dán dữ liệu thật của cán bộ vào AI công cộng: đây là dữ liệu vùng ĐỎ theo cách phân loại của Tập 1.
+3. Nhập vài dòng giả định có đáp án biết trước, như ba ca ở mục 12.2.2, và so kết quả.
+4. Tô màu có điều kiện: đỏ khi quá hạn, vàng khi sắp tới hạn.
+5. Công thức đúng hết các ca thử mới nhập dữ liệu thật trên máy của cơ quan, đặt mật khẩu cho tệp.
 :::
 
 ::: {.lenhmau}
@@ -251,21 +246,21 @@ Không cần và không được hỏi dữ liệu thật của cán bộ.
 
 ### 12.3.1. Bài toán và căn cứ
 
-Tại kỳ họp, biểu quyết là khoảnh khắc mọi số liệu phải tuyệt đối chính xác. Phân hệ Biểu quyết Online (`#/bieuquyet`) mô phỏng việc này cho 82 đại biểu HĐND tỉnh nhiệm kỳ 2026–2031: đại biểu bấm một trong ba nút, hệ thống kiểm phiếu ngay, hiện bảng điện tử và đối chiếu điều kiện thông qua. Đây là bản demo phục vụ trình diễn, tập huấn; nó không thay hệ thống biểu quyết chính thức của kỳ họp.
+Phân hệ Biểu quyết Online (`#/bieuquyet`) mô phỏng việc biểu quyết của 82 đại biểu HĐND tỉnh nhiệm kỳ 2026–2031: đại biểu bấm một trong ba nút, hệ thống kiểm phiếu ngay, hiện bảng điện tử và đối chiếu điều kiện thông qua. Đây là bản demo phục vụ trình diễn, tập huấn, không thay hệ thống biểu quyết chính thức của kỳ họp.
 
 ::: {.phaply}
 **Căn cứ pháp lý**
 
 Luật Tổ chức chính quyền địa phương số 72/2025/QH15, Quốc hội thông qua ngày 16/6/2025, có hiệu lực từ 16/6/2025: nghị quyết của HĐND được thông qua khi quá nửa **tổng số** đại biểu HĐND biểu quyết tán thành. Mẫu số là tổng số đại biểu, không phải số người có mặt hay số người đã bấm. Với 82 đại biểu, quá nửa là từ 42/82 trở lên.
 
-Phần mềm có sẵn thêm ngưỡng "ít nhất hai phần ba tổng số đại biểu" (từ 55/82 trở lên, vì 82 × 2/3 = 54,67, làm tròn lên). Ngưỡng này chỉ được chọn cho nội dung mà luật quy định rõ. Sách chưa đối chiếu được điều khoản cụ thể của Luật 72/2025/QH15 về các trường hợp này, nên người dùng phải tra nguyên văn trước khi đặt ngưỡng. Cũng không được nhầm ngưỡng biểu quyết với điều kiện về số đại biểu tham dự để tiến hành kỳ họp; đó là hai quy định khác nhau.
+Phần mềm có thêm ngưỡng "ít nhất hai phần ba tổng số đại biểu" (từ 55/82, vì 82 × 2/3 = 54,67, làm tròn lên), chỉ dùng cho nội dung luật quy định rõ. Sách chưa đối chiếu được điều khoản cụ thể về các trường hợp này, nên phải tra nguyên văn trước khi đặt ngưỡng. Cũng đừng nhầm ngưỡng biểu quyết với điều kiện về số đại biểu tham dự để tiến hành kỳ họp. Trước khi áp dụng, cần tra lại tình trạng hiệu lực và văn bản sửa đổi, bổ sung (nếu có) trên Cơ sở dữ liệu quốc gia về văn bản pháp luật.
 :::
 
 ### 12.3.2. Ba nút, một lá phiếu, mẫu số là 82
 
-Cách dùng gồm bốn bước. Chọn "Kỳ họp thứ …". Chọn nghị quyết trong hộp chọn; nội dung đã đóng biểu quyết bị làm mờ, không chọn được. Bấm một trong ba nút lớn: Đồng ý, Không đồng ý, Có ý kiến khác. Xem kết quả. Khi kỳ họp có từ hai nghị quyết đang mở trở lên, có thêm khối "Biểu quyết một lần" với ba nút tròn cỡ lớn: lá phiếu vẫn được ghi cho từng nghị quyết, sau đó đại biểu mở từng nội dung để đổi riêng được.
+Người dùng chọn "Kỳ họp thứ …", chọn nghị quyết trong hộp chọn (nội dung đã đóng bị làm mờ, không chọn được), rồi bấm một trong ba nút lớn: Đồng ý, Không đồng ý, Có ý kiến khác. Kỳ họp có từ hai nghị quyết đang mở thì có thêm khối "Biểu quyết một lần": lá phiếu vẫn ghi cho từng nghị quyết, sau đó đổi riêng được. Mỗi đại biểu một lá phiếu cho một nội dung; bấm lại là đổi, khi phiên còn mở.
 
-Mỗi đại biểu chỉ có một lá phiếu cho một nội dung; bấm lại là đổi, khi phiên còn mở. Kết quả hiện bốn thẻ số liệu (Đồng ý, Không đồng ý, Có ý kiến khác, Chưa biểu quyết), một thanh tỷ lệ có vạch ngưỡng thông qua, bảng điện tử 82 ô và một câu kết luận. Câu kết luận nói rõ còn thiếu bao nhiêu phiếu. Có nút xuất biên bản ra Word.
+Kết quả hiện bốn thẻ số liệu (Đồng ý, Không đồng ý, Có ý kiến khác, Chưa biểu quyết), thanh tỷ lệ có vạch ngưỡng thông qua, bảng điện tử 82 ô, câu kết luận nói rõ còn thiếu bao nhiêu phiếu, và nút xuất biên bản ra Word.
 
 ::: {.vidu}
 **Ví dụ minh họa: vì sao mẫu số phải là 82**
@@ -282,33 +277,33 @@ const quaNua = (tong) => Math.floor(tong / 2) + 1;      // 82 → 42
 const haiPhanBa = (tong) => Math.ceil((tong * 2) / 3);  // 82 → 55
 ```
 
-Toàn bộ phần tính toán (ghi phiếu, kiểm phiếu, kết luận, biên bản) nằm trong một tệp logic "thuần", không dính giao diện, không gọi mạng. Bộ kiểm thử của phân hệ có 90 phép kiểm, viết bằng ngôn ngữ nghiệp vụ như "41/82 thì thiếu 1 phiếu", "đổi lá phiếu không làm tăng số lượt". Người không đọc được mã vẫn đọc được danh sách phép kiểm ấy như đọc tiêu chí nghiệm thu.
+Toàn bộ phần tính toán nằm trong một tệp logic "thuần", không dính giao diện, không gọi mạng. Bộ kiểm thử của phân hệ có 90 phép kiểm, viết bằng ngôn ngữ nghiệp vụ như "41/82 thì thiếu 1 phiếu", "đổi lá phiếu không làm tăng số lượt". Người không đọc được mã vẫn đọc được chúng như đọc tiêu chí nghiệm thu.
 
 ### 12.3.3. Đánh số đại biểu, không gắn tên người thật
 
-Đại biểu trong phân hệ mang mã từ DB01 đến DB82, hiển thị là "Đại biểu số 01" đến "Đại biểu số 82", chia thành 10 tổ cho dễ theo dõi. Không có họ tên người thật nào. Lý do được ghi ngay đầu tệp logic: bản demo không được gán lá phiếu cho cá nhân cụ thể. Một bảng điện tử có tên thật cạnh lá phiếu "Không đồng ý", dù là dữ liệu mô phỏng, vẫn có thể bị chụp lại và hiểu sai.
+Đại biểu mang mã từ DB01 đến DB82, hiển thị là "Đại biểu số 01" đến "Đại biểu số 82", chia 10 tổ cho dễ theo dõi, không có họ tên người thật nào. Lý do ghi ngay đầu tệp logic: bản demo không được gán lá phiếu cho cá nhân cụ thể. Một bảng điện tử có tên thật cạnh lá phiếu "Không đồng ý", dù là mô phỏng, vẫn có thể bị chụp lại và hiểu sai.
 
-Cũng cần nói thẳng một giới hạn. Ở bản demo, người dùng tự chọn mã đại biểu của mình trong một hộp chọn; hệ thống không xác thực ai là ai. Như vậy là đủ cho trình diễn, tập huấn, nhưng hoàn toàn không đủ cho một cuộc biểu quyết thật.
+Cũng phải nói thẳng một giới hạn: ở bản demo, người dùng tự chọn mã đại biểu trong một hộp chọn, hệ thống không xác thực ai là ai. Đủ cho tập huấn, hoàn toàn không đủ cho biểu quyết thật.
 
 ### 12.3.4. Bỏ phiếu không cần tài khoản qua "khe thùng phiếu"
 
-Muốn đại biểu bỏ phiếu mà không phải đăng nhập thì phải cho người chưa đăng nhập ghi dữ liệu. Nhưng nếu mở quyền ghi chung, bất kỳ ai cũng ghi đè được cả bảng kết quả. Lời giải là một hàm trên máy chủ, đặt tên `bq_vote`, làm đúng một việc: sửa **một** lá phiếu của **một** đại biểu trong **một** phiên. Hàm từ chối lựa chọn lạ, mã đại biểu sai dạng, phiên đã khóa. Hình ảnh dễ nhớ: không giao chìa khóa kho cho khách, chỉ khoét một khe bỏ phiếu trên thùng phiếu. Khách xem được kết quả nhờ quyền đọc công khai riêng cho dòng dữ liệu biểu quyết.
+Muốn bỏ phiếu không cần đăng nhập thì phải cho người chưa đăng nhập ghi dữ liệu; nhưng mở quyền ghi chung thì ai cũng ghi đè được cả bảng kết quả. Lời giải là một hàm trên máy chủ tên `bq_vote`, làm đúng một việc: sửa **một** lá phiếu của **một** đại biểu trong **một** phiên, từ chối lựa chọn lạ, mã sai dạng, phiên đã khóa. Không giao chìa khóa kho cho khách, chỉ khoét một khe trên thùng phiếu. Kết quả thì ai cũng xem được nhờ quyền đọc công khai riêng cho dòng dữ liệu biểu quyết.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: mỗi máy một kết quả**
 
-Trước khi có hàm `bq_vote`, lá phiếu chỉ nằm trên máy đang bấm. Máy tôi một kết quả, máy đồng nghiệp một kết quả khác. Có hàm rồi vẫn còn một lỗ hổng, phát hiện trong đợt rà soát đồng bộ toàn hệ thống: bộ phiên biểu quyết mẫu chỉ được dựng trên từng trình duyệt, máy chủ chưa hề có dòng dữ liệu biểu quyết. Khách bấm nút, hàm trên máy chủ không tìm thấy phiên nào để ghi, và lá phiếu lại rơi về máy cục bộ.
+Trước khi có hàm `bq_vote`, lá phiếu chỉ nằm trên máy đang bấm, mỗi máy một kết quả. Có hàm rồi vẫn còn lỗ hổng, phát hiện trong đợt rà soát đồng bộ toàn hệ thống: bộ phiên mẫu chỉ được dựng trên từng trình duyệt, máy chủ chưa hề có dòng dữ liệu biểu quyết. Khách bấm nút, hàm trên máy chủ không tìm thấy phiên để ghi, lá phiếu lại rơi về máy cục bộ.
 
-Cách sửa đúng nguyên tắc "dữ liệu mẫu là dữ liệu chính thống" (mục 12.5): người đăng nhập đầu tiên mở phân hệ sẽ tự ghi bộ dữ liệu mẫu lên máy chủ. Từ đó mọi máy bỏ phiếu vào cùng một kết quả. Thông báo lỗi cũng được viết lại để phân biệt hai trường hợp: "máy chủ chưa có dữ liệu phiên" và "chưa bật hàm bỏ phiếu dùng chung".
+Cách sửa theo đúng nguyên tắc "dữ liệu mẫu là dữ liệu chính thống" (mục 12.5): người đăng nhập đầu tiên mở phân hệ sẽ tự ghi bộ mẫu lên máy chủ, từ đó mọi máy bỏ phiếu vào cùng một kết quả. Thông báo lỗi được viết lại để phân biệt "máy chủ chưa có dữ liệu phiên" với "chưa bật hàm bỏ phiếu dùng chung".
 :::
 
 Mẫu "mở quyền đọc, chỉ cho ghi qua một hàm hẹp có kiểm tra" được dùng lại ba lần trong hệ thống: bộ đếm lượt truy cập chỉ cộng thêm 1; đơn vị cấp xã ghi đúng phiếu tiêu chí của mình (Chương 11); đại biểu ghi đúng lá phiếu của mình.
 
 ### 12.3.5. Phiếu mô phỏng có "hạt giống" và nhãn mô phỏng
 
-Để bản demo có sẵn bảng điện tử mà xem, phần lớn ô được điền phiếu mô phỏng. Bộ sinh số dùng "hạt giống" lấy từ mã của phiên biểu quyết. Cùng một hạt giống thì sinh ra cùng một dãy số, nên mọi máy thấy cùng một bảng điện tử, không có chuyện mỗi lần tải lại trang ra một kết quả. Phiếu do người thật bấm luôn đè lên phiếu mô phỏng của cùng mã, và được đếm riêng thành "số phiếu thật".
+Để bản demo có sẵn bảng điện tử mà xem, phần lớn ô được điền phiếu mô phỏng bằng bộ sinh số có "hạt giống" lấy từ mã phiên. Cùng hạt giống thì cùng dãy số, nên mọi máy thấy cùng một bảng điện tử. Phiếu người thật bấm luôn đè lên phiếu mô phỏng của cùng mã và được đếm riêng thành "số phiếu thật".
 
-Bộ dữ liệu mẫu gồm 3 kỳ họp, 9 nghị quyết. Kỳ họp thứ 5 đang mở với 4 nghị quyết; kỳ họp thứ 4 và thứ 3 đã biểu quyết xong. Tôi cố ý để một nghị quyết của kỳ họp thứ 3 chỉ khoảng 45% tán thành, để bản demo có cả trường hợp không được thông qua. Bot chat được dặn luôn kèm lời nhắc "dữ liệu mô phỏng" khi kể kết quả biểu quyết. Hình ảnh của buổi diễn tập phòng cháy rất đúng ở đây: khói có thể giả, nhưng biển "DIỄN TẬP" phải treo thật to.
+Bộ mẫu gồm 3 kỳ họp, 9 nghị quyết: kỳ họp thứ 5 đang mở 4 nghị quyết, kỳ thứ 4 và thứ 3 đã xong. Tôi cố ý để một nghị quyết của kỳ thứ 3 chỉ khoảng 45% tán thành, để có cả trường hợp không được thông qua. Bot chat được dặn luôn kèm lời nhắc "dữ liệu mô phỏng". Như buổi diễn tập phòng cháy: khói có thể giả, nhưng biển "DIỄN TẬP" phải treo thật to.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 12.4 — Dựng phần kiểm phiếu đúng luật và kiểm thử được**
@@ -351,25 +346,23 @@ Ngoài hệ thống chính, tôi còn tự làm một số ứng dụng độc l
 | Giám sát số Thanh Hóa | Tệp dữ liệu tĩnh, tài khoản riêng | 12 nhóm nghiệp vụ giám sát, nghị quyết cấp xã |
 | Một dữ liệu – Không báo cáo lại | Máy chủ miễn phí, có lúc "ngủ" | Số liệu vào kho một lần, dữ liệu mở |
 
-Phân hệ Giám sát số theo Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân số 121/2025/QH15 (thông qua ngày 10/12/2025, có hiệu lực từ 01/3/2026), chia thành 12 nhóm nghiệp vụ, trọng tâm là giám sát nghị quyết của HĐND 166 xã, phường. Máy rà dấu hiệu, chấm rủi ro, trình danh mục; Thường trực HĐND tỉnh quyết định. Phân hệ Một dữ liệu thực hiện chủ trương số liệu chỉ vào kho một lần, từ đúng nguồn, đã có thì không yêu cầu báo cáo lại. Số liệu trong cả hai hệ thống là mô phỏng.
+Giám sát số bám Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân số 121/2025/QH15 (thông qua ngày 10/12/2025, hiệu lực từ 01/3/2026), trọng tâm là giám sát nghị quyết của HĐND 166 xã, phường: máy rà dấu hiệu, chấm rủi ro, trình danh mục; Thường trực HĐND tỉnh quyết định. Một dữ liệu theo chủ trương số liệu chỉ vào kho một lần, đã có thì không yêu cầu báo cáo lại. Số liệu ở cả hai là mô phỏng.
 
-Mỗi hệ thống dùng một công nghệ khác nhau, có cơ sở dữ liệu và tài khoản đăng nhập riêng. Gộp tất cả vào một kho mã đồng nghĩa với thống nhất ngôn ngữ lập trình, cơ sở dữ liệu, hệ tài khoản. Việc đó tốn công, dễ vỡ, mà người dùng không được thêm gì đáng kể.
+Gộp cả ba vào một kho mã đồng nghĩa với thống nhất ngôn ngữ lập trình, cơ sở dữ liệu, hệ tài khoản: tốn công, dễ vỡ, mà người dùng không được thêm gì đáng kể.
 
 ### 12.4.2. Liên kết sao cho tử tế
 
-Gắn bằng liên kết không có nghĩa là dán một đường dẫn trơ trọi. Thẻ của hệ thống ngoài trên Trang chủ là một liên kết thật, mở ở thẻ trình duyệt mới một cách an toàn, nên bấm chuột giữa hay chuột phải "mở thẻ mới" đều dùng được. Nhãn thẻ đổi thành "Mở phân hệ" kèm biểu tượng mũi tên chéo, mô tả ghi rõ "Hệ thống riêng". Thẻ Một dữ liệu nói trước: lần mở đầu có thể chậm 30 đến 60 giây do máy chủ miễn phí "ngủ".
-
-Đường dẫn dạng `#/lichcongtac`, `#/giamsat`, `#/onedata` vẫn chia sẻ được. Mở ra, hệ thống hiện một màn chuyển tiếp ngắn, có sẵn liên kết bấm tay phòng khi trình duyệt chặn chuyển trang, và nút về Trang chủ. Trang Hướng dẫn ghi rõ "chạy trên hệ thống riêng, tài khoản đăng nhập riêng", để người dùng không ngạc nhiên khi phải đăng nhập lại.
+Gắn bằng liên kết không phải dán một đường dẫn trơ trọi. Thẻ hệ thống ngoài là liên kết thật, mở thẻ trình duyệt mới một cách an toàn; mô tả ghi rõ "Hệ thống riêng". Thẻ Một dữ liệu nói trước: lần mở đầu có thể chậm 30 đến 60 giây do máy chủ miễn phí "ngủ". Đường dẫn dạng `#/lichcongtac` vẫn chia sẻ được; mở ra là một màn chuyển tiếp ngắn, có liên kết bấm tay phòng khi trình duyệt chặn, và nút về Trang chủ. Trang Hướng dẫn ghi rõ "tài khoản đăng nhập riêng" để người dùng không ngạc nhiên.
 
 ### 12.4.3. Đọc dữ liệu qua "cửa chỉ đọc"
 
-Liên kết giải quyết chuyện đi lại của người. Còn chuyện bot chat cần số liệu của cả ba hệ thống thì giải quyết bằng cửa **chỉ đọc**. Lịch công tác đọc qua một cặp khóa riêng, chỉ lấy hai tuần (tuần này và tuần sau). Giám sát số đọc các tệp dữ liệu công khai; riêng kiến nghị cử tri ở đó vốn được thiết kế không lưu họ tên, điện thoại, địa chỉ. Một dữ liệu đọc qua cửa dữ liệu mở, có trần chờ 7 giây; quá giờ thì bot nói thật là chưa lấy được, không đoán số. Chương 14 kể chi tiết.
+Liên kết giải quyết chuyện đi lại của người; còn bot chat cần số liệu thì đi qua cửa **chỉ đọc**. Lịch công tác đọc qua cặp địa chỉ và khóa riêng, chỉ lấy hai tuần. Lưu ý: khóa này có quyền cao ở hệ thống bên kia; bot chỉ đọc là do mã được viết như vậy, nên khóa phải nằm kín ở máy chủ. Giám sát số đọc các tệp dữ liệu công khai; kiến nghị cử tri ở đó vốn được thiết kế không lưu họ tên, điện thoại, địa chỉ. Một dữ liệu đọc qua cửa dữ liệu mở, trần chờ 7 giây; quá giờ thì bot nói thật là chưa lấy được, không đoán số (Chương 14).
 
-Có một chi tiết đáng kể vì nó trung thực với chính dự án. Đến thời điểm viết sách, tệp mô tả kiến trúc trong bộ nhớ dự án vẫn còn câu "bot không đọc được dữ liệu lịch", trong khi mục bot chat ngay trong cùng tệp đã mô tả việc đọc lịch. Mã đổi nhưng tài liệu cho AI chưa đổi theo. Đó là lý do quy tắc rà soát ở Chương 7 đòi cập nhật tài liệu cùng lúc với mã.
+Một chi tiết trung thực của chính dự án: đến thời điểm viết sách, tệp mô tả kiến trúc trong bộ nhớ dự án vẫn còn câu ghi rằng bot chat không đọc được dữ liệu lịch, trong khi mục bot chat của cùng tệp đã mô tả việc đọc lịch. Mã đổi, tài liệu cho AI chưa đổi theo; đó là lý do quy tắc rà soát ở Chương 7 đòi cập nhật tài liệu cùng lúc với mã.
 
 ### 12.4.4. Khi nào tích hợp, khi nào liên kết
 
-Không có công thức cứng, nhưng có mấy câu hỏi giúp quyết định. Ví von của tôi: các cơ quan phối hợp qua công văn và cổng thông tin, không phải sáp nhập trụ sở mới làm việc chung được.
+Không có công thức cứng, nhưng có mấy câu hỏi giúp quyết định. Các cơ quan phối hợp qua công văn và cổng thông tin, không cần sáp nhập trụ sở mới làm việc chung được.
 
 | Câu hỏi | Nghiêng về gộp | Nghiêng về liên kết |
 |---|---|---|
@@ -378,44 +371,19 @@ Không có công thức cứng, nhưng có mấy câu hỏi giúp quyết địn
 | Cùng công nghệ, cùng người duy trì? | Có | Khác nhau |
 | Người dùng chính có trùng nhau? | Trùng nhiều | Khác nhau |
 
-Phân hệ Trợ lý AI là ví dụ của phía "gộp". Nó vốn là một ứng dụng Python riêng, nhưng cần dùng chung đăng nhập, hạn mức lượt gọi AI và chức năng xuất Word của hệ thống, nên được chuyển hẳn sang cùng công nghệ (Chương 13). Ba hệ thống trên là ví dụ của phía "liên kết".
-
-::: {.lenhmau}
-**Câu lệnh mẫu 12.5 — Gắn một hệ thống riêng vào Trang chủ bằng liên kết**
-
-```text
-Hãy thêm phân hệ "[tên hệ thống]" vào Trang chủ dưới dạng hệ thống
-ngoài, địa chỉ [https://...], đường dẫn chia sẻ #/[tên-ngắn].
-Yêu cầu: khai đúng một mục trong danh mục phân hệ; thẻ là liên kết
-mở thẻ mới an toàn; mô tả thẻ ghi "Hệ thống riêng" và mọi hạn chế
-người dùng cần biết trước (ví dụ: lần mở đầu chậm); đường dẫn
-#/[tên-ngắn] tự chuyển tiếp, có liên kết bấm tay và nút về Trang chủ;
-cập nhật trang Hướng dẫn và kiến thức của bot (bot KHÔNG đọc được dữ
-liệu bên đó, trừ khi tôi giao việc riêng).
-Không gộp mã nguồn, không dùng chung khóa bí mật của hai hệ thống.
-Nghiệm thu: chạy bản dựng, bấm thử thẻ và đường dẫn; báo cáo.
-```
-:::
-
-::: {.lanhdao}
-**Dành cho lãnh đạo**
-
-- Mỗi hệ thống ngoài là thêm một chỗ phụ thuộc: một hạ tầng, một hệ tài khoản, một người hiểu nó. Cơ quan nên có danh mục các hệ thống, ghi rõ người chịu trách nhiệm từng hệ thống.
-- Gói miễn phí có điều kiện: cơ sở dữ liệu gói miễn phí của Supabase tạm dừng sau một tuần không hoạt động; máy chủ miễn phí của phân hệ Một dữ liệu "ngủ" khi không ai dùng (theo tài liệu dịch vụ và ghi nhận của dự án, tại thời điểm viết 10/2026, có thể thay đổi).
-- Theo khoản 2 Điều 6 Nghị định 331/2026/NĐ-CP, hệ thống thông tin đáp ứng tiêu chí của nhiều cấp độ thì áp dụng cấp độ cao nhất, và không được xác định phạm vi hệ thống một cách hình thức để giảm yêu cầu an ninh mạng. Tách hay gộp hệ thống khi chuyển sang dùng thật phải dựa trên nghiệp vụ, không dựa trên mong muốn nhẹ thủ tục.
-:::
+Phân hệ Trợ lý AI là ví dụ của phía "gộp". Nó vốn là một ứng dụng Python riêng, nhưng cần dùng chung đăng nhập và chức năng xuất Word của hệ thống, nên được chuyển hẳn sang cùng công nghệ (Chương 13). Ba hệ thống trên là ví dụ của phía "liên kết".
 
 ## 12.5. Bài học: dữ liệu demo là dữ liệu chính thống; mỗi phân hệ một kho dữ liệu riêng
 
 ### 12.5.1. Một nguồn sự thật cho mọi vai
 
-Chương 9 đã kể sự cố tài khoản khách và tài khoản quản trị thấy hai danh sách cán bộ khác nhau, vì khách không đọc được máy chủ nên phần mềm tự dựng danh sách mẫu tại chỗ. Ở quy mô một cổng nhiều phân hệ, bài học đó trở thành nguyên tắc chung, ghi trong bộ nhớ dự án: dữ liệu mẫu không phải "dữ liệu tạm cho khách" mà là dữ liệu chuẩn của bản demo. Khách và người đăng nhập đọc cùng một nguồn; khách chỉ khác ở chỗ không được ghi. Cấm thêm nhánh "khách thì dựng dữ liệu riêng tại chỗ".
+Chương 9 đã kể sự cố tài khoản khách và tài khoản quản trị thấy hai danh sách cán bộ khác nhau, vì khách không đọc được máy chủ nên phần mềm tự dựng danh sách mẫu tại chỗ. Ở quy mô cổng nhiều phân hệ, bài học đó thành nguyên tắc chung trong bộ nhớ dự án: dữ liệu mẫu không phải "dữ liệu tạm cho khách" mà là dữ liệu chuẩn của bản demo. Khách và người đăng nhập đọc cùng một nguồn, chỉ khác ở quyền ghi; cấm thêm nhánh "khách thì dựng dữ liệu riêng tại chỗ".
 
-Nguyên tắc ấy được áp đồng loạt: bảng điểm các kỳ, phiếu tiêu chí HĐND, phiên biểu quyết, sổ tay AI đều có quyền đọc công khai riêng; phân hệ Tiêu chí HĐND bỏ hẳn nút gạt "dữ liệu mẫu / dữ liệu thật" (Chương 11); phân hệ Biểu quyết tự ghi bộ mẫu lên máy chủ (mục 12.3.4). Đi kèm là một kỷ luật: mỗi quyết định "mở cho demo" phải có sẵn cách "đóng lại khi dùng thật". Tệp lược đồ cơ sở dữ liệu để sẵn câu lệnh gỡ quyền đọc công khai ngay dưới câu lệnh mở.
+Nguyên tắc ấy được áp đồng loạt: bảng điểm các kỳ, phiếu tiêu chí HĐND, phiên biểu quyết, sổ tay AI đều có quyền đọc công khai riêng; Tiêu chí HĐND bỏ hẳn nút gạt "dữ liệu mẫu / dữ liệu thật" (Chương 11); Biểu quyết tự ghi bộ mẫu lên máy chủ (mục 12.3.4). Đi kèm là kỷ luật: mở cho demo thì phải sẵn cách đóng khi dùng thật. Ngay trong chú thích của bước mở quyền đọc, tệp lược đồ cơ sở dữ liệu ghi sẵn câu lệnh gỡ quyền đó.
 
 ### 12.5.2. Mỗi phân hệ một tủ hồ sơ
 
-Chương 10 đã kể sự cố hai phân hệ dùng chung một "bìa hồ sơ" đặt tên theo năm và tháng: Quý III của Kiểm điểm trùng tên với kỳ tháng 9 của OKR/KPI, ai mở sau thì ghi đè người trước. Cách sửa là thêm tiền tố riêng cho từng phân hệ. Riêng OKR/KPI giữ tên cũ để không mất dữ liệu đã lưu. Tài liệu kiến trúc ghi một câu bắt buộc: thêm phân hệ mới dùng ứng dụng chấm điểm chung thì phải có tiền tố riêng.
+Chương 10 đã kể sự cố hai phân hệ dùng chung một "bìa hồ sơ" đặt tên theo năm và tháng: Quý III của Kiểm điểm trùng tên với kỳ tháng 9 của OKR/KPI, ai mở sau ghi đè người trước. Cách sửa là thêm tiền tố riêng cho từng phân hệ, riêng OKR/KPI giữ tên cũ để không mất dữ liệu. Tài liệu kiến trúc ghi một câu bắt buộc: phân hệ mới dùng ứng dụng chấm điểm chung phải có tiền tố riêng.
 
 Nhìn cả hệ thống, toàn bộ dữ liệu nằm trong một bảng duy nhất, mỗi dòng là một "tủ hồ sơ" có nhãn. Điều quyết định không phải số tủ, mà là mỗi tủ có một trong ba kiểu cửa.
 
@@ -432,20 +400,20 @@ Dòng thứ hai có ghi chú riêng trong tệp lược đồ: khách vào thấ
 ::: {.thuchanh}
 **Thực hành: mười câu hỏi trước khi bấm "triển khai" một phân hệ mới**
 
-1. Đã khai phân hệ ở đúng một chỗ trong danh mục chưa? Đường dẫn có trùng phân hệ khác không?
-2. Dữ liệu cất ở tủ nào? Tủ đó có trùng tên với tủ của phân hệ khác không?
-3. Kiểu cửa của tủ là gì: chỉ Quản trị, chỉ người đăng nhập, hay đọc công khai và ghi qua hàm hẹp?
-4. Đã thử bằng cả vai Khách, vai Cán bộ, vai Quản trị chưa? Ba vai có thấy cùng một sự thật không?
-5. Danh sách người lấy từ hồ sơ một mối, hay lại tự giữ một danh sách riêng?
-6. Có dữ liệu cá nhân nào sắp lọt vào mã nguồn hoặc vào nội dung gửi cho AI không?
+1. Phân hệ đã khai ở đúng một chỗ trong danh mục? Đường dẫn có trùng không?
+2. Dữ liệu cất ở tủ nào, có trùng tên tủ của phân hệ khác không?
+3. Tủ có kiểu cửa nào: chỉ Quản trị, chỉ người đăng nhập, hay đọc công khai và ghi qua hàm hẹp?
+4. Đã thử bằng vai Khách, Cán bộ, Quản trị chưa? Ba vai có thấy cùng một sự thật?
+5. Danh sách người lấy từ hồ sơ một mối hay lại tự giữ riêng?
+6. Có dữ liệu cá nhân nào sắp lọt vào mã nguồn hoặc vào nội dung gửi cho AI?
 7. Kỳ trống, danh sách trống, ngày đầu tháng thì màn hình ra sao?
-8. Bot chat, các hàm xuất báo cáo, trang Hướng dẫn đã được cập nhật theo chưa?
-9. Nhãn "Bản demo thử nghiệm", "dữ liệu mô phỏng" đã hiện ở chỗ người xem dễ thấy chưa?
-10. Đã ghi nhật ký thay đổi: làm gì, vì sao, kiểm chứng thế nào, việc gì người dùng phải tự làm chưa?
+8. Bot chat, hàm xuất báo cáo, trang Hướng dẫn đã cập nhật theo chưa?
+9. Nhãn "Bản demo thử nghiệm", "dữ liệu mô phỏng" đã hiện chỗ dễ thấy chưa?
+10. Nhật ký thay đổi đã ghi: làm gì, vì sao, kiểm chứng ra sao, việc gì người dùng phải tự làm?
 :::
 
 ::: {.lenhmau}
-**Câu lệnh mẫu 12.6 — Thêm một phân hệ mới vào cổng**
+**Câu lệnh mẫu 12.5 — Thêm một phân hệ mới vào cổng**
 
 ```text
 Vai: Đồng chí là tác tử AI lập trình, đã đọc bộ nhớ dự án.
@@ -467,25 +435,27 @@ hỏi của bảng kiểm; bản dựng xanh; thử ba vai; ghi nhật ký thay 
 
 - Một cổng nhiều phân hệ chỉ vững khi có quy ước chung về danh sách cán bộ, nơi cất dữ liệu và quyền xem. Đó là việc của người chủ hệ thống, không thể phó mặc cho AI.
 - Dữ liệu demo đọc công khai là lựa chọn có chủ đích của giai đoạn thử nghiệm. Trước khi dùng dữ liệu thật phải gỡ các quyền đọc công khai và chuyển sang hạ tầng của cơ quan.
-- Theo Nghị định 331/2026/NĐ-CP, hệ thống phục vụ hoạt động nội bộ có xử lý thông tin cá nhân của người sử dụng thuộc nhóm cấp độ 2 trở lên. Một phân hệ quản lý hồ sơ cán bộ dùng thật cần được xác định cấp độ và có biện pháp bảo vệ tương ứng.
+- Mỗi hệ thống ngoài là thêm một chỗ phụ thuộc: một hạ tầng, một hệ tài khoản, một người hiểu nó. Cơ quan nên có danh mục các hệ thống, ghi rõ người chịu trách nhiệm; Nghị định 331/2026/NĐ-CP cũng yêu cầu mỗi hệ thống có một chủ quản duy nhất.
+- Gói miễn phí có điều kiện: cơ sở dữ liệu gói miễn phí của Supabase tạm dừng sau một tuần không hoạt động; máy chủ miễn phí của phân hệ Một dữ liệu "ngủ" khi không ai dùng (theo tài liệu dịch vụ và ghi nhận của dự án, tại thời điểm viết 10/2026, có thể thay đổi).
+- Theo Nghị định 331/2026/NĐ-CP, hệ thống phục vụ hoạt động nội bộ có xử lý thông tin cá nhân của người sử dụng (không xử lý bí mật nhà nước) thuộc tiêu chí cấp độ 2. Khoản 2 Điều 6 của Nghị định quy định hệ thống đáp ứng tiêu chí của nhiều cấp độ thì áp dụng cấp độ cao nhất, và không được xác định phạm vi hệ thống một cách hình thức để giảm yêu cầu an ninh mạng. Vì vậy phân hệ hồ sơ cán bộ dùng thật phải được xác định cấp độ; tách hay gộp hệ thống phải dựa trên nghiệp vụ, không dựa trên mong muốn nhẹ thủ tục.
 :::
 
 ## Tóm tắt chương 12
 
 ::: {.tomtat}
-1. Trang chủ dạng cổng là "sảnh" của hệ thống; mỗi phân hệ khai báo đúng một lần trong một danh mục dùng chung, có đường dẫn chia sẻ được và chỉ tải khi cần.
-2. Danh sách cán bộ về một mối là hồ sơ Mẫu 2C; các phân hệ chấm điểm chỉ đọc, giữ nguyên điểm đã chấm; nhận dạng người bằng email hoặc họ tên kèm đơn vị.
-3. Phân hệ Quản lý cán bộ nhắc bảy loại mốc, trong đó nghỉ hưu tính theo Nghị định 135/2020/NĐ-CP; phần mềm chỉ nhắc, quyết định thuộc cơ quan có thẩm quyền.
-4. Hồ sơ 2C chứa cả dữ liệu cá nhân cơ bản và nhạy cảm; quyền thật phải nằm ở cơ sở dữ liệu, ẩn thẻ trên giao diện chưa phải bảo mật; số điện thoại thật không bao giờ vào kho mã.
-5. Biểu quyết Online tính trên tổng số 82 đại biểu (42/82 và 55/82), đánh số đại biểu, ghi phiếu qua một hàm hẹp, dán nhãn mô phỏng; đây là công cụ demo, không thay hệ thống chính thức.
-6. Hệ thống khác công nghệ, khác tài khoản thì gắn bằng liên kết tử tế và đọc dữ liệu qua cửa chỉ đọc; cần dùng chung đăng nhập, cùng ghi dữ liệu thì mới tính chuyện gộp.
+1. Trang chủ dạng cổng là "sảnh" của hệ thống; mỗi phân hệ khai báo đúng một lần trong danh mục dùng chung, có đường dẫn chia sẻ được, chỉ tải khi cần.
+2. Danh sách cán bộ về một mối là hồ sơ Mẫu 2C; phân hệ chấm điểm chỉ đọc, giữ nguyên điểm đã chấm; nhận dạng người bằng email hoặc họ tên kèm đơn vị.
+3. Quản lý cán bộ nhắc bảy loại mốc, nghỉ hưu tính theo Nghị định 135/2020/NĐ-CP; phần mềm chỉ nhắc, quyết định thuộc cơ quan có thẩm quyền.
+4. Hồ sơ 2C có cả dữ liệu cá nhân cơ bản và nhạy cảm; quyền thật nằm ở cơ sở dữ liệu, ẩn thẻ chưa phải bảo mật; số điện thoại thật không vào kho mã.
+5. Biểu quyết Online tính trên tổng số 82 đại biểu (42/82, 55/82), đánh số đại biểu, ghi phiếu qua một hàm hẹp, dán nhãn mô phỏng; là công cụ demo, không thay hệ thống chính thức.
+6. Hệ thống khác công nghệ, khác tài khoản thì gắn bằng liên kết tử tế, đọc dữ liệu qua cửa chỉ đọc; cần chung đăng nhập, cùng ghi dữ liệu mới tính chuyện gộp.
 7. Dữ liệu demo là dữ liệu chính thống; mỗi phân hệ một tủ hồ sơ với kiểu cửa rõ ràng; mở cho demo thì phải sẵn cách đóng khi dùng thật.
 :::
 
 ## Câu hỏi suy ngẫm và bài tập
 
-1. Ở cơ quan đồng chí, danh sách cán bộ đang nằm ở bao nhiêu nơi (bảng tính thi đua, chấm công, danh bạ, phần mềm chuyên ngành)? Nơi nào nên là "một mối", vì sao?
-2. Dùng Câu lệnh mẫu 12.3 lập sổ nhắc mốc nhân sự với năm hồ sơ giả định. Ca nào AI tính sai lần đầu? Đồng chí phát hiện bằng cách nào?
-3. Vì sao biểu quyết phải tính trên tổng số đại biểu? Hãy giải thích cho một đồng nghiệp chưa từng phục vụ kỳ họp bằng một ví dụ con số.
-4. Chọn một ứng dụng đồng chí đang dùng hoặc định làm. Dùng bảng ở mục 12.4.4 để quyết định nên gộp hay chỉ liên kết, và ghi lý do.
+1. Ở cơ quan đồng chí, danh sách cán bộ đang nằm ở bao nhiêu nơi (bảng tính thi đua, chấm công, danh bạ)? Nơi nào nên là "một mối", vì sao?
+2. Dùng Câu lệnh mẫu 12.3 lập sổ nhắc mốc với năm hồ sơ giả định. Ca nào AI tính sai lần đầu, và đồng chí phát hiện bằng cách nào?
+3. Vì sao biểu quyết phải tính trên tổng số đại biểu? Giải thích cho một đồng nghiệp chưa từng phục vụ kỳ họp bằng một ví dụ con số.
+4. Chọn một ứng dụng đồng chí đang dùng hoặc định làm; dùng bảng ở mục 12.4.4 để quyết định gộp hay liên kết, ghi lý do.
 5. Với vai trò lãnh đạo, đồng chí cần thấy những gì trên giấy trước khi cho phép một phân hệ có hồ sơ cán bộ thật được đưa vào sử dụng?

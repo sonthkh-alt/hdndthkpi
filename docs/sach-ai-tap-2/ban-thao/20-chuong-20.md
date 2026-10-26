@@ -21,7 +21,7 @@ Nhiều đồng chí hỏi tôi bao giờ thì bỏ dòng chữ ấy. Dòng ch�
 
 ### 20.1.1. Bản demo của Văn phòng đang đứng ở đâu
 
-Xin kể trung thực hệ thống đang chạy trên những gì. Mã nguồn nằm trong một kho mã nguồn (repository) công khai trên GitHub. Giao diện và các hàm máy chủ chạy trên Vercel; cơ sở dữ liệu (database) là Supabase, máy chủ đặt tại khu vực Singapore; cả hai đều ở gói miễn phí. Toàn bộ dữ liệu nằm trong một bảng duy nhất. Phần lớn số liệu hiển thị là dữ liệu mô phỏng. Một số dòng dữ liệu được mở quyền đọc công khai để khách và quản trị thấy cùng một dữ liệu; mã giao diện có sẵn tài khoản dùng thử. Tôi là quản trị gốc; kho mã và các tài khoản dịch vụ gắn với tài khoản cá nhân của tôi; và tôi cũng là người duy nhất hiểu toàn bộ hệ thống.
+Xin kể trung thực hệ thống đang chạy trên những gì. Mã nguồn nằm trong một kho mã nguồn (repository) công khai trên GitHub. Giao diện và các hàm máy chủ chạy trên Vercel; cơ sở dữ liệu (database) là Supabase, máy chủ đặt tại khu vực Singapore; cả hai đều ở gói miễn phí. Toàn bộ dữ liệu nằm trong một bảng; phần lớn số liệu là mô phỏng. Một số dòng dữ liệu được mở quyền đọc công khai để khách và quản trị thấy cùng một dữ liệu; mã giao diện có sẵn tài khoản dùng thử. Tôi là quản trị gốc; kho mã và các tài khoản dịch vụ gắn với tài khoản cá nhân của tôi; và tôi cũng là người duy nhất hiểu toàn bộ hệ thống.
 
 Tệp hướng dẫn gốc của kho mã có một câu tôi coi là "giấy khai sinh" của bản demo: *"Khi dùng thật với dữ liệu thật → chuyển sang máy chủ nội bộ cơ quan"*.
 
@@ -47,13 +47,13 @@ Mỗi quyết định "cho tiện trình diễn" là một khoản nợ phải t
 
 **Thứ nhất, về pháp lý.** Bản demo chỉ cho kết quả tham khảo. Luật Giao dịch điện tử số 20/2023/QH15 (hiệu lực 01/7/2024) thừa nhận giá trị pháp lý của thông điệp dữ liệu, nhưng điều đó không biến một tệp Word do phần mềm xuất ra thành văn bản đã ban hành. Phiếu đánh giá, biên bản biểu quyết chỉ có giá trị khi người có thẩm quyền ký, ban hành theo quy trình văn thư và thể thức của Nghị định 30/2020/NĐ-CP. Hệ thống chính thức được đưa vào sử dụng bằng quyết định của cấp có thẩm quyền, có quy chế vận hành; riêng biểu quyết tại kỳ họp phải theo Quy chế làm việc của HĐND, ứng dụng tự làm không thay được.
 
-**Thứ hai, về hạ tầng.** Theo tài liệu của Supabase (tra cứu ngày 26/10/2026), dự án ở gói miễn phí bị tạm dừng sau một tuần không hoạt động; gói trả phí từ 25 USD/tháng thì không bị tạm dừng (giá tham khảo tại thời điểm viết, có thể thay đổi). Phân hệ Một dữ liệu trên gói miễn phí của Render "ngủ" sau khoảng 15 phút không ai dùng, lần mở đầu mất 30 đến 60 giây. Điều khoản của nhiều gói miễn phí giới hạn cho mục đích cá nhân, phi thương mại, cần đọc kỹ trước khi dùng cho việc chính thức. Và máy chủ cơ sở dữ liệu đặt ở nước ngoài: khi có dữ liệu cá nhân thật, việc chuyển dữ liệu ra nước ngoài phải được đánh giá theo pháp luật về bảo vệ dữ liệu cá nhân.
+**Thứ hai, về hạ tầng.** Theo tài liệu của Supabase (tra cứu ngày 26/10/2026), dự án ở gói miễn phí bị tạm dừng sau một tuần không hoạt động; gói trả phí từ 25 USD/tháng thì không bị tạm dừng (giá tham khảo tại thời điểm viết, có thể thay đổi). Phân hệ Một dữ liệu trên gói miễn phí của Render "ngủ" sau khoảng 15 phút không ai dùng. Điều khoản của nhiều gói miễn phí giới hạn cho mục đích cá nhân, phi thương mại, cần đọc kỹ trước khi dùng cho việc chính thức. Và máy chủ cơ sở dữ liệu đặt ở nước ngoài: khi có dữ liệu cá nhân thật, việc chuyển dữ liệu ra nước ngoài phải được đánh giá theo pháp luật về bảo vệ dữ liệu cá nhân.
 
 **Thứ ba, về an toàn thông tin theo cấp độ.** Từ 01/7/2026, Luật An ninh mạng số 116/2025/QH15 có hiệu lực; Nghị định 331/2026/NĐ-CP quy định tiêu chí xác định cấp độ hệ thống thông tin từ 1 đến 5 và biện pháp bảo vệ tương ứng. Bản demo chạy dữ liệu mô phỏng nên chưa đặt ra câu hỏi cấp độ; hệ thống chính thức phải trả lời bằng một hồ sơ được thẩm định. Khung cũ theo Nghị định 85/2016/NĐ-CP nay chỉ còn được viện dẫn ở quy định chuyển tiếp.
 
 **Thứ tư, về trách nhiệm.** Luật Trí tuệ nhân tạo số 134/2025/QH15 (hiệu lực 01/3/2026) phân biệt nhà phát triển, nhà cung cấp, bên triển khai và người sử dụng hệ thống AI (Điều 3). Cán bộ dùng trợ lý AI để soạn văn bản là người sử dụng; nhưng khi tự làm ứng dụng có gọi AI rồi đưa đồng nghiệp dùng, vai trò của cơ quan và của người làm có thể đã khác. Khoản 2 Điều 4 của Luật nói rõ: *"Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người"*. Ở bản demo, trách nhiệm dồn về một người; ở hệ thống chính thức, Nghị định 331/2026/NĐ-CP yêu cầu một chủ quản duy nhất, và bên trong phải rõ ai lo nghiệp vụ, ai lo kỹ thuật, ai lo dữ liệu.
 
-**Thứ năm, về hỗ trợ vận hành.** Sáng 10/9/2026 bản tin pháp luật không ra; bot Zalo trả lời hai lần một câu hỏi; người sửa đều là tôi. Bản đặc tả yêu cầu phần mềm Văn phòng soạn tháng 7/2026 đòi hỏi hệ thống chính thức: phản hồi thao tác thông thường không quá 03 giây, chịu tải cao điểm các ngày 24 đến 28 hằng tháng, sao lưu tự động hằng ngày, nhật ký toàn bộ thao tác tạo, sửa, xóa, phê duyệt. Bản demo không cam kết những điều đó; và nếu tôi đi công tác dài ngày, không ai khác sửa được. Chương 17 gọi đây là rủi ro "người duy nhất biết".
+**Thứ năm, về hỗ trợ vận hành.** Sáng 10/9/2026 bản tin pháp luật không ra; bot Zalo trả lời hai lần một câu hỏi; người sửa đều là tôi. Bản đặc tả yêu cầu phần mềm Văn phòng soạn tháng 7/2026 đòi hỏi hệ thống chính thức: phản hồi thao tác thông thường không quá 03 giây, chịu tải cao điểm các ngày 24 đến 28 hằng tháng, sao lưu tự động hằng ngày, nhật ký toàn bộ thao tác tạo, sửa, xóa, phê duyệt. Bản demo không cam kết những điều đó; tôi đi công tác dài ngày thì không ai khác sửa được, đúng rủi ro "người duy nhất biết" ở Chương 17.
 
 ::: {.phaply}
 **Căn cứ pháp lý: an toàn hệ thống thông tin theo cấp độ**
@@ -82,7 +82,7 @@ Tôi thử đặt các phân hệ vào khung cấp độ theo dữ liệu chúng
 | Bot Zalo, Telegram | Câu hỏi, số liệu nạp kèm, danh bạ | Từ cấp độ 2 trở lên |
 | Biểu quyết | Kết quả biểu quyết của kỳ họp | Cần đánh giá riêng |
 
-Bài tập dạy tôi một điều quan trọng hơn chính bảng phân loại. Hệ thống thử nghiệm dùng chung một bảng dữ liệu, một tài khoản dịch vụ, một cửa đăng nhập cho mọi phân hệ, mà theo khoản 2 Điều 6 Nghị định 331/2026/NĐ-CP, hệ thống đáp ứng nhiều cấp độ thì áp dụng cấp độ cao nhất. Theo cách tôi hiểu, chính thức hóa nguyên trạng thì cả hệ thống có thể phải theo cấp độ của hồ sơ cán bộ, và không được "cắt" phạm vi trên giấy để hạ cấp độ. Bài học thiết kế: phần chứa dữ liệu nhạy cảm nên được tách thành hệ thống riêng ngay từ kiến trúc.
+Bài tập dạy tôi một điều quan trọng hơn. Hệ thống thử nghiệm dùng chung một bảng dữ liệu, một tài khoản dịch vụ, một cửa đăng nhập cho mọi phân hệ, mà theo khoản 2 Điều 6 Nghị định 331/2026/NĐ-CP, hệ thống đáp ứng nhiều cấp độ thì áp dụng cấp độ cao nhất. Theo cách tôi hiểu, chính thức hóa nguyên trạng thì cả hệ thống có thể phải theo cấp độ của hồ sơ cán bộ, và không được "cắt" phạm vi trên giấy để hạ cấp độ. Bài học thiết kế: phần chứa dữ liệu nhạy cảm nên được tách thành hệ thống riêng ngay từ kiến trúc.
 
 ::: {.thuchanh}
 **Thực hành: tự phân loại ứng dụng của mình trong 15 phút**
@@ -162,7 +162,7 @@ Câu lệnh (prompt) này chỉ chứa thông tin vùng XANH và VÀNG đã ẩn
 
 **Hai là đánh giá tác động xử lý dữ liệu cá nhân** theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP, cùng hiệu lực từ 01/01/2026. Nghị định 356/2025/NĐ-CP thay thế Nghị định 13/2023/NĐ-CP, ban hành biểu mẫu hồ sơ đánh giá tác động; Điều 3 và Điều 4 liệt kê dữ liệu cá nhân cơ bản và nhạy cảm. Hồ sơ Mẫu 2C có nhiều trường thuộc đúng các danh mục ấy.
 
-**Ba là phân loại rủi ro của hệ thống có dùng AI.** Nghị định 142/2026/NĐ-CP (hiệu lực 01/5/2026) yêu cầu phân loại rủi ro trước khi đưa hệ thống vào sử dụng, và phân loại lại khi thay đổi chức năng làm phát sinh rủi ro mới. Quyết định 33/2026/QĐ-TTg (hiệu lực 15/8/2026) ban hành Danh mục hệ thống AI rủi ro cao thuộc sáu lĩnh vực: giáo dục; dân tộc và tôn giáo; y tế; ngân hàng; tố tụng; giao thông vận tải. Theo tôi, các phân hệ của Văn phòng không thuộc sáu lĩnh vực này, nhưng nhận định ấy phải thành hồ sơ có người ký. Thông tư 05/2026/TT-BKHCN về Khung đạo đức trí tuệ nhân tạo quốc gia áp dụng bắt buộc với cơ quan quản lý nhà nước và tổ chức, cá nhân dùng AI phục vụ quản lý nhà nước, cung cấp dịch vụ công; Văn phòng nên coi mình thuộc phạm vi này.
+**Ba là phân loại rủi ro của hệ thống có dùng AI.** Nghị định 142/2026/NĐ-CP (hiệu lực 01/5/2026) yêu cầu phân loại rủi ro trước khi đưa hệ thống vào sử dụng, và phân loại lại khi thay đổi chức năng làm phát sinh rủi ro mới. Quyết định 33/2026/QĐ-TTg (hiệu lực 15/8/2026) ban hành Danh mục hệ thống AI rủi ro cao thuộc sáu lĩnh vực: giáo dục; dân tộc và tôn giáo; y tế; ngân hàng; tố tụng; giao thông vận tải. Theo tôi, các phân hệ của Văn phòng không thuộc sáu lĩnh vực này, nhưng nhận định ấy phải thành hồ sơ có người ký. Thông tư 05/2026/TT-BKHCN về Khung đạo đức trí tuệ nhân tạo quốc gia áp dụng bắt buộc khi dùng AI phục vụ quản lý nhà nước, cung cấp dịch vụ công; Văn phòng nên coi mình thuộc phạm vi này.
 
 Nguyên liệu chung của cả ba bộ là một bản mô tả hệ thống trung thực: chức năng gì, lưu dữ liệu gì, ở đâu, ai đọc, ai ghi, dữ liệu đi ra những đâu. Tác tử AI lập trình (AI coding agent) làm việc này tốt vì nó đọc được toàn bộ kho mã.
 
@@ -199,7 +199,7 @@ Ngay bản đặc tả yêu cầu phần mềm của Văn phòng, soạn tháng 
 
 Hồ sơ cấp độ được thẩm định xong, hệ thống mới được chuyển lên hạ tầng phù hợp với cấp độ ấy; lựa chọn cụ thể thuộc về đơn vị chuyên trách.
 
-Có một thuận lợi: lõi cơ sở dữ liệu là PostgreSQL, phần mềm nguồn mở có tên trong danh mục ban đầu kèm Thông tư 20/2014/TT-BTTTT về các sản phẩm phần mềm nguồn mở được ưu tiên mua sắm, sử dụng trong cơ quan, tổ chức nhà nước. Nhưng phần đăng nhập và cửa giao dịch dữ liệu (API) của bản demo đang dùng dịch vụ riêng của Supabase, nên chuyển đi vẫn phải làm lại một phần.
+Có một thuận lợi: lõi cơ sở dữ liệu là PostgreSQL, phần mềm nguồn mở có tên trong danh mục ban đầu kèm Thông tư 20/2014/TT-BTTTT về phần mềm nguồn mở được ưu tiên mua sắm, sử dụng trong cơ quan nhà nước. Nhưng phần đăng nhập và cửa giao dịch dữ liệu (API) của bản demo đang dùng dịch vụ riêng của Supabase, nên chuyển đi vẫn phải làm lại một phần.
 
 Quan trọng hơn chuyển nhà là dọn nhà: trả hết các khoản "nợ trình diễn". Với hệ thống của Văn phòng, danh sách gồm:
 
@@ -214,7 +214,7 @@ Quan trọng hơn chuyển nhà là dọn nhà: trả hết các khoản "nợ t
 
 ### 20.2.4. Bước 4 — Chuyển giao cho đơn vị chuyên trách
 
-Chuyển giao là bàn giao đủ để người khác vận hành, sửa lỗi, phát triển tiếp mà không phải gọi điện cho người làm ra nó. Bộ hồ sơ tối thiểu gồm: kho mã kèm toàn bộ lịch sử; bộ nhớ dự án (tệp CLAUDE.md và thư mục quy tắc) cho tác tử AI của người tiếp nhận đọc; nhật ký thay đổi hơn 100 mục; lược đồ cơ sở dữ liệu với ghi chú quyền; hướng dẫn cài đặt các bot; danh sách biến môi trường (chỉ tên và công dụng, không ghi giá trị); bộ kiểm thử (test) và lệnh chạy; danh sách tài khoản dịch vụ cần chuyển sang đứng tên cơ quan.
+Chuyển giao là bàn giao đủ để người khác vận hành, sửa lỗi, phát triển tiếp mà không phải gọi điện cho người làm ra nó. Bộ hồ sơ tối thiểu gồm: kho mã kèm toàn bộ lịch sử; bộ nhớ dự án (tệp CLAUDE.md và thư mục quy tắc) cho tác tử AI của người tiếp nhận đọc; nhật ký thay đổi hơn 100 mục; lược đồ cơ sở dữ liệu; hướng dẫn cài đặt các bot; danh sách biến môi trường (chỉ tên và công dụng, không ghi giá trị); bộ kiểm thử (test) và lệnh chạy; danh sách tài khoản dịch vụ cần chuyển sang đứng tên cơ quan.
 
 Tôi phải thừa nhận một thiếu sót: nhiều bộ kiểm thử với hàng trăm phép kiểm lại nằm trong thư mục nháp không được đưa lên kho mã, nên máy khác không chạy lại được, trái với nguyên tắc "GitHub là nguồn duy nhất" của chính dự án. Trước khi bàn giao phải sửa việc này.
 
@@ -243,7 +243,7 @@ KHÔNG sửa, KHÔNG commit.
 
 ### 20.2.5. Bước 5 — Đào tạo và vận hành có kỷ luật
 
-Công cụ chính thức mà người dùng dùng sai còn nguy hiểm hơn không có. Đào tạo phải theo vai: cán bộ biết nhập gì, khi nào; lãnh đạo biết duyệt và hiểu vì sao phần mềm hạ mức xếp loại; quản trị biết cấp tài khoản, xử lý sự cố, khôi phục dữ liệu.
+Đào tạo phải theo vai: cán bộ biết nhập gì, khi nào; lãnh đạo biết duyệt và hiểu vì sao phần mềm hạ mức xếp loại; quản trị biết cấp tài khoản, xử lý sự cố, khôi phục dữ liệu.
 
 Ngày 7/5/2026, Thường trực HĐND tỉnh đã tổ chức tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng, có cả nội dung an toàn dữ liệu và đạo đức công vụ. Nhiệm vụ Sổ tay AI đặt chỉ tiêu 100% cán bộ, công chức Văn phòng được hướng dẫn trước ngày 25/11/2026; ở thời điểm viết, đó vẫn là chỉ tiêu. Đi cùng đào tạo là kỷ luật sử dụng: dự thảo Quy tắc sử dụng AI 9 điều kèm sổ cam kết (Phụ lục 4), và quy trình sự cố viết ra giấy: ai báo ai, xem trang chẩn đoán ở đâu, khi nào tạm dừng, khi nào khôi phục từ bản sao lưu.
 
@@ -251,7 +251,7 @@ Ngày 7/5/2026, Thường trực HĐND tỉnh đã tổ chức tập huấn sử
 
 Nghị quyết 57-NQ/TW ngày 22/12/2024 của Bộ Chính trị xác định khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số là "đột phá quan trọng hàng đầu", có tinh thần chấp nhận rủi ro và cơ chế thử nghiệm có kiểm soát. Luật Khoa học, công nghệ và đổi mới sáng tạo số 93/2025/QH15 (hiệu lực 01/10/2025) có cơ chế chấp nhận rủi ro đi kèm yêu cầu quản trị rủi ro. Đảng và Nhà nước cũng có chủ trương khuyến khích, bảo vệ cán bộ năng động, sáng tạo vì lợi ích chung. Nhưng xin đọc cho đúng: chấp nhận rủi ro, miễn hay loại trừ trách nhiệm chỉ áp dụng khi sáng kiến được tổ chức thành nhiệm vụ hoặc thử nghiệm được phê duyệt, tuân thủ đầy đủ quy trình. Ứng dụng tự làm rồi tự đưa vào dùng ngoài khuôn khổ ấy không mặc nhiên được miễn trách nhiệm.
 
-Hệ thống của Văn phòng đang đi hai đường. Một là sáng kiến: bản mô tả sáng kiến về phần mềm đánh giá theo OKR/KPI đã soạn để trình Hội đồng khoa học, sáng kiến của cơ quan; phần số liệu hiệu quả còn để trống, chờ có số đo thật. Hai là nhiệm vụ đột phá Văn phòng đã đăng ký (Trục 3, Mục V.5(4) của Đề án): thí điểm hỏi đáp, tra cứu bằng AI có trích dẫn nguồn, với bốn chỉ tiêu (06 sổ tay; ít nhất 50 câu hỏi mẫu đã đối chiếu; 100% cán bộ, công chức Văn phòng được hướng dẫn; thời gian tra cứu giảm ít nhất 30%) và ba mốc 15/11, 25/11, 10/12/2026. Chỉ tiêu giảm thời gian được đo bằng số phút tra thủ công so với khi dùng sổ tay: đo trước, đo sau, không ước lượng.
+Hệ thống của Văn phòng đang đi hai đường. Một là sáng kiến: bản mô tả sáng kiến về phần mềm đánh giá theo OKR/KPI đã soạn để trình Hội đồng khoa học, sáng kiến của cơ quan; phần số liệu hiệu quả còn để trống, chờ có số đo thật. Theo Điều lệ Sáng kiến ban hành kèm Nghị định 13/2012/NĐ-CP (vẫn đang được áp dụng làm căn cứ), sáng kiến được cơ sở công nhận khi có tính mới trong phạm vi cơ sở, đã được áp dụng hoặc áp dụng thử và có khả năng mang lại lợi ích thiết thực; người đứng đầu cơ sở xét công nhận. Lợi ích thiết thực phải chứng minh bằng số đo, không bằng lời kể. Hai là nhiệm vụ đột phá Văn phòng đã đăng ký (Trục 3, Mục V.5(4) của Đề án): thí điểm hỏi đáp, tra cứu bằng AI có trích dẫn nguồn, với bốn chỉ tiêu (06 sổ tay; ít nhất 50 câu hỏi mẫu đã đối chiếu; 100% cán bộ, công chức Văn phòng được hướng dẫn; thời gian tra cứu giảm ít nhất 30%) và ba mốc 15/11, 25/11, 10/12/2026. Chỉ tiêu giảm thời gian được đo bằng số phút tra thủ công so với khi dùng sổ tay: đo trước, đo sau, không ước lượng.
 
 ::: {.vidu}
 **Ví dụ minh họa: hai ứng dụng, hai mức hồ sơ**
@@ -278,7 +278,7 @@ Từ hơn 100 mục nhật ký, tôi rút ra 48 bài học từ các sự cố c
 1. **Đối chiếu với biểu mẫu giấy đang dùng thật.** Phân hệ Kiểm điểm dựng theo Hướng dẫn 03-HD/TU vẫn lệch biểu mẫu thật ở bốn chỗ: thiếu bước lập kế hoạch đầu kỳ, đóng cứng điểm tối đa sáu trục, cho nhập điểm lẻ ở chỗ chỉ có hai ô đánh dấu, in tên cơ quan hành chính lên văn bản của Đảng. Hãy đưa cho AI mẫu đang dùng, đã che thông tin cá nhân.
 2. **Câu chữ hiểu được nhiều cách thì người có thẩm quyền chọn.** AI từng coi một việc làm được 9/10 là "không hoàn thành", ép một cán bộ điểm cao xuống mức thấp nhất; sau khi hỏi lại, ngưỡng được chốt là dưới 50% với từng nhiệm vụ. Hãy bắt AI liệt kê các cách hiểu kèm hệ quả, để người có thẩm quyền chọn, rồi ghi vào nhật ký.
 3. **Số hóa một văn bản là một lần thẩm định nó.** Biến dự thảo Khung tiêu chí HĐND thành phép tính, sáu chỗ chưa nhất quán tự lộ ra, như một tiêu chí 6 điểm mà các mức cộng lại thành 9. Phần mềm chuẩn hóa có ghi chú công khai dưới dạng kiến nghị; quyền sửa văn bản vẫn thuộc cơ quan soạn thảo.
-4. **Thước đo gắn với khen thưởng sẽ bị "lách".** Theo quy luật Goodhart, cộng phần trăm đạt OKR vào điểm cá nhân thì ai cũng đặt mục tiêu thấp; vì vậy OKR chỉ dùng để định hướng, còn thưởng vượt định mức có trần +5 điểm. Trước khi thiết kế chỉ số, hãy hỏi AI: "người ta sẽ lách chỉ số này thế nào?".
+4. **Thước đo gắn với khen thưởng sẽ bị "lách".** Theo quy luật Goodhart, cộng phần trăm đạt OKR vào điểm cá nhân thì ai cũng đặt mục tiêu thấp; vì vậy OKR chỉ dùng để định hướng, còn thưởng vượt định mức có trần +5 điểm. Hãy hỏi AI: "người ta sẽ lách chỉ số này thế nào?".
 5. **Tra cứu pháp luật: có nguồn mới trả lời.** Câu trả lời trơn tru nhưng dẫn sai điều, khoản hay dẫn văn bản hết hiệu lực nguy hiểm hơn không trả lời. Sổ tay AI buộc mỗi ý gắn trích dẫn, thiếu căn cứ thì nói không tìm thấy, và đặt 21 nguồn gợi ý ở trạng thái "chưa xác định hiệu lực". Kiểm tra hiệu lực là trách nhiệm của cán bộ; phần mềm không giành lấy.
 6. **Bản demo vẫn phải đúng luật và trung thực về dữ liệu.** Phân hệ Biểu quyết tính trên tổng số 82 đại biểu, không trên số người đã bấm: quá nửa là 42/82, nội dung cần hai phần ba là 55/82, theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15. Đại biểu chỉ mang mã, phiếu mô phỏng được dán nhãn rõ: diễn tập dùng khói giả nhưng biển "DIỄN TẬP" phải treo thật to.
 
@@ -288,7 +288,7 @@ Từ hơn 100 mục nhật ký, tôi rút ra 48 bài học từ các sự cố c
 8. **Mỗi loại hồ sơ một tủ riêng.** Kiểm điểm (theo quý) và OKR/KPI (theo tháng) từng lưu chung một bản ghi chỉ mang tên "năm, tháng"; phân hệ mở sau tự lưu đè danh sách của phân hệ mở trước. Cách sửa là thêm tiền tố phân hệ vào tên bản ghi. Bảo AI "thêm phân hệ giống cái cũ" thì phải hỏi ngay: nó lưu vào đâu?
 9. **Họ tên không phải mã định danh.** Gộp danh sách về một mối làm hai đồng chí trùng cả họ, đệm, tên ở hai đơn vị bị ghép làm một: phân hệ OKR/KPI còn 27 người thay vì 28. Chỉ nhận dạng bằng email hoặc "họ tên + đơn vị", và đếm lại tổng số sau mỗi lần gộp.
 10. **Phép thử đúng là "lưu, tải lại, còn không?".** Danh bạ báo lưu thành công nhưng tải lại thì trống, vì hàm chuẩn hóa là danh sách trắng, chỉ giữ các trường đã khai tên. Danh sách trắng an toàn nhưng có giá: thêm loại thông tin mới thì phải nhắc AI khai vào đó.
-11. **Một nguồn sự thật, một nơi tính.** Khách và quản trị từng thấy hai danh sách cán bộ khác nhau, vì phần mềm dựng dữ liệu mẫu riêng cho khách. Phân quyền nên khác ở chỗ được làm gì, không ở chỗ được thấy sự thật nào. Kênh mới như bot, báo cáo phải dùng lại đúng hàm tính đã có, không viết công thức lần thứ hai.
+11. **Một nguồn sự thật, một nơi tính.** Khách và quản trị từng thấy hai danh sách cán bộ khác nhau, vì phần mềm dựng dữ liệu mẫu riêng cho khách. Phân quyền nên khác ở chỗ được làm gì, không ở chỗ được thấy sự thật nào. Kênh mới như bot, báo cáo phải dùng lại đúng hàm tính đã có.
 12. **Tự động lưu là con dao hai lưỡi.** Ứng dụng từng nạp dữ liệu khi chưa biết người dùng là ai, nên vừa đăng nhập đã tự lưu bản đang hiển thị đè lên dữ liệu chính thống. Hãy chỉ nạp sau khi xác định xong phiên, chỉ ghi khi dữ liệu máy chủ chưa bị người khác đổi, và bắt AI nói rõ lưu khi nào, đè lên cái gì.
 13. **Đổi quy định không được làm vỡ dữ liệu cũ.** Bộ tiêu chí đổi nhiều lần trong năm mà phiếu cũ vẫn phải mở đúng: kẹp điểm theo trần mới khi đọc, không sửa dữ liệu gốc; đổi cách nhập nhưng giữ cách lưu. Dữ liệu thật không bao giờ bị xóa chỉ vì nó "trông giống" dữ liệu mẫu.
 
@@ -310,18 +310,18 @@ Từ hơn 100 mục nhật ký, tôi rút ra 48 bài học từ các sự cố c
 
 22. **Mọi giới hạn liên quan đến tiền phải do máy chủ giữ.** Bộ đếm trong trình duyệt thì xóa lịch sử là "hồi sinh" lượt; hạn mức của bot từng đặt lại lúc 0 giờ UTC, tức 7 giờ sáng giờ Việt Nam. Hãy đếm ở máy chủ, tính mốc ngày theo giờ Việt Nam, và khi thiếu cấu hình thì mặc định đóng với khách.
 23. **Thứ tự đúng: kiểm tra rẻ, trừ lượt, gọi AI, hoàn lượt khi lỗi.** Gọi AI xong mới trừ lượt thì bấm liên tiếp năm lần là lọt cả năm; trừ lượt trước khi kiểm tra yêu cầu thì người dùng mất lượt oan. Đọc lại mã khi viết sách, tôi còn thấy hai điểm nối chưa hoàn lượt khi AI lỗi: nguyên tắc đúng phải được áp đồng đều ở mọi nơi.
-24. **AI là lựa chọn sau cùng.** Khung chat Trang chủ có tầng kịch bản trả lời câu hỏi thường gặp ngay trong trình duyệt, không tốn token; AI chỉ có 3 lượt mỗi ngày cho mỗi khách. Bản tin pháp luật hằng ngày không dùng AI. Việc có quy tắc cố định thì để chương trình nhỏ làm; AI có ích nhất ở vai viết ra chương trình ấy.
+24. **AI là lựa chọn sau cùng.** Khung chat Trang chủ có tầng kịch bản trả lời câu hỏi thường gặp ngay trong trình duyệt, không tốn token; AI chỉ có 3 lượt mỗi ngày cho mỗi khách. Bản tin pháp luật hằng ngày không dùng AI. Việc có quy tắc cố định thì để chương trình nhỏ làm, và để AI viết chương trình ấy.
 
 ### 20.3.6. Quy trình và vận hành
 
-25. **Sửa một chỗ, rà mọi chỗ liên quan.** Ngày 13/8/2026, tách kho dữ liệu theo phân hệ làm bot mất hẳn phân hệ Kiểm điểm; gộp danh sách cán bộ làm lộ lỗi trùng họ tên. Từ đó quy ước dự án bắt buộc tự hỏi "chỗ nào khác đang đọc, ghi thứ vừa đổi?" và kiểm chứng thật. Danh mục "chỗ hay bị ảnh hưởng dây chuyền" của dự án là tài sản quý.
+25. **Sửa một chỗ, rà mọi chỗ liên quan.** Ngày 13/8/2026, tách kho dữ liệu theo phân hệ làm bot mất hẳn phân hệ Kiểm điểm; gộp danh sách cán bộ làm lộ lỗi trùng họ tên. Từ đó quy ước dự án bắt buộc tự hỏi "chỗ nào khác đang đọc, ghi thứ vừa đổi?" và kiểm chứng thật.
 26. **Cùng một yêu cầu có thể đến hai lần.** Zalo không thấy phản hồi trong vài giây thì gửi lại tin, bot trả lời hai lần, đốt hạn mức gấp đôi; sâu hơn, trần chờ AI 45 giây quá sát trần 60 giây của nền tảng. Cách sửa: chốt mỗi mã tin đúng một lần bằng thao tác nguyên tử (atomic), hạ trần chờ, ghi số đo thời gian từng khâu. Đo trước khi sửa, đừng đoán.
 27. **Kiểm sản phẩm ở nơi người dùng nhìn thấy.** Tác vụ đám mây được coi là chạy hằng ngày nhưng chưa từng đẩy được ảnh bản tin nào; sáng 10/9/2026, tác vụ tại chỗ lặng lẽ không chạy vì điều kiện "chỉ chạy khi có mạng". Bản dựng (build) xanh chưa phải chạy đúng; tác vụ tự động cần chạy bù, thử lại và nhật ký.
 28. **Quy ước và tài liệu phải theo kịp mã.** Quy ước ghi "không đưa thư mục nháp lên kho" nhưng không có cơ chế chặn, nên một tệp thử nghiệm đã lọt lên; kiến thức của bot từng nói "không đọc được lịch" khi đã đọc được. Quy ước quan trọng nên biến thành cơ chế tự động; tài liệu cho người, cho AI phải sửa cùng lúc với mã.
 
 ### 20.3.7. Con người
 
-29. **Bớt đi để đi xa.** Có lúc dự án có ba bản giao diện cho cùng một logic: mỗi tính năng làm ba lần, các bản còn ghi đè danh mục của nhau. Gỡ hai bản thừa (mã cũ vẫn còn trong lịch sử Git), mỗi thay đổi chỉ còn làm một lần. AI làm thêm rất nhanh; quyết định bớt đi là việc của người chủ dự án.
+29. **Bớt đi để đi xa.** Có lúc dự án có ba bản giao diện cho cùng một logic: mỗi tính năng làm ba lần, các bản còn ghi đè danh mục của nhau. Gỡ hai bản thừa, mỗi thay đổi chỉ còn làm một lần. AI làm thêm rất nhanh; quyết định bớt đi là việc của người chủ dự án.
 30. **Máy đề xuất, người quyết định, và phần mềm phải nói được vì sao.** Nhật ký dự án đầy những cụm "người dùng chốt", như giữ nguyên công thức của nghị định hay chuyển Sổ tay AI sang NotebookLM. Hệ thống hiện ô đỏ khi điểm số và xếp loại chênh nhau, kèm lý do hạ mức. Phần mềm hành chính được tin khi nó giải thích được quyết định của nó, như một cán bộ tiếp dân giỏi.
 
 ::: {.ghinho}
@@ -332,7 +332,7 @@ Gần như cả ba mươi bài học quy về ba câu hỏi người giao việc
 
 ## 20.4. Nhìn về phía trước
 
-Công cụ AI thay đổi theo tháng: chỉ trong năm 2026, NotebookLM đã đổi tên thành Gemini Notebook (16/7/2026), đổi tên miền và đổi cách tính hạn mức (từ 02/9/2026). Vì vậy tôi không dự báo sản phẩm nào sẽ thắng, chỉ nêu bốn xu hướng đã thấy rõ.
+Công cụ AI thay đổi theo tháng: chỉ trong năm 2026, NotebookLM đã đổi tên thành Gemini Notebook (16/7/2026), đổi tên miền và đổi cách tính hạn mức (từ 02/9/2026). Vì vậy tôi không dự báo sản phẩm, chỉ nêu bốn xu hướng đã rõ.
 
 | Xu hướng | Cơ hội cho cơ quan dân cử | Điều kiện then chốt |
 |---|---|---|
@@ -341,14 +341,14 @@ Công cụ AI thay đổi theo tháng: chỉ trong năm 2026, NotebookLM đã đ
 | Giọng nói | Biên bản nháp, nghe tóm tắt tài liệu | Không dùng cho cuộc họp có nội dung mật |
 | Dữ liệu dùng chung | Nhập một lần, dùng nhiều nơi | Thiết kế để kết nối, không làm trùng |
 
-**Tác tử AI làm việc dài hơi.** Bản web của Claude Code chạy trong máy ảo đám mây do nhà cung cấp quản lý, vẫn chạy tiếp khi gập máy tính; GitHub Copilot từ gói Pro có tác tử lập trình trên đám mây. Có thể giao việc cả buổi, như "rà toàn bộ kho mã theo quy ước". Điều kiện: tiêu chí nghiệm thu đo được, cổng chất lượng tự động, ủy quyền có ranh giới, đọc lại thay đổi trước khi đưa vào nhánh chính. Phiên làm việc chạy trên máy chủ của nhà cung cấp, nên chỉ dùng với mã và dữ liệu không mật, không dữ liệu cá nhân thật.
+**Tác tử AI làm việc dài hơi.** Bản web của Claude Code chạy trong máy ảo đám mây do nhà cung cấp quản lý, vẫn chạy tiếp khi gập máy tính; GitHub Copilot từ gói Pro có tác tử lập trình trên đám mây. Điều kiện để giao việc cả buổi: tiêu chí nghiệm thu đo được, cổng chất lượng tự động, ủy quyền có ranh giới, đọc lại thay đổi trước khi đưa vào nhánh chính. Phiên làm việc chạy trên máy chủ của nhà cung cấp, nên chỉ dùng với mã và dữ liệu không mật, không dữ liệu cá nhân thật.
 
 **AI chạy tại chỗ trên máy của cơ quan.** Ollama (mã nguồn mở) chạy được mô hình AI ngay trên máy Windows; Qwen3 (phát hành 29/4/2025, giấy phép Apache 2.0) hỗ trợ hơn 100 ngôn ngữ và phương ngữ; PhoGPT của VinAI có 3,7 tỷ tham số, huấn luyện trên 102 tỷ token tiếng Việt. Theo quy tắc kinh nghiệm phổ biến, mô hình nén 4-bit cần khoảng 0,6 GB bộ nhớ cho mỗi tỷ tham số; máy văn phòng 16 GB RAM không có card đồ họa chạy được mô hình 4 đến 8 tỷ tham số nhưng chậm. Đổi lại, chất lượng tiếng Việt và suy luận thấp hơn rõ rệt so với mô hình lớn trên đám mây.
 
 ::: {.canhbao}
 **Cảnh báo: "chạy tại chỗ" không có nghĩa là "được xử lý tài liệu mật"**
 
-AI chạy tại chỗ giúp tài liệu nội bộ không mật (vùng VÀNG) khỏi phải gửi ra máy chủ nước ngoài. Tài liệu có nội dung bí mật nhà nước vẫn chịu các quy định về bảo vệ bí mật nhà nước, trong đó có lệnh nghiêm cấm soạn thảo, lưu giữ trên thiết bị đã hoặc đang kết nối Internet. Ollama nay còn hỗ trợ mô hình chạy trên đám mây: muốn dữ liệu không rời máy thì chỉ dùng mô hình đã tải về. Dùng AI với tài liệu mật phải theo quy chế của cơ quan và hướng dẫn của cơ quan có thẩm quyền, không theo sáng kiến cá nhân.
+AI chạy tại chỗ giúp tài liệu nội bộ không mật (vùng VÀNG) khỏi phải gửi ra máy chủ nước ngoài. Nhưng Điều 5 Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực 01/3/2026) nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập), trừ trường hợp theo pháp luật về cơ yếu; khoản 10 của Điều này cấm dùng hệ thống trí tuệ nhân tạo hoặc công nghệ mới để xâm phạm bí mật nhà nước. Ollama nay còn hỗ trợ mô hình chạy trên đám mây, nên muốn dữ liệu không rời máy thì chỉ dùng mô hình đã tải về. Dùng AI với tài liệu mật phải theo quy chế của cơ quan, không theo sáng kiến cá nhân.
 :::
 
 **Giọng nói.** Gemini Notebook (khi đó còn mang tên NotebookLM) có bản tóm tắt dạng hội thoại âm thanh bằng tiếng Việt từ cuối tháng 4/2025, từ tháng 9/2026 có thêm trò chuyện bằng giọng nói theo thời gian thực. App Quốc hội 2.0 phục vụ đại biểu Quốc hội đã có chuyển giọng nói thành văn bản, đọc văn bản thành âm thanh. Đại biểu có thể nghe tóm tắt tài liệu kỳ họp khi di chuyển. Điều kiện: cuộc họp có nội dung mật thì không ghi âm, không tóm tắt bằng AI trực tuyến; dùng giọng nói để nhận diện người có thể chạm tới dữ liệu sinh trắc học, nhóm dữ liệu nhạy cảm theo Nghị định 356/2025/NĐ-CP; nội dung âm thanh, hình ảnh mô phỏng người thật phải gắn nhãn theo khoản 4 Điều 11 Luật Trí tuệ nhân tạo.
@@ -365,7 +365,7 @@ Rốt cuộc, phần mềm nào rồi cũng được thay. Điều ở lại là
 3. Con đường chính thức hóa có sáu bước: xin chủ trương; lập hồ sơ cấp độ cùng đánh giá dữ liệu cá nhân và rủi ro AI; chuyển hạ tầng, dọn nhà; chuyển giao; đào tạo; sáng kiến hoặc nhiệm vụ.
 4. Mỗi quyết định "cho tiện trình diễn" là một khoản nợ; phải ghi ra giấy và trả hết trước ngày chạy thật.
 5. Cơ chế chấp nhận rủi ro trong đổi mới sáng tạo chỉ bảo vệ khi việc thử nghiệm được tổ chức, phê duyệt và tuân thủ quy trình.
-6. Ba mươi bài học quy về ba câu hỏi: trống, trùng, lặp thì sao; chỗ nào khác đọc, ghi thứ vừa đổi; ai được thấy, ai được ghi và chặn ở đâu.
+6. Ba mươi bài học quy về ba câu hỏi gốc nêu ở cuối mục 20.3.
 7. Bốn xu hướng phía trước: tác tử AI dài hơi, AI chạy tại chỗ, giọng nói, dữ liệu dùng chung; cơ hội nào cũng kèm điều kiện.
 :::
 
@@ -375,4 +375,4 @@ Rốt cuộc, phần mềm nào rồi cũng được thay. Điều ở lại là
 2. Làm bài thực hành ở mục 20.1.3 và dùng Câu lệnh mẫu 20.2 cho một ứng dụng cụ thể, rồi trao đổi với đơn vị chuyên trách. Gợi ý cấp độ của đồng chí khác ý kiến của họ ở đâu, vì sao?
 3. Chọn ba bài học ở mục 20.3 gần với công việc của đồng chí nhất, viết mỗi bài thành một quy tắc ngắn đưa vào bộ nhớ dự án.
 4. Với vai trò lãnh đạo, đồng chí chọn phương án nào trong bốn phương án ở mục 20.2.1 cho phân hệ Quản lý cán bộ? Nêu lý do theo dữ liệu, chi phí, trách nhiệm và khả năng duy trì.
-5. Nếu tỉnh triển khai một nền tảng dùng chung trùng chức năng với ứng dụng đồng chí tự làm, đồng chí cần chuẩn bị gì để chuyển dữ liệu và người dùng sang mà không mất mát?
+5. Nếu tỉnh triển khai một nền tảng dùng chung trùng chức năng với ứng dụng đồng chí tự làm, cần chuẩn bị gì để chuyển dữ liệu và người dùng sang?
