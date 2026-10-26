@@ -12,13 +12,13 @@
 Dành cho: cán bộ muốn tự làm ứng dụng (đọc kỹ cả chương, làm bài tập cuối chương); lãnh đạo nên đọc mục 6.1, 6.3, 6.6 và hộp "Dành cho lãnh đạo".
 :::
 
-Chương 5 đã dựng xong "xưởng làm việc số". Từ đây, phần khó nhất không còn là cài đặt mà là giao việc. Trong năm 2026, khi cùng tác tử AI lập trình xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội và Hội đồng nhân dân tỉnh Thanh Hóa (hdndthkpi.vercel.app), tôi nhận ra một điều không dễ chịu: nhiều sự cố không bắt nguồn từ chỗ AI viết mã kém, mà từ chỗ tôi giao việc chưa đủ rõ. Thiếu phạm vi, thiếu điều cấm, thiếu một câu "thế nào thì coi là xong". Chương này tổng kết cách tôi giao việc hiện nay, kèm những lần vấp đã dạy tôi cách ấy.
+Chương 5 đã dựng xong "xưởng làm việc số". Từ đây, phần khó nhất không còn là cài đặt mà là giao việc. Trong năm 2026, khi cùng tác tử AI lập trình xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa (hdndthkpi.vercel.app), tôi nhận ra một điều không dễ chịu: nhiều sự cố không bắt nguồn từ chỗ AI viết mã kém, mà từ chỗ tôi giao việc chưa đủ rõ. Thiếu phạm vi, thiếu điều cấm, thiếu một câu "thế nào thì coi là xong". Chương này tổng kết cách tôi giao việc hiện nay.
 
 ## 6.1. Hỏi AI trò chuyện và giao việc cho tác tử: khác nhau ở đâu
 
 Ở Tập 1, trợ lý AI trò chuyện (chatbot) được ví như một thư ký cao cấp. Đồng chí đưa yêu cầu, thư ký trả lại bản nháp; đồng chí đọc, sửa, rồi quyết định dùng hay không. Bản nháp sai mà không dùng thì không gây hại gì.
 
-Tác tử AI lập trình (AI coding agent) như Claude Code khác về bản chất. Nó giống một tổ chuyên viên kỹ thuật được giao chìa khóa trụ sở: tự mở kho mã nguồn (repository), đọc hàng chục tệp, sửa tệp, chạy lệnh, chạy kiểm thử (test), tạo bản dựng (build), ghi thay đổi vào lịch sử (commit) và đẩy lên GitHub (push). Với hệ thống của Văn phòng, đẩy lên nhánh chính nghĩa là một đến hai phút sau, Vercel tự triển khai (deploy) và mọi người truy cập đều thấy thay đổi. Sai sót của trợ lý trò chuyện nằm trên trang giấy; sai sót của tác tử nằm ngay trong hệ thống đang chạy.
+Tác tử AI lập trình (AI coding agent) như Claude Code khác về bản chất. Nó giống một tổ chuyên viên kỹ thuật được giao chìa khóa trụ sở: tự mở kho mã nguồn (repository), đọc hàng chục tệp, sửa tệp, chạy lệnh, chạy kiểm thử (test), tạo bản dựng (build), ghi thay đổi vào lịch sử (commit) và đẩy lên GitHub (push). Với hệ thống nhiều phân hệ (module) của Văn phòng, đẩy lên nhánh chính nghĩa là một đến hai phút sau, Vercel tự triển khai (deploy) và mọi người truy cập đều thấy thay đổi. Sai sót của trợ lý trò chuyện nằm trên trang giấy; sai sót của tác tử nằm ngay trong hệ thống đang chạy.
 
 | Tiêu chí | Trợ lý AI trò chuyện | Tác tử AI lập trình |
 |---|---|---|
@@ -62,13 +62,13 @@ Tập 1 dạy khung lệnh năm thành phần V-B-V-D-R: Vai, Bối cảnh, Vi�
 
 ### 6.2.1. Vai: ai là chủ đầu tư, ai là tổ thi công
 
-Với trợ lý trò chuyện, Vai giúp chọn giọng văn. Với tác tử, Vai vạch ranh giới trách nhiệm. Câu tôi hay dùng: "Đóng vai lập trình viên cẩn trọng của dự án này; ưu tiên không làm mất dữ liệu hơn làm nhanh. Tôi là người quyết định về nghiệp vụ; chỗ nào nghiệp vụ chưa rõ thì hỏi tôi, không tự chọn." Câu cuối biến nguyên tắc máy đề xuất – người quyết định thành một mệnh lệnh cụ thể. Ngoài vai "người làm", nên dùng thêm vai người phản biện, kiểm toán viên bảo mật, người viết tài liệu; vai dùng lâu dài thì ghi vào bộ nhớ dự án (Chương 7).
+Với trợ lý trò chuyện, Vai giúp chọn giọng văn. Với tác tử, Vai vạch ranh giới trách nhiệm. Câu tôi hay dùng: "Đóng vai lập trình viên cẩn trọng của dự án này; ưu tiên không làm mất dữ liệu hơn làm nhanh. Tôi là người quyết định về nghiệp vụ; chỗ nào nghiệp vụ chưa rõ thì hỏi tôi, không tự chọn." Câu cuối biến nguyên tắc máy đề xuất – người quyết định thành một mệnh lệnh cụ thể. Ngoài vai "người làm", nên dùng thêm vai người phản biện, kiểm toán viên bảo mật, người viết tài liệu; vai dùng lâu dài thì ghi vào bộ nhớ dự án, tức tệp CLAUDE.md và thư mục quy tắc mà tác tử tự đọc mỗi phiên (Chương 7).
 
 ### 6.2.2. Bối cảnh: những gì tác tử không tự nhìn thấy
 
-Tác tử không đọc được văn bản trong tủ, không thấy màn hình của người dùng; Bối cảnh bù cho những chỗ mù ấy. Giao việc làm mới thì nêu: nghiệp vụ theo văn bản nào; ai dùng, bao nhiêu người (ví dụ 28 cán bộ ở phân hệ OKR/KPI, 15 đồng chí ở phân hệ Kiểm điểm); quy trình mấy bước; biểu mẫu ra sao. Giao việc sửa lỗi thì nêu: hiện tượng, đường dẫn, vai đang dùng, thời điểm bắt đầu, thông báo lỗi chép nguyên văn, điều lẽ ra phải thấy.
+Tác tử không đọc được văn bản trong tủ, không thấy màn hình của người dùng. Phần Bối cảnh bù cho những chỗ mù ấy. Giao việc làm mới thì nêu: nghiệp vụ theo văn bản nào; ai dùng, bao nhiêu người (ví dụ 28 cán bộ ở phân hệ OKR/KPI, 15 đồng chí ở phân hệ Kiểm điểm); quy trình mấy bước; biểu mẫu ra sao. Giao việc sửa lỗi thì nêu: hiện tượng, đường dẫn, vai đang dùng, thời điểm bắt đầu, thông báo lỗi chép nguyên văn, điều lẽ ra phải thấy.
 
-Chi tiết thời gian có khi là manh mối quyết định. Từ ngày 01/9/2026, ba phân hệ cùng trắng trang kèm dòng lỗi tiếng Anh "Cannot read properties of undefined (reading 'id')". Thông tin "bắt đầu từ ngày đầu tháng" dẫn thẳng tới nguyên nhân gốc: phần mềm luôn tìm "người đứng đầu danh sách", mà kỳ mới thì danh sách còn trống.
+Chi tiết thời gian có khi là manh mối quyết định. Từ ngày 01/9/2026, ba phân hệ cùng trắng trang kèm dòng lỗi tiếng Anh "Cannot read properties of undefined (reading 'id')". Lỗi xuất hiện đúng lúc sang tháng mới, khi máy chủ có dữ liệu tháng 6, 7, 8 mà chưa có tháng 9; nguyên nhân gốc nằm đúng ở đó: phần mềm luôn tìm "người đứng đầu danh sách", mà kỳ mới thì danh sách còn trống.
 
 ### 6.2.3. Việc: một việc một lần
 
@@ -76,7 +76,7 @@ Mỗi câu lệnh chỉ chứa một việc: một động từ rõ, một đố
 
 ### 6.2.4. Dạng: sản phẩm trông ra sao
 
-Dạng có ba lớp. **Lớp người dùng thấy:** vị trí trên màn hình, chữ tiếng Việt có dấu, dùng được trên điện thoại, thông báo lỗi bằng tiếng Việt dễ hiểu. **Lớp tệp xuất ra:** khổ giấy, tiêu đề, thứ tự cột của biểu mẫu. Văn bản hành chính trình bày theo Nghị định 30/2020/NĐ-CP về công tác văn thư; văn bản của tổ chức Đảng có thể thức riêng. Dự án từng in nhầm tên cơ quan hành chính vào đầu bản tự đánh giá đảng viên, trong khi tiêu đề đúng là "TỈNH ỦY THANH HÓA / ĐẢNG ỦY HỘI ĐỒNG NHÂN DÂN TỈNH". **Lớp báo cáo cuối việc:** tác tử phải kết thúc bằng báo cáo ngắn theo khuôn cố định: đã sửa gì, tệp nào, đã kiểm tra gì, kết quả, việc tôi phải tự làm thêm.
+Dạng có ba lớp. **Lớp người dùng thấy:** vị trí trên màn hình, chữ tiếng Việt có dấu, dùng được trên điện thoại, thông báo lỗi bằng tiếng Việt dễ hiểu. **Lớp tệp xuất ra:** khổ giấy, tiêu đề, thứ tự cột của biểu mẫu. Văn bản hành chính trình bày theo Nghị định 30/2020/NĐ-CP về công tác văn thư. Bản tự đánh giá ở phân hệ Kiểm điểm là văn bản của tổ chức Đảng, tiêu đề phải là "TỈNH ỦY THANH HÓA / ĐẢNG ỦY HỘI ĐỒNG NHÂN DÂN TỈNH", vậy mà dự án từng in nhầm tên cơ quan hành chính. **Lớp báo cáo cuối việc:** tác tử phải kết thúc bằng báo cáo ngắn theo khuôn cố định: đã sửa gì, tệp nào, đã kiểm tra gì, kết quả, việc tôi phải tự làm thêm.
 
 ### 6.2.5. Ràng buộc: những điều không được làm
 
@@ -85,7 +85,7 @@ Ràng buộc có hai loại. Loại **thường trực** áp dụng cho mọi vi
 1. Chỉ sửa trong phạm vi được giao; muốn đụng chỗ khác phải hỏi trước.
 2. Không đổi công thức, ngưỡng điểm, câu chữ nghiệp vụ khi chưa được đồng ý.
 3. Không xóa, không ghi đè dữ liệu đã lưu; dữ liệu lưu theo định dạng cũ phải mở được.
-4. Không đưa dữ liệu thật, khóa bí mật vào mã nguồn; khóa bí mật không mang tiền tố `VITE_` (tiền tố này khiến biến bị nhúng vào trang web gửi xuống trình duyệt).
+4. Không đưa dữ liệu thật, khóa bí mật vào mã nguồn; khóa bí mật không mang tiền tố `VITE_` (biến mang tiền tố này bị nhúng vào trang gửi xuống trình duyệt).
 5. Không mở rộng quyền đọc, ghi khi chưa hỏi; đổi quyền thì thử cả vai khách lẫn vai quản trị.
 6. Chữ trên giao diện và trong lịch sử thay đổi viết tiếng Việt có dấu, mã hóa UTF-8.
 7. Trước khi báo xong: bản dựng xanh, công cụ soát lỗi cú pháp (lint) báo 0 lỗi, các phép kiểm liên quan đều đạt.
@@ -98,7 +98,7 @@ Kinh nghiệm nhỏ: ràng buộc kèm lý do được áp dụng tốt hơn rà
 Đây là thành phần tôi thấy giá trị nhất. Tiêu chí tốt có bốn dạng: **đếm được**, **so được với nguồn chuẩn**, **thử được bằng thao tác**, **quan sát được ở nơi người dùng nhìn thấy**. Vài tiêu chí thật của dự án:
 
 - Tab Đánh giá hiện đủ 28/28 cán bộ ở phân hệ OKR/KPI và 15/15 đồng chí ở phân hệ Kiểm điểm.
-- Cùng đầu vào, điểm do phần mềm tính khớp bảng tính mô phỏng tới hai chữ số thập phân, như tài liệu Đặc tả yêu cầu phần mềm của dự án đòi hỏi.
+- Cùng đầu vào, điểm do phần mềm tính khớp bảng tính mô phỏng tới hai chữ số thập phân, theo yêu cầu của tài liệu Đặc tả.
 - 41/82 đại biểu đồng ý thì kết luận "chưa thông qua, còn thiếu 1 phiếu".
 - Lưu xong, tải lại trang, dữ liệu vẫn còn.
 - Mở bằng vai khách: thấy bảng kết quả, không thấy nút phê duyệt.
@@ -161,7 +161,7 @@ Phương án tốt của tác tử có cấu trúc rất giống tờ trình.
 | Đánh giá tác động | Dữ liệu cũ, phân hệ khác, bot, tệp xuất, quyền |
 | Kiến nghị | Những câu hỏi cần người quyết |
 
-Phương án thiếu phần "đánh giá tác động" là phương án chưa đạt, dù phần còn lại hay đến đâu.
+Phương án thiếu phần đánh giá tác động là phương án chưa đạt.
 
 ::: {.thuchanh}
 **Thực hành: bảy câu hỏi khi duyệt phương án của tác tử**
@@ -170,7 +170,7 @@ Phương án thiếu phần "đánh giá tác động" là phương án chưa đ
 2. Có chạm vào dữ liệu đã lưu không? Dữ liệu cũ sẽ hiện ra thế nào?
 3. Có tệp, phân hệ nào ngoài phạm vi bị sửa không? Vì sao?
 4. Có đổi công thức, ngưỡng điểm, câu chữ nghiệp vụ không?
-5. Có đổi quyền đọc, ghi; có phải chạy thêm lệnh nào trong cơ sở dữ liệu không?
+5. Có đổi quyền đọc, ghi; có phải chạy thêm lệnh nào trong cơ sở dữ liệu (database) không?
 6. Sẽ kiểm thử thế nào? Tiêu chí nghiệm thu là gì?
 7. Tác tử đã tự giả định những gì? (Hỏi thẳng; nó thường liệt kê được.)
 :::
@@ -180,7 +180,7 @@ Duyệt phương án như duyệt tờ trình: đồng ý, đồng ý có sửa 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: phần mềm phản biện, người dùng quyết**
 
-Khi rà công thức của phân hệ OKR/KPI, tác tử phát hiện cách tính có thể dẫn tới "điểm số cao mà xếp loại thấp" và trình phương án, kể cả hướng điều chỉnh công thức. Tôi chọn giữ nguyên cách tính theo quy định, chỉ giải thích rõ và thêm ô cảnh báo đỏ "Chênh lệch điểm số và xếp loại" trên phiếu chấm. Nhật ký dự án có rất nhiều câu "người dùng chốt", như việc chuyển hẳn Sổ tay AI sang NotebookLM ngày 22/10/2026. Nguyên tắc máy đề xuất – người quyết định áp dụng cho cả quá trình làm ra phần mềm.
+Khi rà công thức của phân hệ OKR/KPI, tác tử phát hiện cách tính có thể dẫn tới "điểm số cao mà xếp loại thấp" và trình các phương án để tôi chọn. Tôi chọn giữ nguyên cách tính theo quy định, chỉ giải thích rõ và thêm ô cảnh báo đỏ "Chênh lệch điểm số và xếp loại" trên phiếu chấm. Nhật ký dự án có rất nhiều câu "người dùng chốt", như việc chuyển hẳn Sổ tay AI sang NotebookLM ngày 22/10/2026. Nguyên tắc máy đề xuất – người quyết định áp dụng cho cả quá trình làm ra phần mềm.
 :::
 
 ::: {.lenhmau}
@@ -196,7 +196,7 @@ CHƯA SỬA TỆP NÀO. Việc cần làm: [mô tả việc].
    đọc/ghi. Chỗ nào khác đang đọc hoặc ghi thứ sắp bị đổi?
 5. Cách kiểm thử và tiêu chí nghiệm thu đề xuất.
 6. Những điều đã tự giả định; các câu hỏi về nghiệp vụ cần tôi quyết.
-Viết ngắn, tiếng Việt, không dán mã. Chờ tôi duyệt rồi mới làm.
+Viết ngắn, không dán mã. Chờ tôi duyệt rồi mới làm.
 ```
 :::
 
@@ -218,7 +218,7 @@ Bảng dưới đây là cách tôi sẽ chia nếu làm lại phân hệ OKR/KP
 | 6 | Màn hình chấm Nhóm I theo từng Mẫu | Đủ tiêu chí, không vượt điểm tối đa |
 | 7 | Màn hình Nhóm II: nhiệm vụ, danh mục, ba tiêu chí | (100+100+80)/3 = 93,3% hiện đúng |
 | 8 | Điều kiện xếp loại, khối "Vì sao xếp loại này" | Ca bị hạ mức hiện đúng lý do |
-| 9 | Lưu theo kỳ vào cơ sở dữ liệu (database) | Lưu, tải lại trang, dữ liệu còn |
+| 9 | Lưu theo kỳ vào cơ sở dữ liệu | Lưu, tải lại trang, dữ liệu còn |
 | 10 | Đăng nhập, phân quyền khách, cán bộ, quản trị | Thử lần lượt bằng ba vai |
 | 11 | Tách cột Tự đánh giá và cột Cấp duyệt | Cấp duyệt kế thừa khi chưa sửa |
 | 12 | Phê duyệt; sửa điểm thì tự gỡ phê duyệt | Sửa một ô, dấu phê duyệt mất |
@@ -250,14 +250,13 @@ Một bước tốt gồm: một câu mô tả, một sản phẩm thấy đư�
 
 ## 6.5. Đưa tài liệu nghiệp vụ cho tác tử và dặn đối chiếu từng mục
 
-Tác tử thuộc mã, không thuộc văn bản của cơ quan. Không có tài liệu, nó dựng theo trí nhớ và "thông lệ", cho ra sản phẩm trông hợp lý mà vẫn sai. Phân hệ Kiểm điểm từng đóng cứng điểm tối đa của sáu trục là 15/10/10/15/10/10, trong khi biểu mẫu thật để mỗi cá nhân tự đề xuất theo thứ tự ưu tiên công việc.
+Tác tử thuộc mã, không thuộc văn bản của cơ quan. Thiếu tài liệu, hoặc thiếu đúng loại tài liệu, nó dựng theo trí nhớ và "thông lệ", cho ra sản phẩm trông hợp lý mà vẫn sai. Câu chuyện ở cuối mục này là một ví dụ.
 
-Có bốn loại tài liệu nên đưa cho tác tử:
+Có ba loại tài liệu nên đưa cho tác tử:
 
 - **Văn bản quy phạm, hướng dẫn.** Ưu tiên bản điện tử có lớp chữ. Tệp PDF chụp (scan) chỉ là ảnh, dự án đã phải chuyển từng trang thành ảnh để tác tử đọc; tệp `.doc` đời cũ phải chuyển sang `.docx`.
 - **Biểu mẫu giấy đang dùng thật.** Quý nhất, vì nó cho thấy cơ quan thực sự làm thế nào. Che thông tin cá nhân, để trong thư mục đã chặn khỏi kho mã công khai.
 - **Bảng tính mô phỏng.** Đóng vai "đáp án": tài liệu Đặc tả của dự án gọi tệp Excel mô phỏng cách tính điểm là bộ ca kiểm thử bắt buộc.
-- **Danh mục, quyết định nội bộ.** Chẳng hạn danh mục 48 sản phẩm, công việc của Văn phòng mà phân hệ OKR/KPI dùng làm thước đo.
 
 Đưa tài liệu rồi phải dặn cách dùng. Tôi luôn đòi ba việc: lập **bảng đối chiếu** (mục trong văn bản, nơi thể hiện trong phần mềm, khớp hay lệch); mỗi quy tắc trong phần mềm phải **trích được câu chữ gốc** làm căn cứ; chỗ nào văn bản hiểu được nhiều cách hoặc tự mâu thuẫn thì **liệt kê để người quyết**, không tự chọn, càng không tự sửa văn bản.
 
@@ -266,13 +265,13 @@ Việc thứ ba quan trọng hơn ta tưởng. Khi số hóa dự thảo Khung t
 ::: {.cauchuyen}
 **Câu chuyện thực tế: bốn chỗ lệch giữa phần mềm và biểu mẫu giấy**
 
-Phân hệ Kiểm điểm ban đầu được dựng theo Hướng dẫn 03-HD/TU ngày 02/7/2026 của Tỉnh ủy. Sau đó tôi đưa tác tử bản tự đánh giá Quý III và kế hoạch Quý IV/2026 của chính mình (để ngoài kho công khai) để đối chiếu từng mục. Lần sửa ngày 28/9/2026 ghi lại bốn chỗ lệch lớn: quy trình thật có hai bước (đầu quý lập kế hoạch, trình tập thể lãnh đạo duyệt; cuối quý tự đánh giá trên chính kế hoạch đó), phần mềm chỉ có một; điểm tối đa từng trục không cố định, hai quý liên tiếp của tôi là 15-20-10-15-5-5 rồi 10-20-10-20-5-5; Nhóm A chỉ đánh dấu "Đảm bảo" hoặc "Không đảm bảo", phần mềm lại cho nhập điểm lẻ; mỗi nhiệm vụ phải đủ năm cột của biểu mẫu. Văn bản hướng dẫn chưa phải là thực tiễn, và những gì "tưởng là cố định" thường chính là chỗ sai.
+Phân hệ Kiểm điểm ban đầu được dựng theo Hướng dẫn 03-HD/TU ngày 02/7/2026 của Tỉnh ủy. Sau đó tôi đưa tác tử bản tự đánh giá Quý III và kế hoạch Quý IV/2026 của chính mình (để ngoài kho công khai) để đối chiếu từng mục. Lần sửa ngày 28/9/2026 ghi lại bốn chỗ lệch lớn: quy trình thật có hai bước (đầu quý lập kế hoạch, trình tập thể lãnh đạo duyệt; cuối quý tự đánh giá trên chính kế hoạch đó), phần mềm chỉ có một; điểm tối đa từng trục không cố định, hai quý liên tiếp trong chính hồ sơ ấy phân bổ 15-20-10-15-5-5 rồi 10-20-10-20-5-5; Nhóm A chỉ đánh dấu "Đảm bảo" hoặc "Không đảm bảo", phần mềm lại cho nhập điểm lẻ; mỗi nhiệm vụ phải đủ năm cột của biểu mẫu. Văn bản hướng dẫn chưa phải là thực tiễn, và những gì "tưởng là cố định" thường chính là chỗ sai.
 :::
 
 ::: {.canhbao}
 **Cảnh báo: tài liệu đưa cho tác tử cũng là dữ liệu đi ra ngoài**
 
-- Phân loại theo ba vùng ĐỎ/VÀNG/XANH của Tập 1 trước khi đưa. Tài liệu mật thuộc vùng ĐỎ: không đưa cho tác tử dùng dịch vụ AI công cộng, theo các quy định về bảo vệ bí mật nhà nước.
+- Phân loại theo ba vùng ĐỎ/VÀNG/XANH của Tập 1 trước khi đưa. Tài liệu mật thuộc vùng ĐỎ. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực từ 01/3/2026), tại Điều 5, cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập). Máy chạy tác tử là máy nối mạng, nên tài liệu mật không bao giờ được đặt vào thư mục dự án.
 - Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) phân dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Biểu mẫu thật dùng làm mẫu phải được che họ tên, ngày sinh, số định danh, số điện thoại trước khi đưa.
 - Tài liệu thật đặt vào thư mục dự án mà quên khai báo chặn trong tệp `.gitignore` thì lần commit kế tiếp có thể đưa nó lên kho công khai.
 :::
@@ -313,7 +312,7 @@ Hệ thống thử nghiệm của Văn phòng có khoảng 21.400 dòng mã. Tô
 Hôm ấy có hai thay đổi đều đúng yêu cầu: tách kho dữ liệu riêng cho từng phân hệ, và gộp danh sách cán bộ về một mối. Cả hai đều chạy. Nhưng bot chat dò dữ liệu bằng một quy tắc riêng nên mất hẳn phân hệ Kiểm điểm; còn việc gộp danh sách làm hai đồng chí trùng cả họ và tên ở hai đơn vị khác nhau bị ghép làm một, phân hệ OKR/KPI chỉ còn 27 thay vì 28 người. Từ đó, quy ước của dự án có quy tắc bắt buộc "rà soát chức năng liên quan", mà Chương 7 sẽ trình bày đầy đủ.
 :::
 
-Cuối cùng, hãy nghiệm thu ở đúng nơi người dùng nhìn thấy. Bản tin pháp luật trên Trang chủ từng được giao cho một tác vụ định kỳ trên đám mây, được coi là chạy hằng ngày; đến khi rà soát mới biết bước đẩy ảnh lên chưa từng chạy được lần nào. Tác tử cũng tự nghiệm thu được: mở trang thật bằng trình duyệt tự động, đếm lỗi; xuất tệp Word rồi đọc lại; đo kích thước chữ. Nhờ đo, ảnh xem trước khi chia sẻ liên kết được phát hiện có dòng chữ kết thúc ở 1.214 điểm ảnh trong khung rộng 1.200.
+Cuối cùng, hãy nghiệm thu ở đúng nơi người dùng nhìn thấy. Bản tin pháp luật trên Trang chủ từng được giao cho một tác vụ định kỳ trên đám mây, được coi là chạy hằng ngày; đến khi rà soát mới biết bước đẩy ảnh lên chưa từng chạy được lần nào. Tác tử cũng tự nghiệm thu được: mở trang thật bằng trình duyệt tự động, đếm lỗi; xuất tệp Word rồi đọc lại; đo kích thước chữ.
 
 ::: {.thuchanh}
 **Thực hành: nghiệm thu một việc trong mười lăm phút**
@@ -362,11 +361,11 @@ Tác tử không mệt, không nản, và rất ít khi tự nhận là mình đ
 | Nói chắc về dịch vụ bên ngoài | Kiến thức có hạn sử dụng | Đòi kiểm tra thực tế |
 | Quên điều đã dặn đầu phiên | Phiên làm việc quá dài | Ghi vào bộ nhớ dự án, mở phiên mới |
 
-Dấu hiệu "nói chắc về dịch vụ bên ngoài" có ví dụ thật: khi gắn đường dẫn NotebookLM vào phân hệ Sổ tay AI, tác tử kiểm tra thực tế mới biết Google đã chuyển tên miền sang `notebook.google.com`. Tin trí nhớ thì phần mềm đã lưu địa chỉ lỗi thời.
+Dấu hiệu "nói chắc về dịch vụ bên ngoài" có ví dụ thật: khi gắn đường dẫn NotebookLM vào phân hệ Sổ tay AI, tác tử kiểm tra thực tế mới biết Google đã chuyển tên miền sang `notebook.google.com`. Cứ tin trí nhớ thì phần mềm sẽ lưu địa chỉ cũ, chỉ còn chạy nhờ chuyển hướng.
 
-Kéo tác tử lại gồm bốn động tác. **Dừng:** ở bản dòng lệnh, phím Esc ngắt việc đang chạy. **Bắt tóm tắt:** đã thử gì, kết quả ra sao, đang nghi điều gì. **Đo trước khi sửa:** bot chat của dự án từng trả lời bằng dòng tiếng Anh khó hiểu "This operation was aborted"; chỉ khi ghi số đo thời gian từng khâu mới thấy đó là trần 45 giây chờ AI bị chạm. **Quay về điểm an toàn:** nhờ mỗi bước kết thúc bằng một lần commit, đồng chí luôn có thể yêu cầu bỏ các thay đổi chưa commit hoặc quay về bản chạy tốt gần nhất. Đây là thao tác xóa bỏ công sức, nên tác tử phải nói rõ sẽ mất gì và chờ đồng chí đồng ý.
+Kéo tác tử lại gồm bốn động tác. **Dừng:** ở bản dòng lệnh, phím Esc ngắt việc đang chạy. **Bắt tóm tắt:** đã thử gì, kết quả ra sao, đang nghi điều gì. **Đo trước khi sửa:** bot chat của dự án từng trả lời bằng dòng tiếng Anh khó hiểu "This operation was aborted"; nhật ký chẩn đoán cho thấy đó là trần 45 giây chờ AI bị chạm; từ đó dự án ghi thêm số đo thời gian từng khâu. **Quay về điểm an toàn:** nhờ mỗi bước kết thúc bằng một lần commit, đồng chí luôn có thể yêu cầu bỏ các thay đổi chưa commit hoặc quay về bản chạy tốt gần nhất. Đây là thao tác xóa bỏ công sức, nên tác tử phải nói rõ sẽ mất gì và chờ đồng chí đồng ý.
 
-Nên làm lại từ đầu thay vì vá tiếp khi: ba lượt sửa cùng một lỗi mà không tiến; thay đổi lan ra nhiều tệp không ai giải thích được; nền móng sai, như mô hình dữ liệu không khớp quy trình thật; hoặc chính đồng chí không còn hiểu hệ thống chạy thế nào. Làm lại không có nghĩa là mất hết: quay về bản sạch gần nhất, mở phiên mới, giao lại việc bằng câu lệnh tốt hơn kèm bài học vừa rút ra. Tập 1 dặn: phải sửa quá nửa câu chữ AI viết thì lỗi nằm ở câu lệnh; với tác tử cũng vậy. Hai bản giao diện "Mới" và "PRO" của dự án từng được làm thêm rất nhanh, rồi bị gỡ hẳn vì mỗi tính năng phải làm ba lần; mã của chúng vẫn còn trong lịch sử Git.
+Nên làm lại từ đầu thay vì vá tiếp khi: ba lượt sửa cùng một lỗi mà không tiến; thay đổi lan ra nhiều tệp không ai giải thích được; nền móng sai, như mô hình dữ liệu không khớp quy trình thật; hoặc chính đồng chí không còn hiểu hệ thống chạy thế nào. Làm lại không có nghĩa là mất hết: quay về bản sạch gần nhất, mở phiên mới, giao lại việc bằng câu lệnh tốt hơn kèm bài học vừa rút ra. Tập 1 dặn: phải sửa tới 60–70% câu chữ AI viết thì lỗi nằm ở câu lệnh; với tác tử cũng vậy. Hai bản giao diện "Mới" và "PRO" của dự án từng được làm thêm rất nhanh, rồi bị gỡ hẳn khi mỗi tính năng phải làm ba lần; mã của chúng vẫn còn trong lịch sử Git.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.6 — Kéo tác tử về khi đang đi lạc**
@@ -436,7 +435,7 @@ các cột theo thứ tự và hai dòng đầu của bảng.
 ```
 :::
 
-**Rà soát bảo mật.** Giao vai kiểm toán viên và cấm sửa, để nhận về một bảng rủi ro thay vì một loạt thay đổi. Kiểu rà soát này từng phát hiện một tệp thử nghiệm đã lọt lên kho công khai, dù quy ước cấm commit thư mục chứa nó.
+**Rà soát bảo mật.** Giao vai kiểm toán viên và cấm sửa, để nhận về một bảng rủi ro thay vì một loạt thay đổi. Một lần đối chiếu quy ước với thực tế kho mã (tháng 10/2026) đã phát hiện một tệp thử nghiệm lọt lên kho công khai, dù quy ước cấm commit thư mục chứa nó.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.10 — Rà soát bảo mật, chỉ báo cáo**
@@ -484,7 +483,7 @@ Tôi không phải lập trình viên. Giải thích tệp [đường dẫn], kh
 3. Các quy tắc nghiệp vụ trong tệp, liệt kê bằng lời kèm vị trí.
 4. Ba chỗ dễ hỏng nhất nếu sau này sửa, và vì sao.
 5. Các lời cảnh báo đã ghi sẵn trong mã.
-Câu ngắn; thuật ngữ nào cũng giải thích ở lần đầu dùng.
+Câu ngắn; thuật ngữ nào cũng phải giải thích.
 ```
 :::
 
@@ -503,7 +502,7 @@ Không ghi khóa, mật khẩu, số điện thoại hay họ tên cán bộ và
 ```
 :::
 
-**Chuẩn bị bàn giao.** Một lần rà soát cho thấy các bộ kiểm thử nhật ký nhắc nhiều lần lại nằm ở thư mục không được commit, máy khác không chạy lại được. Bàn giao là lúc gom những chỗ hở như vậy.
+**Chuẩn bị bàn giao.** Cũng lần đối chiếu ấy cho thấy các bộ kiểm thử nhật ký nhắc nhiều lần lại nằm ở thư mục không được commit, máy khác không chạy lại được. Bàn giao là lúc gom những chỗ hở như vậy.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.14 — Soạn tài liệu bàn giao**

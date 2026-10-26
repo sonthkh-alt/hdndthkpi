@@ -1,12 +1,12 @@
 # Lời nói đầu
 
-Tập 1 của bộ sách, "Trí tuệ nhân tạo trong công tác tham mưu — Cẩm nang thực hành cho kỷ nguyên số", hướng dẫn cán bộ dùng trí tuệ nhân tạo (AI) đúng cách, an toàn, có trách nhiệm: giao việc cho trợ lý AI trò chuyện (chatbot) bằng khung lệnh V-B-V-D-R, giữ con người trong vòng lặp, phân loại dữ liệu vùng ĐỎ/VÀNG/XANH trước khi đưa lên AI. Cuốn sách đồng chí đang đọc là Tập 2. Nó không viết lại Tập 1, mà kể tiếp một chặng đường chính tôi cũng chưa hình dung hết khi viết Tập 1.
+Tập 1 của bộ sách, "Trí tuệ nhân tạo trong công tác tham mưu — Cẩm nang thực hành cho kỷ nguyên số", hướng dẫn cán bộ dùng trí tuệ nhân tạo (AI) đúng cách, an toàn, có trách nhiệm. Cụ thể là giao việc cho trợ lý AI trò chuyện (chatbot) bằng khung lệnh V-B-V-D-R, giữ con người trong vòng lặp, phân loại dữ liệu vùng ĐỎ/VÀNG/XANH trước khi đưa lên AI. Cuốn sách đồng chí đang đọc là Tập 2. Nó không viết lại Tập 1, mà kể tiếp chặng đường sau đó.
 
 ## Vì sao có Tập 2
 
 Năm 2026, việc đánh giá, xếp loại cán bộ, công chức thay đổi nhiều. Nghị định 335/2025/NĐ-CP của Chính phủ có hiệu lực từ 01/01/2026; ngày 05/6/2026, Ban Thường vụ Tỉnh ủy Thanh Hóa ban hành Quy định 1053-QĐ/TU. Việc chấm điểm diễn ra hằng tháng, theo thang 100 điểm, kèm những điều kiện xếp loại mà làm bằng giấy và bảng tính rời thì rất dễ sai.
 
-Ở Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa, tôi đứng trước một câu hỏi cụ thể: làm sao để mỗi tháng chấm điểm đúng quy định hơn, nhanh hơn, ít phải tranh luận về con số hơn? Lối quen là viết yêu cầu, đặt hàng phần mềm, rồi chờ. Tôi thử một lối khác: tự mô phỏng cách tính trên bảng tính, rồi cùng tác tử AI lập trình (AI coding agent) Claude Code dựng thành một ứng dụng web chạy được.
+Ở Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa, tôi đứng trước một câu hỏi cụ thể: làm sao để mỗi tháng chấm điểm đúng quy định hơn, nhanh hơn, ít phải tranh luận về con số hơn? Lối quen là viết yêu cầu, đặt hàng phần mềm, rồi chờ. Tôi thử một lối khác: cùng tác tử AI lập trình (AI coding agent) Claude Code dựng một ứng dụng web chạy được, rồi dùng bảng tính mô phỏng và bản đặc tả để chốt lại cách tính cho chuẩn.
 
 Cũng trong năm ấy, ngày 7/5/2026, Thường trực HĐND tỉnh tổ chức tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng. Sau những buổi như thế, một câu hỏi tự nhiên nảy ra: đã biết hỏi AI rồi, bước tiếp theo là gì? Tập 2 là câu trả lời của tôi, rút từ những gì tôi đã làm, đã vấp và đã sửa.
 
@@ -18,7 +18,7 @@ Cũng trong năm ấy, ngày 7/5/2026, Thường trực HĐND tỉnh tổ chức
 
 Hệ thống đã thật sự sai, thật sự sập. Ngày 13/8/2026, hai thay đổi lớn làm cùng lúc gây lỗi dây chuyền: bot trò chuyện "mất" hẳn một phân hệ, danh sách cán bộ thiếu một người vì hai đồng chí trùng họ tên bị ghép làm một. Từ ngày 01/9/2026, ba phân hệ chỉ hiện trang trắng, và lỗi ấy sẽ lặp lại mỗi đầu tháng nếu không được vá. Tôi giữ lại những chuyện đó trong sách, kèm nguyên nhân gốc và cách sửa, vì người đi sau học được từ chỗ vấp nhiều hơn từ lời khen.
 
-Điều đáng giá nhất tôi nhận ra không nằm ở phần mềm. Không tác tử AI nào tự biết biểu mẫu giấy nào cơ quan đang thật sự dùng, văn bản nào của Đảng phải trình bày theo thể thức của Đảng, câu chữ nào trong quy định hiểu được theo hai cách. AI viết mã rất nhanh; người hiểu nghiệp vụ mới là người làm ra công cụ tốt.
+Điều đáng giá nhất tôi nhận ra không nằm ở phần mềm. Không tác tử AI nào tự biết biểu mẫu giấy nào cơ quan đang thật sự dùng. Nó cũng không biết văn bản nào của Đảng phải theo thể thức của Đảng, câu chữ nào trong quy định hiểu được theo hai cách. AI viết mã rất nhanh; người hiểu nghiệp vụ mới là người làm ra công cụ tốt.
 
 ## Tinh thần Nghị quyết 57-NQ/TW
 
@@ -27,7 +27,7 @@ Con đường này có căn cứ chính trị, pháp lý rõ ràng, và cũng c�
 ::: {.phaply}
 **Căn cứ pháp lý**
 
-- Nghị quyết 57-NQ/TW ngày 22/12/2024 của Bộ Chính trị về đột phá phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số quốc gia xác định đây là "đột phá quan trọng hàng đầu"; đề cao tinh thần chấp nhận rủi ro, thử nghiệm có kiểm soát, xóa bỏ tư duy "không quản được thì cấm".
+- Nghị quyết 57-NQ/TW ngày 22/12/2024 của Bộ Chính trị về đột phá phát triển khoa học, công nghệ, đổi mới sáng tạo và chuyển đổi số quốc gia xác định đây là "đột phá quan trọng hàng đầu". Nghị quyết đề cao tinh thần chấp nhận rủi ro, thử nghiệm có kiểm soát, xóa bỏ tư duy "không quản được thì cấm".
 - Hướng dẫn 02-HD/BTCTW ngày 22/5/2026 của Ban Tổ chức Trung ương (điểm 1.2): "khuyến khích ứng dụng công nghệ số, quản trị trên dữ liệu theo thời gian thực để theo dõi, kiểm đếm, chấm điểm, đánh giá, xếp loại cán bộ".
 - Quy định 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa (khoản 4 Điều 3): "Thực hiện ứng dụng khoa học, công nghệ, chuyển đổi số, đo lường bằng chỉ số đánh giá hiệu quả công việc (OKR/KPI) để đánh giá mức độ hoàn thành nhiệm vụ...".
 - Luật Trí tuệ nhân tạo số 134/2025/QH15, hiệu lực từ 01/3/2026 (khoản 2 Điều 4): "Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người".
@@ -37,7 +37,7 @@ Một mặt, chủ trương khuyến khích cán bộ mạnh dạn ứng dụng 
 
 ## Cuốn sách được viết như thế nào
 
-Chất liệu của sách là những gì có thật: nhật ký thay đổi của dự án với hơn 100 mục, mã nguồn công khai, văn bản quy định và biểu mẫu gốc. Pháp luật được đối chiếu đến ngày 26/10/2026. Tình huống giả định đều ghi rõ "Ví dụ minh họa"; con số chưa đo được, tôi không viết. Như chính điều sách khuyên, tôi cũng dùng AI khi biên soạn: để tổng hợp nhật ký, đối chiếu văn bản, soạn bản nháp. Bản nháp của AI chỉ là gợi ý; nội dung cuối cùng do tôi rà soát và chịu trách nhiệm.
+Chất liệu của sách là những gì có thật: nhật ký thay đổi của dự án với hơn 100 mục, mã nguồn công khai, văn bản quy định và biểu mẫu gốc. Tình huống giả định đều ghi rõ "Ví dụ minh họa"; con số chưa đo được, tôi không viết. Như chính điều sách khuyên, tôi cũng dùng AI khi biên soạn: để tổng hợp nhật ký, đối chiếu văn bản, soạn bản nháp. Bản nháp của AI chỉ là gợi ý; nội dung cuối cùng do tôi rà soát và chịu trách nhiệm.
 
 ## Lời cảm ơn
 
@@ -45,7 +45,7 @@ Tôi chân thành cảm ơn Thường trực HĐND tỉnh, lãnh đạo Đoàn �
 
 ## Mong nhận được góp ý
 
-Sách được viết trong lúc công nghệ, pháp luật và chính hệ thống thử nghiệm vẫn đang thay đổi, nên chắc chắn còn thiếu sót. Mọi góp ý, nhất là về chỗ chưa rõ, chưa đúng hoặc đã lỗi thời, xin gửi về Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa, hoặc qua mục Liên hệ và ô gửi góp ý trên trang Hướng dẫn & hỗ trợ của hệ thống thử nghiệm (đường dẫn `#/hotro`).
+Sách được viết trong lúc công nghệ, pháp luật và chính hệ thống thử nghiệm vẫn đang thay đổi, nên chắc chắn còn thiếu sót. Mọi góp ý, nhất là về chỗ chưa rõ, chưa đúng hoặc đã lỗi thời, xin gửi về Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa. Đồng chí cũng có thể dùng mục Liên hệ và ô gửi góp ý trên trang Hướng dẫn & hỗ trợ của hệ thống thử nghiệm (`#/hotro`).
 
 *Thanh Hóa, tháng 10 năm 2026*
 
@@ -53,7 +53,7 @@ Sách được viết trong lúc công nghệ, pháp luật và chính hệ th�
 
 # Hướng dẫn sử dụng cuốn sách
 
-Không ai buộc phải đọc cuốn sách khoảng 300 trang này từ đầu đến cuối. Phần dưới đây giúp đồng chí chọn đường đọc, hiểu các hộp nội dung và biết cách dùng câu lệnh mẫu.
+Không ai buộc phải đọc cuốn sách khoảng 300 trang này từ đầu đến cuối. Phần dưới đây giúp đồng chí chọn đường đọc và dùng sách cho hiệu quả.
 
 ## Năm phần của cuốn sách
 
@@ -65,7 +65,7 @@ Không ai buộc phải đọc cuốn sách khoảng 300 trang này từ đầu 
 | Thứ tư — Việc hằng ngày | 16–18 | Quy trình AI cho nghiệp vụ, vai trò lãnh đạo, lộ trình 30 ngày |
 | Thứ năm — Bền vững | 19–20 | An toàn, chi phí, chính thức hóa, bài học |
 
-Các chương Phần thứ ba theo cùng một khuôn: bài toán và căn cứ; thiết kế giải pháp; cách tôi giao việc cho AI; sự cố và bài học; "Nếu đồng chí muốn làm phiên bản nhỏ hơn"; phần dành cho lãnh đạo. Cuối sách là Lời kết và sáu phụ lục: thuật ngữ Việt – Anh, thư viện câu lệnh mẫu, mẫu bộ nhớ dự án, mẫu Quy tắc sử dụng AI kèm mẫu cam kết, danh mục văn bản pháp luật, bảng kiểm trước khi đưa ứng dụng vào sử dụng.
+Các chương Phần thứ ba theo cùng một khuôn: bài toán và căn cứ; thiết kế giải pháp; cách tôi giao việc cho AI; sự cố và bài học; "Nếu đồng chí muốn làm phiên bản nhỏ hơn"; phần dành cho lãnh đạo. Cuối sách là Lời kết và sáu phụ lục, trong đó có thư viện câu lệnh mẫu, mẫu Quy tắc sử dụng AI và bảng kiểm trước khi đưa một ứng dụng vào sử dụng.
 
 ## Ba lộ trình đọc theo vai
 
@@ -75,28 +75,28 @@ Các chương Phần thứ ba theo cùng một khuôn: bài toán và căn cứ;
 | Cán bộ dùng AI hằng ngày | Chương 1, 2, 3, 16, 18; Phụ lục 2 | Chi tiết kỹ thuật |
 | Cán bộ tự làm ứng dụng | Đọc tuần tự | Không nên bỏ chương nào |
 
-**Lãnh đạo** không cần tự gõ lệnh, nhưng cần đủ hiểu để hỏi đúng, quyết đúng. Chương 17 có mười câu hỏi nên đặt ra khi cán bộ trình một ứng dụng hay một quy trình AI, cùng cách chọn giữa tự làm, đặt hàng hay dùng nền tảng có sẵn. Ở các chương khác, đọc hộp "Dành cho lãnh đạo" là đủ.
+**Lãnh đạo** không cần tự gõ lệnh, nhưng cần đủ hiểu để hỏi đúng, quyết đúng. Chương 17 có mười câu hỏi nên đặt ra khi cán bộ trình một ứng dụng hay quy trình AI. Ở các chương khác, đọc hộp "Dành cho lãnh đạo" là đủ.
 
-**Cán bộ dùng AI hằng ngày** chưa chắc cần làm phần mềm; lợi nhiều nhất là đưa AI vào đúng chỗ trong việc sẵn có. Chương 16 chỉ rõ với từng nghiệp vụ: phần AI làm, phần người làm, vùng dữ liệu được phép, điểm kiểm soát.
+**Cán bộ dùng AI hằng ngày** chưa chắc cần làm phần mềm. Chương 16 chỉ rõ với từng nghiệp vụ: phần AI làm, phần người làm, vùng dữ liệu được phép, điểm kiểm soát.
 
-**Cán bộ muốn tự làm ứng dụng** nên đọc Chương 5 với máy tính bên cạnh để làm luôn dự án đầu tiên, và đọc Phần thứ ba trong lúc mở hệ thống thử nghiệm để đối chiếu. Hãy làm phiên bản nhỏ trước khi nghĩ tới hệ thống lớn.
+**Cán bộ muốn tự làm ứng dụng** nên đọc Chương 5 với máy tính bên cạnh để làm luôn dự án đầu tiên, và đọc Phần thứ ba trong lúc mở hệ thống thử nghiệm để đối chiếu.
 
 ## Các hộp nội dung
 
-| Hộp | Dùng để | Cách đọc |
-|---|---|---|
-| Mục tiêu của chương | Nêu điều sẽ học, ai nên đọc kỹ | Đọc trước để chọn kỹ hay lướt |
-| Câu chuyện thực tế | Kể chuyện có thật của dự án | Chú ý nguyên nhân gốc |
-| Ví dụ minh họa | Tình huống giả định | Không phải chuyện đã xảy ra |
-| Cảnh báo | Rủi ro pháp lý, bảo mật, chi phí | Đọc kỹ trước khi làm |
-| Ghi nhớ | Nguyên tắc cô đọng | Chép vào sổ tay riêng |
-| Căn cứ pháp lý | Trích văn bản đã đối chiếu | Tra nguyên văn khi áp dụng |
-| Thực hành | Các bước làm ngay | Làm theo thứ tự |
-| Câu lệnh mẫu | Câu lệnh hoàn chỉnh | Điều chỉnh rồi mới dùng |
-| Dành cho lãnh đạo | Điều cần biết, cần quyết | Đọc cả khi lướt chương |
-| Tóm tắt chương | Các ý chính | Ôn lại sau khi đọc |
+| Hộp | Dùng để |
+|---|---|
+| Mục tiêu của chương | Nêu điều sẽ học và ai nên đọc kỹ |
+| Câu chuyện thực tế | Kể chuyện có thật của dự án, kèm nguyên nhân gốc |
+| Ví dụ minh họa | Tình huống giả định, không phải chuyện đã xảy ra |
+| Cảnh báo | Rủi ro pháp lý, bảo mật, chi phí; đọc kỹ trước khi làm |
+| Ghi nhớ | Nguyên tắc cô đọng |
+| Căn cứ pháp lý | Trích văn bản đã đối chiếu; tra nguyên văn khi áp dụng |
+| Thực hành | Các bước làm ngay, theo thứ tự |
+| Câu lệnh mẫu | Câu lệnh hoàn chỉnh; điều chỉnh rồi mới dùng |
+| Dành cho lãnh đạo | Điều lãnh đạo cần biết, cần quyết |
+| Tóm tắt chương | Các ý chính để ôn lại |
 
-Hai hộp dễ nhầm nhất là "Câu chuyện thực tế" và "Ví dụ minh họa". Câu chuyện thực tế lấy từ nhật ký dự án, có ngày tháng khi nhật ký ghi ngày. Ví dụ minh họa là tình huống dựng ra để giải thích; tên đơn vị, con số trong đó là giả định dù nghe rất giống thật. Cuối mỗi chương có mục "Câu hỏi suy ngẫm và bài tập" để tự kiểm tra hoặc dùng trong sinh hoạt chuyên môn của phòng, Ban.
+Hai hộp dễ nhầm nhất là "Câu chuyện thực tế" và "Ví dụ minh họa". Câu chuyện thực tế lấy từ nhật ký dự án, có ngày tháng khi nhật ký ghi ngày. Ví dụ minh họa là tình huống dựng ra để giải thích; tên đơn vị, con số trong đó là giả định dù nghe rất giống thật. Cuối mỗi chương có mục "Câu hỏi suy ngẫm và bài tập" để tự kiểm tra.
 
 ## Cách dùng câu lệnh mẫu
 
@@ -138,7 +138,6 @@ Dòng Ràng buộc là quan trọng nhất: AI rất dễ "điền giúp" một 
 
 - **Thuật ngữ:** lần đầu trong mỗi chương viết tiếng Việt trước, tiếng Anh trong ngoặc, như kho mã nguồn (repository), triển khai (deploy); Phụ lục 1 có bảng tra.
 - **Viết tắt:** ĐBQH, HĐND, UBND, CBCC chỉ dùng sau khi đã viết đầy đủ lần đầu trong chương.
-- **Xưng hô:** "tôi" là tác giả; "đồng chí" là người đọc; "chúng ta" khi cùng suy ngẫm.
 - **Con người:** ngoài tác giả, không ai được nêu họ tên, chỉ nhắc theo chức danh.
 - **Giá cả:** là giá tham khảo tại thời điểm viết (10/2026), có thể thay đổi.
 
@@ -170,9 +169,9 @@ Mọi trang của hệ thống đều mang nhãn "Bản demo thử nghiệm, s�
 
 ## Pháp luật được đối chiếu đến ngày 26/10/2026
 
-Văn bản dẫn trong sách được đối chiếu số hiệu, ngày ban hành, hiệu lực và tình trạng đến ngày 26/10/2026, qua nhiều nguồn chính thống. Trước khi áp dụng, hãy tra nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo, vì pháp luật thay đổi ngay khi sách đang viết. Ví dụ, Quy định 366-QĐ/TW ngày 30/8/2025 của Bộ Chính trị về việc kiểm điểm và đánh giá, xếp loại chất lượng đối với tập thể, cá nhân trong hệ thống chính trị vẫn là căn cứ cho năm 2026; nhưng ngày 19/10/2026, Bộ Chính trị đã ban hành Quy định 227-QĐ/TW thay thế, hiệu lực từ 01/01/2027.
+Văn bản dẫn trong sách được đối chiếu số hiệu, ngày ban hành, hiệu lực và tình trạng đến ngày 26/10/2026. Trước khi áp dụng, hãy tra nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo, vì pháp luật thay đổi ngay khi sách đang viết. Ví dụ, Quy định 366-QĐ/TW ngày 30/8/2025 của Bộ Chính trị về việc kiểm điểm và đánh giá, xếp loại chất lượng đối với tập thể, cá nhân trong hệ thống chính trị vẫn là căn cứ cho năm 2026. Nhưng ngày 19/10/2026, Bộ Chính trị đã ban hành Quy định 227-QĐ/TW thay thế, hiệu lực từ 01/01/2027.
 
-Chỗ nào chưa đối chiếu được nguyên văn, sách chỉ nói chung, như "các quy định về bảo vệ bí mật nhà nước", không nêu số hiệu: thà nói chung còn hơn dẫn sai. Một số văn bản được số hóa còn là dự thảo, như Khung tiêu chí đánh giá, xếp loại HĐND cấp tỉnh, cấp xã nhiệm kỳ 2026–2031; chỗ phần mềm "chuẩn hóa" dự thảo chỉ là kiến nghị. Cách diễn giải quy định trong sách phục vụ bản demo, không phải hướng dẫn chính thức.
+Chỗ nào chưa đối chiếu được nguyên văn, sách chỉ nói chung, như "các quy định về khuyến khích, bảo vệ cán bộ dám nghĩ, dám làm", không nêu số hiệu: thà nói chung còn hơn dẫn sai. Một số văn bản được số hóa còn là dự thảo, như Khung tiêu chí đánh giá, xếp loại HĐND cấp tỉnh, cấp xã nhiệm kỳ 2026–2031; chỗ phần mềm "chuẩn hóa" dự thảo chỉ là kiến nghị, quyền sửa văn bản thuộc cơ quan có thẩm quyền.
 
 ## Công cụ và giá cả thay đổi rất nhanh
 
@@ -183,7 +182,7 @@ Chỗ nào chưa đối chiếu được nguyên văn, sách chỉ nói chung, n
 | 02/9/2026 | Hạn mức Gemini Notebook tính theo khối lượng tính toán | Không còn số lượt hỏi cố định mỗi ngày |
 | 22/10/2026 | Dự án phát hiện địa chỉ đã chuyển sang notebook.google.com | Phải kiểm tra lại liên kết đã lưu |
 
-Dòng cuối là chuyện của chính dự án: giả định của AI về địa chỉ cũ đã lỗi thời, chỉ lộ ra khi kiểm tra đường dẫn thật. Sách vẫn dùng tên NotebookLM ở chỗ gắn với nhiệm vụ đã đăng ký và giao diện phân hệ Sổ tay AI. Claude Code không có trong gói miễn phí; gói thấp nhất có nó là Pro, 20 USD/tháng, chưa gồm thuế (giá tham khảo tại thời điểm viết, 10/2026, có thể thay đổi). Trước khi làm theo hướng dẫn cài đặt hay dựa vào mức giá nào, hãy kiểm tra lại trang chính thức của nhà cung cấp.
+Dòng cuối là chuyện của chính dự án: giả định cũ của AI chỉ lộ ra khi kiểm tra đường dẫn thật. Sách vẫn dùng tên NotebookLM ở chỗ gắn với nhiệm vụ đã đăng ký và giao diện phân hệ Sổ tay AI. Về giá, Claude Code không có trong gói miễn phí; trong các gói thuê bao, gói thấp nhất có nó là Pro, 20 USD/tháng, chưa gồm thuế (giá tham khảo tại thời điểm viết, 10/2026, có thể thay đổi). Trước khi làm theo hướng dẫn cài đặt hay dựa vào mức giá nào, hãy kiểm tra lại trang chính thức của nhà cung cấp.
 
 ## Câu lệnh mẫu phải được điều chỉnh và kiểm chứng
 
@@ -194,7 +193,7 @@ Cũng cần phân biệt chỉ tiêu với kết quả. "Giảm ít nhất 30% t
 ::: {.canhbao}
 **Cảnh báo: ba lằn ranh không được vượt**
 
-- Không đưa tài liệu mật, đơn thư có danh tính người khiếu nại, tố cáo, hồ sơ cá nhân lên trợ lý AI công cộng hay ứng dụng chạy trên dịch vụ đám mây công cộng. Các quy định về bảo vệ bí mật nhà nước và Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) là ranh giới bắt buộc.
+- Không đưa tài liệu mật, đơn thư có danh tính người khiếu nại, tố cáo, hồ sơ cá nhân lên trợ lý AI công cộng hay ứng dụng chạy trên dịch vụ đám mây công cộng. Điều 5 Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực từ 01/3/2026) nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng máy tính, mạng viễn thông. Ngoại lệ là mạng LAN độc lập và việc lưu giữ theo pháp luật về cơ yếu. Dữ liệu cá nhân thì chịu sự điều chỉnh của Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026).
 - Không dùng kết quả của bản demo hay câu trả lời của AI làm căn cứ pháp lý, kết luận chính thức. Như Tập 1 đã nhắc: trình ký văn bản lỗi do AI là lỗi của cán bộ.
 - Không để khóa bí mật, mật khẩu, số điện thoại, dữ liệu cá nhân nằm trong kho mã nguồn công khai. Thứ gì đã đưa lên đó coi như đã công bố.
 :::
@@ -203,7 +202,7 @@ Cũng cần phân biệt chỉ tiêu với kết quả. "Giảm ít nhất 30% t
 
 Đây là sách chia sẻ kinh nghiệm cá nhân; tác giả chịu trách nhiệm về nội dung. Nhận định và cách diễn giải trong sách là của cá nhân tôi, không đại diện quan điểm chính thức của Văn phòng, Thường trực HĐND tỉnh, Đoàn ĐBQH tỉnh hay cơ quan nào. Khi khác với văn bản, hướng dẫn của cấp có thẩm quyền, xin theo văn bản, hướng dẫn đó.
 
-Sách không nêu họ tên ai ngoài tác giả; không có số điện thoại, mật khẩu, khóa bí mật, mã truy cập hay nội dung đánh giá cá nhân. Bài học bảo mật được kể ở mức nguyên tắc để phòng tránh, không mô tả cách vượt quyền một hệ thống. Tên sản phẩm, dịch vụ công nghệ thuộc về chủ sở hữu tương ứng; nêu tên không nhằm quảng cáo.
+Sách không nêu họ tên ai ngoài tác giả; không có số điện thoại, mật khẩu, khóa bí mật, mã truy cập hay nội dung đánh giá cá nhân. Bài học bảo mật được kể ở mức nguyên tắc để phòng tránh, không mô tả cách vượt quyền một hệ thống.
 
 ::: {.ghinho}
 **Ghi nhớ**

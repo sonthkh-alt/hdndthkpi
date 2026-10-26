@@ -35,7 +35,7 @@ Ví dụ trong bảng lấy từ Nghị định 335/2025/NĐ-CP của Chính ph�
 | Thời hạn | Khi nào, theo chu kỳ nào? | Trước ngày 28; tháng 12 trước 15/12 | Kỳ đánh giá, nhắc hạn, khóa sổ |
 | Thẩm quyền | Ai đề xuất, ai quyết định? | Cấp trực tiếp đề xuất, cấp quản lý quyết định | Vai trò, nút phê duyệt |
 
-**Chủ thể.** Bản đặc tả yêu cầu của dự án (mục 8.3) có một câu then chốt: nhóm đối tượng là thuộc tính của người dùng, gán theo vị trí việc làm, không phải của danh mục công việc. Trong bản đang vận hành, "Mẫu" của mỗi người tự suy ra từ chức vụ: Chánh, Phó Chánh Văn phòng là Mẫu 01; Trưởng, Phó Trưởng phòng là Mẫu 02; chuyên viên là Mẫu 03; lao động hợp đồng là Mẫu 04. Không ai chọn tay, nên không ai chọn nhầm.
+**Chủ thể.** Bản đặc tả yêu cầu của dự án (mục 8.3) có một câu then chốt: nhóm đối tượng là thuộc tính của người dùng, gán theo vị trí việc làm, không phải của danh mục công việc. Trong bản đang vận hành, "Mẫu" của mỗi người tự suy ra từ chức vụ (lãnh đạo Văn phòng, lãnh đạo phòng, chuyên viên, lao động hợp đồng), không ai chọn tay nên không ai chọn nhầm.
 
 **Quy trình** là thứ tự dữ liệu sẵn sàng, không chỉ là thứ tự màn hình: điểm tính từ dưới lên (xong cấp dưới mới tính được phần của lãnh đạo), còn phê duyệt đi từ trên xuống.
 
@@ -55,11 +55,11 @@ Nên tra nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản phá
 
 ### 8.1.2. Những chữ nhỏ quyết định đúng sai
 
-Lớp công thức nguy hiểm nhất, và nguy hiểm nằm ở những chữ rất nhỏ. Dưới đây là các chữ đã làm dự án vấp, hoặc suýt vấp.
+Lớp công thức nguy hiểm nhất, và nguy hiểm nằm ở những chữ rất nhỏ đã làm dự án vấp, hoặc suýt vấp.
 
 **"Không hoàn thành".** Điều 8 Quy định 1053-QĐ/TU xếp loại "Không hoàn thành nhiệm vụ" đối với người không giữ chức vụ có trên 50% nhiệm vụ không hoàn thành. Muốn máy đếm được, phải trả lời trước: thế nào là *một* nhiệm vụ không hoàn thành? Phiên bản đầu, AI tự chọn cách hiểu khắt khe nhất: cứ dưới 100% số lượng là "không hoàn thành", nên cán bộ làm được 9 trên 10 văn bản vẫn bị ép xuống mức thấp nhất. Tôi chốt lại: dưới 50% mới là không hoàn thành, từ 50% đến dưới 100% là chưa đạt đủ số lượng. Đó là cách hiểu cho bản thử nghiệm; dùng chính thức thì cần cơ quan có thẩm quyền xác nhận hoặc hướng dẫn.
 
-**"Quá nửa tổng số".** Theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15, nghị quyết của Hội đồng nhân dân (HĐND) được thông qua khi quá nửa tổng số đại biểu biểu quyết tán thành. Mẫu số là tổng số đại biểu, không phải số người có mặt hay số người đã bấm nút. Với 82 đại biểu HĐND tỉnh, quá nửa là từ 42 phiếu; hai phần ba là từ 55 phiếu, vì 82 × 2/3 = 54,67 phải làm tròn lên.
+**"Quá nửa tổng số".** Theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15, nghị quyết của Hội đồng nhân dân (HĐND) được thông qua khi quá nửa tổng số đại biểu biểu quyết tán thành. Mẫu số là tổng số đại biểu, không phải số người có mặt hay số người đã bấm nút. Với 82 đại biểu HĐND tỉnh, quá nửa là từ 42 phiếu; hai phần ba (với nội dung luật đòi hỏi tỷ lệ này) là từ 55 phiếu, vì 82 × 2/3 = 54,67 phải làm tròn lên.
 
 **"Từ … đến dưới".** Theo Điều 20 Nghị định 335/2025/NĐ-CP, Hoàn thành xuất sắc nhiệm vụ từ 90 điểm trở lên, Hoàn thành tốt từ 70 đến dưới 90 điểm. Câu hỏi cho máy: 89,995 điểm làm tròn thành 90,00 rồi mới so ngưỡng, hay so rồi mới làm tròn? Chọn thế nào cũng được, miễn lựa chọn được viết ra.
 
@@ -103,7 +103,7 @@ Hai quy ước nhỏ làm tệp dễ dùng hẳn: chữ xanh là ô nhập liệ
 
 ### 8.2.1. Vì sao là bảng tính
 
-Bảng tính có bốn ưu điểm: ai cũng đọc được, kể cả lãnh đạo không quen công nghệ; công thức hiện ngay khi bấm vào ô; sửa tham số mất vài giây; chạy trên máy mình, không đưa dữ liệu đi đâu. Nó còn buộc người làm viết công thức ra thành chữ. Muốn trang Giao việc tự lấy hệ số thì phải có cột "Mã sản phẩm" để tra sang trang Danh mục; chính bảng tính đã chỉ ra rằng phần mềm cần một danh mục có mã.
+Bảng tính ai cũng đọc được, công thức hiện ngay khi bấm vào ô, sửa tham số mất vài giây, chạy trên máy mình mà không đưa dữ liệu đi đâu. Nó còn buộc người làm viết công thức ra thành chữ. Muốn trang Giao việc tự lấy hệ số thì phải có cột "Mã sản phẩm" để tra sang trang Danh mục; chính bảng tính đã chỉ ra rằng phần mềm cần một danh mục có mã.
 
 Bảng tính cũng có giới hạn, và tệp của dự án tự nói ra. Trang Hướng dẫn ghi rằng các điều kiện phụ tại Điều 8 được "kiểm tra thủ công/trong phần mềm". Điều kiện xét theo từng nhiệm vụ, như "mọi nhiệm vụ phải hoàn thành" hay "ít nhất 30% nhiệm vụ vượt mức", rất khó viết gọn trong ô Excel. Dòng ghi chú ấy là một đức tính: bảng tính nói thật nó không làm được gì, và đó là phần phải giao cho phần mềm.
 
@@ -145,7 +145,7 @@ Ràng buộc: Chỉ dùng công thức, ngưỡng có trong phiếu bóc tách. 
 
 ## 8.3. Viết đặc tả yêu cầu bằng tiếng Việt cùng AI
 
-Đặc tả yêu cầu phần mềm (software requirements specification) giống hồ sơ mời thầu của một công trình: nói rõ cần *cái gì* và thế nào là *đúng*, không nói phải xây bằng gì. Có AI viết mã vẫn cần đặc tả. Không có nó, mỗi câu lệnh là một mảnh rời, chỗ nào không nói thì AI tự đoán để lấp vào. Có đặc tả, tác tử đọc lại được ở mọi phiên làm việc, như bộ nhớ dự án ở Chương 7.
+Đặc tả yêu cầu phần mềm (software requirements specification) giống hồ sơ mời thầu của một công trình: nói rõ cần *cái gì* và thế nào là *đúng*, không nói phải xây bằng gì. Có AI viết mã thì vẫn cần đặc tả. Không có nó, mỗi câu lệnh là một mảnh rời, chỗ nào không nói thì AI tự đoán để lấp vào. Có đặc tả, tác tử đọc lại được ở mọi phiên làm việc, như bộ nhớ dự án ở Chương 7.
 
 ### 8.3.1. Bản đặc tả thật của dự án
 
@@ -288,7 +288,7 @@ Phần mềm không thể chờ văn bản sửa xong, nhưng cũng không đư�
 
 Số hóa là một cách thẩm định văn bản; nhưng người thẩm định chỉ kiến nghị, người ban hành mới sửa.
 
-Với văn bản *đã ban hành* mà câu chữ hiểu được nhiều cách, tôi yêu cầu AI liệt kê các cách hiểu và hệ quả, rồi chốt và ghi vào nhật ký dự án kèm cụm "người dùng chốt". Chẳng hạn, ô "bị kỷ luật" chỉ ép xếp loại, không trừ vào tổng điểm; khi AI phát hiện công thức có thể cho "điểm cao mà xếp loại thấp", tôi chọn giữ nguyên công thức, chỉ giải thích rõ và hiện ô cảnh báo đỏ. Với bản demo, người chốt là tôi. Với hệ thống chính thức, người chốt phải là cấp có thẩm quyền, bằng văn bản.
+Với văn bản *đã ban hành* mà câu chữ hiểu được nhiều cách, tôi yêu cầu AI liệt kê các cách hiểu và hệ quả, rồi chốt và ghi vào nhật ký dự án kèm cụm "người dùng chốt". Chẳng hạn, ô "bị kỷ luật" chỉ ép xếp loại, không trừ vào tổng điểm; công thức có thể cho "điểm cao mà xếp loại thấp" thì giữ nguyên, chỉ giải thích rõ và hiện ô cảnh báo đỏ. Với bản demo, người chốt là tôi. Với hệ thống chính thức, người chốt phải là cấp có thẩm quyền, bằng văn bản.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 8.5 — Rà soát tính nhất quán của dự thảo bằng phép tính**
@@ -315,7 +315,7 @@ Mỗi dòng ghi: vị trí | dự thảo ghi gì | vì sao chưa nhất quán | 
 
 ## 8.6. Sản phẩm khả dụng tối thiểu, phiên bản thử nghiệm và ý kiến người dùng
 
-Sản phẩm khả dụng tối thiểu (minimum viable product, MVP) là phiên bản nhỏ nhất mà người dùng thật dùng được cho một việc thật, đủ để biết điều gì đúng, điều gì sai. Nó giống mô hình thí điểm ở vài đơn vị trước khi nhân rộng; bản đặc tả của dự án cũng khuyến nghị thí điểm 03 tháng rồi mới mở rộng. Với phân hệ đánh giá OKR/KPI, phần tối thiểu là một chuỗi khép kín: chấm Nhóm I và Nhóm II, tính tổng, xếp loại, phê duyệt, xuất phiếu Word. Mọi thứ khác để sau, và toàn hệ thống mang nhãn "Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu".
+Sản phẩm khả dụng tối thiểu (minimum viable product, MVP) là phiên bản nhỏ nhất mà người dùng thật dùng được cho một việc thật, đủ để biết điều gì đúng, điều gì sai, giống mô hình thí điểm trước khi nhân rộng. Với phân hệ đánh giá OKR/KPI, phần tối thiểu là chuỗi khép kín: chấm Nhóm I và Nhóm II, tính tổng, xếp loại, phê duyệt, xuất phiếu Word. Mọi thứ khác để sau, và toàn hệ thống mang nhãn "Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu".
 
 Tối thiểu còn có nghĩa là đúng mức chi tiết. Lần đầu, Nhóm B của phân hệ Kiểm điểm có mười ô nhập cho mỗi sản phẩm (cấp trình, tiến độ, hệ số, số lượng giao, số lượng hoàn thành, các tỷ lệ…). Dùng thử thì quá nặng, nên rút còn tên nhiệm vụ, mức độ hoàn thành, tầm quan trọng; đến khi đối chiếu biểu mẫu giấy (mục 8.4) lại bổ sung đúng những cột bản giấy có. Mức chi tiết đúng đến từ dùng thử và đối chiếu, không từ suy đoán.
 
@@ -327,7 +327,7 @@ Có thời điểm hệ thống có ba giao diện chọn ở màn đăng nhập
 Tôi quyết định gỡ hẳn bản Mới và PRO, chỉ giữ một giao diện. Gói mã chính giảm từ 639 kB xuống khoảng 181 kB khi chuyển hai bản sang tải theo nhu cầu, còn khoảng 178 kB sau khi gỡ hẳn. Mã cũ vẫn nằm trong lịch sử kho mã nguồn. Các bộ tiêu chí thử nghiệm (Cổ điển, Cải tiến, Singapore) dồn về một "Phòng thử nghiệm" riêng, Quản trị ẩn, hiện được. Những ý đã chín, như "OKR chỉ để định hướng, không dùng phần trăm đạt OKR để chấm điểm", thì áp dụng cho mọi bản.
 :::
 
-Ý kiến người dùng thường đến dưới dạng một câu "sao lại thế này". Tôi so tài khoản khách với tài khoản quản trị, thấy hai danh sách cán bộ khác nhau, từ đó ra nguyên tắc "dữ liệu mẫu là dữ liệu chính thống". Mở phân hệ Kiểm điểm không thấy 15 đồng chí, từ đó mỗi phân hệ có kho dữ liệu riêng. Trang Hướng dẫn có ô gửi góp ý; phân hệ Sổ tay AI có nút đánh dấu "Cần sửa lại" và ô ghi số phút tra cứu thủ công để tính chỉ tiêu giảm ít nhất 30% thời gian tra cứu. Đó là chỉ tiêu đã đăng ký, chưa phải kết quả đo được.
+Ý kiến người dùng thường đến dưới dạng một câu "sao lại thế này". Tôi so tài khoản khách với tài khoản quản trị, thấy hai danh sách cán bộ khác nhau, từ đó ra nguyên tắc "dữ liệu mẫu là dữ liệu chính thống". Một lần mở phân hệ Kiểm điểm không thấy 15 đồng chí, từ đó mỗi phân hệ có kho dữ liệu riêng. Trang Hướng dẫn có ô gửi góp ý; phân hệ Sổ tay AI có nút đánh dấu "Cần sửa lại" và ô ghi số phút tra cứu thủ công để tính chỉ tiêu giảm ít nhất 30% thời gian tra cứu. Đó là chỉ tiêu đã đăng ký, chưa phải kết quả đo được.
 
 ::: {.thuchanh}
 **Thực hành: hai tuần thu ý kiến cho một bản thử nghiệm**
@@ -358,6 +358,6 @@ Làm thêm thì dễ, bớt đi mới cần quyết tâm của người chủ: t
 
 1. Dùng Câu lệnh mẫu 8.1 bóc tách sáu lớp một văn bản đơn vị đồng chí đang thực hiện, rồi đối chiếu ít nhất năm trích dẫn Điều, khoản với bản gốc. AI dẫn sai bao nhiêu chỗ?
 2. Trong văn bản ấy, tìm ba chữ chỉ ngưỡng, mẫu số hoặc đơn vị thời gian. Mỗi chữ hiểu được theo mấy cách? Ai có thẩm quyền chốt?
-3. Dựng bảng tính mô phỏng với tám hồ sơ giả định, có ít nhất một tình huống chạm trần hoặc chạm ngưỡng. Bảng tính có "tự đặt câu hỏi" nào mà đồng chí chưa nghĩ tới?
+3. Dựng bảng tính mô phỏng với tám hồ sơ giả định, có tình huống chạm trần hoặc chạm ngưỡng. Bảng tính "tự đặt" câu hỏi nào mà đồng chí chưa nghĩ tới?
 4. Lấy một biểu mẫu giấy của đơn vị, lập bảng "ô giấy – trường máy". Ô nào mang quy tắc ngầm mà văn bản hướng dẫn không ghi?
 5. Nếu được gỡ bỏ một chức năng trong phần mềm đang dùng, đồng chí gỡ chức năng nào, vì sao, hỏi ý kiến ai trước?
