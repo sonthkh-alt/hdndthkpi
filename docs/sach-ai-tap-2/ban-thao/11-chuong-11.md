@@ -3,16 +3,16 @@
 ::: {.muctieu}
 **Mục tiêu của chương**
 
-- Hiểu cấu trúc Khung tiêu chí đánh giá, xếp loại Hội đồng nhân dân cấp tỉnh, cấp xã nhiệm kỳ 2026–2031 (dự thảo) và cách phần mềm biến từng dòng "Cách chấm điểm" thành phép tính.
+- Hiểu cấu trúc Khung tiêu chí đánh giá, xếp loại Hội đồng nhân dân (HĐND) cấp tỉnh, cấp xã nhiệm kỳ 2026–2031 (dự thảo) và cách phần mềm biến từng dòng "Cách chấm điểm" thành phép tính.
 - Nắm cách cho hàng chục đơn vị không có tài khoản hệ thống tự đăng nhập, tự chấm điểm mà không lộ mã truy cập, và luồng tự chấm – thẩm định – phê duyệt.
 - Biết cách dùng việc số hóa như một lần "thẩm định số học" đối với dự thảo văn bản, và cách "chuẩn hóa có ghi chú" thay vì lặng lẽ chọn đại.
 - Rút ra bài học về một bộ dữ liệu duy nhất cho bản trình diễn.
-- Phân biệt rõ phần việc của phần mềm với thẩm quyền của Thường trực Hội đồng nhân dân tỉnh và của cơ quan thi đua, khen thưởng.
+- Phân biệt rõ phần việc của phần mềm với thẩm quyền của Thường trực HĐND tỉnh và của cơ quan thi đua, khen thưởng.
 
 Dành cho: chuyên viên tham mưu công tác HĐND, Tổ công tác thẩm định, lãnh đạo Văn phòng và Thường trực HĐND; cán bộ muốn tự làm một công cụ chấm điểm theo bộ tiêu chí.
 :::
 
-Hai chương trước nói về đánh giá con người. Chương này chuyển sang đánh giá một tập thể dân cử: Hội đồng nhân dân (HĐND) cấp tỉnh và HĐND các xã, phường. Có ba khác biệt lớn. Người tự chấm là Thường trực HĐND hàng chục xã, phường, vốn không có tài khoản trên hệ thống. Văn bản làm căn cứ mới là dự thảo. Và kết quả đi vào bình xét thi đua, có trần số đơn vị được xếp loại cao nhất.
+Hai chương trước nói về đánh giá con người. Chương này chuyển sang đánh giá một tập thể dân cử: HĐND cấp tỉnh và HĐND các xã, phường. Có ba khác biệt lớn. Người tự chấm là Thường trực HĐND hàng chục xã, phường, vốn không có tài khoản trên hệ thống. Văn bản làm căn cứ mới là dự thảo. Và kết quả đi vào bình xét thi đua, có trần số đơn vị được xếp loại cao nhất.
 
 Phân hệ "Đánh giá tiêu chí HĐND tỉnh, xã, phường" nằm trong hệ thống thử nghiệm của Văn phòng tại địa chỉ hdndthkpi.vercel.app, đường dẫn `#/tieuchi`. Theo thứ tự các mục trong nhật ký dự án, phân hệ được dựng sau phân hệ Kiểm điểm (căn cứ Hướng dẫn 03-HD/TU ngày 02/7/2026) và trước đợt sự cố dữ liệu ngày 13/8/2026.
 
@@ -91,7 +91,7 @@ Tiêu chí III.3 đạt 3,75/6 điểm. Mỗi con số đều truy ngược đư
 
 ### 11.1.4. Xếp loại năm mức và những điều kiện đi kèm
 
-Điều 6 của dự thảo quy định năm mức theo tổng điểm: Xuất sắc từ 90 điểm, Tốt từ 80 đến dưới 90, Khá từ 65 đến dưới 80, Trung bình từ 50 đến dưới 65, Yếu dưới 50. Điểm chỉ là điều kiện cần. Mức Xuất sắc và Tốt còn phải "đáp ứng điều kiện về đổi mới sáng tạo". Rồi đến chế tài: có nghị quyết bị kết luận trái pháp luật, có cán bộ, đại biểu bị kỷ luật từ cảnh cáo thì không được Xuất sắc; Thường trực hoặc người đứng đầu bị kỷ luật từ khiển trách thì không được từ Tốt trở lên; kê khai không trung thực thì hạ một mức, tái phạm xếp loại Yếu.
+Điều 6 của dự thảo quy định năm mức theo tổng điểm: Xuất sắc từ 90 điểm, Tốt từ 80 đến dưới 90, Khá từ 65 đến dưới 80, Trung bình từ 50 đến dưới 65, Yếu dưới 50. Điểm chỉ là điều kiện cần. Mức Xuất sắc và Tốt còn phải "đáp ứng điều kiện về đổi mới sáng tạo". Rồi đến chế tài: có nghị quyết bị kết luận trái pháp luật, có cán bộ, đại biểu bị kỷ luật từ cảnh cáo trở lên thì không được Xuất sắc; Thường trực hoặc người đứng đầu bị kỷ luật từ khiển trách trở lên thì không được từ Tốt trở lên; kê khai không trung thực thì hạ một mức, tái phạm xếp loại Yếu.
 
 Phần mềm tính tổng, xếp mức theo điểm, rồi lần lượt áp từng điều kiện hạ mức; mỗi lần hạ mức ghi một dòng lý do bằng tiếng Việt.
 
@@ -100,14 +100,14 @@ Phần mềm tính tổng, xếp mức theo điểm, rồi lần lượt áp t�
 
 Hãy hình dung HĐND một phường đạt 87 điểm ở bảy nhóm, được 3 điểm thưởng, không bị trừ: tổng 90 điểm. Ở nhóm V (tối đa 10 điểm), phường có 01 mô hình mới (3 điểm) và có báo cáo đánh giá bằng số liệu (1,5 điểm): 4,5/10, tức 45%.
 
-Điều kiện đổi mới sáng tạo cho mức Xuất sắc đã lượng hóa (mục 11.3) là nhóm V từ 60% trở lên và có ít nhất 01 mô hình với cấp xã. Phường mới đạt 45%, nên phần mềm hạ xuống Tốt. Kiểm tra tiếp điều kiện mức Tốt: nhóm V từ 40% và có ít nhất 01 mô hình. Phường đạt cả hai, nên giữ Tốt. Phiếu ghi rõ: "cần điểm nhóm V ≥ 60% (hiện 45%)".
+Điều kiện đổi mới sáng tạo cho mức Xuất sắc đã lượng hóa (mục 11.3) là nhóm V từ 60% trở lên và có ít nhất 01 mô hình với cấp xã. Phường mới đạt 45%, nên phần mềm hạ xuống Tốt. Kiểm tra tiếp điều kiện mức Tốt: nhóm V từ 40% và có ít nhất 01 mô hình. Phường đạt cả hai, nên giữ Tốt. Phiếu ghi rõ lý do: chưa đáp ứng điều kiện đổi mới sáng tạo, cần nhóm V từ 60% trong khi hiện mới 45%.
 
 Nếu phường có 02 mô hình (6 điểm) cộng báo cáo (1,5 điểm), nhóm V đạt 75%, các nhóm khác giữ nguyên thì tổng thành 93 và phường đủ điều kiện Xuất sắc. Khi đó còn một cửa nữa: trần 25%.
 :::
 
 Trần 25% là điểm riêng của cấp xã: số đơn vị Xuất sắc không vượt quá 25% số đơn vị được đánh giá. Vượt tỷ lệ thì chọn theo tổng điểm từ cao xuống; bằng điểm thì ưu tiên điểm thưởng nhóm VIII, rồi điểm nhóm V. Đơn vị đủ điều kiện mà không được chọn thì được xem xét xếp loại Tốt.
 
-Bộ dữ liệu mô phỏng của phân hệ có 10 xã, phường, trong đó 5 đơn vị đủ điều kiện Xuất sắc. 25% của 10 là 2,5; "không vượt quá" nên chỉ được 2 suất. Bảng kết quả xếp 5 đơn vị theo thứ tự ưu tiên, giữ 2 đơn vị, gắn nhãn vượt trần 25% cho 3 đơn vị còn lại kèm dòng nhắc xem xét xếp loại Tốt. Phần mềm chỉ sắp xếp và đếm; quyết định thuộc Thường trực HĐND tỉnh (mục 11.5).
+Bộ dữ liệu mô phỏng của phân hệ có 10 xã, phường, trong đó 5 đơn vị đủ điều kiện Xuất sắc. 25% của 10 là 2,5; "không vượt quá" nên chỉ được 2 suất. Phần mềm xếp 5 đơn vị theo thứ tự ưu tiên, giữ 2 đơn vị; trên bảng kết quả, 3 đơn vị còn lại mang nhãn vượt trần 25%, kèm dòng nhắc xem xét xếp loại Tốt. Phần mềm chỉ sắp xếp và đếm; quyết định thuộc Thường trực HĐND tỉnh (mục 11.5).
 
 ::: {.ghinho}
 **Ghi nhớ**
@@ -140,7 +140,7 @@ Việc ghi phiếu đi qua một "ô cửa hẹp": hàm `tc_unit_save` trên má
 ::: {.canhbao}
 **Cảnh báo — giới hạn của cơ chế này**
 
-Cơ chế mã đơn vị, mã truy cập và chuỗi băm đủ cho một bản demo thử nghiệm: mã gốc không nằm ở đâu trên máy chủ. Nhưng nó chưa phải thiết kế an ninh cho dữ liệu thật. Trước khi đưa vào sử dụng chính thức, cần ít nhất: đóng quyền đọc công khai của dòng dữ liệu; chuyển việc xác thực đơn vị hẳn về máy chủ theo cơ chế xác thực của hạ tầng chính thức; để hàm ghi kiểm tra nội dung phiếu, đơn vị chỉ ghi được phần tự chấm, không chạm được phần thẩm định và phê duyệt. Phiếu còn có ô người liên hệ và số điện thoại; trong bản demo, không nhập số điện thoại cá nhân thật vào đó.
+Cơ chế mã đơn vị, mã truy cập và chuỗi băm phù hợp với một bản demo thử nghiệm: mã gốc không nằm ở đâu trên máy chủ. Nhưng nó chưa phải thiết kế an ninh cho dữ liệu thật. Trước khi dùng chính thức, toàn bộ cơ chế phải được rà lại theo yêu cầu an toàn thông tin của hạ tầng chính thức, tối thiểu: đóng quyền đọc công khai; xác thực đơn vị hoàn toàn ở máy chủ; tách bạch phần đơn vị được ghi với phần chỉ Tổ công tác, Thường trực được ghi. Phiếu còn có ô người liên hệ và số điện thoại; trong bản demo, không nhập số điện thoại cá nhân thật vào đó.
 :::
 
 ### 11.2.3. Từ tự chấm đến phê duyệt
@@ -161,7 +161,7 @@ Cuối luồng là hai sản phẩm xuất ra: phiếu tự đánh giá dạng W
 **Câu lệnh mẫu 11.1 — Dựng luồng thẩm định, phê duyệt có tự gỡ phê duyệt**
 
 ```text
-Vai: Đồng chí là tác tử AI lập trình đang làm việc trong kho mã của tôi.
+Vai: Tác tử AI lập trình làm việc trong kho mã của tôi.
 Bối cảnh: Phân hệ đánh giá theo bộ tiêu chí đã có phiếu tự chấm của
 từng đơn vị. Theo dự thảo quyết định (tệp [docs/ten-tep.docx], Điều 5),
 quy trình là: đơn vị tự chấm và gửi → Tổ công tác thẩm định → Thường
@@ -196,7 +196,7 @@ Người đọc có thể lướt qua chỗ mâu thuẫn nhỏ, vì trí óc t�
 
 Khi dựng phân hệ, tác tử AI lập trình chép từng mức điểm của hai phụ lục vào tệp logic. Cấu trúc của tệp buộc mỗi điểm thành phần có điểm tối đa, mỗi tiêu chí và mỗi nhóm có trần. Đến bước này, các con số không khớp tự lộ ra: có nhóm cộng ra 13 điểm trong khi trần là 10; có tiêu chí cộng ra 9 điểm trong khi trần là 6.
 
-Ngay lần dựng đầu, phần mềm đã kẹp điểm theo trần để không bao giờ ra điểm vượt mức, và liệt kê 6 điểm chưa nhất quán thành một danh sách ghi chú để cơ quan soạn thảo rà lại. Nhật ký ghi lần đó có 270 phép kiểm logic (tổng điểm nhóm, chấm tối đa bằng 100 và 110, trần điểm trừ, chế tài, trần 25%) và đều đạt. Nhưng "đạt" chỉ có nghĩa là phần mềm không cho điểm vượt trần; nó chưa có nghĩa là văn bản đã nhất quán. Chính việc kẹp điểm còn che bớt mâu thuẫn. Vì vậy bước sau, từng điểm được chuẩn hóa có ghi chú công khai; bộ kiểm thử logic tăng lên 293 phép kiểm và đều đạt.
+Ngay lần dựng đầu, phần mềm đã kẹp điểm theo trần để không bao giờ ra điểm vượt mức, và liệt kê 6 điểm chưa nhất quán thành một danh sách ghi chú để cơ quan soạn thảo rà lại. Nhật ký ghi lần đó có 270 phép kiểm (test) logic (tổng điểm nhóm, chấm tối đa bằng 100 và 110, trần điểm trừ, chế tài, trần 25%) và đều đạt. Nhưng "đạt" chỉ có nghĩa là phần mềm không cho điểm vượt trần; nó chưa có nghĩa là văn bản đã nhất quán. Chính việc kẹp điểm còn che bớt mâu thuẫn. Vì vậy bước sau, từng điểm được chuẩn hóa có ghi chú công khai; bộ kiểm thử logic tăng lên 293 phép kiểm và đều đạt.
 :::
 
 ### 11.3.2. Sáu điểm và cách xử lý từng điểm
@@ -238,15 +238,15 @@ Cụm từ quan trọng nhất trong khối đó là "kiến nghị". Phần m�
 
 ### 11.3.4. Rà soát không bao giờ "xong hẳn"
 
-Khi đọc lại dự thảo để viết chương này, tôi thấy thêm hai chỗ nhỏ chưa nằm trong danh sách sáu điểm. Thứ nhất, phần "Nguyên tắc chấm điểm" ở đầu mỗi phụ lục ghi "điểm lẻ làm tròn đến 0,5 điểm", trong khi cách chấm của một số tiêu chí lại ghi "làm tròn đến 0,25đ"; phần mềm làm tròn theo cách chấm của từng tiêu chí, trong khi trang xem Khung tiêu chí của chính phần mềm vẫn chép nguyên câu "0,5 điểm". Thứ hai, ở Điều 7 có hai điểm cùng đánh dấu "a)". Cả hai chưa làm sai điểm của đơn vị nào, nhưng là chỗ người chấm có thể hỏi lại.
+Khi đọc lại dự thảo để viết chương này, tôi thấy thêm hai chỗ nhỏ chưa nằm trong danh sách sáu điểm. Thứ nhất, phần "Nguyên tắc chấm điểm" ở đầu mỗi phụ lục ghi "điểm lẻ làm tròn đến 0,5 điểm", trong khi cách chấm của một số tiêu chí lại ghi "làm tròn đến 0,25đ"; phần mềm làm tròn theo cách chấm của từng tiêu chí, còn trang xem Khung tiêu chí của chính phần mềm vẫn chép nguyên câu "0,5 điểm". Thứ hai, ở Điều 7 có hai điểm cùng đánh dấu "a)". Chỗ thứ nhất có thể khiến hai người chấm ra hai con số khác nhau; chỗ thứ hai chỉ là lỗi trình bày.
 
-Tôi kể điều này để nhắc một thực tế: phép kiểm chỉ bắt được loại lỗi mà người viết phép kiểm đã nghĩ tới. Sáu điểm kia lộ ra vì phải gán từng con số vào một cấu trúc có trần. Hai điểm này không làm sai tổng điểm nên không phép kiểm nào chạm tới. Mỗi lần văn bản đổi, nên giao cho AI một lượt rà soát mới, với danh sách câu hỏi rộng hơn lần trước.
+Tôi kể điều này để nhắc một thực tế: phép kiểm chỉ bắt được loại lỗi mà người viết phép kiểm đã nghĩ tới. Sáu điểm kia lộ ra vì phải gán từng con số vào một cấu trúc có trần. Hai chỗ này không làm lệch điểm tối đa nên phép kiểm hiện có không chạm tới. Mỗi lần văn bản đổi, nên giao cho AI một lượt rà soát mới, với danh sách câu hỏi rộng hơn lần trước.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 11.2 — Thẩm định số học một dự thảo bộ tiêu chí**
 
 ```text
-Vai: Đồng chí là chuyên viên rà soát văn bản, cẩn thận với con số.
+Vai: Chuyên viên rà soát văn bản, cẩn thận với con số.
 Bối cảnh: Tôi gửi kèm dự thảo bộ tiêu chí chấm điểm [tên văn bản],
 gồm các điều quy định chung và phụ lục có cột "Điểm tối đa" và cột
 "Cách chấm điểm". Văn bản chưa ban hành.
@@ -276,19 +276,19 @@ Câu lệnh này dùng được với trợ lý AI trò chuyện, không cần t
 ::: {.cauchuyen}
 **Câu chuyện thực tế — hai lần sửa cùng một chỗ**
 
-Bản đầu chỉ nạp 14 đơn vị mô phỏng khi máy chủ chưa có đơn vị nào. Nhưng máy chủ đã có vài đơn vị do thử nghiệm, nên mở phân hệ chỉ thấy một đơn vị. Lần sửa thứ nhất tách hai bộ song song: dữ liệu thật trên máy chủ và 14 đơn vị mô phỏng chỉ nằm trên trình duyệt, kèm nút gạt "Dữ liệu mẫu (14) / Dữ liệu thật (N)". Mọi thao tác trên dữ liệu mẫu chạy đủ nhưng không được lưu. Người xem phải tự hiểu mình đang nhìn bộ nào.
+Bản đầu chỉ nạp 14 đơn vị mô phỏng khi máy chủ chưa có đơn vị nào. Nhưng máy chủ đã có vài đơn vị do thử nghiệm, nên mở phân hệ chỉ thấy một đơn vị. Lần sửa thứ nhất tách hai bộ song song: dữ liệu thật trên máy chủ và 14 đơn vị mô phỏng chỉ nằm trên trình duyệt, kèm nút gạt "Dữ liệu mẫu (14) / Dữ liệu thật (N)". Mọi thao tác trên dữ liệu mẫu chạy đủ nhưng không ghi vào dữ liệu thật. Người xem phải luôn để ý mình đang ở bộ nào: cùng một thao tác, ở bộ này được lưu, ở bộ kia thì không.
 
 Sau đó, ở phân hệ OKR/KPI, tôi phát hiện tài khoản khách và tài khoản quản trị thấy hai danh sách cán bộ khác nhau (Chương 9). Nguyên tắc "dữ liệu mẫu = dữ liệu chính thống" được chốt cho toàn hệ thống. Lần sửa thứ hai bỏ hẳn nút gạt, chỉ còn một bộ dữ liệu.
 :::
 
-Sau khi sửa, phân hệ chỉ còn một bộ dữ liệu, đọc từ một dòng trên máy chủ. Mỗi lần mở, phần mềm đối chiếu với danh sách đơn vị chính thống của bản demo. Thiếu đơn vị nào (so theo tên) thì bổ sung đơn vị đó kèm phiếu của nó. Phần mềm không xóa, không sửa đơn vị đã có trên máy chủ. Nếu người đang mở là Thường trực đã đăng nhập, phần bổ sung được ghi luôn lên máy chủ. Khách và quản trị nhờ vậy đọc cùng một bảng; khác nhau chỉ ở chỗ ai được ghi.
+Từ đó, phân hệ đọc từ một dòng duy nhất trên máy chủ. Mỗi lần mở, phần mềm đối chiếu với danh sách đơn vị chính thống của bản demo. Thiếu đơn vị nào (so theo tên) thì bổ sung đơn vị đó kèm phiếu của nó. Phần mềm không xóa, không sửa đơn vị đã có trên máy chủ. Nếu người đang mở là Thường trực đã đăng nhập, phần bổ sung được ghi luôn lên máy chủ. Khách và quản trị nhờ vậy đọc cùng một bảng; khác nhau chỉ ở chỗ ai được ghi.
 
 Bot chat trên Zalo, Telegram (Chương 14) cũng đọc dòng dữ liệu ấy và tính lại điểm bằng chính tệp logic của giao diện. Một con số, một nơi tính, nên bot không nói một điểm còn màn hình hiện một điểm khác.
 
 ::: {.canhbao}
 **Cảnh báo — địa danh thật, điểm mô phỏng**
 
-Tên 10 xã, phường trong bộ dữ liệu mẫu lấy theo địa danh của tỉnh để trông quen thuộc, nhưng mọi điểm số, trạng thái và xếp loại đều là mô phỏng. Phân hệ hiện nhãn "Bản demo thử nghiệm" và cảnh báo dữ liệu mô phỏng. Khi trình diễn, đồng chí không nên đọc xếp loại của một đơn vị cụ thể như thể đó là kết quả thật. Khi chuyển sang dùng thật, phải thay toàn bộ danh sách đơn vị và cấp mã truy cập mới.
+Tên 10 xã, phường trong bộ dữ liệu mẫu lấy theo địa danh của tỉnh để trông quen thuộc, nhưng mọi điểm số, trạng thái và xếp loại đều là mô phỏng. Phân hệ mang nhãn "Bản demo thử nghiệm" ở đầu và chân trang; phiếu của đơn vị mẫu có chữ "mô phỏng" ở ô ghi chú, ô minh chứng. Nhưng khi bỏ nút gạt, dải cảnh báo dữ liệu mô phỏng trên bảng kết quả cũng bị bỏ theo; đây là chỗ cần bổ sung lại. Khi trình diễn, đồng chí không nên đọc xếp loại của một đơn vị cụ thể như thể đó là kết quả thật. Khi chuyển sang dùng thật, phải thay toàn bộ danh sách đơn vị và cấp mã truy cập mới.
 :::
 
 ### 11.4.2. Câu hỏi nên đặt khi cần dữ liệu trình diễn
@@ -303,7 +303,7 @@ Không phải cơ quan nào cũng cần một phân hệ có đăng nhập cho h
 **Thực hành — bảng tự chấm một bộ tiêu chí trong một buổi**
 
 1. Chọn một bộ tiêu chí đã ban hành hoặc một dự thảo được phép dùng thử. Chỉ dùng phần tiêu chí, không đưa kết quả chấm của đơn vị thật lên công cụ AI công cộng.
-2. Chép tiêu chí ra bảng 5 cột: Mã | Nội dung | Điểm tối đa | Kiểu chấm (chọn mức, trừ theo lần, tỷ lệ, đếm) | Cách chấm (nguyên văn).
+2. Chép tiêu chí ra bảng 5 cột: Mã; Nội dung; Điểm tối đa; Kiểu chấm (chọn mức, trừ theo lần, tỷ lệ, đếm); Cách chấm (nguyên văn).
 3. Dùng Câu lệnh mẫu 11.2 để rà soát số học bảng này trước khi làm phần mềm.
 4. Dùng Câu lệnh mẫu 11.3 để AI dựng trang một tệp.
 5. Tự kiểm: chọn mức cao nhất ở mọi ô, tổng phải đúng điểm tối đa; chọn mức làm mất điểm toàn tiêu chí, tiêu chí đó phải về 0.
@@ -314,7 +314,7 @@ Không phải cơ quan nào cũng cần một phân hệ có đăng nhập cho h
 **Câu lệnh mẫu 11.3 — Trang tự chấm một tệp theo bộ tiêu chí**
 
 ```text
-Vai: Đồng chí là lập trình viên giao diện, viết cho người không chuyên.
+Vai: Lập trình viên giao diện, viết cho người không chuyên.
 Bối cảnh: Tôi gửi kèm bảng tiêu chí 5 cột (Mã, Nội dung, Điểm tối đa,
 Kiểu chấm, Cách chấm). Kiểu chấm gồm: chọn một mức; trừ theo số lần;
 tỷ lệ % nhân điểm; đếm số đơn vị đạt. Một số mức ghi "mất điểm toàn
@@ -333,11 +333,11 @@ Nghiệm thu: Viết kèm hướng dẫn tự kiểm tra bằng tay cho 3 ca: ch
 ```
 :::
 
-Khi phiên bản một tệp đã dùng ổn, đồng chí mới cần nghĩ đến Bậc 3: lưu lên cơ sở dữ liệu, có đăng nhập, có người thẩm định. Khi đó, hãy đọc lại mục 11.2 về mã truy cập và "ô cửa hẹp". Cũng cần biết giới hạn của gói miễn phí: theo tài liệu của Supabase, dự án gói miễn phí bị tạm dừng sau 1 tuần không hoạt động (thông tin tại thời điểm viết, 10/2026, có thể thay đổi). Một phân hệ chỉ dùng mỗi năm một lần vào tháng 12 sẽ gặp đúng tình huống này.
+Khi bản một tệp đã dùng ổn mới nên nghĩ đến Bậc 3: lưu lên cơ sở dữ liệu (database), có đăng nhập, có người thẩm định; lúc đó hãy đọc lại mục 11.2. Lưu ý giới hạn gói miễn phí: theo tài liệu của Supabase, dự án gói miễn phí bị tạm dừng sau 1 tuần không hoạt động (thông tin tại thời điểm viết, 10/2026, có thể thay đổi). Công cụ chỉ dùng mỗi năm một lần vào tháng 12 sẽ gặp đúng tình huống này.
 
 ## 11.5. Dành cho lãnh đạo: phần mềm hỗ trợ bình xét, không thay thẩm quyền
 
-Một phần mềm chấm điểm dễ tạo ấn tượng rằng kết quả là "của máy", khách quan và không cần bàn. Tôi muốn nói rõ điều ngược lại. Phân hệ này chỉ làm ba việc: cộng điểm theo đúng cách chấm đã số hóa, áp các điều kiện hạ mức và trần 25% để đưa ra danh sách đề xuất, và lưu vết ai đã thẩm định, ai đã phê duyệt. Mọi việc còn lại thuộc về con người có thẩm quyền.
+Phần mềm chấm điểm dễ tạo ấn tượng kết quả là "của máy", khách quan, không cần bàn. Thực tế ngược lại. Phân hệ này chỉ làm ba việc: cộng điểm theo đúng cách chấm đã số hóa, áp các điều kiện hạ mức và trần 25% để đưa ra danh sách đề xuất, và lưu vết ai đã thẩm định, ai đã phê duyệt. Mọi việc còn lại thuộc về con người có thẩm quyền.
 
 - **Không thay thẩm quyền ban hành.** Sáu điểm chuẩn hóa chỉ là kiến nghị. Khung tiêu chí chính thức là văn bản do Thường trực HĐND tỉnh ký ban hành; phần mềm phải chạy theo văn bản đó, không phải ngược lại.
 - **Không thay Tổ công tác và Thường trực.** Minh chứng có trung thực không, một mô hình có đủ 05 điều kiện không, một vụ việc có phải "nguyên nhân chủ quan" không: đó là phán đoán của người thẩm định. Phần mềm chỉ ghi lại phán đoán ấy.
@@ -369,7 +369,7 @@ Một phần mềm chấm điểm dễ tạo ấn tượng rằng kết quả l�
 ## Câu hỏi suy ngẫm và bài tập
 
 1. Chọn một bộ tiêu chí thi đua mà đơn vị đồng chí đang dùng. Dùng Câu lệnh mẫu 11.2 để rà soát số học. Có bao nhiêu chỗ lệch? Chỗ nào thuộc thẩm quyền của đơn vị mình sửa, chỗ nào phải kiến nghị lên trên?
-2. Vì sao "đạt kiểm thử" chưa có nghĩa là văn bản đã nhất quán? Hãy tìm một ví dụ trong công việc của đồng chí, nơi một quy tắc "kẹp cho khỏi vượt" che mất một sai sót.
+2. Vì sao "đạt kiểm thử" chưa có nghĩa là văn bản đã nhất quán? Tìm một ví dụ trong công việc của đồng chí, nơi quy tắc "kẹp cho khỏi vượt" che mất một sai sót.
 3. Nếu bản ký ban hành chọn cách chia III.3 khác với phần mềm, những chỗ nào trong hệ thống phải sửa theo? Gợi ý: nghĩ đến tệp logic, phiếu Word, bảng Excel, bot chat và nhãn ghi chú trên giao diện.
-4. Làm theo mục Thực hành ở 11.4.3 để có một trang tự chấm một tệp. Nhờ hai đồng nghiệp chấm cùng một phiếu giả định và so kết quả.
+4. Làm theo mục Thực hành ở 11.4.3, rồi nhờ hai đồng nghiệp chấm cùng một phiếu giả định và so kết quả.
 5. Với vai trò lãnh đạo, đồng chí sẽ đặt điều kiện gì trước khi cho phép dùng phần mềm này trong một đợt bình xét thật?
