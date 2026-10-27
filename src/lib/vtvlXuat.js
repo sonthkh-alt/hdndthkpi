@@ -8,7 +8,7 @@
 //  GIÁ TRỊ đã tính (không ghi công thức).
 //  Các hàm `dung*` nhận module XLSX làm tham số để kiểm thử được bằng Node.
 // ============================================================================
-import { BIEU, BIEU_THEO_ID, bieuNhap, cotNhap, dsCua, dongHienThi, giaTriO, DS, tinhToan, QUY_GIO_PP2 } from './vtvl.js';
+import { BIEU, BIEU_THEO_ID, bieuNhap, cotNhap, dsCua, dongHienThi, giaTriO, DS, tinhToan, QUY_GIO_PP2, chuanHoaVTVL } from './vtvl.js';
 import { HD } from './vtvlHuongDan.js';
 import { MUC_TEN } from './vtvlNhap.js';
 
@@ -96,6 +96,29 @@ export function dungSoBaoCaoLoi(XLSX, vanDe, { tenTepNguon = '' } = {}) {
   return wb;
 }
 
+/**
+ * Tệp của người dùng SAU KHI tự động sửa: chỉ các biểu có trong tệp, đúng tên trang
+ * và vị trí cột của bộ biểu (đọc lại được), kèm trang NHAT_KY_SUA ghi từng ô đã đổi.
+ * Cột tự tính được tính trên chính dữ liệu của tệp.
+ */
+export function dungSoTepDaSua(XLSX, phanTich, { tenTepNguon = '' } = {}) {
+  const doc = chuanHoaVTVL({ bieu: Object.fromEntries(Object.entries(phanTich.bieu).map(([id, pt]) => [id, pt.dong.map((d) => d.row)])) });
+  const kq = tinhToan(doc);
+  const wb = XLSX.utils.book_new();
+  for (const b of BIEU) if (phanTich.bieu[b.id]) XLSX.utils.book_append_sheet(wb, sheetBieu(XLSX, b, dongHienThi(doc, kq, b.id)), b.sheet);
+  const ds = phanTich.daSua || [];
+  const nk = XLSX.utils.aoa_to_sheet([
+    [`NHẬT KÝ TỰ ĐỘNG SỬA LỖI — tệp gốc: ${tenTepNguon}`],
+    [`Ngày sửa: ${homNay()} · ${ds.length} chỗ đã sửa. "Dòng trong tệp gốc" là số dòng ở tệp ban đầu (dòng lặp bị xóa làm các dòng sau dịch lên).`],
+    [],
+    ['STT', 'Trang', 'Dòng trong tệp gốc', 'Cột', 'Tên cột', 'Giá trị cũ', 'Giá trị mới', 'Lý do'],
+    ...ds.map((x, i) => [i + 1, x.trang, x.dongTep, x.cot, x.tenCot, x.cu ?? '', x.loai === 'xoaDong' ? '(xóa dòng)' : x.moi, x.lyDo]),
+  ]);
+  nk['!cols'] = [{ wch: 5 }, { wch: 20 }, { wch: 10 }, { wch: 5 }, { wch: 28 }, { wch: 26 }, { wch: 26 }, { wch: 60 }];
+  XLSX.utils.book_append_sheet(wb, nk, 'NHAT_KY_SUA');
+  return wb;
+}
+
 /** Danh sách vấn đề của dữ liệu đang có (tab Kiểm tra). */
 export function dungSoVanDe(XLSX, ds, doc) {
   const aoa = [['DANH SÁCH LỖI, CẢNH BÁO CỦA DỮ LIỆU BỘ BIỂU VTVL'], [`Ngày xuất: ${homNay()}${doc.donVi ? ` · ${doc.donVi}` : ''}`], [],
@@ -126,6 +149,10 @@ export async function xuatMau() {
 export async function xuatBaoCaoLoi(vanDe, tenTepNguon) {
   const XLSX = await napXLSX();
   XLSX.writeFile(dungSoBaoCaoLoi(XLSX, vanDe, { tenTepNguon }), `Bao_cao_loi_${tenTep(tenTepNguon).replace(/\.\w+$/, '') || 'tep'}_${homNay()}.xlsx`);
+}
+export async function xuatTepDaSua(phanTich, tenTepNguon) {
+  const XLSX = await napXLSX();
+  XLSX.writeFile(dungSoTepDaSua(XLSX, phanTich, { tenTepNguon }), `${tenTep(tenTepNguon).replace(/\.\w+$/, '') || 'tep'}_da_sua_${homNay()}.xlsx`);
 }
 export async function xuatVanDe(ds, doc) {
   const XLSX = await napXLSX();

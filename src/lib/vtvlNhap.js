@@ -223,6 +223,8 @@ const TRANG_KHONG_NHAP = {
   huongdan: 'trang hướng dẫn', hddienbieu: 'trang hướng dẫn', kkiemtra: 'biểu kiểm tra tự động', ttiendo: 'biểu tiến độ tự động',
   ktgiadinh: 'số liệu giả định để thử công thức', '00kethua': 'trang hướng dẫn', bandotruong: 'trang tra cứu', dm06nhom: 'trang tra cứu',
   quytacma: 'trang tra cứu', thaotacnhanh: 'trang tra cứu', dmthamso: 'trang tham số (đã khóa)', ghichubansua: 'ghi chú bản sửa',
+  nhatkysua: 'nhật ký tự động sửa lỗi (phần mềm tạo kèm tệp đã sửa)', huongdannhap: 'trang hướng dẫn của biểu mẫu',
+  danhsachchon: 'trang danh sách lựa chọn của biểu mẫu',
   b2thaydoi: 'biểu tự tổng hợp từ B2_CT — phần mềm tự tính lại', doichieunv: 'biểu tự đối chiếu từ NGUON_NHIEM_VU — phần mềm tự tính lại',
 };
 

@@ -17,7 +17,7 @@ import { useState, useEffect, useMemo, useRef, useCallback, createElement } from
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
@@ -26,7 +26,8 @@ import {
   KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong,
 } from './lib/vtvl';
 import { HD } from './lib/vtvlHuongDan';
-import { docTep, phanTichTep, chuanBiNhap, docBangChu, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
+import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
+import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
 import { readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB } from './lib/vtvlStore';
 
 const MOI_TRANG = 50;
@@ -349,6 +350,59 @@ function HopDan({ b, onDong, onXong }) {
   );
 }
 
+// ─── Khối "Tự động sửa lỗi" trong màn kết quả kiểm tra tệp ──────────────────
+function KhoiSuaTuDong({ deXuat, daSua, conLoi, onSua, onHoanTac, onTai }) {
+  const [mo, setMo] = useState(false);
+  const [bo, setBo] = useState(() => new Set());
+  if (!deXuat.length && !daSua.length) return null;
+  const chon = deXuat.filter((x) => !bo.has(x.id));
+  const doiChon = (id) => setBo((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
+  return (
+    <div className="bg-violet-50 border border-violet-200 rounded-2xl p-4 space-y-3">
+      <div className="flex items-start gap-3 flex-wrap">
+        <Wand2 className="w-5 h-5 text-violet-700 shrink-0 mt-0.5" />
+        <div className="flex-1 min-w-[240px] text-[13px] text-violet-950">
+          <p className="font-bold">Tự động sửa lỗi</p>
+          {daSua.length > 0 && <p>Đã tự sửa <b>{daSua.length}</b> chỗ. {conLoi ? <>Còn <b className="text-rose-700">{conLoi}</b> lỗi cần người kiểm tra (phần mềm không đoán dữ liệu).</> : <b className="text-emerald-700">Không còn lỗi nào.</b>}</p>}
+          {deXuat.length > 0 && <p>Phát hiện <b>{deXuat.length}</b> chỗ sửa được chắc chắn: gõ thiếu dấu hoặc sai chính tả giá trị chọn, số kèm đơn vị, năm/ngày viết kiểu khác, mã lệch dấu cách, ô lỗi #N/A, dòng lặp y hệt.</p>}
+          <p className="text-[11.5px] text-violet-800/80 mt-0.5">Không tự sửa: thiếu mã, số âm, trùng mã khác nội dung, giá trị lạ, cảnh báo nghiệp vụ (thiếu nguồn, chưa kiểm chứng…) — những chỗ đó cần căn cứ thật.</p>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          {deXuat.length > 0 && <button onClick={() => setMo(!mo)} className={nutPhu}>{mo ? 'Ẩn danh sách' : `Xem ${deXuat.length} chỗ sẽ sửa`}</button>}
+          {deXuat.length > 0 && <button disabled={!chon.length} onClick={() => { onSua(new Set(chon.map((x) => x.id))); setMo(false); setBo(new Set()); }} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-700 hover:bg-violet-800 text-white text-sm font-semibold disabled:opacity-50"><Wand2 className="w-4 h-4" /> Sửa tự động ({chon.length})</button>}
+          {daSua.length > 0 && <button onClick={onTai} className={nutPhu}><Download className="w-4 h-4" /> Tải tệp đã sửa (.xlsx)</button>}
+          {daSua.length > 0 && <button onClick={onHoanTac} className={nutPhu}><Undo2 className="w-4 h-4" /> Hoàn tác</button>}
+        </div>
+      </div>
+      {mo && (
+        <div className="bg-white rounded-xl border border-violet-200 overflow-x-auto max-h-[420px] overflow-y-auto">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-violet-50 text-violet-900 text-left sticky top-0">
+              <tr>
+                <th className="px-3 py-2"><input type="checkbox" checked={bo.size === 0} onChange={(e) => setBo(e.target.checked ? new Set() : new Set(deXuat.map((x) => x.id)))} /></th>
+                {['Trang', 'Ô', 'Cột', 'Giá trị cũ', 'Giá trị mới', 'Lý do'].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {deXuat.map((x) => (
+                <tr key={x.id} className={`border-t border-violet-100 align-top ${bo.has(x.id) ? 'opacity-50' : ''}`}>
+                  <td className="px-3 py-2"><input type="checkbox" checked={!bo.has(x.id)} onChange={() => doiChon(x.id)} /></td>
+                  <td className="px-3 py-2 font-mono text-[11px] whitespace-nowrap">{x.trang}</td>
+                  <td className="px-3 py-2 font-mono">{x.loai === 'xoaDong' ? `dòng ${x.dongTep}` : `${x.cot}${x.dongTep}`}</td>
+                  <td className="px-3 py-2">{x.tenCot}</td>
+                  <td className="px-3 py-2 text-rose-700 line-through decoration-rose-300">{String(x.cu ?? '')}</td>
+                  <td className="px-3 py-2 text-emerald-700 font-semibold">{x.loai === 'xoaDong' ? '(xóa dòng lặp)' : x.moi === '' ? '(để trống)' : giaTriHienThi(x.moi)}</td>
+                  <td className="px-3 py-2 text-slate-600 min-w-[220px]">{x.lyDo}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Tab "Nhập từ tệp" ──────────────────────────────────────────────────────
 function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau }) {
   const inpRef = useRef(null);
@@ -359,6 +413,11 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
   const { ten, dangDoc, phan, loi, phanTich, khongDoc, cheDo = 'thay', boQuaLoi = true } = trangThai;
 
   const ketQua = useMemo(() => (phanTich ? chuanBiNhap(phanTich, doc, { cheDo, boQuaLoi }) : null), [phanTich, doc, cheDo, boQuaLoi]);
+  const deXuat = useMemo(() => (phanTich ? deXuatSua(phanTich, doc, { cheDo }) : []), [phanTich, doc, cheDo]);
+  const daSua = phanTich?.daSua || [];
+  const suaTuDong = (chon) => setTrangThai((s) => ({ ...s, phanTich: apDungSua(s.phanTich, deXuat, chon), phanTichGoc: s.phanTichGoc || s.phanTich }));
+  const hoanTac = () => setTrangThai((s) => ({ ...s, phanTich: s.phanTichGoc || s.phanTich, phanTichGoc: null }));
+  const taiTepDaSua = () => import('./lib/vtvlXuat').then((m) => m.xuatTepDaSua(phanTich, ten));
 
   const chon = async (file) => {
     if (!file) return;
@@ -431,9 +490,11 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
               <li>Ô chứa lỗi Excel (#N/A, #VALUE!…), mã ví dụ VD-.</li>
             </ul>
             <p>Cột tự tính trong tệp được bỏ qua — phần mềm tự tính lại.</p>
+            <p className="font-bold flex items-center gap-1.5 pt-1"><Wand2 className="w-4 h-4" /> Tự động sửa lỗi</p>
+            <p>Lỗi sửa được chắc chắn (thiếu dấu, sai chính tả giá trị chọn, số kèm đơn vị, ngày viết khác, mã lệch dấu cách, #N/A, dòng lặp) được sửa bằng một nút bấm, xem trước từng ô; tải về được <b>tệp đã sửa</b> — kể cả khi chưa đăng nhập.</p>
           </div>
           <button onClick={onTaiMau} className={`${nutPhu} w-full py-3`}><FileDown className="w-4 h-4" /> Tải biểu mẫu nhập liệu (Excel, có hướng dẫn từng cột)</button>
-          {!coQuyenGhi && <p className="text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">Bạn đang xem với tư cách khách: vẫn kiểm tra tệp và xuất báo cáo lỗi được, nhưng muốn <b>áp dụng</b> vào dữ liệu thì phải đăng nhập.</p>}
+          {!coQuyenGhi && <p className="text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">Bạn đang xem với tư cách khách: vẫn kiểm tra tệp, tự động sửa lỗi, tải tệp đã sửa và xuất báo cáo lỗi được, nhưng muốn <b>áp dụng</b> vào dữ liệu thì phải đăng nhập.</p>}
         </div>
       </div>
     );
@@ -461,8 +522,9 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
         </div>
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setTrangThai({ cheDo, boQuaLoi, chiBieu: trangThai.chiBieu })} className={nutPhu}><Upload className="w-4 h-4" /> Chọn tệp khác</button>
+          {daSua.length > 0 && <button onClick={taiTepDaSua} className={nutPhu}><Download className="w-4 h-4" /> Tải tệp đã sửa</button>}
           {ketQua?.vanDe.length > 0 && <button onClick={() => import('./lib/vtvlXuat').then((m) => m.xuatBaoCaoLoi(ketQua.vanDe, ten))} className={nutPhu}><Download className="w-4 h-4" /> Xuất báo cáo lỗi (Excel)</button>}
-          <button disabled={!coQuyenGhi || !ketQua?.coTheApDung} onClick={() => onApDung(ketQua, ten, cheDo)} className={nutChinh} title={coQuyenGhi ? '' : 'Đăng nhập để áp dụng'}>
+          <button disabled={!coQuyenGhi || !ketQua?.coTheApDung} onClick={() => onApDung(ketQua, ten, cheDo, daSua.length)} className={nutChinh} title={coQuyenGhi ? '' : 'Đăng nhập để áp dụng'}>
             <Save className="w-4 h-4" /> Áp dụng {ketQua?.tongNhap || 0} dòng
           </button>
         </div>
@@ -472,6 +534,10 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
         <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-[13px] text-amber-900">
           Tệp không có dòng dữ liệu nào ở các biểu nhập liệu. {phanTich.trong?.length ? 'Các trang của bộ biểu đều còn trống.' : 'Kiểm tra lại tên trang (vd "1. A1_NhiemVu") và dòng tiêu đề cột.'}
         </div>
+      )}
+      {ketQua && nhanDien > 0 && (
+        <KhoiSuaTuDong deXuat={deXuat} daSua={daSua} conLoi={ketQua.vanDe.filter((v) => v.muc === 'loi').length}
+          onSua={suaTuDong} onHoanTac={hoanTac} onTai={taiTepDaSua} />
       )}
       {ketQua?.canhQuyGio && <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-[12.5px] text-amber-900 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />{ketQua.canhQuyGio}</div>}
 
@@ -516,7 +582,7 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
                 <summary className="cursor-pointer font-semibold">Các trang không nhập ({(phanTich.boQua?.length || 0) + (khongDoc?.length || 0)})</summary>
                 <ul className="mt-2 list-disc pl-5 space-y-0.5">
                   {phanTich.boQua.map((x) => <li key={x.trang}><b>{x.trang}</b>: {x.lyDo}</li>)}
-                  {(khongDoc || []).map((x) => <li key={x}><b>{x}</b>: trang hướng dẫn / tự tính — không cần đọc</li>)}
+                  {(khongDoc || []).map((x) => <li key={x}><b>{x}</b>: {bieuTheoTenTrang(x)?.boQua || 'không phải biểu nhập liệu'}</li>)}
                 </ul>
               </details>
             )}
@@ -924,12 +990,12 @@ export default function VTVL({ onHome }) {
     if (!window.confirm(`Xóa TOÀN BỘ ${soDong(doc, bId)} dòng của biểu ${b.ma} — ${b.ten}?`)) return;
     datDoc({ ...doc, bieu: { ...doc.bieu, [bId]: [], S: bId === 'S' ? [] : [...(doc.bieu.S || []), dongNhatKy({ ky: doc.ky, bieu: b.sheet, truong: '(xóa toàn bộ biểu)', cu: `${soDong(doc, bId)} dòng`, nguoi: email })] } });
   };
-  const apDung = (ketQua, tenTep, cheDo) => {
+  const apDung = (ketQua, tenTep, cheDo, soSua = 0) => {
     const tomTat = ketQua.tomTat.map((t) => `${t.ma}: +${t.them}${t.capNhat ? `, cập nhật ${t.capNhat}` : ''}`).join('; ');
     const canhBaoThay = cheDo === 'thay' ? `\n\nChế độ THAY THẾ: dữ liệu hiện có của ${ketQua.tomTat.map((t) => t.ma).join(', ')} sẽ được thay bằng dữ liệu của tệp.` : '';
     if (!window.confirm(`Áp dụng ${ketQua.tongNhap} dòng từ "${tenTep}"?\n${tomTat}${canhBaoThay}`)) return;
     const moi = chuanHoaVTVL(ketQua.docMoi);
-    moi.bieu.S = [...(moi.bieu.S || []), dongNhatKy({ ky: moi.ky, bieu: '(nhập từ tệp)', truong: CHE_DO.find((m) => m.id === cheDo)?.ten || cheDo, moi: tomTat, nguon: tenTep, nguoi: email })];
+    moi.bieu.S = [...(moi.bieu.S || []), dongNhatKy({ ky: moi.ky, bieu: '(nhập từ tệp)', truong: CHE_DO.find((m) => m.id === cheDo)?.ten || cheDo, moi: soSua ? `${tomTat} · tự động sửa ${soSua} chỗ` : tomTat, nguon: tenTep, nguoi: email })];
     datDoc(moi);
     setNhapTep({ cheDo, boQuaLoi: true });
     setTab('tongquan');
