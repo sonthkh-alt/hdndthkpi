@@ -14,19 +14,20 @@
 //  áp dụng tệp phải đăng nhập. Sửa một dòng ĐÃ XÁC NHẬN thì tự ghi biểu S (nhật ký).
 // ============================================================================
 import { useState, useEffect, useMemo, useRef, useCallback, createElement } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
   BIEU, BIEU_THEO_ID, NHOM_BIEU, cotNhap, cotKhoa, dsCua, newDong, tinhToan, kiemTraDuLieu, dongHienThi,
   giaTriO, chuyenGiaTri, laSo, rong, kk, dongDaXacNhan, dongNhatKy, TT_DAT, TT_THONG_TIN, TAM_BUOC, SAU_NHOM,
-  KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong,
+  KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong, DS, luaChonMa, timDongTheoMa,
 } from './lib/vtvl';
 import { HD } from './lib/vtvlHuongDan';
-import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
+import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
 import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
 import { readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB } from './lib/vtvlStore';
 
@@ -68,20 +69,20 @@ function ONhap({ col, v, onGhi, khoa = false, lop = '', dlId }) {
   const ghi = (raw) => { const { v: moi } = chuyenGiaTri(col, raw); if (moi !== v && !(rong(moi) && rong(v))) onGhi(moi); };
   const base = `w-full bg-transparent px-2 py-1.5 text-[12.5px] outline-none focus:bg-white focus:ring-2 focus:ring-sky-400 rounded ${lop}`;
   const enter = (e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { e.currentTarget.value = giaTriHienThi(v); e.currentTarget.blur(); } };
-  if (col.kieu === 'ds') {
-    const list = dsCua(col);
+  if (col.kieu === 'ds' || col.kieu === 'nam') {
+    const list = col.kieu === 'nam' ? DS.NAM : dsCua(col);
     return (
       <select disabled={khoa} value={rong(v) ? '' : String(v)} onChange={(e) => ghi(e.target.value)} className={`${base} cursor-pointer`}>
         <option value="">—</option>
         {!rong(v) && !list.includes(v) && <option value={String(v)}>{String(v)} (không hợp lệ)</option>}
-        {list.map((x) => <option key={x} value={x}>{x}</option>)}
+        {list.map((x) => <option key={x} value={String(x)}>{x}</option>)}
       </select>
     );
   }
   if (col.kieu === 'ngay' && (rong(v) || /^\d{4}-\d{2}-\d{2}$/.test(v))) {
     return <input type="date" disabled={khoa} defaultValue={v || ''} key={String(v)} onBlur={(e) => ghi(e.target.value)} className={base} />;
   }
-  const so = col.kieu === 'so' || col.kieu === 'nam';
+  const so = col.kieu === 'so';
   return (
     <input disabled={khoa} defaultValue={giaTriHienThi(v)} key={String(v)} list={dlId}
       inputMode={so ? 'decimal' : undefined} onBlur={(e) => ghi(e.target.value)} onKeyDown={enter}
@@ -89,8 +90,145 @@ function ONhap({ col, v, onGhi, khoa = false, lop = '', dlId }) {
   );
 }
 
+// ─── Ô CHỌN MÃ LIÊN KẾT (A2!C → C1, B1!A → A2, …) ────────────────────────────
+// Bấm vào ô (hoặc Enter / mũi tên xuống) → mở danh sách mã của biểu nguồn kèm
+// tên; gõ để lọc (không dấu cũng được), chọn bằng chuột hoặc ↑ ↓ Enter. Hộp chọn
+// dựng bằng portal + vị trí cố định để không bị khung cuộn ngang của bảng cắt mất.
+const GIOI_HAN_HIEN = 300;
+function OChonMa({ col, v, onGhi, luaChon, onMoMa, lop = '' }) {
+  const [mo, setMo] = useState(false);
+  const [q, setQ] = useState('');
+  const [hl, setHl] = useState(0);
+  const [viTri, setViTri] = useState(null);
+  const neo = useRef(null);
+  const hop = useRef(null);
+  const dich = BIEU_THEO_ID[col.ref];
+  const hienTai = rong(v) ? null : luaChon.find((x) => kk(x.ma) === kk(v)) || null;
+  const loc = useMemo(() => {
+    const n = chuanTen(q);
+    return n ? luaChon.filter((x) => chuanTen(`${x.ma} ${x.chinh} ${x.phu}`).includes(n)) : luaChon;
+  }, [q, luaChon]);
+
+  const moHop = () => {
+    const r = neo.current.getBoundingClientRect();
+    const rong_ = Math.max(r.width, 380);
+    const duoi = window.innerHeight - r.bottom;
+    const lenTren = duoi < 300 && r.top > duoi;
+    setViTri({ left: Math.max(8, Math.min(r.left, window.innerWidth - rong_ - 8)), width: rong_, ...(lenTren ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+    setQ('');
+    setHl(Math.max(0, luaChon.findIndex((x) => kk(x.ma) === kk(v))));
+    setMo(true);
+  };
+  const chon = (ma) => {
+    setMo(false);
+    if (ma !== v && !(rong(ma) && rong(v))) onGhi(ma);
+    neo.current?.focus();
+  };
+  useEffect(() => {
+    if (!mo) return undefined;
+    const ngoai = (e) => { if (!hop.current?.contains(e.target) && !neo.current?.contains(e.target)) setMo(false); };
+    const cuon = (e) => { if (!hop.current?.contains(e.target)) setMo(false); };
+    const dong = () => setMo(false);
+    document.addEventListener('mousedown', ngoai);
+    window.addEventListener('scroll', cuon, true);
+    window.addEventListener('resize', dong);
+    return () => { document.removeEventListener('mousedown', ngoai); window.removeEventListener('scroll', cuon, true); window.removeEventListener('resize', dong); };
+  }, [mo]);
+  useEffect(() => { if (mo) hop.current?.querySelector(`[data-i="${hl}"]`)?.scrollIntoView({ block: 'nearest' }); }, [hl, mo]);
+
+  const phim = (e) => {
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHl((h) => Math.min(Math.min(loc.length, GIOI_HAN_HIEN) - 1, h + 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHl((h) => Math.max(0, h - 1)); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (loc[hl]) chon(loc[hl].ma); else if (q.trim()) chon(chuyenGiaTri(col, q).v); }
+    else if (e.key === 'Escape') { e.preventDefault(); setMo(false); neo.current?.focus(); }
+    else if (e.key === 'Tab') setMo(false);
+  };
+  const goTay = q.trim() && !luaChon.some((x) => kk(x.ma) === kk(q));
+
+  return (
+    <>
+      <button type="button" ref={neo} onClick={() => (mo ? setMo(false) : moHop())}
+        onKeyDown={(e) => { if (['ArrowDown', 'Enter', 'F2'].includes(e.key)) { e.preventDefault(); moHop(); } }}
+        title={hienTai ? `${hienTai.ma} — ${hienTai.chinh}${hienTai.phu ? ` (${hienTai.phu})` : ''}` : rong(v) ? `Bấm để chọn mã có ở biểu ${dich.ma}` : `Mã "${v}" chưa có ở biểu ${dich.ma}`}
+        aria-haspopup="listbox" aria-expanded={mo}
+        className={`w-full flex items-center gap-1.5 text-left px-2 py-1.5 text-[12.5px] rounded outline-none focus:ring-2 focus:ring-sky-400 hover:bg-sky-50 cursor-pointer ${lop}`}>
+        <span className={`truncate ${rong(v) ? 'text-slate-300 italic' : 'font-medium text-slate-800'}`}>{rong(v) ? `chọn mã ${dich.ma}…` : v}</span>
+        {hienTai?.chinh && <span className="flex-1 min-w-0 truncate text-[10.5px] text-slate-400">{hienTai.chinh}</span>}
+        {!hienTai?.chinh && <span className="flex-1" />}
+        <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+      </button>
+      {mo && viTri && createPortal(
+        <div ref={hop} role="dialog" style={{ position: 'fixed', ...viTri }}
+          className="z-[70] bg-white rounded-xl border border-slate-200 shadow-2xl flex flex-col max-h-[380px] text-[12.5px]"
+         >
+          <div className="px-3 pt-2.5 pb-2 border-b border-slate-100">
+            <p className="text-[10.5px] font-bold uppercase tracking-wider text-sky-700">Chọn {col.ten} — mã có ở {dich.ma} ({dich.ten})</p>
+            <div className="relative mt-1.5">
+              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" />
+              <input autoFocus value={q} onChange={(e) => { setQ(e.target.value); setHl(0); }} onKeyDown={phim}
+                placeholder="Tìm theo mã hoặc tên (gõ không dấu cũng được)…" className={`${inp} pl-7 py-1.5`} />
+            </div>
+          </div>
+          <div role="listbox" className="flex-1 overflow-y-auto py-1">
+            {luaChon.length === 0 && (
+              <p className="px-3 py-4 text-slate-500">Biểu <b>{dich.ma}</b> chưa có mã nào. Nhập {dich.ma} trước rồi quay lại chọn (hoặc gõ mã rồi Enter — sẽ báo lỗi liên kết tới khi {dich.ma} có mã đó).</p>
+            )}
+            {luaChon.length > 0 && loc.length === 0 && <p className="px-3 py-4 text-slate-500">Không có mã nào khớp "{q}".</p>}
+            {loc.slice(0, GIOI_HAN_HIEN).map((x, i) => {
+              const dangChon = !rong(v) && kk(x.ma) === kk(v);
+              return (
+                <button key={x.ma} type="button" role="option" aria-selected={dangChon} data-i={i}
+                  onMouseEnter={() => setHl(i)} onMouseDown={(e) => e.preventDefault()} onClick={() => chon(x.ma)}
+                  className={`w-full text-left px-3 py-1.5 flex items-start gap-2.5 ${i === hl ? 'bg-sky-50' : ''}`}>
+                  <span className="font-mono font-bold text-sky-800 shrink-0 min-w-[64px]">{x.ma}</span>
+                  <span className="flex-1 min-w-0">
+                    <span className="block truncate text-slate-700">{x.chinh || <i className="text-slate-400">chưa có tên</i>}</span>
+                    {x.phu && <span className="block truncate text-[11px] text-slate-400">{x.phu}</span>}
+                  </span>
+                  {dangChon && <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
+                </button>
+              );
+            })}
+            {loc.length > GIOI_HAN_HIEN && <p className="px-3 py-2 text-[11px] text-slate-400">… còn {loc.length - GIOI_HAN_HIEN} mã — gõ để lọc thêm.</p>}
+          </div>
+          <div className="px-3 py-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-[11.5px]">
+            {goTay && <button type="button" onClick={() => chon(chuyenGiaTri(col, q).v)} className="font-semibold text-amber-700 hover:underline">Dùng mã "{q.trim()}" (chưa có ở {dich.ma})</button>}
+            {!rong(v) && <button type="button" onClick={() => chon('')} className="font-semibold text-slate-500 hover:text-rose-700">Xóa giá trị</button>}
+            {onMoMa && (
+              <button type="button" onClick={() => { setMo(false); onMoMa(col.ref, hienTai ? hienTai.ma : null); }} className="ml-auto inline-flex items-center gap-1 font-semibold text-sky-700 hover:underline">
+                <Link2 className="w-3.5 h-3.5" />{hienTai ? `Mở dòng ${hienTai.ma} ở ${dich.ma}` : `Mở biểu ${dich.ma}`}
+              </button>
+            )}
+            <span className="w-full text-[10.5px] text-slate-400">{loc.length}/{luaChon.length} mã · ↑ ↓ để chọn, Enter để ghi, Esc để đóng</span>
+          </div>
+        </div>,
+        document.body,
+      )}
+    </>
+  );
+}
+
+/** Mã hiển thị thành liên kết sang dòng nguồn (cột mã tự tính, chế độ chỉ xem). */
+function LienKetMa({ ma, refId, luaChon, onMoMa }) {
+  if (rong(ma)) return null;
+  const x = luaChon?.find((o) => kk(o.ma) === kk(ma));
+  if (!x || !onMoMa) return <span className="text-slate-600">{ma}</span>;
+  return (
+    <button type="button" onClick={() => onMoMa(refId, x.ma)} title={`${x.ma} — ${x.chinh || ''} · mở dòng này ở biểu ${BIEU_THEO_ID[refId].ma}`}
+      className="inline-flex items-center gap-1 text-sky-700 hover:text-sky-900 hover:underline font-medium text-left">
+      <Link2 className="w-3 h-3 shrink-0" />{ma}
+    </button>
+  );
+}
+
+/** Danh sách lựa chọn cho mọi cột liên kết của một biểu. */
+const useLuaChon = (doc, b) => useMemo(() => {
+  const ids = new Set(b.cot.map((c) => c.ref || c.refTinh).filter(Boolean));
+  return Object.fromEntries([...ids].map((id) => [id, luaChonMa(doc, id)]));
+}, [doc, b]);
+
 // ─── Bảng nhập liệu của một biểu ────────────────────────────────────────────
-function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan, onXoaHet, onMoForm, onDan, diToi }) {
+function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan, onXoaHet, onMoForm, onDan, diToi, onMoMa, quayLai, onQuayLai }) {
   const [tim, setTim] = useState('');
   const [loc, setLoc] = useState('tat');
   const [trang, setTrang] = useState(0);
@@ -124,10 +262,11 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
     return () => clearTimeout(h);
   }, [diToi]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const datalists = b.cot.filter((c) => c.ref || c.goiY).map((c) => {
-    const vals = c.ref ? [...new Set((doc.bieu[c.ref] || []).map((r) => r.A).filter((x) => !rong(x)))].slice(0, 800) : dsCua(c);
-    return <datalist key={c.k} id={`dl-${b.id}-${c.k}`}>{vals.map((x) => <option key={x} value={x} />)}</datalist>;
-  });
+  const luaChon = useLuaChon(doc, b);
+  // Ô liên kết dùng hộp chọn mã riêng; datalist chỉ còn cho cột có GỢI Ý (không bắt buộc).
+  const datalists = b.cot.filter((c) => c.goiY).map((c) => (
+    <datalist key={c.k} id={`dl-${b.id}-${c.k}`}>{dsCua(c).map((x) => <option key={x} value={x} />)}</datalist>
+  ));
   const h = HD[b.id];
 
   return (
@@ -147,6 +286,11 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
             </div>
           )}
         </div>
+        {quayLai && (
+          <button onClick={onQuayLai} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 hover:bg-sky-100">
+            <CornerUpLeft className="w-3.5 h-3.5" /> Quay lại {BIEU_THEO_ID[quayLai.bieu].ma}{quayLai.ma ? ` — dòng ${quayLai.ma}` : ''}
+          </button>
+        )}
         <div className="mt-3 flex items-center gap-2 flex-wrap">
           <div className="relative">
             <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
@@ -207,16 +351,21 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
                         <td key={c.k} title={tip || undefined} className={`border-b border-r border-slate-200 bg-slate-50 px-2 py-1.5 ${laSo(v) ? 'text-right tabular-nums' : ''}`}>
                           {c.tt && !rong(v)
                             ? <span className={`inline-block text-[10.5px] font-bold px-1.5 py-0.5 rounded border leading-tight ${mauTrangThai(b.id, v)}`}>{v}</span>
-                            : <span className="text-slate-600">{giaTriHienThi(v)}</span>}
+                            : c.refTinh ? <LienKetMa ma={v} refId={c.refTinh} luaChon={luaChon[c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} />
+                              : <span className="text-slate-600">{giaTriHienThi(v)}</span>}
                         </td>
                       );
                     }
                     return (
                       <td key={c.k} title={tip || undefined}
                         className={`border-b border-r border-slate-200 p-0 ${loiO ? 'bg-rose-50 ring-1 ring-inset ring-rose-300' : canhO ? 'bg-amber-50' : ''}`}>
-                        {docOnly
-                          ? <span className="block px-2 py-1.5 whitespace-pre-wrap">{giaTriHienThi(v)}</span>
-                          : <ONhap col={c} v={v} onGhi={(nv) => onSua(d.row._id, c.k, nv)} dlId={c.ref || c.goiY ? `dl-${b.id}-${c.k}` : undefined} />}
+                        {c.ref
+                          ? (docOnly
+                            ? <span className="block px-2 py-1.5"><LienKetMa ma={v} refId={c.ref} luaChon={luaChon[c.ref]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
+                            : <OChonMa col={c} v={v} luaChon={luaChon[c.ref]} onGhi={(nv) => onSua(d.row._id, c.k, nv)} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} />)
+                          : docOnly
+                            ? <span className="block px-2 py-1.5 whitespace-pre-wrap">{giaTriHienThi(v)}</span>
+                            : <ONhap col={c} v={v} onGhi={(nv) => onSua(d.row._id, c.k, nv)} dlId={c.goiY ? `dl-${b.id}-${c.k}` : undefined} />}
                       </td>
                     );
                   })}
@@ -248,7 +397,8 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
 }
 
 // ─── Biểu mẫu một dòng (ngăn trượt bên phải) ────────────────────────────────
-function FormDong({ b, doc, kq, vanDe, id, docOnly, onSua, onDong, onDi, onXoa, onNhanBan }) {
+function FormDong({ b, doc, kq, vanDe, id, docOnly, onSua, onDong, onDi, onXoa, onNhanBan, onMoMa }) {
+  const luaChon = useLuaChon(doc, b);
   const ds = dongHienThi(doc, kq, b.id);
   const i = ds.findIndex((d) => d.row._id === id);
   if (i < 0) return null;
@@ -279,15 +429,19 @@ function FormDong({ b, doc, kq, vanDe, id, docOnly, onSua, onDong, onDi, onXoa, 
                 <div className="flex items-center justify-between gap-2 mb-1.5">
                   <label className="text-[13px] font-bold text-slate-700"><span className="font-mono text-slate-400 mr-1.5">{c.k}</span>{c.ten}</label>
                   <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 shrink-0">
-                    {c.kieu === 'tinh' ? 'Tự động' : c.kieu === 'ds' ? 'Chọn' : c.ref ? `Mã ở ${BIEU_THEO_ID[c.ref].ma}` : c.kieu === 'so' ? 'Số' : c.kieu === 'nam' ? 'Năm' : c.kieu === 'ngay' ? 'Ngày' : 'Nhập'}
+                    {c.kieu === 'tinh' ? 'Tự động' : c.kieu === 'ds' || c.kieu === 'nam' ? 'Chọn' : c.ref ? `Chọn mã ở ${BIEU_THEO_ID[c.ref].ma}` : c.kieu === 'so' ? 'Số' : c.kieu === 'nam' ? 'Năm' : c.kieu === 'ngay' ? 'Ngày' : 'Nhập'}
                   </span>
                 </div>
-                {c.kieu === 'tinh'
+                {c.ref || c.refTinh
+                  ? (docOnly || c.kieu === 'tinh'
+                    ? <p className="text-[13px]">{rong(v) ? <span className="text-slate-400">—</span> : <LienKetMa ma={v} refId={c.ref || c.refTinh} luaChon={luaChon[c.ref || c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id }))} />}</p>
+                    : <div className="border border-slate-200 rounded-lg"><OChonMa col={c} v={v} luaChon={luaChon[c.ref]} lop="py-2" onGhi={(m) => onSua(id, c.k, m)} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id }))} /></div>)
+                  : c.kieu === 'tinh'
                   ? <p className={`text-[13px] ${c.tt ? '' : 'text-slate-700'}`}>{c.tt && !rong(v) ? <span className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border ${mauTrangThai(b.id, v)}`}>{v}</span> : (giaTriHienThi(v) || <span className="text-slate-400">—</span>)}</p>
                   : docOnly ? <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{giaTriHienThi(v) || <span className="text-slate-400">—</span>}</p>
                     : c.dai && c.kieu === 'chu'
                       ? <textarea defaultValue={v} key={`${id}-${String(v)}`} rows={3} onBlur={(e) => { const { v: m } = chuyenGiaTri(c, e.target.value); if (m !== v) onSua(id, c.k, m); }} className={inp} />
-                      : <div className="border border-slate-200 rounded-lg"><ONhap col={c} v={v} onGhi={(m) => onSua(id, c.k, m)} dlId={c.ref || c.goiY ? `dl-${b.id}-${c.k}` : undefined} lop="py-2" /></div>}
+                      : <div className="border border-slate-200 rounded-lg"><ONhap col={c} v={v} onGhi={(m) => onSua(id, c.k, m)} dlId={c.goiY ? `dl-${b.id}-${c.k}` : undefined} lop="py-2" /></div>}
                 {o.map((x, k) => (
                   <p key={k} className={`mt-1.5 text-[12px] flex gap-1.5 ${x.muc === 'loi' ? 'text-rose-700' : x.muc === 'canh' ? 'text-amber-700' : 'text-sky-700'}`}>
                     {x.muc === 'loi' ? <CircleAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}{x.chu}
@@ -839,6 +993,7 @@ function HuongDanTab() {
         <Khoi tieuDe="Quy ước và nguyên tắc">
           <ul className="list-disc pl-5 space-y-1.5">
             <li><b>Ô trắng</b> = nhập hoặc chọn; <b>ô xám</b> (biểu tượng Σ) = công thức tự tính, không nhập tay. Rê chuột lên tên cột để xem hướng dẫn của HD_DIEN_BIEU; bấm số thứ tự dòng để mở biểu mẫu đầy đủ.</li>
+            <li><b>Ô mã liên kết</b> (Mã nhiệm vụ, Mã VTVL, Mã công việc, Mã SP…): bấm vào ô để <b>chọn từ danh sách mã đã có</b> ở biểu nguồn, kèm tên — gõ để lọc, ↑ ↓ Enter để chọn. Mã hiện màu xanh có biểu tượng liên kết là bấm được để mở đúng dòng nguồn; nút <b>Quay lại</b> đưa về dòng đang nhập.</li>
             <li><b>Quỹ giờ PP2</b> chế độ phổ biến: (261 − 11 − 12) × 8 = <b>{fmtSo(QUY_GIO_PP2)}</b> giờ/người/năm. Chế độ đặc thù dùng giờ riêng có căn cứ và đã kiểm chứng ở C1 (cột F, H, I). Không cộng 10–15% cố định, không trừ tiếp phép/lễ ở mẫu số.</li>
             <li><b>Người quy đổi PP2</b> giữ số thập phân — không tự làm tròn thành biên chế; khác "người cần bố trí" và khác "biên chế được giao".</li>
             <li>Chỉ tính theo nhiệm vụ, sản phẩm, năng lực và thời gian — <b>không dùng ngạch, bậc, lương</b>.</li>
@@ -887,6 +1042,7 @@ export default function VTVL({ onHome }) {
   const [formId, setFormId] = useState(null);
   const [dan, setDan] = useState(false);
   const [diToi, setDiToi] = useState(null);
+  const [quayLai, setQuayLai] = useState(null); // chỗ xuất phát khi đi theo liên kết mã
   const [nhapTep, setNhapTep] = useState({ cheDo: 'thay', boQuaLoi: true });
   const [luu, setLuu] = useState({ k: '' }); // '', 'dang', 'ok', 'loi', 'xungdot'
   const [banNhap, setBanNhap] = useState(null); // bản máy chủ khi máy này còn bản nháp chưa lưu
@@ -1008,6 +1164,19 @@ export default function VTVL({ onHome }) {
     setTab('tep');
   };
   const diToiO = (bId, id) => { setBieuId(bId); setTab('nhap'); setDiToi({ bieu: bId, id, n: Date.now() }); };
+  // Đi theo liên kết mã (vd A2!C "VT1" → dòng VT1 ở C1); nhớ chỗ xuất phát để "Quay lại".
+  const moMa = (refId, ma, tu) => {
+    const dich = ma ? timDongTheoMa(doc, refId, ma) : null;
+    if (tu) {
+      const b0 = BIEU_THEO_ID[tu.bieu];
+      const r0 = (doc.bieu[tu.bieu] || []).find((x) => x._id === tu.id);
+      const k0 = cotKhoa(b0);
+      setQuayLai({ ...tu, ma: r0 && k0 && !rong(r0[k0.k]) ? r0[k0.k] : '' });
+    }
+    setFormId(null);
+    if (dich) diToiO(refId, dich); else { setBieuId(refId); setTab('nhap'); }
+  };
+  const veLai = () => { if (!quayLai) return; const q = quayLai; setQuayLai(null); if (q.id && q.id.startsWith('b2-')) { setBieuId(q.bieu); setTab('nhap'); } else diToiO(q.bieu, q.id); };
   const taiLaiMayChu = async () => {
     const r = await fetchVTVL();
     if (!r) { bao('loi', 'Không tải được bản trên máy chủ.'); return; }
@@ -1115,7 +1284,7 @@ export default function VTVL({ onHome }) {
                     return (
                       <button key={x.id} onClick={() => setBieuId(x.id)}
                         className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12.5px] flex items-center gap-2 ${bieuId === x.id ? 'bg-sky-700 text-white' : 'hover:bg-slate-100 text-slate-700'}`}>
-                        <span className={`font-mono text-[10.5px] w-12 shrink-0 ${bieuId === x.id ? 'text-sky-100' : 'text-slate-400'}`}>{x.ma}</span>
+                        <span className={`font-mono text-[10px] w-[4.25rem] shrink-0 truncate ${bieuId === x.id ? 'text-sky-100' : 'text-slate-400'}`}>{x.ma}</span>
                         <span className="flex-1 truncate">{x.ten}{x.tuTinh ? ' ∑' : ''}</span>
                         {d.loi ? <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" title={`${d.loi} lỗi`} /> : d.canh ? <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" title={`${d.canh} cảnh báo`} /> : null}
                         <span className={`text-[10.5px] tabular-nums ${bieuId === x.id ? 'text-sky-100' : 'text-slate-400'}`}>{so}</span>
@@ -1127,7 +1296,8 @@ export default function VTVL({ onHome }) {
             </aside>
             <BangBieu b={b} doc={doc} kq={kq} vanDe={vanDe} docOnly={docOnly} diToi={diToi}
               onSua={(id, k, v) => suaO(b.id, id, k, v)} onThem={() => themDong(b.id)} onXoa={(id) => xoaDong(b.id, id)}
-              onNhanBan={(id) => nhanBan(b.id, id)} onXoaHet={() => xoaHet(b.id)} onMoForm={setFormId} onDan={() => setDan(true)} />
+              onNhanBan={(id) => nhanBan(b.id, id)} onXoaHet={() => xoaHet(b.id)} onMoForm={setFormId} onDan={() => setDan(true)}
+              onMoMa={moMa} quayLai={quayLai && quayLai.bieu !== b.id ? quayLai : null} onQuayLai={veLai} />
           </div>
         )}
 
@@ -1140,7 +1310,7 @@ export default function VTVL({ onHome }) {
 
       {formId && tab === 'nhap' && (
         <FormDong b={b} doc={doc} kq={kq} vanDe={vanDe} id={formId} docOnly={docOnly} onDong={() => setFormId(null)} onDi={setFormId}
-          onSua={(id, k, v) => suaO(b.id, id, k, v)} onXoa={(id) => xoaDong(b.id, id)} onNhanBan={(id) => nhanBan(b.id, id)} />
+          onSua={(id, k, v) => suaO(b.id, id, k, v)} onXoa={(id) => xoaDong(b.id, id)} onNhanBan={(id) => nhanBan(b.id, id)} onMoMa={moMa} />
       )}
       {dan && <HopDan b={b} onDong={() => setDan(false)} onXong={danXong} />}
     </div>

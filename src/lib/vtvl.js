@@ -57,7 +57,8 @@ export const DS = {
 // Kiểu cột: 'ma' (mã, so khớp không phân biệt hoa thường) · 'chu' · 'so' · 'nam'
 // · 'ngay' · 'ds' (chọn trong DS[ds]) · 'tinh' (công thức — không nhập).
 // Tùy chọn: khoa (cột khóa của dòng) · ref (mã phải có ở biểu khác) · min:0
-// (không âm) · duong (> 0) · nguyen (số nguyên) · goiY (danh sách gợi ý) · tt
+// (không âm) · duong (> 0) · nguyen (số nguyên) · goiY (danh sách gợi ý) · refTinh (cột MÃ tự tính
+// trỏ về biểu nào — hiện thành liên kết) · tt
 // (cột trạng thái/cảnh báo tự tính) · dai (ô chữ dài).
 const c = (k, ten, kieu, o = {}) => ({ k, ten, kieu, ...o });
 
@@ -93,7 +94,7 @@ export const BIEU = [
     id: 'B1', nhom: 'B', sheet: '3. B1_KhoiLuong', ma: 'B1', ten: 'Khối lượng', tieuDe: 'Biểu B1_ Khối lượng', dongTieuDe: 2,
     buoc: 3,
     cot: [
-      c('A', 'Mã công việc', 'ma', { khoa: true, ref: 'A2' }), c('B', 'Mã VTVL', 'tinh'),
+      c('A', 'Mã công việc', 'ma', { khoa: true, ref: 'A2' }), c('B', 'Mã VTVL', 'tinh', { refTinh: 'C1' }),
       c('C', 'Số SP/năm', 'so', { min: 0 }), c('D', 'Trung bình phút/SP (đo thực tế)', 'so', { duong: true }),
       c('E', 'Giờ bổ sung (công việc liên quan)', 'so', { min: 0 }), c('F', 'Giờ SP (tính)', 'tinh'), c('G', 'Giờ tổng (tính)', 'tinh'),
       c('H', 'Nguồn SL', 'chu'), c('I', 'Nguồn thời gian', 'chu'), c('J', 'Trạng thái căn cứ thời gian', 'ds', { ds: 'TT_B1' }),
@@ -106,7 +107,7 @@ export const BIEU = [
     id: 'B2CT', nhom: 'B', sheet: '4. B2_CT_TacDong', ma: 'B2_CT', ten: 'Tác động chi tiết', tieuDe: 'Biểu B2_CT_ Tác động', dongTieuDe: 2,
     buoc: 4,
     cot: [
-      c('A', 'Mã công việc', 'ma', { khoa: true, ref: 'A2' }), c('B', 'Mã VTVL', 'tinh'), c('C', 'Loại tác động', 'ds', { ds: 'LOAI_TD' }),
+      c('A', 'Mã công việc', 'ma', { khoa: true, ref: 'A2' }), c('B', 'Mã VTVL', 'tinh', { refTinh: 'C1' }), c('C', 'Loại tác động', 'ds', { ds: 'LOAI_TD' }),
       c('D', 'Công đoạn', 'chu'), c('E', 'SP áp dụng', 'so', { min: 0 }), c('F', 'Phút trước', 'so', { min: 0 }), c('G', 'Phút sau', 'so', { min: 0 }),
       c('H', 'Giờ giảm trực tiếp', 'tinh'), c('I', 'Giờ việc mới', 'so', { min: 0 }), c('J', 'Nguồn/bằng chứng', 'chu'), c('K', 'Kỳ', 'chu'),
       c('L', 'Cơ sở B1', 'ds', { ds: 'CO_SO_B1' }), c('M', 'Trạng thái', 'ds', { ds: 'TT_B2CT' }), c('N', 'Giờ giảm hợp lệ', 'tinh'),
@@ -118,7 +119,7 @@ export const BIEU = [
     id: 'B2', nhom: 'B', sheet: '5. B2_ThayDoi', ma: 'B2', ten: 'Thay đổi (tổng hợp)', tieuDe: 'Biểu B2_ Thay đổi', dongTieuDe: 2,
     tuTinh: true, buoc: 4,
     cot: [
-      c('A', 'Mã công việc', 'tinh'), c('B', 'Mã VTVL', 'tinh'), c('C', 'Giờ giảm số hóa', 'tinh'), c('D', 'Giờ giảm thuê/TCh/XHH', 'tinh'),
+      c('A', 'Mã công việc', 'tinh', { refTinh: 'A2' }), c('B', 'Mã VTVL', 'tinh', { refTinh: 'C1' }), c('C', 'Giờ giảm số hóa', 'tinh'), c('D', 'Giờ giảm thuê/TCh/XHH', 'tinh'),
       c('E', 'Giờ việc mới', 'tinh'), c('F', 'Giờ tác động ròng', 'tinh'), c('G', 'Trạng thái', 'tinh'), c('H', 'Số dòng chi tiết', 'tinh'),
       c('I', 'Cảnh báo', 'tinh', { tt: true }),
     ],
@@ -762,6 +763,39 @@ export function dongHienThi(doc, kq, id) {
   const rows = doc.bieu[id] || [];
   const t = kq.tinh[id];
   return rows.map((r, i) => ({ row: r, t: t ? t[i] : null }));
+}
+
+// ─── LỰA CHỌN MÃ cho ô liên kết ─────────────────────────────────────────────
+// Ô liên kết (A2!B → A1, A2!C → C1, B1!A → A2, B1!L → danh mục SP, C2/C3/D1/D2/
+// DU_BAO!A → C1…) cho CHỌN mã từ biểu nguồn thay vì gõ tay. Mỗi lựa chọn kèm
+// tên và thông tin phụ của dòng nguồn để người nhập nhận ra đúng mã.
+const NHAN_MA = {
+  A1: (r) => [r.B, r.C],
+  A2: (r) => [r.D, rong(r.C) ? '' : `VTVL ${r.C}`, rong(r.E) ? '' : `SP: ${r.E}`],
+  C1: (r) => [r.B, r.C, r.G],
+  DM: (r) => [r.B, laSo(r.E) ? `${r.E} phút/SP` : '', r.G],
+};
+
+/** Danh sách mã có ở biểu `refId` (bỏ ô trống, bỏ mã trùng — giữ dòng đầu như MATCH của Excel). */
+export function luaChonMa(doc, refId) {
+  const daCo = new Set();
+  const out = [];
+  for (const r of doc?.bieu?.[refId] || []) {
+    if (rong(r.A)) continue;
+    const key = kk(r.A);
+    if (daCo.has(key)) continue;
+    daCo.add(key);
+    const [chinh = '', ...phu] = (NHAN_MA[refId]?.(r) || []).map((x) => (rong(x) ? '' : String(x)));
+    out.push({ ma: String(r.A).trim(), id: r._id, chinh, phu: phu.filter(Boolean).join(' · ') });
+  }
+  return out;
+}
+
+/** _id của dòng ĐẦU TIÊN có mã `ma` ở biểu `refId` (không phân biệt hoa thường) — để nhảy tới. */
+export function timDongTheoMa(doc, refId, ma) {
+  if (rong(ma)) return null;
+  const r = (doc?.bieu?.[refId] || []).find((x) => kk(x.A) === kk(ma));
+  return r ? r._id : null;
 }
 
 // ─── ④ KIỂM TRA ─────────────────────────────────────────────────────────────
