@@ -18,7 +18,7 @@ import { createPortal } from 'react-dom';
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
@@ -27,6 +27,7 @@ import {
   KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong, DS, luaChonMa, timDongTheoMa,
 } from './lib/vtvl';
 import { HD } from './lib/vtvlHuongDan';
+import { lapBaoCao } from './lib/vtvlBaoCao';
 import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
 import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
 import { readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB } from './lib/vtvlStore';
@@ -44,6 +45,7 @@ const TABS = [
   { id: 'nhap', ten: 'Nhập liệu', Ic: Table2 },
   { id: 'tep', ten: 'Nhập từ tệp', Ic: Upload },
   { id: 'kiemtra', ten: 'Kiểm tra lỗi', Ic: ShieldAlert },
+  { id: 'baocao', ten: 'Báo cáo', Ic: FileText },
   { id: 'huongdan', ten: 'Hướng dẫn', Ic: BookOpen },
 ];
 
@@ -1030,6 +1032,138 @@ function HuongDanTab() {
   );
 }
 
+// ─── Tab Báo cáo kết quả kê khai ────────────────────────────────────────────
+const mauBuoc = (t) => (t === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  : t === 'Còn tồn tại' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-500 border-slate-200');
+const soBC = (v, k = 4) => (v === null || v === undefined || v === '' ? '—' : typeof v === 'number' ? v.toLocaleString('vi-VN', { maximumFractionDigits: k }) : v);
+
+function BangBC({ dau, dong, tong, canPhai = [] }) {
+  return (
+    <div className="overflow-x-auto">
+      <table className="w-full text-[12.5px] border-collapse">
+        <thead><tr className="bg-slate-100 text-slate-700">{dau.map((h) => <th key={h} className="border border-slate-200 px-2.5 py-2 text-left font-semibold align-bottom">{h}</th>)}</tr></thead>
+        <tbody>
+          {dong.length === 0 && <tr><td colSpan={dau.length} className="border border-slate-200 px-3 py-4 text-center text-slate-400 italic">(chưa có dữ liệu)</td></tr>}
+          {dong.map((r, i) => (
+            <tr key={i} className="align-top">{r.map((v, j) => <td key={j} className={`border border-slate-200 px-2.5 py-1.5 ${canPhai.includes(j) || typeof v === 'number' ? 'text-right tabular-nums' : ''}`}>{typeof v === 'object' && v !== null && !Array.isArray(v) && v.$$typeof ? v : soBC(v)}</td>)}</tr>
+          ))}
+          {tong && <tr className="bg-slate-50 font-bold">{tong.map((v, j) => <td key={j} className={`border border-slate-200 px-2.5 py-1.5 ${typeof v === 'number' ? 'text-right tabular-nums' : ''}`}>{v === '' ? '' : soBC(v)}</td>)}</tr>}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function BaoCaoTab({ doc, onTab }) {
+  const bc = useMemo(() => lapBaoCao(doc), [doc]);
+  const [dangXuat, setDangXuat] = useState(false);
+  const tt = bc.thongTin;
+  const kl = bc.khoiLuong;
+  const taiWord = async () => {
+    setDangXuat(true);
+    try { const m = await import('./lib/exporters'); await m.exportBaoCaoVTVL(bc); } finally { setDangXuat(false); }
+  };
+  const Muc = ({ so, ten, children }) => (
+    <section className="bg-white rounded-2xl border border-slate-200 p-5 print:border-0 print:p-0 print:rounded-none break-inside-avoid-page">
+      <h3 className="font-extrabold text-slate-800 mb-3">{so}. {ten}</h3>{children}
+    </section>
+  );
+  return (
+    <div className="space-y-4">
+      <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-start justify-between gap-4 flex-wrap print:border-0 print:p-0">
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Báo cáo kết quả kê khai</p>
+          <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Kết quả kê khai bộ biểu xác định vị trí việc làm và nhu cầu nhân lực</h2>
+          <p className="text-[12.5px] text-slate-500 mt-1">{tt.donVi || '(chưa ghi cơ quan, đơn vị — điền ở tab Tổng quan)'} · kỳ {tt.ky || '(chưa ghi)'} · lập ngày {tt.ngayLap}</p>
+          <p className={`mt-2 inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg border ${bc.hoanThien ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'}`}>
+            {bc.hoanThien ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}{bc.trangThai}
+          </p>
+        </div>
+        <div className="flex gap-2 flex-wrap print:hidden">
+          <button onClick={taiWord} disabled={dangXuat} className={nutChinh}><FileDown className="w-4 h-4" /> {dangXuat ? 'Đang tạo…' : 'Tải báo cáo Word (.docx)'}</button>
+          <button onClick={() => window.print()} className={nutPhu}><Printer className="w-4 h-4" /> In / lưu PDF</button>
+          <button onClick={() => import('./lib/vtvlXuat').then((m) => m.xuatDuLieu(doc, tinhToan(doc)))} className={nutPhu}><Download className="w-4 h-4" /> Số liệu chi tiết (Excel)</button>
+        </div>
+      </div>
+      {!bc.hoanThien && (
+        <p className="text-[12.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 print:hidden">
+          Báo cáo vẫn lập được khi chưa hoàn thiện (tệp Word ghi rõ <b>"DỰ THẢO — CHƯA HOÀN THIỆN"</b>). Xử lý các tồn tại ở mục VII hoặc tab <button onClick={() => onTab('kiemtra')} className="font-bold underline">Kiểm tra lỗi</button> rồi lập lại.
+        </p>
+      )}
+
+      <Muc so="I" ten="Thông tin chung">
+        <ul className="text-[13px] text-slate-700 space-y-1">
+          <li><b>Cơ quan, đơn vị:</b> {tt.donVi || '(chưa ghi)'} · <b>Kỳ số liệu:</b> {tt.ky || '(chưa ghi)'}</li>
+          <li><b>Căn cứ:</b> {tt.nguon}.</li>
+          <li><b>Quỹ giờ quy đổi PP2</b> (chế độ phổ biến): {soBC(tt.quyGio)} giờ/người/năm = (261 − 11 − 12) × 8.</li>
+        </ul>
+      </Muc>
+
+      <Muc so="II" ten="Tình trạng kê khai theo 8 bước">
+        <BangBC dau={['Bước', 'Nội dung', 'Biểu', 'Số dòng', 'Đạt', 'Chưa đạt', 'Lỗi', 'Cảnh báo', 'Tình trạng']}
+          dong={bc.buoc.map((b) => [b.buoc, b.ten, b.bieu, b.soDong, b.dat, b.chuaDat, b.loi, b.canh,
+            <span key="t" className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border ${mauBuoc(b.trangThai)}`}>{b.trangThai}</span>])} />
+      </Muc>
+
+      <Muc so="III" ten="Khối lượng công việc và tác động (B1, B2)">
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[12.5px]">
+          {[['Giờ B1 được tính', kl.gioB1, `${kl.dongB1Dat}/${kl.soDongB1} dòng B1 đạt`],
+            ['Giảm do số hóa, cải tiến', kl.gioGiamSoHoa, 'giờ/năm'],
+            ['Giảm do thuê DV, tự chủ, XHH', kl.gioGiamKhac, 'giờ/năm'],
+            ['Công việc mới phát sinh', kl.gioMoi, `${kl.dongB2CTDat}/${kl.soDongB2CT} dòng B2_CT đạt`],
+            ['Tác động ròng B2', kl.gioTacDong, 'âm = giảm giờ'],
+            ['Giờ ròng cần thiết', kl.gioRong, 'B1 + tác động B2'],
+            ['Nhiệm vụ / công việc', `${kl.soNV} / ${kl.soCV}`, 'A1 / A2'],
+            ['Người quy đổi PP2', bc.tong.nguoiQD, 'tham khảo — không phải biên chế']].map(([n, v, phu]) => (
+            <div key={n} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
+              <p className="text-slate-500">{n}</p><p className="text-xl font-extrabold text-slate-800 tabular-nums">{soBC(v)}</p><p className="text-[11px] text-slate-400">{phu}</p>
+            </div>
+          ))}
+        </div>
+      </Muc>
+
+      <Muc so="IV" ten="Nhu cầu nhân lực từng vị trí việc làm (C1, C3)">
+        <BangBC dau={['Mã VTVL', 'Tên VTVL', 'Loại nhân lực', 'Phương pháp', 'Giờ B1', 'Tác động B2', 'Giờ ròng', 'Quỹ giờ', 'Người quy đổi PP2', 'Người PP1', 'Người PP3', 'Người cần bố trí', 'Kết quả kiểm tra']}
+          dong={bc.vtvl.map((x) => [x.ma, x.ten, x.loaiNL, x.pp, x.gioB1, x.gioTD, x.gioRong, x.quyGio, x.nguoiQD, x.nguoiPP1, x.nguoiPP3, x.nguoiCan,
+            <span key="m" className={`inline-block text-[10.5px] font-bold px-1.5 py-0.5 rounded border ${x.dat ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>{x.canhBao}</span>])}
+          tong={['', 'Cộng', '', '', '', '', '', '', bc.tong.nguoiQD, '', '', bc.tong.nguoiCan, '']} />
+        <div className="mt-3">
+          <p className="text-[12.5px] font-bold text-slate-700 mb-1.5">Tổng hợp theo loại nhân lực</p>
+          <BangBC dau={['Loại nhân lực', 'Số VTVL', 'Người quy đổi PP2', 'Người cần bố trí', 'Số người hiện có (D1 đã xác nhận)']}
+            dong={bc.theoLoai.map((o) => [o.loai, o.soVT, o.nguoiQD, o.nguoiCan, o.soNguoi])}
+            tong={['Cộng', bc.tong.soVT, bc.tong.nguoiQD, bc.tong.nguoiCan, bc.tong.soNguoiHienCo]} />
+        </div>
+      </Muc>
+
+      <Muc so="V" ten="Đối chiếu với nguồn lực hiện có (D1) — tham khảo">
+        <p className="text-[12px] text-slate-500 mb-2">Chỉ so sánh cùng đơn vị tính; nguồn lực hiện có chỉ tính bản ghi D1 đã xác nhận{bc.tong.d1BoQua ? ` (${bc.tong.d1BoQua} bản ghi chưa xác nhận không được tính)` : ''}. Chênh lệch dương = cần thêm, âm = nhiều hơn nhu cầu.</p>
+        <BangBC dau={['Mã VTVL', 'Tên VTVL', 'Người cần bố trí (C3)', 'Số người hiện có (D1)', 'Chênh lệch (người)', 'Người quy đổi PP2', 'Quy đổi hiện có', 'Chênh lệch (quy đổi)']}
+          dong={bc.vtvl.map((x) => [x.ma, x.ten, x.nguoiCan, x.hienCo.soNguoi, x.chenhNguoi, x.nguoiQD, x.hienCo.quyDoi, x.chenhQD])} />
+      </Muc>
+
+      <Muc so="VI" ten="Phương án bố trí giai đoạn 2027–2031 (D2)">
+        <BangBC dau={['Năm', 'Số dòng', 'Người cần bố trí', 'Người có thể bố trí', 'Biên chế được giao', 'Đề nghị điều chỉnh', 'Đã thẩm định/quyết định']}
+          dong={bc.phuongAn.nam.map((y) => { const t = bc.phuongAn.tongNam[y]; return [String(y), t.soDong, t.C, t.D, t.E, t.G, `${t.daXong}/${t.soDong}`]; })} />
+      </Muc>
+
+      <Muc so="VII" ten="Nhận xét và tồn tại">
+        <ul className="list-disc pl-5 space-y-1.5 text-[13px] text-slate-700">{bc.nhanXet.map((t) => <li key={t}>{t}</li>)}</ul>
+        {bc.tonTai.length > 0 && (
+          <div className="mt-3">
+            <p className="text-[12.5px] font-bold text-slate-700 mb-1.5">Tồn tại cần xử lý ({bc.tongLoi} lỗi · {bc.tongCanh} cảnh báo){bc.tonTai.length > 50 ? ' — 50 mục đầu' : ''}</p>
+            <BangBC dau={['Biểu', 'Dòng', 'Mã của dòng', 'Cột', 'Mức', 'Nội dung']}
+              dong={bc.tonTai.slice(0, 50).map((x) => [x.bieu, x.dong, x.maDong, x.cot, x.muc === 'loi' ? 'Lỗi' : 'Cảnh báo', x.chu])} />
+          </div>
+        )}
+        <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
+          <p className="text-[12px] font-bold text-slate-600 mb-1">Lưu ý khi sử dụng kết quả</p>
+          <ul className="list-disc pl-5 space-y-0.5 text-[12px] text-slate-500 italic">{bc.luuY.map((t) => <li key={t}>{t}</li>)}</ul>
+        </div>
+      </Muc>
+    </div>
+  );
+}
+
 // ─── Thành phần chính ───────────────────────────────────────────────────────
 export default function VTVL({ onHome }) {
   const [doc, setDoc] = useState(() => readVTVL().doc);
@@ -1198,7 +1332,7 @@ export default function VTVL({ onHome }) {
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
-      <header className="bg-gradient-to-br from-[#082f49] via-[#0c4a6e] to-[#0369a1] text-white">
+      <header className="bg-gradient-to-br from-[#082f49] via-[#0c4a6e] to-[#0369a1] text-white print:hidden">
         <div className="max-w-[1500px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
           <div className="flex items-center gap-3">
             <button onClick={onHome} title="Về Trang chủ (chọn phân hệ khác)" className="shrink-0 w-10 h-10 rounded-xl bg-white/10 border border-white/25 hover:bg-white/20 flex items-center justify-center transition-colors"><Home className="w-5 h-5" /></button>
@@ -1257,7 +1391,7 @@ export default function VTVL({ onHome }) {
         )}
         {luu.k === 'loi' && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-[13px] text-rose-800">Chưa lưu được lên máy chủ ({luu.chu}). Bản nháp vẫn giữ trên máy này; phần mềm sẽ thử lại ở lần sửa tiếp theo.</div>}
         {kb > CANH_BAO_KB && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[13px] text-amber-800">Dữ liệu đã khoảng {fmtSo(kb)} KB — lưu và tải sẽ chậm hơn. Cân nhắc tách theo đơn vị hoặc theo kỳ.</div>}
-        {docOnly && daNap && tab !== 'tep' && tab !== 'huongdan' && (
+        {docOnly && daNap && tab !== 'tep' && tab !== 'huongdan' && tab !== 'baocao' && (
           <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-[13px] text-sky-900 flex items-center gap-2 flex-wrap">
             <Info className="w-4 h-4 shrink-0" />
             <span className="flex-1">Chế độ xem. Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b> và xuất báo cáo lỗi; muốn nhập liệu thì đăng nhập.</span>
@@ -1303,6 +1437,7 @@ export default function VTVL({ onHome }) {
 
         {tab === 'tep' && <NhapTep trangThai={nhapTep} setTrangThai={setNhapTep} doc={doc} coQuyenGhi={coQuyenGhi} onApDung={apDung} onTaiMau={taiMau} />}
         {tab === 'kiemtra' && <KiemTraTab doc={doc} kq={kq} vanDe={vanDe} onDiToi={diToiO} />}
+        {tab === 'baocao' && <BaoCaoTab doc={doc} onTab={setTab} />}
         {tab === 'huongdan' && <HuongDanTab />}
 
         <p className="text-center text-[11px] text-slate-400 pt-4">Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu. Không nhập họ tên, số định danh cá nhân vào bộ biểu (D1 dùng mã nguồn lực).</p>

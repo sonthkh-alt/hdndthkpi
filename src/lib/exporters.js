@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel } from 'docx';
+import { Document, Packer, Paragraph, TextRun, AlignmentType, Table, TableRow, TableCell, WidthType, BorderStyle, HeadingLevel, ShadingType } from 'docx';
 import { saveAs } from 'file-saver';
 
 // EXCEL — Mẫu 1A tổng hợp
@@ -2040,4 +2040,134 @@ export async function exportBaoCaoSoTay({ doc, tienDo, thoiGian }) {
 
   const d = new Document({ sections: [{ properties: { page: { size: { orientation: 'landscape' }, margin: { top: 800, bottom: 800, left: 900, right: 800 } } }, children }] });
   saveAs(await Packer.toBlob(d), `BaoCao_SoTayAI_${n.getFullYear()}${String(n.getMonth() + 1).padStart(2, '0')}${String(n.getDate()).padStart(2, '0')}.docx`);
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" — BÁO CÁO KẾT QUẢ KÊ KHAI (Word)
+//  Dữ liệu dựng sẵn bởi `lapBaoCao` (src/lib/vtvlBaoCao.js) — ở đây chỉ trình bày.
+//  Thân báo cáo khổ dọc theo thể thức NĐ 30; 4 phụ lục bảng rộng khổ ngang.
+// ═══════════════════════════════════════════════════════════════════════════
+const vtSo = (v, k = 4) => (v === null || v === undefined || v === '' ? '—'
+  : typeof v === 'number' ? v.toLocaleString('vi-VN', { maximumFractionDigits: k }) : String(v));
+function vtO(text, { bold = false, align = AlignmentType.LEFT, nen, italics = false } = {}) {
+  return new TableCell({
+    shading: nen ? { fill: nen, type: ShadingType.CLEAR, color: 'auto' } : undefined,
+    margins: { top: 40, bottom: 40, left: 80, right: 80 },
+    children: String(text ?? '').split('\n').map((d) => P(d, { size: 20, bold, align, italics })),
+  });
+}
+function vtBang(dau, dong, { tong } = {}) {
+  const C = AlignmentType.CENTER, R = AlignmentType.RIGHT;
+  const hang = (r, opts = {}) => new TableRow({ children: r.map((v) => vtO(vtSo(v), { align: typeof v === 'number' ? R : AlignmentType.LEFT, ...opts })) });
+  return new Table({
+    width: { size: 100, type: WidthType.PERCENTAGE },
+    rows: [
+      new TableRow({ tableHeader: true, children: dau.map((h) => vtO(h, { bold: true, align: C, nen: 'E5EDF5' })) }),
+      ...(dong.length ? dong.map((r) => hang(r)) : [new TableRow({ children: [vtO('(chưa có dữ liệu)', { italics: true }), ...dau.slice(1).map(() => vtO(''))] })]),
+      ...(tong ? [hang(tong, { bold: true, nen: 'F3F4F6' })] : []),
+    ],
+  });
+}
+const vtMuc = (t) => P(t, { size: VB_FONT_SIZE, bold: true, spacingAfter: 100 });
+const vtDong = (t, opts = {}) => P(t, { size: VB_FONT_SIZE, spacingAfter: 60, ...opts });
+
+/** WORD — Báo cáo kết quả kê khai bộ biểu vị trí việc làm và nhu cầu nhân lực. */
+export async function exportBaoCaoVTVL(bc) {
+  const C = AlignmentType.CENTER;
+  const tt = bc.thongTin;
+  const d = new Date();
+  const kl = bc.khoiLuong;
+  const than = [];
+  if (!bc.hoanThien) than.push(P('DỰ THẢO — CHƯA HOÀN THIỆN', { size: 22, bold: true, color: 'B91C1C', align: AlignmentType.RIGHT }));
+  than.push(
+    vbHeaderTable({
+      coQuanBanHanh: (tt.donVi || '……………………………').toUpperCase(),
+      soKyHieu: 'Số:        /BC-',
+      diaDanh: `Thanh Hóa, ngày ${d.getDate()} tháng ${d.getMonth() + 1} năm ${d.getFullYear()}`,
+    }),
+    P('', { spacingAfter: 160 }),
+    P('BÁO CÁO', { size: VB_FONT_SIZE, bold: true, align: C }),
+    P('Kết quả kê khai bộ biểu xác định vị trí việc làm và nhu cầu nhân lực', { size: VB_FONT_SIZE, bold: true, align: C }),
+    P(tt.ky ? `Kỳ số liệu: ${tt.ky}` : '', { size: 26, italics: true, align: C, spacingAfter: 240 }),
+
+    vtMuc('I. THÔNG TIN CHUNG'),
+    vtDong(`- Cơ quan, đơn vị kê khai: ${tt.donVi || '(chưa ghi)'}.`),
+    vtDong(`- Kỳ số liệu: ${tt.ky || '(chưa ghi)'}; ngày lập báo cáo: ${tt.ngayLap}.`),
+    vtDong(`- Căn cứ: ${tt.nguon}.`),
+    vtDong(`- Quỹ giờ quy đổi PP2 (chế độ làm việc phổ biến): ${vtSo(tt.quyGio)} giờ/người/năm = (261 − 11 − 12) × 8.`),
+    P([{ text: '- Tình trạng chung: ' }, { text: `${bc.trangThai}.`, bold: true, color: bc.hoanThien ? '047857' : 'B91C1C' }], { size: VB_FONT_SIZE, spacingAfter: 160 }),
+
+    vtMuc('II. TÌNH TRẠNG KÊ KHAI THEO 8 BƯỚC'),
+    vtBang(['Bước', 'Nội dung', 'Biểu', 'Số dòng', 'Đạt', 'Chưa đạt', 'Lỗi', 'Cảnh báo', 'Tình trạng'],
+      bc.buoc.map((b) => [b.buoc, b.ten, b.bieu, b.soDong, b.dat, b.chuaDat, b.loi, b.canh, b.trangThai])),
+    P('', { spacingAfter: 160 }),
+
+    vtMuc('III. KẾT QUẢ SAU KHI TÍNH TOÁN'),
+    vtDong('1. Khối lượng công việc và tác động (biểu B1, B2)', { bold: true }),
+    vtBang(['Chỉ tiêu', 'Giá trị'], [
+      ['Số nhiệm vụ (A1) / số công việc (A2)', `${kl.soNV} / ${kl.soCV}`],
+      ['Dòng khối lượng B1 đạt / tổng số dòng', `${kl.dongB1Dat} / ${kl.soDongB1}`],
+      ['Giờ công việc B1 được tính (giờ/năm)', kl.gioB1],
+      ['Giờ giảm do số hóa, cải tiến quy trình', kl.gioGiamSoHoa],
+      ['Giờ giảm do thuê dịch vụ, tự chủ, xã hội hóa', kl.gioGiamKhac],
+      ['Giờ công việc mới phát sinh', kl.gioMoi],
+      ['Tác động ròng B2 (âm = giảm giờ)', kl.gioTacDong],
+      ['Giờ ròng cần thiết (B1 + B2)', kl.gioRong],
+    ]),
+    P('', { spacingAfter: 120 }),
+    vtDong('2. Nhu cầu nhân lực tổng hợp theo loại nhân lực (biểu C1, C3)', { bold: true }),
+    vtBang(['Loại nhân lực', 'Số VTVL', 'Người quy đổi PP2 (tham khảo)', 'Người cần bố trí', 'Số người hiện có (D1 đã xác nhận)'],
+      bc.theoLoai.map((o) => [o.loai, o.soVT, o.nguoiQD, o.nguoiCan, o.soNguoi]),
+      { tong: ['Cộng', bc.tong.soVT, bc.tong.nguoiQD, bc.tong.nguoiCan, bc.tong.soNguoiHienCo] }),
+    vtDong(`Trong đó ${bc.tong.soVTDat}/${bc.tong.soVT} vị trí đủ căn cứ; số người cần bố trí thuộc các vị trí đủ căn cứ: ${vtSo(bc.tong.nguoiCanDat)}. Chi tiết từng vị trí: Phụ lục 1, 2.`, { italics: true }),
+    P('', { spacingAfter: 120 }),
+    vtDong('3. Phương án bố trí giai đoạn 2027–2031 (biểu D2)', { bold: true }),
+    vtBang(['Năm', 'Số dòng', 'Người cần bố trí', 'Người có thể bố trí', 'Biên chế được giao', 'Đề nghị điều chỉnh', 'Đã thẩm định/quyết định'],
+      bc.phuongAn.nam.map((y) => { const t = bc.phuongAn.tongNam[y]; return [String(y), t.soDong, t.C, t.D, t.E, t.G, `${t.daXong}/${t.soDong}`]; })),
+    P('', { spacingAfter: 160 }),
+
+    vtMuc('IV. NHẬN XÉT'),
+    ...bc.nhanXet.map((t) => vtDong(`- ${t}`)),
+    P('', { spacingAfter: 120 }),
+    vtMuc('V. LƯU Ý KHI SỬ DỤNG KẾT QUẢ'),
+    ...bc.luuY.map((t) => vtDong(`- ${t}`, { italics: true })),
+    P('', { spacingAfter: 240 }),
+    vbFooterTable({ noiNhan: ['- Cơ quan chủ trì tổng hợp;', '- Lưu: VT.'], quyenHan: 'THỦ TRƯỞNG CƠ QUAN, ĐƠN VỊ', nguoiKy: '' }),
+  );
+
+  const pl = [
+    P('PHỤ LỤC 1. NHU CẦU NHÂN LỰC TỪNG VỊ TRÍ VIỆC LÀM', { size: 24, bold: true, align: C }),
+    P(`(Kèm theo Báo cáo kết quả kê khai bộ biểu vị trí việc làm${tt.ky ? ` — kỳ ${tt.ky}` : ''})`, { size: 22, italics: true, align: C, spacingAfter: 160 }),
+    vtBang(['STT', 'Mã VTVL', 'Tên VTVL', 'Loại nhân lực', 'Phương pháp', 'Giờ B1', 'Tác động B2', 'Giờ ròng', 'Quỹ giờ', 'Người quy đổi PP2', 'Người PP1', 'Người PP3', 'Người cần bố trí', 'Kết quả kiểm tra'],
+      bc.vtvl.map((x, i) => [i + 1, x.ma, x.ten, x.loaiNL, x.pp, x.gioB1, x.gioTD, x.gioRong, x.quyGio, x.nguoiQD, x.nguoiPP1, x.nguoiPP3, x.nguoiCan, x.canhBao]),
+      { tong: ['', '', 'Cộng', '', '', '', '', '', '', bc.tong.nguoiQD, '', '', bc.tong.nguoiCan, ''] }),
+    P('', { spacingAfter: 240 }),
+    P('PHỤ LỤC 2. ĐỐI CHIẾU NHU CẦU VỚI NGUỒN LỰC HIỆN CÓ (THAM KHẢO)', { size: 24, bold: true, align: C, spacingAfter: 80 }),
+    P(`Chỉ so sánh cùng đơn vị tính; nguồn lực hiện có chỉ tính bản ghi D1 đã xác nhận${bc.tong.d1BoQua ? ` (${bc.tong.d1BoQua} bản ghi chưa xác nhận không được tính)` : ''}. Chênh lệch dương = cần thêm, âm = nhiều hơn nhu cầu.`, { size: 22, italics: true, align: C, spacingAfter: 160 }),
+    vtBang(['STT', 'Mã VTVL', 'Tên VTVL', 'Người cần bố trí (C3)', 'Số người hiện có (D1)', 'Chênh lệch (người)', 'Người quy đổi PP2 (C3)', 'Quy đổi hiện có (D1)', 'Chênh lệch (quy đổi)'],
+      bc.vtvl.map((x, i) => [i + 1, x.ma, x.ten, x.nguoiCan, x.hienCo.soNguoi, x.chenhNguoi, x.nguoiQD, x.hienCo.quyDoi, x.chenhQD])),
+    P('', { spacingAfter: 240 }),
+    P('PHỤ LỤC 3. PHƯƠNG ÁN BỐ TRÍ TỪNG VỊ TRÍ, 2027–2031', { size: 24, bold: true, align: C, spacingAfter: 80 }),
+    P('Mỗi ô: Cần = số người cần bố trí · Có = có thể bố trí · BC = biên chế được giao · ĐN = đề nghị điều chỉnh; dòng dưới là kết quả kiểm tra.', { size: 22, italics: true, align: C, spacingAfter: 160 }),
+    vtBang(['Mã VTVL', 'Tên VTVL', ...bc.phuongAn.nam.map(String)],
+      bc.phuongAn.dong.map((o) => [o.ma, o.ten, ...bc.phuongAn.nam.map((y) => {
+        const n = o.theoNam[y];
+        return n ? `Cần ${vtSo(n.C)} · Có ${vtSo(n.D)}\nBC ${vtSo(n.E)} · ĐN ${vtSo(n.G)}\n${n.J}` : '';
+      })])),
+    P('', { spacingAfter: 240 }),
+    P('PHỤ LỤC 4. TỒN TẠI CẦN XỬ LÝ (LỖI, CẢNH BÁO)', { size: 24, bold: true, align: C, spacingAfter: 160 }),
+    vtBang(['STT', 'Biểu', 'Dòng', 'Mã của dòng', 'Cột', 'Mức', 'Nội dung'],
+      bc.tonTai.slice(0, 300).map((x, i) => [i + 1, x.bieu, x.dong, x.maDong, x.cot, x.muc === 'loi' ? 'Lỗi' : 'Cảnh báo', x.chu])),
+    ...(bc.tonTai.length > 300 ? [P(`… còn ${bc.tonTai.length - 300} mục — xem tab "Kiểm tra lỗi" của phần mềm.`, { size: 22, italics: true })] : []),
+  ];
+
+  const doc = new Document({
+    sections: [
+      { properties: { page: { size: { width: 11906, height: 16838 }, margin: { top: 1134, right: 1134, bottom: 1134, left: 1701 } } }, children: than },
+      { properties: { page: { size: { orientation: 'landscape' }, margin: { top: 900, bottom: 900, left: 900, right: 900 } } }, children: pl },
+    ],
+  });
+  const ten = vbTenTep(`Bao cao VTVL ${tt.donVi || ''} ${tt.ky || ''}`.replace(/Đ/g, 'D').replace(/đ/g, 'd'), 'Bao_cao_VTVL');
+  saveAs(await Packer.toBlob(doc), ten);
+  return ten;
 }
