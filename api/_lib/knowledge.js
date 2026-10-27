@@ -63,7 +63,12 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Mỗi cuốn có công tắc "Cho phép đọc, tải toàn văn": BẬT thì có nút Đọc sách (mở ngay trong trang) và Tải bản toàn văn; TẮT thì phân hệ chỉ giới thiệu, người xem phải liên hệ tác giả để xin bản đầy đủ. Bản quyền tác phẩm thuộc về tác giả.
    Người đã đăng nhập thấy thêm nút "Quản lý tủ sách" để thêm, sửa, xóa đầu sách và đặt cuốn tiêu điểm.
    Bạn KHÔNG đọc được nội dung bên trong sách; nếu được hỏi chi tiết một chương, hãy chỉ sang đường dẫn trên để người hỏi tự đọc chứ đừng tự trả lời thay.
-8. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
+8. Bộ biểu Vị trí việc làm — nhập liệu, kiểm tra — ${SITE}/#/vtvl
+   Chuyển bộ biểu Excel xác định vị trí việc làm và nhu cầu nhân lực (bản sửa đề nghị v2 của nhóm tư vấn UEB, 23/10/2026 — CHƯA phải bản Ban ban hành) thành ứng dụng nhập liệu. Gồm các biểu: A1 nhiệm vụ · A2 công việc, sản phẩm · B1 khối lượng (số sản phẩm × phút/sản phẩm) · B2_CT tác động thực tế (số hóa, cải tiến quy trình, thuê dịch vụ, tự chủ, xã hội hóa, công việc mới) và B2 tổng hợp · C1 danh mục VTVL và quỹ giờ · C2 năng lực · C3 nhu cầu nhân lực theo PP1/PP2/PP3 · D1 nguồn lực hiện có · DU_BAO_5_NAM dự báo · D2 phương án bố trí 2027-2031 · danh mục sản phẩm · chia vùng cấp xã · các trang nguồn kế thừa CV 1972, 2209, 2342 · nhật ký thay đổi · ý kiến đơn vị.
+   Công thức chính: giờ B1 = số SP × phút/SP ÷ 60 + giờ bổ sung (chỉ dòng có cảnh báo ĐẠT); giờ tác động ròng = giờ việc mới − giờ giảm (chỉ dòng B2_CT đạt); giờ ròng = giờ B1 + tác động; người quy đổi PP2 = giờ ròng ÷ quỹ giờ, quỹ giờ chế độ phổ biến = (261 − 11 − 12) × 8 = 1.904 giờ/người/năm. Người quy đổi giữ số thập phân, KHÔNG phải số biên chế; không tính theo ngạch, bậc, lương.
+   Nhập liệu trên bảng như Excel (ô trắng nhập, ô xám tự tính, rê chuột lên tên cột xem hướng dẫn từng cột) hoặc NHẬP TỪ TỆP: đọc được chính tệp bộ biểu .xlsx 30.000 dòng của Ban, tệp CSV, nội dung dán từ Excel; trước khi ghi phần mềm báo lỗi đến từng ô (sai kiểu số, sai danh sách chọn, mã liên kết chưa có, trùng mã, ô lỗi #N/A…) cùng toàn bộ cảnh báo nghiệp vụ của bộ biểu, xuất được báo cáo lỗi Excel. Khách xem và kiểm tra tệp được; nhập liệu, áp dụng tệp phải đăng nhập.
+   Bạn KHÔNG đọc được số liệu đã nhập trong phân hệ này — hỏi số liệu cụ thể thì chỉ người hỏi mở đường dẫn trên, đừng đoán.
+9. Giám sát số Thanh Hóa — ${SITE}/#/giamsat (mở sang https://sonthkh-alt.github.io/giamsat/)
    Quản lý hoạt động giám sát của cơ quan dân cử theo Luật Hoạt động giám sát số 121/2025/QH15 (hiệu lực 01/3/2026), Nghị quyết 114/2025/UBTVQH15 và Nghị quyết 115/2025/UBTVQH15.
    Mọi hồ sơ thuộc đúng một trong 12 nhóm nghiệp vụ GS-01 đến GS-12 (thẩm tra báo cáo · giám sát văn bản quy phạm pháp luật · chất vấn · giải trình · giám sát chuyên đề · khiếu nại, tố cáo · kiến nghị cử tri · thi hành pháp luật ở địa phương · lấy phiếu tín nhiệm · thực hiện nghị quyết về giám sát · theo dõi kết luận, kiến nghị · giám sát lại), mỗi hồ sơ gắn kèm chủ thể giám sát và cấp hành chính. Nhóm GS-09 (tín nhiệm) chưa triển khai.
    Trọng tâm đang chạy là giám sát nghị quyết của HĐND 166 xã, phường: hằng tháng hệ thống rà dấu hiệu cảnh báo, chấm điểm rủi ro, xếp hạng và TRÌNH danh mục đề xuất; quyền quyết định danh mục chính thức thuộc Thường trực HĐND tỉnh — máy đề xuất, người quyết định, không có bốc thăm tự động.
@@ -72,19 +77,19 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    Mở trang là vào thẳng CHẾ ĐỘ TRÌNH DIỄN bằng tài khoản quản trị (thấy đủ 9 mục chức năng, không phải xin tài khoản); bấm "Đăng nhập bằng tài khoản khác" để thử vai trò khác.
    GS-07 — tiếp nhận kiến nghị, phản ánh của cử tri: mỗi kiến nghị được cấp một MÃ TRA CỨU ngẫu nhiên kèm MÃ QR; cử tri quét mã (hoặc nhập mã tại https://sonthkh-alt.github.io/giamsat/#/tra-cuu) là xem được tiến trình xử lý mà không cần tài khoản. Bản ghi CỐ Ý không lưu họ tên, số điện thoại, địa chỉ của cử tri vì kho dữ liệu đó công khai — chỉ ghi xã, phường nơi phát sinh.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng dữ liệu của nó công khai nên BẠN ĐỌC ĐƯỢC: số nghị quyết cấp xã theo hiệu lực, kết quả thẩm định theo xếp loại, nhiệm vụ sau giám sát theo trạng thái, và danh sách kiến nghị cử tri. Chỉ dùng đúng những con số xuất hiện trong mục SỐ LIỆU HỆ THỐNG; không đoán thêm tên đơn vị bị xếp loại hay danh tính cử tri.
-9. Một dữ liệu – Không báo cáo lại — ${SITE}/#/onedata (mở sang https://onedata-thanhhoa.onrender.com)
+10. Một dữ liệu – Không báo cáo lại — ${SITE}/#/onedata (mở sang https://onedata-thanhhoa.onrender.com)
    Kho dữ liệu dùng chung của tỉnh theo Quyết định 2053/QĐ-UBND ngày 07/7/2026 (danh mục dữ liệu chủ, dùng chung, mở) và 2176/QĐ-UBND ngày 20/7/2026 (bộ trường thông tin dữ liệu): số liệu vào Kho MỘT LẦN từ đúng nguồn, dữ liệu đã có trong Kho thì không cơ quan nào được yêu cầu báo cáo lại.
    Hai lớp: lớp 1 là kho văn bản, tri thức số (toàn văn, tìm kiếm); lớp 2 là chỉ tiêu có cấu trúc. Ba kênh thu nhận: hệ thống nghiệp vụ · MÁY TRÍCH XUẤT đọc số liệu từ văn bản vừa phát hành để công chức chỉ xác nhận · nhập tại nguồn phần còn thiếu.
    Có sẵn: dashboard điều hành, máy soạn 15 báo cáo chuẩn Nghị định 30, hỏi - đáp dữ liệu bắt buộc dẫn nguồn, cảnh báo sớm, kiểm kê gánh nặng báo cáo, trang công khai dữ liệu mở và giám sát nghị quyết HĐND.
    Mở trang là vào thẳng CHẾ ĐỘ TRÌNH DIỄN bằng tài khoản quản trị (thấy đủ chức năng, không phải xin tài khoản); bấm "Đăng nhập tài khoản khác" để thử các vai trò lãnh đạo, chuyên viên xã, đại biểu HĐND.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản tách biệt, chạy trên máy chủ miễn phí nên tự ngủ khi vắng người dùng, lần mở đầu chậm 30 - 60 giây). Bạn ĐỌC ĐƯỢC bộ dữ liệu mở công khai của phân hệ: danh mục chỉ tiêu, cơ quan chủ trì, kỳ nhập liệu và trị số từng xã, phường. Nếu máy chủ bên đó đang ngủ thì mục SỐ LIỆU HỆ THỐNG sẽ ghi rõ là chưa lấy được — khi ấy nói thật với người hỏi và mời họ tự mở đường dẫn, TUYỆT ĐỐI không đoán số. Toàn bộ số liệu ở đó là DỮ LIỆU MÔ PHỎNG phục vụ trình diễn.
-10. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
+11. Quản lý lịch công tác tuần — ${SITE}/#/lichcongtac (mở sang https://calendar-beta-lac.vercel.app)
    Lịch công tác tuần của Thường trực HĐND tỉnh và lãnh đạo 4 Ban: cán bộ Văn phòng nhập lịch tuần sau (thường vào thứ Sáu), lãnh đạo duyệt hoặc điều chỉnh, Văn phòng điều xe (có cảnh báo trùng xe) và in lịch tuần.
    Đối tượng có lịch: 2 Phó Chủ tịch HĐND tỉnh, lãnh đạo Đoàn ĐBQH tỉnh, 4 Ban (Kinh tế - Ngân sách, Pháp chế, Văn hóa - Xã hội, Dân tộc) và lãnh đạo Văn phòng (trực cuối tuần).
    Buổi: Sáng · Chiều · Cả ngày · Theo giờ. Trạng thái: Chờ duyệt → Đã duyệt / Đã điều chỉnh (có ghi chú) / Từ chối (có lý do). Sửa lại mục đã bị từ chối thì tự quay về Chờ duyệt.
    Xe ô tô: xe riêng gắn với từng Phó Chủ tịch và xe dùng chung; hệ thống cảnh báo khi một xe bị xếp trùng giờ.
    ⚠️ Đây là HỆ THỐNG RIÊNG (mã nguồn, cơ sở dữ liệu và tài khoản đăng nhập tách biệt với hệ thống đánh giá) nhưng trợ lý ĐỌC ĐƯỢC lịch của tuần này và tuần sau — xem phần SỐ LIỆU HỆ THỐNG. Muốn xem xa hơn hai tuần đó thì chỉ đường dẫn cho người dùng tự mở.
-11. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
+12. Quản lý cán bộ (chỉ Quản trị) — ${SITE}/#/canbo
    Hồ sơ 2C/TCTW-98 và nhắc việc nhân sự: nâng bậc lương (chu kỳ 36 hoặc 24 tháng theo Thông tư 08/2013), nghỉ hưu (lộ trình Nghị định 135/2020), sinh nhật, hết hạn hợp đồng, hết nhiệm kỳ bổ nhiệm, nhiệm vụ định kỳ, biên chế.
    ĐÂY LÀ DANH SÁCH CÁN BỘ DUY NHẤT của cả hệ thống. Hai phân hệ chấm điểm không tự thêm/sửa/xóa cán bộ nữa, chỉ chấm điểm; muốn thêm người hoặc sửa họ tên, chức vụ, đơn vị thì làm ở đây.
    Mỗi hồ sơ có trường "Diện quản lý cán bộ": Thuộc diện Ban Thường vụ Tỉnh ủy quản lý / Không thuộc diện. Trường này tách danh sách giữa hai phân hệ:
@@ -92,7 +97,7 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
    Kèm khu vực DANH BẠ ĐIỆN THOẠI (đại biểu HĐND tỉnh + các Ban và Văn phòng): Quản trị nhập từ tệp danh sách (Stt · Họ và tên · Chức vụ · Số điện thoại) rồi bấm Lưu hồ sơ. Bạn ĐỌC ĐƯỢC danh bạ này khi câu hỏi nhắc tới số điện thoại/danh bạ — chỉ trả lời số của ĐÚNG người được hỏi, không liệt kê hàng loạt trừ khi được yêu cầu rõ; danh bạ chưa được nhập thì hướng dẫn Quản trị nhập.
-12. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
+13. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 
 ## Tài khoản và phân quyền

@@ -7,6 +7,7 @@
 //    { kind: 'troly' }              → mở module Trợ lý AI nghiệp vụ dân cử
 //    { kind: 'sotay' }              → mở module Sổ tay AI (hỏi đáp có trích dẫn nguồn)
 //    { kind: 'tusach' }             → mở module Tủ sách (giới thiệu sách của cán bộ cơ quan)
+//    { kind: 'vtvl' }               → mở module Bộ biểu Vị trí việc làm (nhập liệu, kiểm tra lỗi khi nhập tệp)
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
 //    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
 //                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
@@ -75,6 +76,15 @@ export const MODULES = [
     tags: ['Sách chuyên môn', 'Cẩm nang nghiệp vụ', 'Đọc toàn văn'],
     icon: 'Library', tone: 'amber', badge: 'Mới',
     target: { kind: 'tusach' },
+  },
+  {
+    id: 'vtvl', route: 'vtvl', group: 'main',
+    title: 'Bộ biểu Vị trí việc làm',
+    short: 'Vị trí việc làm',
+    desc: 'Chuyển bộ biểu Excel xác định vị trí việc làm, nhu cầu nhân lực thành ứng dụng: nhập liệu trên bảng có hướng dẫn từng cột, tự tính đúng công thức (giờ B1, tác động B2, PP2 ÷ 1.904 giờ, dự báo 2027-2031), nhập từ tệp .xlsx/CSV và báo lỗi đến từng ô trước khi ghi.',
+    tags: ['A1–D2 · 17 biểu nhập', 'Kiểm tra lỗi khi nhập tệp', 'Đọc tệp 30.000 dòng'],
+    icon: 'FileSpreadsheet', tone: 'sky', badge: 'Mới',
+    target: { kind: 'vtvl' },
   },
   {
     id: 'giamsat', route: 'giamsat', group: 'main',

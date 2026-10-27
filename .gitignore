@@ -24,3 +24,8 @@ docs/*danh ba*
 # liệu làm việc nội bộ, repo này CÔNG KHAI nên không commit. Dùng làm mẫu để dựng
 # biểu mẫu trong phần mềm, không đưa nguyên văn vào mã nguồn.
 docs/Pri/
+
+# Bộ biểu Vị trí việc làm (43 MB) — bản sửa đề nghị của nhóm tư vấn, CHƯA phải bản
+# Ban ban hành; repo này CÔNG KHAI và tệp lại quá nặng cho kho mã. Phân hệ #/vtvl đã
+# số hóa cấu trúc + hướng dẫn (src/lib/vtvl.js, vtvlHuongDan.js) nên không cần tệp gốc.
+docs/Bo_bieu_VTVL*.xlsx

@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, Vote, ExternalLink, BookMarked, Library,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, Vote, ExternalLink, BookMarked, Library, FileSpreadsheet,
 } from 'lucide-react';
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
@@ -14,7 +14,7 @@ import NguoiHuongDan from './NguoiHuongDan';
 //  Người dùng chọn phân hệ bằng cách bấm vào thẻ (icon) tương ứng.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database, Vote, BookMarked, Library };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database, Vote, BookMarked, Library, FileSpreadsheet };
 
 // Viết đủ tên lớp Tailwind để không bị loại khi build.
 const TONE = {

@@ -304,3 +304,23 @@ create policy "st_data_public_read" on app_state
 drop policy if exists "sach_data_public_read" on app_state;
 create policy "sach_data_public_read" on app_state
   for select using (id = 'sach_data');
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 11. PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" (id = 'vtvl_data')
+--  ⚠️ NÊN CHẠY: theo nguyên tắc chung "khách và người đăng nhập đọc CÙNG MỘT
+--  NGUỒN", khách cần đọc được dòng này để thấy đúng dữ liệu đã nhập. Chưa chạy
+--  thì khách chỉ thấy bộ biểu trống (vẫn dùng được chức năng kiểm tra tệp —
+--  chức năng đó chạy hoàn toàn trên trình duyệt, không ghi gì).
+--
+--  • Cho ĐỌC công khai: bộ biểu chỉ gồm nhiệm vụ, công việc, sản phẩm, VTVL,
+--    giờ lao động, số người — KHÔNG có dữ liệu cá nhân theo thiết kế (D1 dùng
+--    MÃ nguồn lực; hướng dẫn của bộ biểu dặn hạn chế thông tin cá nhân).
+--    Nếu cơ quan coi phương án biên chế là thông tin hạn chế thì ĐỪNG chạy bước
+--    này (khi đó chỉ người đăng nhập đọc được).
+--  • GHI vẫn phải đăng nhập (chính sách app_state_auth_all ở BƯỚC 2). Phần mềm
+--    ghi kèm khóa lạc quan theo updated_at để hai người nhập cùng lúc không ghi
+--    đè mất dữ liệu của nhau.
+-- ---------------------------------------------------------------------
+drop policy if exists "vtvl_data_public_read" on app_state;
+create policy "vtvl_data_public_read" on app_state
+  for select using (id = 'vtvl_data');
