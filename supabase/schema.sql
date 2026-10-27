@@ -317,6 +317,9 @@ create policy "sach_data_public_read" on app_state
 --    MÃ nguồn lực; hướng dẫn của bộ biểu dặn hạn chế thông tin cá nhân).
 --    Nếu cơ quan coi phương án biên chế là thông tin hạn chế thì ĐỪNG chạy bước
 --    này (khi đó chỉ người đăng nhập đọc được).
+--  • Chưa chạy bước này thì khách VẪN xem được qua điểm chỉ đọc GET /api/vtvl
+--    (api/vtvl.js, dùng khóa bí mật trên Vercel); chạy bước này thì trình duyệt
+--    đọc thẳng, nhanh hơn và không phụ thuộc hàm máy chủ.
 --  • GHI vẫn phải đăng nhập (chính sách app_state_auth_all ở BƯỚC 2). Phần mềm
 --    ghi kèm khóa lạc quan theo updated_at để hai người nhập cùng lúc không ghi
 --    đè mất dữ liệu của nhau.

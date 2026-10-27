@@ -375,7 +375,7 @@ export function serialSangNgay(n) {
 }
 
 // ─── mô hình dữ liệu ────────────────────────────────────────────────────────
-export const EMPTY_VTVL = { v: 1, donVi: '', ky: '', quyGio: QUY_GIO_PP2, bieu: {}, capNhat: '' };
+export const EMPTY_VTVL = { v: 1, donVi: '', ky: '', quyGio: QUY_GIO_PP2, bieu: {}, capNhat: '', nguoiCapNhat: '' };
 
 /** DANH SÁCH TRẮNG — chỉ giữ cột NHẬP đã khai trong BIEU. */
 export function chuanHoaVTVL(d) {
@@ -387,6 +387,8 @@ export function chuanHoaVTVL(d) {
     quyGio: laSo(src.quyGio) && src.quyGio > 0 ? src.quyGio : QUY_GIO_PP2,
     bieu: {},
     capNhat: typeof src.capNhat === 'string' ? src.capNhat : '',
+    // Email người lưu lần cuối — để khách biết đang xem dữ liệu do ai nhập.
+    nguoiCapNhat: typeof src.nguoiCapNhat === 'string' ? src.nguoiCapNhat : '',
   };
   for (const b of bieuNhap()) {
     const rows = Array.isArray(src.bieu?.[b.id]) ? src.bieu[b.id] : [];

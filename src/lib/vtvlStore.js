@@ -6,8 +6,8 @@ import { chuanHoaVTVL, EMPTY_VTVL } from './vtvl.js';
 //  id = 'vtvl_data' (TOÀN CỤC, không theo kỳ), kèm cache localStorage.
 //
 //  • ĐỌC: khách và người đăng nhập đọc CÙNG MỘT NGUỒN (nguyên tắc chung của hệ
-//    thống) — cần policy `vtvl_data_public_read` ở BƯỚC 11 trong supabase/schema.sql.
-//    Chưa chạy SQL thì khách chỉ thấy bản cache (hoặc trống).
+//    thống). Đọc thẳng bằng policy `vtvl_data_public_read` (BƯỚC 11 supabase/schema.sql);
+//    chưa chạy SQL đó thì tự lùi về điểm CHỈ ĐỌC `GET /api/vtvl` (api/vtvl.js).
 //  • GHI: phải đăng nhập (policy app_state_auth_all) + KHÓA LẠC QUAN theo
 //    `updated_at`: nhiều cán bộ nhập cùng lúc thì người lưu sau KHÔNG ghi đè mù
 //    lên bản người khác vừa lưu mà nhận `{ xungDot: true }` để tải lại.
@@ -33,24 +33,43 @@ export function cacheVTVL(doc, ts, chuaLuu) {
 
 export const kichThuocKB = (doc) => Math.round(JSON.stringify(doc).length / 1024);
 
-/** Tải bản trên máy chủ. Trả { doc, ts } hoặc null (chưa có / không đọc được). */
-export async function fetchVTVL() {
-  if (!supabase) return null;
+/**
+ * Đọc qua điểm CHỈ ĐỌC `GET /api/vtvl` (khóa bí mật nằm trên Vercel). Dùng khi
+ * trình duyệt đọc thẳng ra rỗng — tức khách khi BƯỚC 11 chưa chạy. Chạy `npm run dev`
+ * thì không có hàm api/ (trả trang HTML) → bỏ qua, trả null.
+ */
+async function docQuaMayChu() {
   try {
-    const { data, error } = await supabase.from('app_state').select('data, updated_at').eq('id', ROW_ID).maybeSingle();
-    if (error) { console.warn('fetchVTVL:', error.message); return null; }
-    if (!data) return { doc: chuanHoaVTVL(EMPTY_VTVL), ts: null, trong: true };
-    return { doc: chuanHoaVTVL(data.data), ts: data.updated_at };
-  } catch (e) { console.warn('fetchVTVL:', e); return null; }
+    const r = await fetch('/api/vtvl', { cache: 'no-store' });
+    if (!r.ok || !(r.headers.get('content-type') || '').includes('application/json')) return null;
+    const j = await r.json();
+    return j?.doc ? { doc: chuanHoaVTVL(j.doc), ts: j.ts || null, quaMayChu: true } : null;
+  } catch { return null; }
+}
+
+/** Tải bản trên máy chủ. Trả { doc, ts } hoặc null (không đọc được). */
+export async function fetchVTVL() {
+  let trong = false;
+  if (supabase) {
+    try {
+      const { data, error } = await supabase.from('app_state').select('data, updated_at').eq('id', ROW_ID).maybeSingle();
+      if (error) console.warn('fetchVTVL:', error.message);
+      else if (data) return { doc: chuanHoaVTVL(data.data), ts: data.updated_at };
+      else trong = true; // không có dòng HOẶC RLS chặn khách — hai trường hợp này trả giống nhau
+    } catch (e) { console.warn('fetchVTVL:', e); }
+  }
+  const qua = await docQuaMayChu();
+  if (qua) return qua;
+  return trong ? { doc: chuanHoaVTVL(EMPTY_VTVL), ts: null, trong: true } : null;
 }
 
 /**
  * Lưu lên máy chủ. `tsCu` = updated_at lúc tải về (null nếu máy chủ chưa có dòng).
  * Trả { ok, ts, doc } · { ok:false, xungDot:true } · { ok:false, loi }.
  */
-export async function saveVTVL(docIn, tsCu) {
+export async function saveVTVL(docIn, tsCu, nguoi = '') {
   const now = new Date().toISOString();
-  const doc = chuanHoaVTVL({ ...docIn, capNhat: now });
+  const doc = chuanHoaVTVL({ ...docIn, capNhat: now, nguoiCapNhat: nguoi || docIn?.nguoiCapNhat || '' });
   if (!supabase) return { ok: false, loi: 'Chưa cấu hình máy chủ dữ liệu.' };
   if (!tsCu) {
     const { data, error } = await supabase.from('app_state').insert({ id: ROW_ID, data: doc, updated_at: now }).select('updated_at');

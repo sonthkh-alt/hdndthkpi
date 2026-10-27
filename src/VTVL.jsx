@@ -868,6 +868,7 @@ function TongQuan({ doc, kq, vanDe, docOnly, onSuaChung, onMoBieu, onTab, onXuat
               <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Kỳ số liệu</label>
               <input disabled={docOnly} defaultValue={doc.ky} key={`ky-${doc.ky}`} onBlur={(e) => onSuaChung('ky', e.target.value.trim())} className={inp} placeholder="vd: Năm 2026" />
             </div>
+            {doc.capNhat && <p className="text-[12px] text-slate-500">Lưu lần cuối: <b className="text-slate-700">{new Date(doc.capNhat).toLocaleString('vi-VN')}</b>{doc.nguoiCapNhat ? <> bởi <b className="text-slate-700">{doc.nguoiCapNhat}</b></> : ''}.</p>}
             <p className="text-[12px] text-slate-500">Tiến độ: <b className="text-slate-700">{t.trangThai}</b>. Quỹ giờ PP2 chế độ phổ biến <b>{fmtSo(th.quyGio)}</b> giờ/người/năm (do cơ quan chủ trì quy định).</p>
           </div>
           <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2">
@@ -1190,14 +1191,21 @@ export default function VTVL({ onHome }) {
 
   useEffect(() => {
     let alive = true;
-    getSession().then((s) => { if (alive) setPhien(s || null); });
     const off = onAuthChange((s) => setPhien(s || null));
-    fetchVTVL().then((r) => {
+    Promise.all([getSession(), fetchVTVL()]).then(([s, r]) => {
       if (!alive) return;
+      setPhien(s || null);
       setDaNap(true);
       if (!r) return; // không đọc được máy chủ → giữ bản cache
+      const ghiDuoc = !!s && s.user?.email !== GUEST.email;
       const local = readVTVL();
-      if (local.chuaLuu && JSON.stringify(local.doc.bieu) !== JSON.stringify(r.doc.bieu)) { setBanNhap(r); setTs(r.ts); return; }
+      if (local.chuaLuu && JSON.stringify(local.doc.bieu) !== JSON.stringify(r.doc.bieu)) {
+        // Máy này còn bản nháp chưa lưu: người đăng nhập được hỏi giữ bản nào; KHÁCH luôn
+        // xem bản trên máy chủ (bản nháp vẫn để nguyên trong trình duyệt, không ghi đè).
+        if (ghiDuoc) { setBanNhap(r); setTs(r.ts); return; }
+        setDoc(r.doc); setTs(r.ts); setChuaLuu(false);
+        return;
+      }
       setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(r.doc, r.ts, false);
     });
     return () => { alive = false; off && off(); };
@@ -1213,17 +1221,18 @@ export default function VTVL({ onHome }) {
     const h = setTimeout(async () => {
       setLuu({ k: 'dang' });
       const dangGhi = docRef.current;
-      const r = await saveVTVL(dangGhi, ts);
+      const r = await saveVTVL(dangGhi, ts, phien?.user?.email || '');
       if (r.ok) {
         setTs(r.ts);
         // Người dùng sửa tiếp trong lúc đang lưu thì vẫn còn thay đổi chưa lưu.
-        if (docRef.current === dangGhi) { setChuaLuu(false); cacheVTVL(dangGhi, r.ts, false); } else cacheVTVL(docRef.current, r.ts, true);
+        if (docRef.current === dangGhi) { setChuaLuu(false); cacheVTVL(r.doc, r.ts, false); } else cacheVTVL(docRef.current, r.ts, true);
+        setDoc((d) => (d === dangGhi ? r.doc : { ...d, capNhat: r.doc.capNhat, nguoiCapNhat: r.doc.nguoiCapNhat }));
         setLuu({ k: 'ok', luc: new Date() });
       } else if (r.xungDot) setLuu({ k: 'xungdot' });
       else setLuu({ k: 'loi', chu: r.loi });
     }, 1500);
     return () => clearTimeout(h);
-  }, [doc, chuaLuu, coQuyenGhi, banNhap, ts, luu.k]);
+  }, [doc, chuaLuu, coQuyenGhi, banNhap, ts, luu.k, phien]);
 
   const datDoc = (moi) => {
     setDoc(moi); setChuaLuu(true);
@@ -1391,10 +1400,15 @@ export default function VTVL({ onHome }) {
         )}
         {luu.k === 'loi' && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-[13px] text-rose-800">Chưa lưu được lên máy chủ ({luu.chu}). Bản nháp vẫn giữ trên máy này; phần mềm sẽ thử lại ở lần sửa tiếp theo.</div>}
         {kb > CANH_BAO_KB && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[13px] text-amber-800">Dữ liệu đã khoảng {fmtSo(kb)} KB — lưu và tải sẽ chậm hơn. Cân nhắc tách theo đơn vị hoặc theo kỳ.</div>}
-        {docOnly && daNap && tab !== 'tep' && tab !== 'huongdan' && tab !== 'baocao' && (
+        {docOnly && daNap && tab !== 'tep' && tab !== 'huongdan' && (
           <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-[13px] text-sky-900 flex items-center gap-2 flex-wrap">
             <Info className="w-4 h-4 shrink-0" />
-            <span className="flex-1">Chế độ xem. Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b> và xuất báo cáo lỗi; muốn nhập liệu thì đăng nhập.</span>
+            <span className="flex-1">
+              {doc.capNhat
+                ? <>Chế độ xem: đang xem dữ liệu <b>{doc.nguoiCapNhat ? `do ${doc.nguoiCapNhat} nhập` : 'đã lưu trên hệ thống'}</b>, cập nhật lúc <b>{new Date(doc.capNhat).toLocaleString('vi-VN')}</b>. </>
+                : <>Chế độ xem: hệ thống chưa có dữ liệu bộ biểu nào được lưu. </>}
+              Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b>; muốn nhập liệu thì đăng nhập.
+            </span>
           </div>
         )}
 
