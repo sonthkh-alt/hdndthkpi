@@ -489,7 +489,7 @@ function QuanLy({ doc, onLuu, coQuyenGhi, onXem, bao }) {
 
   const xoa = (s) => {
     if (!window.confirm(`Xóa cuốn "${s.ten}" khỏi tủ sách?`)) return;
-    onLuu({ ...doc, sach: doc.sach.filter((x) => x.id !== s.id), gioiThieu });
+    onLuu({ ...doc, sach: doc.sach.filter((x) => x.id !== s.id), daGo: [...(doc.daGo || []), s.id], gioiThieu });
   };
 
   if (form) {

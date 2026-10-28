@@ -73,7 +73,7 @@ export const chuanHoaSach = (s) => ({
   capNhat: chuoi(s?.capNhat),
 });
 
-export const EMPTY_TS = { sach: [], gioiThieu: '', capNhat: '' };
+export const EMPTY_TS = { sach: [], gioiThieu: '', capNhat: '', daGo: [] };
 
 // ⚠️ DANH SÁCH TRẮNG: thêm trường mới vào cuốn sách thì PHẢI khai ở `chuanHoaSach`,
 // nếu không trường đó bị gọt mất ngay lúc lưu (bài học "danh bạ lưu xong thì biến mất").
@@ -81,6 +81,8 @@ export const chuanHoaTS = (d) => ({
   sach: mang(d?.sach).map(chuanHoaSach),
   gioiThieu: chuoi(d?.gioiThieu),
   capNhat: chuoi(d?.capNhat),
+  // id các cuốn của bộ khởi tạo mà Quản trị đã chủ động xóa — để không tự bổ sung lại
+  daGo: [...new Set(mang(d?.daGo).map(chuoi).filter(Boolean))],
 });
 
 // ---------------------------------------------------------------------------

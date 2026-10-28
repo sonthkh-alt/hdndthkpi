@@ -1,5 +1,4 @@
 import { supabase } from './supabase.js';
-import { seedTuSach } from './tuSachSeed.js';
 import { chuanHoaTS, EMPTY_TS } from './tuSach.js';
 
 // ============================================================================
@@ -41,12 +40,5 @@ export async function saveTS(d) {
   return { ok: true, doc };
 }
 
-/**
- * Chưa có cuốn nào thì dựng bộ khởi tạo. Theo nguyên tắc chung của hệ thống
- * ("dữ liệu mẫu = dữ liệu chính thống"), người đăng nhập đầu tiên mở phân hệ
- * sẽ ghi bộ này lên máy chủ để mọi người cùng thấy một bản.
- */
-export function khoiTaoNeuTrong(doc) {
-  if (Array.isArray(doc?.sach) && doc.sach.length) return { doc: chuanHoaTS(doc), moi: false };
-  return { doc: chuanHoaTS({ ...chuanHoaTS(doc), ...seedTuSach() }), moi: true };
-}
+// Logic khởi tạo/bổ sung là hàm THUẦN ở tuSachSeed.js (kiểm thử được bằng Node).
+export { khoiTaoNeuTrong } from './tuSachSeed.js';
