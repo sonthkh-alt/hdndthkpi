@@ -12,9 +12,9 @@
 Dành cho: mọi người đọc. Người mới hoàn toàn nên đọc kỹ mục 2.1 và 2.3; lãnh đạo nên đọc kỹ mục 2.4, 2.5 và 2.6.
 :::
 
-Hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa đang chạy tại địa chỉ hdndthkpi.vercel.app. Khi tôi kể với đồng nghiệp rằng hệ thống ấy do một cán bộ không chuyên lập trình làm ra cùng trí tuệ nhân tạo (AI), tôi thường nhận về hai phản ứng trái ngược nhau. Phản ứng thứ nhất là ngại: "Phần mềm là việc của kỹ sư, mình động vào chỉ hỏng". Phản ứng thứ hai là quá đà: "Vậy thì bảo AI làm cho một hệ thống quản lý cả cơ quan, mai là xong".
+Hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa đang chạy tại địa chỉ hdndthkpi.vercel.app. Nghe chuyện hệ thống ấy do một cán bộ không chuyên lập trình làm ra cùng trí tuệ nhân tạo (AI), người ta dễ rơi vào một trong hai cách nghĩ trái ngược nhau. Cách thứ nhất là ngại: phần mềm là việc của kỹ sư, mình động vào chỉ hỏng. Cách thứ hai là quá đà: cứ bảo AI làm một hệ thống quản lý cả cơ quan, mai là xong.
 
-Cả hai phản ứng đều xuất phát từ một chỗ: chưa hình dung được việc "AI tạo ứng dụng" thực chất là gì. Người ngại thì tưởng phải hiểu hết từng dòng mã mới dám bắt đầu. Người hăng hái thì tưởng AI là chiếc đũa thần, không cần ai hiểu nghiệp vụ, không cần ai kiểm tra. Trong những tháng làm hệ thống năm 2026, chính tôi đã đi qua cả hai trạng thái ấy. Có lúc mở máy thấy ba phân hệ cùng trắng trang, tôi nghĩ mình đã ôm việc quá sức. Có lúc tác tử AI dựng xong cả một màn hình mới chỉ trong một phiên làm việc, tôi lại tưởng việc gì cũng dễ.
+Cả hai cách nghĩ đều xuất phát từ một chỗ: chưa hình dung được việc "AI tạo ứng dụng" thực chất là gì. Người ngại thì tưởng phải hiểu hết từng dòng mã mới dám bắt đầu. Người hăng hái thì tưởng AI là chiếc đũa thần, không cần ai hiểu nghiệp vụ, không cần ai kiểm tra. Những tháng làm hệ thống năm 2026 cho tôi thấy cả hai đều chỉ đúng một nửa. Có lúc ba phân hệ cùng trắng trang vì một lỗi chỉ lộ ra vào ngày đầu tháng. Có lúc tác tử AI dựng xong cả một màn hình mới chỉ trong một phiên làm việc.
 
 Chương này chưa dạy cài đặt hay gõ lệnh; việc đó dành cho Phần thứ hai. Chương này vẽ một tấm bản đồ: ứng dụng gồm những gì, tác tử AI lập trình làm được gì, con đường đi từ đâu đến đâu, và những chỗ trũng nào đã có người sa chân. Có bản đồ rồi, chúng ta sẽ không sợ, cũng không ảo tưởng.
 
@@ -32,7 +32,7 @@ Trụ sở nào cũng có ba khu vực. Phía trước là phòng tiếp dân: b
 - **Máy chủ (server)** là các phòng làm việc phía sau. Ở đó diễn ra những việc không nên làm trước mặt khách: gọi dịch vụ AI bằng khóa bí mật, đếm hạn mức sử dụng, nhận tin nhắn gửi đến từ Zalo hay Telegram.
 - **Cơ sở dữ liệu (database)** là kho lưu trữ. Dữ liệu đã ghi vào đây thì tắt máy, đổi máy, sáng mai mở ra vẫn còn.
 
-Trong hệ thống thử nghiệm của Văn phòng, giao diện được viết bằng React, một bộ công cụ dựng giao diện phổ biến. Máy chủ là các hàm nhỏ đặt trong thư mục `api/`, chạy trên dịch vụ Vercel. Cơ sở dữ liệu là Supabase. Điều ít người ngờ tới là toàn bộ dữ liệu chỉ nằm trong **một bảng** tên là `app_state`. Mỗi dòng của bảng là một "tập hồ sơ" ghi theo dạng JSON, tức một cách ghi dữ liệu có cấu trúc mà máy đọc được: một kỳ đánh giá OKR/KPI, một bộ phiên biểu quyết, bộ hồ sơ cán bộ, bộ đếm lượt truy cập. Cách tổ chức này đơn giản, hợp với bản demo, nhưng cũng là gốc rễ của sự cố hai phân hệ ghi đè lên nhau mà mục 2.4 sẽ kể.
+Trong hệ thống thử nghiệm của Văn phòng, giao diện được viết bằng React, một bộ công cụ dựng giao diện phổ biến. Máy chủ là các hàm nhỏ đặt trong thư mục `api/`, chạy trên dịch vụ Vercel. Cơ sở dữ liệu là Supabase. Điều ít người ngờ tới là toàn bộ dữ liệu chỉ nằm trong **một bảng** tên là `app_state`. Mỗi dòng của bảng là một "tập hồ sơ" ghi theo dạng JSON, tức một cách ghi dữ liệu có cấu trúc mà máy đọc được: một kỳ đánh giá OKR/KPI, một bộ phiên biểu quyết, bộ hồ sơ cán bộ, bộ đếm lượt truy cập. Cách tổ chức này đơn giản, hợp với bản demo, nhưng đòi hỏi đặt tên dòng thật rõ. Chính một cái tên dòng chỉ ghi tháng mà không ghi phân hệ đã gây ra sự cố hai phân hệ ghi đè lên nhau mà mục 2.4 sẽ kể.
 
 ### 2.1.2. API: cửa giao dịch một cửa
 
@@ -46,11 +46,11 @@ API là một "cửa" có quy định rõ: gửi yêu cầu theo mẫu nào, nh�
 
 Phần mềm cũng có hai lớp tương tự. Ẩn một nút, một tab trên giao diện là cách "gỡ biển". Quyền thật phải nằm ở cơ sở dữ liệu. Ở đó, mỗi yêu cầu đọc, ghi đều bị kiểm tra theo **chính sách bảo mật theo dòng (Row Level Security, viết tắt RLS)**, giống chiếc thẻ ra vào được quẹt ở từng cánh cửa.
 
-Hệ thống của Văn phòng từng có lúc mắc đúng lỗi "gỡ biển mà không khóa cửa". Phân hệ Quản lý cán bộ chỉ hiện với Quản trị, nhưng chính sách cũ ở cơ sở dữ liệu lại cho mọi tài khoản đã đăng nhập đọc mọi dòng. Nghĩa là một người dùng thường, nếu biết gọi thẳng vào cửa API, vẫn đọc được hồ sơ có ngày sinh, số định danh, quan hệ gia đình. Lỗ hổng được bịt bằng một bước riêng trong tệp lược đồ cơ sở dữ liệu: chỉ hai email Quản trị được đọc, ghi dòng hồ sơ cán bộ. Chương 19 sẽ trở lại chuyện phân quyền kỹ hơn.
+Hệ thống của Văn phòng suýt mắc đúng lỗi "gỡ biển mà không khóa cửa". Khi dựng phân hệ Quản lý cán bộ, tác tử chỉ ra một nguy cơ: tab phân hệ chỉ hiện với Quản trị, nhưng chính sách chung ở cơ sở dữ liệu lại cho mọi tài khoản đã đăng nhập đọc mọi dòng. Nếu để nguyên, một người dùng thường gọi thẳng vào cửa API vẫn đọc được hồ sơ có ngày sinh, số định danh, quan hệ gia đình. Vì vậy tệp lược đồ cơ sở dữ liệu có thêm một bước riêng, phải chạy thì mới có hiệu lực: chỉ tài khoản Quản trị được đọc, ghi dòng hồ sơ cán bộ. Chương 19 sẽ trở lại chuyện phân quyền kỹ hơn.
 
 ### 2.1.4. Mã nguồn, kho mã nguồn, triển khai và tên miền
 
-Muốn xây trụ sở phải có bộ bản vẽ thiết kế. Phần mềm cũng có "bản vẽ" của nó: **mã nguồn (source code)**, tức các tệp văn bản viết bằng ngôn ngữ lập trình, mô tả từng nút bấm, từng công thức, từng bước lưu dữ liệu. Đến ngày 26/10/2026, hệ thống của Văn phòng có khoảng 21.400 dòng mã.
+Muốn xây trụ sở phải có bộ bản vẽ thiết kế. Phần mềm cũng có "bản vẽ" của nó: **mã nguồn (source code)**, tức các tệp văn bản viết bằng ngôn ngữ lập trình, mô tả từng nút bấm, từng công thức, từng bước lưu dữ liệu. Đếm ngày 26/10/2026, hệ thống của Văn phòng có khoảng 21.400 dòng mã JavaScript, chưa kể lược đồ cơ sở dữ liệu và bộ sinh bản tin viết bằng Python.
 
 Bản vẽ phải được cất giữ cẩn thận, ghi lại mỗi lần sửa: ai sửa, sửa gì, khi nào. Nơi cất giữ ấy gọi là **kho mã nguồn (repository)**, thường đặt trên GitHub. Tôi hay ví GitHub như sổ lưu trữ bản vẽ có đánh số từng lần điều chỉnh: lỡ sửa hỏng thì lật lại bản hôm qua. Mỗi lần ghi một thay đổi vào sổ gọi là một lần **ghi nhận thay đổi (commit)**.
 
@@ -65,7 +65,7 @@ Bảng sau gom các khái niệm lại để đồng chí tiện tra cứu:
 | Cơ sở dữ liệu | Kho lưu trữ hồ sơ | Supabase, bảng `app_state` |
 | API | Cửa giao dịch một cửa | Cửa của Supabase, của dịch vụ AI |
 | Phân quyền | Thẻ ra vào từng cửa | Các bước trong tệp lược đồ |
-| Mã nguồn | Bộ bản vẽ thiết kế | Khoảng 21.400 dòng |
+| Mã nguồn | Bộ bản vẽ thiết kế | Khoảng 21.400 dòng JavaScript |
 | Kho mã nguồn | Sổ lưu bản vẽ có lịch sử | GitHub |
 | Triển khai | Khánh thành, mở cửa | Vercel tự dựng khi có mã mới |
 | Tên miền | Biển số nhà | hdndthkpi.vercel.app |
