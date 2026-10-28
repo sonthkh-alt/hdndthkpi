@@ -18,7 +18,7 @@ import { createPortal } from 'react-dom';
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
@@ -1193,27 +1193,43 @@ function ChonDonVi({ ds, slug, ten, coQuyenGhi, daDangNhap, coMa, dangTao, dangN
   const hienTai = dsHien.find((x) => x.slug === slug);
 
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 space-y-3">
+    <div className="relative overflow-hidden rounded-2xl border-2 border-sky-300 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-3 pl-5 sm:p-4 sm:pl-6 space-y-3 shadow-md shadow-sky-100">
+      {/* Vạch nhấn bên trái — khối này quyết định đang nhập cho đơn vị nào nên phải nổi nhất trang. */}
+      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-sky-500 to-indigo-600" />
       <div className="flex items-end gap-3 flex-wrap">
         <div className="flex-1 min-w-[260px]">
-          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Bộ biểu của đơn vị</label>
-          <select value={slug} onChange={(e) => { if (e.target.value === '+') { setMoTao(true); return; } setMoTao(false); onChon(e.target.value); }} className={inp}>
-            {dsHien.map((x) => (
-              <option key={x.id} value={x.slug}>
-                {x.ten}{x.tinh ? ' — bản mặc định của cơ quan tỉnh' : ''}{x.soVT ? ` · ${x.soVT} VTVL` : x.soDong ? ` · ${x.soDong} dòng` : ' · chưa có dữ liệu'}
-              </option>
-            ))}
-            <option value="+">+ Tạo bộ biểu cho HĐND xã, phường…</option>
-          </select>
+          <label htmlFor="vtvl-chon-don-vi" className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-800 uppercase tracking-wider mb-1.5">
+            <Building2 className="w-4 h-4" /> Bộ biểu của đơn vị
+          </label>
+          <div className="relative">
+            <select id="vtvl-chon-don-vi" value={slug} onChange={(e) => { if (e.target.value === '+') { setMoTao(true); return; } setMoTao(false); onChon(e.target.value); }}
+              className="w-full appearance-none cursor-pointer rounded-xl border-2 border-sky-400 bg-white pl-3.5 pr-14 py-2.5 text-[15px] font-bold text-slate-800 shadow-sm outline-none transition hover:border-sky-500 focus:border-sky-600 focus:ring-4 focus:ring-sky-200">
+              {dsHien.map((x) => (
+                <option key={x.id} value={x.slug}>
+                  {x.ten}{x.tinh ? ' — bản mặc định của cơ quan tỉnh' : ''}{x.soVT ? ` · ${x.soVT} VTVL` : x.soDong ? ` · ${x.soDong} dòng` : ' · chưa có dữ liệu'}
+                </option>
+              ))}
+              <option value="+">+ Tạo bộ biểu cho HĐND xã, phường…</option>
+            </select>
+            {/* Mũi tên mặc định của trình duyệt quá nhỏ, dễ bị bỏ qua — thay bằng nút vuông nổi màu. */}
+            <span aria-hidden className="pointer-events-none absolute inset-y-1.5 right-1.5 w-10 rounded-lg bg-sky-600 text-white flex items-center justify-center shadow">
+              <ChevronDown className="w-5 h-5" />
+            </span>
+          </div>
         </div>
-        <div className="text-[12px] text-slate-500 min-w-[200px]">
+        <div className="text-[12px] text-slate-600 min-w-[200px] rounded-lg bg-white/80 border border-sky-200 px-3 py-2">
           {dangNap
             ? <span className="inline-flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang tải dữ liệu của đơn vị…</span>
             : hienTai?.capNhat
-              ? <>Cập nhật <b className="text-slate-700">{new Date(hienTai.capNhat).toLocaleString('vi-VN')}</b>{hienTai.nguoi ? <> · do <b className="text-slate-700">{hienTai.nguoi}</b> nhập</> : null}</>
+              ? <>Cập nhật <b className="text-slate-800">{new Date(hienTai.capNhat).toLocaleString('vi-VN')}</b>{hienTai.nguoi ? <> · do <b className="text-slate-800">{hienTai.nguoi}</b> nhập</> : null}</>
               : <>Đơn vị này chưa có dữ liệu được lưu.</>}
         </div>
-        {!moTao && <button onClick={() => setMoTao(true)} className={nutPhu}><Plus className="w-3.5 h-3.5" /> Tạo bộ biểu đơn vị mới</button>}
+        {!moTao && (
+          <button onClick={() => setMoTao(true)}
+            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-bold shadow-md shadow-emerald-200 ring-2 ring-white transition">
+            <Plus className="w-4 h-4" /> Tạo bộ biểu đơn vị mới
+          </button>
+        )}
       </div>
 
       {/* Bản của tỉnh: chỉ người đăng nhập sửa được — nói rõ để khách không tưởng là lỗi. */}
