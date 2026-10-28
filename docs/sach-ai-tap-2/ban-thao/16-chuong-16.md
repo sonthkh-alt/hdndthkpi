@@ -13,13 +13,11 @@ Dành cho: chuyên viên các phòng của Văn phòng, chuyên viên giúp vi�
 
 Mười lăm chương trước chủ yếu kể chuyện làm ra công cụ. Chương này quay về bàn làm việc. Phần lớn cán bộ sẽ không tự lập trình, nhưng ai cũng có kỳ họp phải chuẩn bị, dự thảo phải thẩm tra, báo cáo phải tổng hợp. Câu hỏi của họ là: AI giúp được khâu nào, khâu nào không được giao, dữ liệu nào được dán vào, ai chịu trách nhiệm ở đâu.
 
-Mỗi nghiệp vụ dưới đây được trình bày thành một quy trình: các bước, người chịu trách nhiệm, câu lệnh mẫu, điểm kiểm soát. Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa (gọi tắt là Văn phòng) vẫn làm việc như vậy: việc gì cũng có quy trình, quy trình nào cũng có người ký. AI chỉ được đặt bên trong quy trình ấy, không đặt lên trên nó.
+Ở Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa (gọi tắt là Văn phòng), việc gì cũng có quy trình, quy trình nào cũng có người ký. AI chỉ được đặt bên trong quy trình ấy, không đặt lên trên nó. Ngày 07/5/2026, Thường trực HĐND tỉnh đã tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng (tóm tắt tài liệu, chuẩn bị kỳ họp, giám sát, an toàn dữ liệu, đạo đức công vụ); chương này biến điều đã nghe thành thao tác có kỷ luật.
 
-Ngày 07/5/2026, Thường trực HĐND tỉnh tổ chức tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng: tóm tắt, xử lý tài liệu, chuẩn bị kỳ họp, giám sát, an toàn dữ liệu, đạo đức công vụ. Chương này biến điều đã nghe thành thao tác có kỷ luật.
+Các câu lệnh mẫu viết theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2); câu hỏi gửi sổ tay ở mục 16.4 là ngoại lệ, vì sổ tay đã chứa sẵn bối cảnh. Chỗ cần điền đặt trong [ngoặc vuông]: chép vào, thay phần trong ngoặc, đọc lại rồi mới gửi.
 
-Mọi câu lệnh mẫu dưới đây viết theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2); chỗ cần điền đặt trong [ngoặc vuông]. Chép vào, thay phần trong ngoặc, đọc lại rồi mới gửi.
-
-**Khuôn chung cho mọi quy trình.** Trước khi đưa AI vào một việc, tôi luôn tự trả lời năm câu hỏi. Đồng chí có thể in bảng dưới đây dán cạnh màn hình.
+**Khuôn chung cho mọi quy trình.** Trước khi đưa AI vào một việc, tôi luôn tự trả lời năm câu hỏi dưới đây.
 
 | Câu hỏi | Nếu chưa trả lời được thì |
 |---|---|
@@ -42,12 +40,12 @@ Bốn lưu ý:
 
 - **Khi không chắc chắn, chọn cấp cao hơn** — nguyên tắc thận trọng của Tập 1 (mục 7.2).
 - Tài liệu nội bộ có lẫn vài tên người vẫn là Cấp 2 nhưng phải thay tên bằng mã trước khi dùng; tài liệu mà nội dung chính là thông tin về một con người cụ thể (hồ sơ, đơn thư, nhận xét) là Cấp 3.
-- Tài khoản cá nhân phải tắt việc dùng hội thoại để huấn luyện mô hình ngay khi tạo (Cài đặt → Quyền riêng tư hoặc Kiểm soát dữ liệu; tên mục đổi theo từng đợt cập nhật). Gói dành cho tổ chức thường không huấn luyện trên nội dung theo mặc định (đã kiểm chứng với gói Team, Enterprise của Claude; hãng khác phải đọc điều khoản hiện hành), nhưng "không huấn luyện" không có nghĩa là "không lưu trữ" (Tập 1, mục 7.2).
-- Cơ quan chưa có công cụ dành cho tổ chức thì chỉ đưa lên AI phần đã là Cấp 1 — danh mục tên tệp, khung đề cương, dữ liệu giả — còn nội dung thật xử lý trên máy cơ quan. Phần mềm chạy AI ngay trên máy tính (như Ollama, với mô hình đã tải về) giữ dữ liệu không rời máy, nhưng tiếng Việt và khả năng suy luận kém hơn rõ rệt.
+- Tài khoản cá nhân phải tắt việc dùng hội thoại để huấn luyện mô hình ngay khi tạo (trong phần cài đặt quyền riêng tư; tên mục đổi theo từng đợt cập nhật). Gói dành cho tổ chức của Claude (Team, Enterprise) không huấn luyện trên nội dung theo mặc định; hãng khác phải đọc điều khoản hiện hành. Nhưng "không huấn luyện" không có nghĩa là "không lưu trữ" (Tập 1, mục 7.2).
+- Cơ quan chưa có công cụ dành cho tổ chức thì chỉ đưa lên AI phần đã là Cấp 1 — danh mục tên tệp, khung đề cương, dữ liệu giả — còn nội dung thật xử lý trên máy cơ quan.
 
 Tên mỗi câu lệnh mẫu ghi cấp dữ liệu cao nhất được dán vào; "Cấp 2" nghĩa là dùng công cụ dành cho tổ chức và đã thay tên người bằng mã. Không câu lệnh nào dành cho dữ liệu Cấp 3, Cấp 4.
 
-**Bốn chốt kiểm soát.** Ở mỗi quy trình dưới đây, tôi đánh dấu bốn chốt bằng ký hiệu K1 đến K4 để đồng chí dễ nhận ra.
+**Bốn chốt kiểm soát.** Ở mỗi quy trình, tôi đánh dấu bốn chốt bằng ký hiệu K1 đến K4.
 
 - **K1 — Chốt dữ liệu**, trước khi dán: xác định cấp, ẩn danh, cắt bỏ phần không cần.
 - **K2 — Chốt nguồn**, sau khi AI trả lời: mọi số hiệu, điều, khoản, con số phải đối chiếu văn bản gốc.
@@ -65,8 +63,6 @@ Chốt K3 chính là Mô hình 1 "AI đề xuất, con người duyệt" trong b
 - Luật Tiếp cận thông tin số 01/2026/QH16 (hiệu lực từ 01/9/2026, thay thế Luật số 104/2016/QH13) xếp riêng thông tin nội bộ, bí mật công tác, dữ liệu cá nhân vào nhóm không được tiếp cận hoặc chỉ được tiếp cận có điều kiện: không phải tài liệu nào của cơ quan cũng là Cấp 1.
 :::
 
-Bốn chốt kiểm soát là các văn bản này chuyển thành thao tác.
-
 ::: {.lanhdao}
 **Dành cho lãnh đạo**
 
@@ -81,7 +77,7 @@ Và một điều nên nói rõ với các đoàn giám sát: bảng tổng hợ
 
 ## 16.1. Chuẩn bị kỳ họp HĐND
 
-Theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15 (thông qua và có hiệu lực từ ngày 16/6/2025), HĐND họp mỗi năm ít nhất hai kỳ, và họp chuyên đề hoặc đột xuất khi Thường trực HĐND, Chủ tịch Ủy ban nhân dân (UBND) cùng cấp hoặc ít nhất một phần ba tổng số đại biểu yêu cầu. Mỗi kỳ họp kéo theo chương trình, tài liệu, báo cáo thẩm tra, tổng hợp thảo luận, kịch bản, nghị quyết, biên bản: phần lớn là giấy tờ có khuôn mẫu, đúng loại việc AI làm tốt ở khâu nháp.
+Theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15 (thông qua và có hiệu lực từ ngày 16/6/2025), HĐND họp mỗi năm ít nhất hai kỳ, ngoài ra họp chuyên đề hoặc đột xuất khi có yêu cầu. Mỗi kỳ họp kéo theo chương trình, tài liệu, báo cáo thẩm tra, tổng hợp thảo luận, kịch bản, nghị quyết, biên bản: phần lớn là giấy tờ có khuôn mẫu, đúng loại việc AI làm tốt ở khâu nháp.
 
 ### 16.1.1. Quy trình và phân việc
 
@@ -94,7 +90,7 @@ Theo Luật Tổ chức chính quyền địa phương số 72/2025/QH15 (thông
 | 5. Kịch bản điều hành | Dựng kịch bản theo chương trình đã duyệt | Chủ tọa, Thường trực duyệt | Cấp 2 |
 | 6. Biểu quyết, biên bản | Không tham gia | Hệ thống biểu quyết và quy chế của HĐND | — |
 
-Tab Trợ lý kỳ họp của phân hệ "Trợ lý AI nghiệp vụ dân cử" trong hệ thống thử nghiệm của Văn phòng (hdndthkpi.vercel.app, đường dẫn `#/troly`) có năm tác vụ dựng sẵn và một ô tự đặt câu hỏi (Chương 13, mục 13.1). Dòng quan trọng nhất trong lời nhắc dựng sẵn của chúng: chỉ trích dẫn thông tin có trong tài liệu được cung cấp, thiếu thì ghi là thiếu. Các câu lệnh dưới đây làm việc tương tự trên trợ lý AI trò chuyện.
+Tab Trợ lý kỳ họp của phân hệ "Trợ lý AI nghiệp vụ dân cử" trong hệ thống thử nghiệm của Văn phòng (hdndthkpi.vercel.app, đường dẫn `#/troly`) có năm tác vụ dựng sẵn và một ô tự đặt câu hỏi (Chương 13, mục 13.1). Dòng quan trọng nhất trong lời nhắc dựng sẵn: chỉ trích dẫn thông tin có trong tài liệu được cung cấp, thiếu thì ghi là thiếu. Các câu lệnh dưới đây giữ tinh thần ấy, dùng trên trợ lý AI trò chuyện.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.1 — Kiểm danh mục hồ sơ tài liệu kỳ họp (Cấp 2)**
@@ -161,12 +157,12 @@ Không suy diễn ý kiến "chung của tổ" nếu ghi chép không nói vậy
 ```
 :::
 
-Kịch bản điều hành phải khớp tuyệt đối với chương trình đã duyệt. AI dựng khung rất nhanh, nhưng có một chỗ tôi luôn soát bằng tay: câu công bố kết quả biểu quyết.
+Kịch bản điều hành phải khớp tuyệt đối với chương trình đã duyệt. Có một chỗ tôi luôn soát bằng tay: câu công bố kết quả biểu quyết.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế — Mẫu số là tổng số đại biểu**
 
-Khi dựng phân hệ Biểu quyết Online (Chương 12, mục 12.3), tôi yêu cầu tính kết quả trên tổng số đại biểu, không trên số người đã bấm, vì nghị quyết của HĐND được thông qua khi quá nửa tổng số đại biểu tán thành. Với 82 đại biểu của bản demo, bộ kiểm thử có phép kiểm "41/82 thì thiếu 1 phiếu". Câu công bố trong kịch bản cũng vậy: số tán thành, tổng số đại biểu, tỷ lệ trên tổng số; ngưỡng hai phần ba chỉ dùng khi luật quy định. AI dễ viết "tỷ lệ trên số đại biểu có mặt", vì cách tính ấy hay gặp trong tin bài.
+Khi dựng phân hệ Biểu quyết Online (Chương 12, mục 12.3), tôi yêu cầu tính kết quả trên tổng số đại biểu, không trên số người đã bấm, vì nghị quyết của HĐND được thông qua khi quá nửa tổng số đại biểu tán thành. Với 82 đại biểu của bản demo, bộ kiểm thử có phép kiểm "41/82 thì thiếu 1 phiếu"; ngưỡng hai phần ba chỉ dùng khi luật quy định. AI lại dễ viết "tỷ lệ trên số đại biểu có mặt", vì cách tính ấy hay gặp trong tin bài.
 :::
 
 ::: {.lenhmau}
@@ -222,7 +218,7 @@ Hồ sơ gửi Ban thẩm tra chưa công bố nên mặc định thuộc Cấp 
 
 ### 16.2.2. Bốn câu lệnh cho bốn khâu soi lỗi
 
-Tập 1 (mục 5.3–5.4) đã có quy trình rà soát nội tại và đối chiếu với văn bản cấp trên; bốn câu lệnh dưới đây là phiên bản dành cho hồ sơ thẩm tra. Tờ trình của UBND và dự thảo nghị quyết thường được sửa nhiều vòng, nên dễ lệch nhau về con số, tên gọi, thời hạn, đối tượng áp dụng — khâu AI giúp được nhiều nhất.
+Tập 1 (mục 5.3–5.4) đã có quy trình rà soát nội tại và đối chiếu với văn bản cấp trên; bốn câu lệnh dưới đây là phiên bản cho hồ sơ thẩm tra. Tờ trình và dự thảo nghị quyết thường được sửa nhiều vòng nên dễ lệch nhau về con số, tên gọi, thời hạn, đối tượng — khâu AI giúp được nhiều nhất.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.5 — Đối chiếu tờ trình với dự thảo nghị quyết (Cấp 2)**
@@ -319,7 +315,7 @@ Ràng buộc:
 
 Công văn 2766/BKHCN-TTCNTT ngày 29/4/2026 của Bộ Khoa học và Công nghệ về dùng AI hỗ trợ rà soát văn bản quy phạm pháp luật nêu rõ: AI là công cụ hỗ trợ, không thay thế việc xem xét, kết luận của cơ quan có thẩm quyền; không được dùng AI để tự động đưa ra kết luận pháp lý có giá trị quyết định; kết quả phải truy xuất, kiểm chứng, đối chiếu được với căn cứ pháp lý.
 
-Trình tự, hồ sơ, thẩm quyền ban hành nghị quyết quy phạm pháp luật của HĐND tra theo Luật Ban hành văn bản quy phạm pháp luật số 64/2025/QH15, được sửa đổi, bổ sung bởi Luật số 87/2025/QH15, và các nghị định hướng dẫn. Chính phủ đang trình dự án luật mới thay thế, nên luôn tra văn bản có hiệu lực tại thời điểm thẩm tra.
+Trình tự, hồ sơ, thẩm quyền ban hành nghị quyết quy phạm pháp luật của HĐND tra theo Luật Ban hành văn bản quy phạm pháp luật số 64/2025/QH15 (sửa đổi, bổ sung bởi Luật số 87/2025/QH15) và các nghị định hướng dẫn. Chính phủ đang trình dự án luật mới thay thế, nên luôn tra văn bản có hiệu lực tại thời điểm thẩm tra.
 :::
 
 ### 16.2.3. Điểm kiểm soát của quy trình thẩm tra
@@ -331,7 +327,7 @@ Trình tự, hồ sơ, thẩm quyền ban hành nghị quyết quy phạm pháp 
 
 ## 16.3. Giám sát chuyên đề
 
-Một cuộc giám sát chuyên đề đi từ chọn chuyên đề, kế hoạch, đề cương, phiếu khảo sát, báo cáo của đơn vị chịu giám sát, làm việc thực tế, báo cáo kết quả, kết luận, đến theo dõi kiến nghị. Tổng hợp báo cáo của hàng chục đơn vị là khâu ngốn thời gian nhất.
+Một cuộc giám sát chuyên đề đi từ chọn chuyên đề, kế hoạch, đề cương, báo cáo của đơn vị chịu giám sát, làm việc thực tế, kết luận đến theo dõi kiến nghị. Tổng hợp báo cáo của hàng chục đơn vị là khâu ngốn thời gian nhất.
 
 ::: {.phaply}
 **Căn cứ pháp lý**
@@ -343,15 +339,13 @@ Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân
 
 | Bước | AI làm | Người làm | Cấp dữ liệu |
 |---|---|---|---|
-| 1. Chọn chuyên đề | Phân tích xu hướng kiến nghị cử tri, số liệu công khai | Thường trực, Ban quyết định | Cấp 1–2 |
+| 1. Chọn chuyên đề | Chỉ ra lĩnh vực kiến nghị nhiều, tồn đọng nhiều kỳ | Thường trực, Ban quyết định | Cấp 1–2 |
 | 2. Kế hoạch, đề cương | Dựng đề cương báo cáo, phiếu khảo sát | Trưởng đoàn duyệt | Cấp 2 |
 | 3. Tổng hợp báo cáo đơn vị | Đưa về một bảng, đánh dấu mâu thuẫn | Tổ giúp việc kiểm, chọn nội dung làm việc | Cấp 2 |
 | 4. Làm việc thực tế | Không dùng tại buổi làm việc | Đoàn giám sát | Cấp 2–3 |
 | 5. Báo cáo kết quả | Dựng khung từ bảng tổng hợp, biên bản | Đoàn thảo luận, chỉnh sửa | Cấp 2 |
 | 6. Kết luận, kiến nghị | Không tham gia | Cấp có thẩm quyền thông qua | — |
 | 7. Theo dõi sau giám sát | Tách kết luận thành bảng nhiệm vụ, hạn | Người phụ trách đôn đốc | Cấp 1 khi đã công bố |
-
-Chọn chuyên đề thuộc thẩm quyền; AI chỉ giúp nhìn dữ liệu: lĩnh vực nào cử tri kiến nghị nhiều, kiến nghị nào tồn đọng qua nhiều kỳ.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.9 — Đề cương báo cáo và phiếu khảo sát (Cấp 2)**
@@ -373,7 +367,7 @@ Ràng buộc:
 ```
 :::
 
-Báo cáo các đơn vị chỉ gộp được khi cùng một chuẩn: đơn vị này tính lũy kế, đơn vị kia tính trong kỳ thì không AI nào cộng đúng. Còn phiếu khảo sát thì theo tinh thần của pháp luật về bảo vệ dữ liệu cá nhân: chỉ thu thập trong phạm vi cần thiết, không cần thì đừng hỏi.
+Báo cáo các đơn vị chỉ gộp được khi cùng một chuẩn: đơn vị này tính lũy kế, đơn vị kia tính trong kỳ thì không AI nào cộng đúng. Phiếu khảo sát thì theo tinh thần bảo vệ dữ liệu cá nhân: không cần thì đừng hỏi.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.10 — Gộp báo cáo của các đơn vị thành bảng so sánh (Cấp 2)**
@@ -394,14 +388,14 @@ Không xếp hạng, không chấm điểm đơn vị. Không kết luận vi ph
 ```
 :::
 
-Lệnh "không xếp hạng, không kết luận vi phạm" có lý do. Phân hệ Giám sát số Thanh Hóa (hệ thống riêng, `#/giamsat`; Chương 12, mục 12.4) chấm rủi ro nghị quyết của HĐND 166 xã, phường nhưng chỉ trình danh mục; Thường trực HĐND tỉnh mới quyết định chọn nội dung giám sát. Ngoài ra, Danh mục hệ thống trí tuệ nhân tạo có rủi ro cao kèm Quyết định 33/2026/QĐ-TTg (hiệu lực từ 15/8/2026) gồm sáu lĩnh vực: giáo dục; dân tộc và tôn giáo; y tế; ngân hàng; tố tụng; giao thông vận tải. Định làm công cụ tự động chấm điểm, xếp hạng trong các lĩnh vực đó thì phải đọc kỹ nguyên văn danh mục.
+Lệnh "không xếp hạng, không kết luận vi phạm" có lý do. Phân hệ Giám sát số Thanh Hóa (hệ thống riêng; Chương 12, mục 12.4) chấm rủi ro nghị quyết của HĐND 166 xã, phường nhưng chỉ trình danh mục; Thường trực HĐND tỉnh mới quyết định chọn nội dung giám sát. Ngoài ra, Danh mục hệ thống trí tuệ nhân tạo có rủi ro cao ban hành kèm Quyết định 33/2026/QĐ-TTg (hiệu lực từ 15/8/2026) thuộc sáu lĩnh vực: giáo dục; dân tộc và tôn giáo; y tế; ngân hàng; tố tụng; giao thông vận tải. Công cụ tự động chấm điểm, xếp hạng chạm tới các lĩnh vực ấy thì phải đọc kỹ nguyên văn danh mục.
 
 ### 16.3.2. Theo dõi kiến nghị sau giám sát
 
-Theo bài trên báo Đại biểu Nhân dân ngày 29/9/2026, phiên họp thứ 8 của Thường trực HĐND tỉnh nêu phương châm "phát hiện vấn đề – kiến nghị giải pháp – tổ chức giám sát – đôn đốc thực hiện – theo dõi kết quả đến cùng". Khâu "đến cùng" cần một bảng theo dõi tốt, và AI giúp được ngay khi kết luận đã được thông qua.
+Theo báo Đại biểu Nhân dân ngày 29/9/2026, phiên họp thứ 8 của Thường trực HĐND tỉnh nêu phương châm "phát hiện vấn đề – kiến nghị giải pháp – tổ chức giám sát – đôn đốc thực hiện – theo dõi kết quả đến cùng". Khâu "đến cùng" cần một bảng theo dõi tốt, và AI giúp được ngay khi kết luận đã thông qua.
 
 ::: {.lenhmau}
-**Câu lệnh mẫu 16.11 — Tách kết luận giám sát thành bảng theo dõi (Cấp 1)**
+**Câu lệnh mẫu 16.11 — Tách kết luận giám sát thành bảng theo dõi (Cấp 1; chưa công bố là Cấp 2)**
 
 ```text
 Vai: Chuyên viên theo dõi, đôn đốc sau giám sát.
@@ -419,20 +413,20 @@ Ràng buộc:
 ```
 :::
 
-Giám sát số tổ chức đúng như vậy: mỗi kiến nghị một nhiệm vụ, nhắc trước hạn 15, 7 và 3 ngày; quá hạn thì chuyển sang đôn đốc, giải trình, chất vấn, giám sát lại. Các mốc ấy là cấu hình của bản demo; thời hạn, trình tự phải rà theo nghị quyết hướng dẫn hiện hành.
+Giám sát số tổ chức đúng như vậy: mỗi kiến nghị một nhiệm vụ, nhắc trước hạn 15, 7 và 3 ngày; quá hạn thì yêu cầu giải trình rồi đi tiếp các bước đôn đốc. Các mốc ấy là cấu hình của bản demo; thời hạn, trình tự phải rà theo văn bản hướng dẫn hiện hành.
 
 Điểm kiểm soát: **K1** — cắt danh sách cá nhân khỏi báo cáo đơn vị trước khi dán; **K2** — mọi dấu [MÂU THUẪN], [BẤT THƯỜNG] kiểm lại trên báo cáo gốc; **K3** — kết luận, kiến nghị do cấp có thẩm quyền thông qua; **K4** — bảng tổng hợp lưu trong hồ sơ giám sát, ghi phần do AI lập.
 
 ## 16.4. Tiếp công dân, xử lý đơn thư
 
-Đây là nghiệp vụ có ranh giới rõ nhất. Đơn khiếu nại, tố cáo chứa họ tên, địa chỉ, số định danh của người viết đơn và người bị tố cáo, nhiều khi kèm thông tin về vi phạm pháp luật, sức khỏe, đời sống riêng tư; người tố cáo còn được pháp luật bảo vệ bí mật danh tính. Đơn có danh tính vì thế thuộc Cấp 3 — Hạn chế tiếp cận; đơn nào có nội dung hoặc tài liệu kèm theo thuộc bí mật nhà nước thì là Cấp 4. Dán nhầm nguyên văn đơn vào trợ lý AI trò chuyện là đưa những thông tin ấy ra khỏi cơ quan.
+Đây là nghiệp vụ có ranh giới rõ nhất. Đơn khiếu nại, tố cáo chứa họ tên, địa chỉ, số định danh của người viết đơn và người bị tố cáo, nhiều khi kèm thông tin về vi phạm pháp luật, sức khỏe, đời sống riêng tư; người tố cáo còn được pháp luật bảo vệ bí mật danh tính. Vì thế đơn có danh tính thuộc Cấp 3 — Hạn chế tiếp cận; đơn có nội dung hoặc tài liệu kèm theo thuộc bí mật nhà nước là Cấp 4. Dán nguyên văn đơn vào trợ lý AI trò chuyện là đưa những thông tin ấy ra khỏi cơ quan.
 
 ::: {.phaply}
 **Căn cứ pháp lý**
 
 - Luật Tố cáo số 25/2018/QH14, được sửa đổi, bổ sung bởi Luật số 136/2025/QH15 (hiệu lực từ 01/7/2026): Điều 9 ghi quyền được giữ bí mật họ tên, địa chỉ, bút tích và thông tin cá nhân khác của người tố cáo; Điều 8 cấm tiết lộ thông tin làm lộ danh tính người tố cáo.
 - Luật Tiếp công dân số 42/2013/QH13, cũng được Luật số 136/2025/QH15 sửa đổi, bổ sung: người đến khiếu nại, tố cáo, kiến nghị, phản ánh nay phải cung cấp cả thông tin định danh. Nghị quyết 116/2025/UBTVQH15 ngày 24/12/2025 của Ủy ban Thường vụ Quốc hội quy định việc tiếp công dân, tiếp nhận, phân loại, xử lý đơn của Quốc hội, HĐND (hiệu lực từ 01/7/2026).
-- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) chia dữ liệu cá nhân thành cơ bản và nhạy cảm; việc xử lý bằng hệ thống trí tuệ nhân tạo, điện toán đám mây chỉ được đúng mục đích, trong phạm vi cần thiết, có biện pháp bảo mật. Nghị định 356/2025/NĐ-CP (hiệu lực cùng ngày; Nghị định 13/2023/NĐ-CP mà Tập 1 viện dẫn đã hết hiệu lực) liệt kê dữ liệu cơ bản tại Điều 3 (họ tên, ngày sinh, địa chỉ, số điện thoại, số định danh cá nhân, quan hệ gia đình…) và dữ liệu nhạy cảm tại khoản 1 Điều 4 (tình trạng sức khỏe, đời sống riêng tư, dữ liệu về tội phạm, vi phạm pháp luật…). Một lá đơn tố cáo thường chứa cả hai loại.
+- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) chia dữ liệu cá nhân thành cơ bản và nhạy cảm; xử lý bằng hệ thống trí tuệ nhân tạo, điện toán đám mây chỉ được đúng mục đích, trong phạm vi cần thiết, có biện pháp bảo mật. Nghị định 356/2025/NĐ-CP (hiệu lực cùng ngày; Nghị định 13/2023/NĐ-CP mà Tập 1 viện dẫn đã hết hiệu lực) liệt kê dữ liệu cơ bản tại Điều 3 (họ tên, địa chỉ, số điện thoại, số định danh cá nhân…) và dữ liệu nhạy cảm tại khoản 1 Điều 4 (sức khỏe, đời sống riêng tư, dữ liệu về vi phạm pháp luật…). Một lá đơn tố cáo thường chứa cả hai loại.
 :::
 
 ### 16.4.1. Quy trình và phân việc
@@ -446,7 +440,7 @@ Giám sát số tổ chức đúng như vậy: mỗi kiến nghị một nhiệm
 | 5. Tra quy định | Hỏi trong sổ tay có trích dẫn | Chuyên viên mở văn bản gốc | Cấp 1 |
 | 6. Văn bản chuyển, hướng dẫn | Soạn mẫu để trống danh tính | Điền danh tính trên máy cơ quan, trình ký | Cấp 2 |
 
-Mấu chốt ở bước 3: AI không bao giờ thấy lá đơn, chỉ thấy bản tóm tắt do chuyên viên tự viết, đã bỏ mọi thứ có thể nhận ra người. Tập 1 cho phép dữ liệu Cấp 3 đi qua AI máy chủ trong nước hoặc AI tự triển khai; với đơn thư tôi chọn cách chặt hơn, vì làm lộ danh tính người tố cáo là sơ suất không sửa lại được.
+Mấu chốt ở bước 3: AI không bao giờ thấy lá đơn, chỉ thấy bản tóm tắt do chuyên viên tự viết, đã bỏ mọi thứ có thể nhận ra người. Tập 1 cho phép dữ liệu Cấp 3 đi qua AI máy chủ trong nước hoặc tự triển khai; với đơn thư tôi chọn cách chặt hơn, vì lộ danh tính người tố cáo là sơ suất không sửa lại được.
 
 ::: {.thuchanh}
 **Thực hành — Viết bản tóm tắt ẩn danh trước khi hỏi AI**
@@ -486,7 +480,7 @@ Ràng buộc:
 ```
 :::
 
-Mục (4) đảo chiều luồng thông tin: AI không hỏi thêm về người mà nhắc chuyên viên quay về đơn gốc trên máy cơ quan. Còn trình tự, thời hạn, thẩm quyền thì hỏi trong sổ tay có trích dẫn nguồn, như sổ tay ST-04 "Dân nguyện, khiếu nại và tố cáo" của phân hệ Sổ tay AI (Chương 15, mục 15.3). Phân hệ này dùng Gemini Notebook để hỏi đáp — tên mới từ tháng 7/2026 của NotebookLM, địa chỉ nay là notebook.google.com (địa chỉ cũ notebooklm.google.com mà Tập 1 ghi nay tự chuyển sang địa chỉ mới). Sổ tay chỉ nạp văn bản công khai nên là Cấp 1, nhưng ô câu hỏi vẫn có thể bị gõ lẫn thông tin của người viết đơn.
+Mục (4) đảo chiều luồng thông tin: AI không hỏi thêm về người mà nhắc chuyên viên quay về đơn gốc trên máy cơ quan. Còn trình tự, thời hạn, thẩm quyền thì hỏi trong sổ tay có trích dẫn nguồn, như sổ tay ST-04 "Dân nguyện, khiếu nại và tố cáo" của phân hệ Sổ tay AI (Chương 15, mục 15.3). Sổ tay chạy trên Gemini Notebook (trước đây là NotebookLM; Google đổi tên tháng 7/2026, địa chỉ nay là notebook.google.com, địa chỉ cũ notebooklm.google.com mà Tập 1 ghi tự chuyển sang địa chỉ mới). Sổ tay chỉ nạp văn bản công khai nên là Cấp 1, nhưng ô câu hỏi vẫn có thể bị gõ lẫn thông tin của người viết đơn.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.13 — Hỏi trình tự trong sổ tay Gemini Notebook (Cấp 1)**
@@ -504,7 +498,7 @@ Không đưa vào câu hỏi bất kỳ thông tin nào về người viết đ�
 ```
 :::
 
-Ví dụ trong Câu lệnh mẫu 16.13 lấy từ ngân hàng 54 câu hỏi mẫu của Sổ tay AI; dòng cuối nhắc lại Điều 2 và Điều 7 của dự thảo Quy tắc sử dụng AI chín điều trong phân hệ Sổ tay AI (Chương 15, mục 15.5 — khác với khung quy chế 10 điều mà Tập 1, mục 7.6 đề xuất). Điều 6 của Quy tắc ấy giữ chốt K3: không dùng AI để quyết định thay con người trong giải quyết khiếu nại, tố cáo.
+Dòng cuối câu lệnh nhắc lại Điều 2 và Điều 7 của dự thảo Quy tắc sử dụng AI chín điều trong phân hệ Sổ tay AI (Chương 15, mục 15.5 — khác với khung quy chế 10 điều mà Tập 1, mục 7.6 đề xuất). Điều 6 của Quy tắc ấy giữ chốt K3: không dùng AI để quyết định thay con người trong giải quyết khiếu nại, tố cáo.
 
 ::: {.ghinho}
 **Ghi nhớ**
@@ -516,9 +510,9 @@ Với đơn thư: AI không thấy đơn, chỉ thấy bản tóm tắt do ngư�
 
 ## 16.5. Tiếp xúc cử tri và tổng hợp kiến nghị
 
-Sau mỗi đợt tiếp xúc cử tri, Văn phòng nhận về hàng trăm ý kiến, nhiều ý lặp lại ở nhiều điểm. Chuẩn hóa, gán lĩnh vực, gộp trùng, chuyển cơ quan giải quyết, theo dõi trả lời là việc AI làm nhanh và khá tốt, miễn là dữ liệu đã bỏ tên người.
+Sau mỗi đợt tiếp xúc cử tri, ý kiến gửi về thường nhiều và lặp lại ở nhiều điểm. Chuẩn hóa, gán lĩnh vực, gộp trùng, gợi ý cơ quan giải quyết, đối chiếu văn bản trả lời là việc AI làm nhanh, miễn là dữ liệu đã bỏ tên người.
 
-Tập 1 (mục 6.2–6.3) đã có quy trình 5 bước phân tích ý kiến cử tri, với danh mục 10 chủ đề và bảng "chủ đề × cảm xúc". Ở đây tôi bổ sung phần việc Tập 1 chưa bàn: gộp trùng, chuyển cơ quan giải quyết, theo dõi trả lời.
+Tập 1 (mục 6.2–6.3) đã có quy trình 5 bước phân tích ý kiến cử tri với danh mục 10 chủ đề; ở đây tôi bổ sung phần Tập 1 chưa bàn: gộp trùng, chuyển cơ quan giải quyết, theo dõi trả lời.
 
 | Bước | AI làm | Người làm | Cấp dữ liệu |
 |---|---|---|---|
@@ -534,7 +528,7 @@ Tập 1 (mục 6.2–6.3) đã có quy trình 5 bước phân tích ý kiến c�
 Trong hệ thống thử nghiệm, danh sách kiến nghị cử tri của phân hệ Trợ lý AI cố ý không mở quyền đọc công khai vì có tên cử tri. Phân hệ Giám sát số làm ngược lại: kho dữ liệu công khai nên bản ghi kiến nghị không lưu họ tên, số điện thoại, địa chỉ, chỉ ghi xã, phường và một mã tra cứu ngẫu nhiên. Hai cách, một nguyên tắc: nơi công khai thì không có tên, nơi có tên thì không công khai.
 :::
 
-Phân hệ Trợ lý AI dùng tám nhãn lĩnh vực (Giao thông, Môi trường, Y tế, Giáo dục, Đất đai, Đầu tư công, Chính sách xã hội, Khác) và ba trạng thái (Mới, Đang xử lý, Đã xong); Tập 1 dùng danh mục 10 chủ đề. Bộ nhãn nào cũng được, miễn cố định từ đầu nhiệm kỳ để so sánh giữa các kỳ.
+Phân hệ Trợ lý AI dùng tám nhãn lĩnh vực (Giao thông, Môi trường, Y tế, Giáo dục, Đất đai, Đầu tư công, Chính sách xã hội, Khác) và ba trạng thái (Mới, Đang xử lý, Đã xong). Bộ nhãn nào cũng được, miễn cố định từ đầu nhiệm kỳ để so sánh giữa các kỳ.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.14 — Gán lĩnh vực và gộp kiến nghị trùng (Cấp 2, đã bỏ tên cử tri)**
@@ -555,7 +549,7 @@ chưa chắc thì ghi [CẦN XÁC ĐỊNH].
 ```
 :::
 
-Ràng buộc đếm dòng đến từ một sự cố của dự án: khi gộp danh sách cán bộ, hai đồng chí trùng họ tên ở hai đơn vị bị ghép làm một, danh sách còn 27 thay vì 28 người. Đếm lại là cách rẻ nhất để phát hiện mất dòng. Tự lọc kiến nghị bằng bảng tính theo từ khóa thì nhớ hai cái bẫy tiếng Việt (Chương 15, mục 15.2): tìm "gia" kéo cả "quốc gia", bỏ dấu thì "báo" lẫn với "bão".
+Ràng buộc đếm dòng đến từ một sự cố của dự án: khi gộp danh sách cán bộ, hai đồng chí trùng họ tên ở hai đơn vị bị ghép làm một, danh sách còn 27 thay vì 28 người. Đếm lại là cách rẻ nhất để phát hiện mất dòng. Tự lọc kiến nghị theo từ khóa thì nhớ hai cái bẫy tiếng Việt (Chương 15, mục 15.2): tìm "gia" kéo cả "quốc gia", bỏ dấu thì "báo" lẫn với "bão".
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.15 — Đối chiếu văn bản trả lời với kiến nghị (Cấp 1; văn bản chưa công khai là Cấp 2)**
@@ -578,7 +572,7 @@ Ràng buộc: Trích câu trong văn bản trả lời làm căn cứ cho mỗi
 
 ## 16.6. Hoạt động của Đoàn ĐBQH
 
-Văn phòng phục vụ cả Đoàn ĐBQH tỉnh: Nghị quyết 1004/2020/UBTVQH14 ngày 18/9/2020 của Ủy ban Thường vụ Quốc hội thành lập Văn phòng Đoàn ĐBQH và HĐND cấp tỉnh trên cơ sở hợp nhất hai văn phòng. Hoạt động của Đoàn và đại biểu theo Luật Tổ chức Quốc hội số 57/2014/QH13, sửa đổi, bổ sung bởi Luật số 65/2020/QH14 và Luật số 62/2025/QH15. Hai việc nặng nhất trước mỗi kỳ họp Quốc hội là góp ý dự án luật và tổng hợp ý kiến, kiến nghị cử tri. Theo báo Đại biểu Nhân dân, trợ lý ảo AI hỗ trợ ĐBQH tra cứu tài liệu, chuẩn bị phát biểu được áp dụng lần đầu tại Kỳ họp thứ 9, Quốc hội khóa XV (năm 2025).
+Theo Nghị quyết 1004/2020/UBTVQH14 của Ủy ban Thường vụ Quốc hội, Văn phòng được lập trên cơ sở hợp nhất hai văn phòng nên phục vụ cả Đoàn ĐBQH tỉnh, hoạt động theo Luật Tổ chức Quốc hội số 57/2014/QH13 (sửa đổi, bổ sung bởi Luật số 65/2020/QH14 và Luật số 62/2025/QH15). Hai việc nặng nhất trước mỗi kỳ họp Quốc hội là góp ý dự án luật và tổng hợp ý kiến, kiến nghị cử tri. Theo báo Đại biểu Nhân dân, trợ lý ảo AI hỗ trợ ĐBQH tra cứu tài liệu, chuẩn bị phát biểu được áp dụng lần đầu tại Kỳ họp thứ 9, Quốc hội khóa XV (năm 2025).
 
 | Bước | AI làm | Người làm | Cấp dữ liệu |
 |---|---|---|---|
@@ -588,7 +582,7 @@ Văn phòng phục vụ cả Đoàn ĐBQH tỉnh: Nghị quyết 1004/2020/UBTVQ
 | 4. Phát biểu của đại biểu | Gợi ý dàn ý từ tư liệu đại biểu chọn | Đại biểu quyết định quan điểm | Cấp 2 |
 | 5. Kiến nghị cử tri gửi kỳ họp | Gán lĩnh vực, gộp trùng (như mục 16.5) | Đoàn duyệt, gửi đi | Cấp 2 |
 
-Dự thảo luật đã đăng lấy ý kiến là Cấp 1. Nhưng AI không thay được kinh nghiệm thực tế — một trong năm điều AI không làm được mà Tập 1 (mục 1.3) đã cảnh báo: tác động của một điều luật tới các xã miền núi của tỉnh phải do người am hiểu địa bàn bổ sung.
+Dự thảo luật đã đăng lấy ý kiến là Cấp 1. Nhưng AI không thay được kinh nghiệm thực tế (Tập 1, mục 1.3): tác động của một điều luật tới các xã miền núi của tỉnh phải do người am hiểu địa bàn bổ sung.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.16 — Bảng so sánh dự thảo luật với luật hiện hành (Cấp 1)**
@@ -614,9 +608,7 @@ hay phản đối.
 
 ## 16.7. Văn bản, thông tin, truyền thông
 
-Soạn thảo là việc AI làm nhanh nhất và cũng dễ sinh lỗi trình ký nhất. Văn bản hành chính trình bày theo Nghị định 30/2020/NĐ-CP ngày 05/3/2020 về công tác văn thư; văn bản của tổ chức Đảng có thể thức riêng (phân hệ Kiểm điểm từng in nhầm tên cơ quan hành chính ở tiêu đề một văn bản của Đảng — Chương 10, mục 10.4). Văn bản AI soạn chỉ là bản nháp; giá trị pháp lý chỉ có khi người có thẩm quyền ký, ban hành đúng quy trình.
-
-Quy trình 5 bước soạn thảo của Tập 1 (mục 4.1) vẫn nguyên giá trị: Bước 1 (xác định mục đích, đối tượng, yêu cầu pháp lý) và Bước 5 (rà soát, hoàn thiện) là của con người 100%; AI chỉ tham gia ba bước giữa.
+Soạn thảo là việc AI làm nhanh nhất và cũng dễ sinh lỗi trình ký nhất. Văn bản hành chính trình bày theo Nghị định 30/2020/NĐ-CP về công tác văn thư; văn bản của tổ chức Đảng có thể thức riêng (phân hệ Kiểm điểm từng in nhầm tên cơ quan hành chính ở tiêu đề một văn bản của Đảng — Chương 10, mục 10.4). Văn bản AI soạn chỉ là bản nháp; giá trị pháp lý chỉ có khi người có thẩm quyền ký, ban hành đúng quy trình. Quy trình 5 bước soạn thảo của Tập 1 (mục 4.1) vẫn nguyên giá trị: Bước 1 (xác định mục đích, đối tượng, yêu cầu pháp lý) và Bước 5 (rà soát, hoàn thiện) là của con người 100%.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 16.17 — Soạn nháp văn bản hành chính theo khung (Cấp 2)**
@@ -652,15 +644,15 @@ bản, điều, khoản xuất hiện trong văn bản là [CẦN ĐỐI CHIẾU
 ```
 :::
 
-Tin bài về kỳ họp, giám sát chỉ viết từ tài liệu đã công khai, không "thêm màu"; khi nhờ AI viết tin, bắt nó liệt kê cuối bài mọi câu trích và con số đã dùng. Với hình ảnh, video, giọng nói do AI tạo, Điều 11 Luật Trí tuệ nhân tạo quy định trách nhiệm minh bạch, gắn nhãn, trong đó có gắn nhãn nội dung âm thanh, hình ảnh, video mô phỏng người thật; Nghị định 142/2026/NĐ-CP (hiệu lực từ 01/5/2026) hướng dẫn chi tiết. Trường hợp nào phải gắn nhãn, theo hình thức nào, đồng chí tra nguyên văn trước khi đăng. Quy định 207-QĐ/TW ngày 26/7/2026 về những điều đảng viên không được làm, tại Điều 5, bổ sung việc đảng viên không được dùng nền tảng số, trí tuệ nhân tạo để tạo lập, phát tán thông tin, nội dung sai sự thật. Nguyên tắc của tôi: không dùng AI tạo ảnh, giọng nói mô phỏng đại biểu, lãnh đạo có thật.
+Tin bài về kỳ họp, giám sát chỉ viết từ tài liệu đã công khai; khi nhờ AI viết tin, bắt nó liệt kê cuối bài mọi câu trích và con số đã dùng. Với hình ảnh, video, giọng nói do AI tạo, Điều 11 Luật Trí tuệ nhân tạo quy định trách nhiệm minh bạch, gắn nhãn, trong đó có nội dung âm thanh, hình ảnh, video mô phỏng người thật; Nghị định 142/2026/NĐ-CP (hiệu lực từ 01/5/2026) hướng dẫn chi tiết, nên trường hợp nào phải gắn nhãn, theo hình thức nào thì tra nguyên văn trước khi đăng. Điều 5 Quy định 207-QĐ/TW ngày 26/7/2026 bổ sung việc đảng viên không được dùng nền tảng số, trí tuệ nhân tạo để tạo lập, phát tán thông tin sai sự thật. Nguyên tắc của tôi: không dùng AI tạo ảnh, giọng nói mô phỏng đại biểu, lãnh đạo có thật.
 
-Cũng phải nói điều ngược lại: không phải việc nào cũng cần AI. Bản tin pháp luật hằng ngày trên Trang chủ lấy tin từ nguồn RSS chính thống (kênh tin tự động của các báo, cổng thông tin), vẽ ảnh bằng một chương trình nhỏ, không gọi AI (Chương 15, mục 15.1). Việc có quy tắc cố định thì chương trình cố định vừa rẻ vừa dễ kiểm.
+Cũng không phải việc nào cũng cần AI. Bản tin pháp luật hằng ngày trên Trang chủ lấy tin từ nguồn RSS chính thống, vẽ ảnh bằng một chương trình nhỏ, không gọi AI (Chương 15, mục 15.1): việc có quy tắc cố định thì chương trình cố định vừa rẻ vừa dễ kiểm.
 
 Điểm kiểm soát: **K1** — dự thảo chưa ban hành là Cấp 2; **K2** — mọi chỗ [CẦN ĐỐI CHIẾU], [CẦN CĂN CỨ], [SỐ LIỆU] được người soạn điền và kiểm; **K3** — người có thẩm quyền ký, lãnh đạo phụ trách duyệt tin bài; **K4** — hồ sơ trình ký ghi có dùng AI hỗ trợ soạn nháp nếu cơ quan có quy định.
 
 ## 16.8. Công việc nội bộ của Văn phòng
 
-Kế hoạch, báo cáo định kỳ, số liệu, lịch, hậu cần là việc lặp lại, nên một câu lệnh tốt dùng được nhiều lần. Nguyên tắc tôi rút ra từ dự án là "một con số, một nơi tính": bot chat không tự tính lại điểm cán bộ mà đọc bảng điểm phần mềm đã tính, nên không thể nói một số trong khi màn hình hiện số khác. Báo cáo định kỳ cũng vậy: số liệu lấy từ một nguồn đã chốt, AI chỉ diễn đạt.
+Kế hoạch, báo cáo định kỳ, số liệu, lịch, hậu cần là việc lặp lại, nên một câu lệnh tốt dùng được nhiều lần. Nguyên tắc tôi rút ra từ dự án là "một con số, một nơi tính": bot chat không tự tính lại điểm cán bộ mà đọc bảng điểm phần mềm đã tính (Chương 14, mục 14.2). Báo cáo định kỳ cũng vậy: số liệu lấy từ một nguồn đã chốt, AI chỉ diễn đạt.
 
 | Việc | AI làm | Người làm | Cấp dữ liệu |
 |---|---|---|---|
@@ -685,14 +677,14 @@ Cuối bài liệt kê mọi con số đã dùng kèm dòng tương ứng trong 
 ```
 :::
 
-Với bảng tính tổng hợp, AI chỉ cần biết cấu trúc dữ liệu, không cần thấy dữ liệu thật. Đồng chí dán tên các cột và năm dòng dữ liệu giả cùng cấu trúc (Cán bộ A, Cán bộ B…), mô tả quy tắc tính, yêu cầu AI trả về công thức, giải thích từng phần và kết quả mong đợi trên năm dòng giả để tự kiểm. Bảng có họ tên ở lại trên máy cơ quan; công thức thì mang về áp vào.
+Với bảng tính tổng hợp, AI chỉ cần biết cấu trúc, không cần thấy dữ liệu thật. Đồng chí dán tên các cột và năm dòng dữ liệu giả (Cán bộ A, Cán bộ B…), mô tả quy tắc tính, yêu cầu AI trả về công thức kèm giải thích và kết quả mong đợi trên năm dòng giả để tự kiểm. Bảng có họ tên ở lại trên máy cơ quan; công thức thì mang về áp vào.
 
-Lịch công tác của lãnh đạo là thông tin nội bộ, Cấp 2. Dự án từng phải ghi cảnh báo in đậm: dùng khóa AI của dịch vụ trung gian thì mọi câu hỏi kèm số liệu, kể cả lịch lãnh đạo, đều đi qua máy chủ bên thứ ba (Chương 14, mục 14.6). Hỏi AI về lịch thì chỉ hỏi trên kênh cơ quan đã cho phép.
+Lịch công tác của lãnh đạo là thông tin nội bộ, Cấp 2: dùng khóa AI của dịch vụ trung gian thì mọi câu hỏi kèm số liệu, kể cả lịch lãnh đạo, đều đi qua máy chủ bên thứ ba (Chương 14, mục 14.6), nên chỉ hỏi trên kênh cơ quan đã cho phép.
 
 ::: {.canhbao}
 **Cảnh báo — Đánh giá cán bộ không phải việc của AI**
 
-Điều 6 của dự thảo Quy tắc chín điều trong phân hệ Sổ tay AI: không dùng AI để quyết định thay con người trong đánh giá, xếp loại cán bộ, kết luận giám sát, giải quyết khiếu nại, tố cáo, quyết định nhân sự. Phần mềm đánh giá trong hệ thống thử nghiệm tính điểm theo công thức đã duyệt, nhưng nút phê duyệt luôn của người có thẩm quyền; sửa điểm sau khi duyệt thì phê duyệt tự bị gỡ (Chương 9). Nhận xét, đánh giá cá nhân là Cấp 3, không dán vào trợ lý AI trò chuyện, kể cả để "viết lại cho mượt".
+Điều 6 của dự thảo Quy tắc chín điều trong phân hệ Sổ tay AI: không dùng AI để quyết định thay con người trong đánh giá, xếp loại cán bộ, kết luận giám sát, giải quyết khiếu nại, tố cáo, quyết định nhân sự. Phần mềm đánh giá trong hệ thống thử nghiệm tính điểm theo công thức đã duyệt, nhưng nút phê duyệt luôn của người có thẩm quyền; sửa điểm sau khi duyệt thì phê duyệt tự bị gỡ (Chương 9, mục 9.2). Nhận xét, đánh giá cá nhân là Cấp 3, không dán vào trợ lý AI trò chuyện, kể cả để "viết lại cho mượt".
 :::
 
 Điểm kiểm soát: **K1** — dữ liệu giả cho mọi việc viết công thức; **K2** — liệt kê con số cuối báo cáo để kiểm; **K3** — lãnh đạo duyệt báo cáo, lịch; cấp có thẩm quyền đánh giá cán bộ; **K4** — lưu câu lệnh đã dùng thành thư viện câu lệnh của phòng. Theo nguyên tắc 20-80 (Tập 1, mục 3.1), câu lệnh nào khiến phải dành 60–70% thời gian sửa kết quả thì viết lại câu lệnh.

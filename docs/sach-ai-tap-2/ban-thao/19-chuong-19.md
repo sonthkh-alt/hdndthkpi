@@ -16,7 +16,7 @@ Mỗi khi tác tử AI lập trình báo "đã xong", tôi tự hỏi: nếu sá
 
 Hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội và Hội đồng nhân dân tỉnh Thanh Hóa (sau đây gọi là Văn phòng), tại địa chỉ `https://hdndthkpi.vercel.app`, chạy trên gói miễn phí, có kho mã công khai, có bot Telegram và Zalo, có nhiều lối gọi AI tốn tiền thật. Năm 2026, nó đã nếm đủ ba loại rủi ro chương này bàn: suýt lộ dữ liệu, suýt mất dữ liệu, và có lúc hạn mức bị "đốt" nhanh gấp đôi vì một lỗi không ai ngờ.
 
-Tôi không viết chương này để dọa. Mọi rủi ro dưới đây đều có cách phòng cụ thể, phần lớn chỉ là vài dòng cấu hình và một thói quen kiểm tra. Cái khó là nhớ làm trước khi sự cố xảy ra.
+Tôi không viết chương này để dọa. Mọi rủi ro dưới đây đều có cách phòng cụ thể; cái khó là nhớ làm trước khi sự cố xảy ra.
 
 Dùng lại hình ảnh trụ sở ở Chương 2, chương này hỏi ba câu: bộ bản vẽ (mã nguồn) có ghi gì không nên ghi; ai được quẹt thẻ vào kho hồ sơ (cơ sở dữ liệu); và hóa đơn điện nước có vòi nào chảy mà không ai khóa.
 
@@ -37,7 +37,7 @@ Người mới thường không biết hai điều. Thứ nhất, mọi thứ tr
 | Dữ liệu cá nhân thật | Danh bạ, hồ sơ lý lịch, bản tự đánh giá | Cơ sở dữ liệu có phân quyền |
 | Tài liệu chưa công khai | Dự thảo chưa trình, tài liệu nội bộ, tài liệu mật | Không đưa vào hệ thống thử nghiệm |
 
-Tài liệu có độ mật còn không được vào bất kỳ hệ thống nào chạy trên dịch vụ đám mây công cộng như Vercel, Supabase, GitHub. Đây là ranh giới pháp luật (xem hộp Căn cứ pháp lý ở mục 19.3).
+Cột cuối chính là phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2) áp vào phần mềm: Cấp 1 Công khai mới được nằm trong kho mã; Cấp 2 Nội bộ phải sau lớp đăng nhập; Cấp 3 Hạn chế tiếp cận (dữ liệu cá nhân như danh bạ, hồ sơ cán bộ) chỉ nằm trong cơ sở dữ liệu có phân quyền chặt; Cấp 4 Bí mật nhà nước không được vào bất kỳ hệ thống nào chạy trên dịch vụ đám mây công cộng như Vercel, Supabase, GitHub. Đây là ranh giới pháp luật (xem hộp Căn cứ pháp lý ở mục 19.3). Khi không chắc một tệp thuộc cấp nào, chọn cấp cao hơn, đúng nguyên tắc Tập 1 đã nêu.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: danh bạ 111 mục và một tệp không bao giờ lên GitHub**
@@ -74,6 +74,8 @@ Tương tự, tài khoản trình diễn viết sẵn trong mã giao diện khô
 4. Xem nhật ký sử dụng của dịch vụ trong khoảng thời gian khóa bị lộ: có lượt gọi lạ, hóa đơn tăng bất thường không.
 5. Thêm mẫu tên tệp vào `.gitignore` và một phép kiểm; ghi sự việc vào nhật ký dự án, báo lãnh đạo nếu khóa thuộc tài khoản của cơ quan.
 :::
+
+Các câu lệnh mẫu trong chương viết theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2), cộng phần Nghiệm thu mà Chương 6 bổ sung cho việc giao cho tác tử AI lập trình.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 19.1 — Rà soát kho mã tìm thứ không được công khai**
@@ -184,7 +186,7 @@ lệch tô đỏ kèm đề xuất sửa, chờ tôi duyệt.
 
 ### 19.3.1. Khóa API là chìa khóa kèm sổ séc đã ký sẵn
 
-Mỗi lần ứng dụng gọi AI, nó đưa ra khóa API (API key) để chứng minh "tôi là khách hàng có tài khoản", và nhà cung cấp tính tiền vào tài khoản đó. Khóa API giống chìa khóa kèm một cuốn sổ séc đã ký sẵn: ai cầm được thì vừa mở được cửa, vừa chi được tiền của chủ tài khoản.
+Mỗi lần gọi AI, ứng dụng đưa ra khóa API (API key) để chứng minh "tôi là khách hàng có tài khoản", và nhà cung cấp tính tiền vào tài khoản đó. Khóa API giống chìa khóa kèm một cuốn sổ séc đã ký sẵn: ai cầm được thì vừa mở được cửa, vừa chi được tiền của chủ tài khoản.
 
 Khóa bí mật của cơ sở dữ liệu còn nặng hơn: nó **bỏ qua toàn bộ chính sách RLS** ở mục 19.2, như chìa khóa vạn năng của trưởng kho. Nó chỉ nằm ở máy chủ, không mang tiền tố `VITE_`, không bao giờ được dán vào khung chat với AI để "nhờ xem giúp sao lỗi".
 
@@ -205,7 +207,9 @@ Một câu hỏi gửi cho bot của Văn phòng đi qua nhiều trạm, mỗi t
 3. Hàm máy chủ đọc **cơ sở dữ liệu** của hệ thống (Supabase, khu vực Singapore) và của phân hệ Lịch công tác.
 4. Hàm máy chủ ghép **lời dẫn** (hiểu biết tĩnh, số liệu vừa đọc, vài lượt hội thoại gần nhất) gửi cho **nhà cung cấp AI**, qua **dịch vụ trung gian** nếu có. Câu trả lời đi ngược lại đúng con đường ấy.
 
-Câu hỏi về lịch của lãnh đạo, kèm số liệu nạp theo, đã đi qua ít nhất bốn tổ chức, phần lớn ở nước ngoài; với dữ liệu mô phỏng, chấp nhận được. Với dữ liệu thật, mỗi trạm là một câu hỏi pháp lý: lưu bao lâu, có bị dùng huấn luyện mô hình không, có ra khỏi lãnh thổ Việt Nam không. Pháp luật về bảo vệ dữ liệu cá nhân có quy định riêng về chuyển dữ liệu cá nhân ra nước ngoài; phải hỏi đơn vị chuyên trách và tra nguyên văn trước.
+Câu hỏi về lịch của lãnh đạo, kèm số liệu nạp theo, đã đi qua ít nhất bốn tổ chức, phần lớn ở nước ngoài; với dữ liệu mô phỏng của bản demo, chấp nhận được. Với dữ liệu thật, mỗi trạm là một câu hỏi pháp lý: lưu bao lâu, có bị dùng huấn luyện mô hình không, có ra khỏi lãnh thổ Việt Nam không. Pháp luật về bảo vệ dữ liệu cá nhân có quy định riêng về chuyển dữ liệu cá nhân ra nước ngoài; phải hỏi đơn vị chuyên trách và tra nguyên văn trước.
+
+Đặt hình vẽ cạnh quy tắc 4 cấp của Tập 1 (Bảng 7.1) thì thấy ngay giới hạn: con đường trên chỉ hợp với dữ liệu Cấp 1, và Cấp 2 khi nhà cung cấp AI có cam kết doanh nghiệp, dữ liệu đã ẩn danh. Dữ liệu Cấp 3 như hồ sơ cán bộ, đơn thư có danh tính người khiếu nại chỉ được xử lý bằng AI có máy chủ đặt tại Việt Nam hoặc AI tự triển khai trong cơ quan, tức là phải đổi hẳn trạm cuối, không chỉ thêm lời dặn. Dữ liệu Cấp 4 không bao giờ đi trên con đường này. Ba lựa chọn về chủ quyền dữ liệu ở Tập 1, mục 7.3, là khung để quyết định trạm cuối đặt ở đâu.
 
 Từ hình vẽ này, bot áp một nguyên tắc tôi cho là quan trọng nhất của chương: **không đưa vào lời dẫn chắc hơn dặn AI đừng nói ra.** Hồ sơ nhân sự chỉ được nạp khi người hỏi là quản trị; kể cả khi đó, số căn cước, số sổ bảo hiểm, quan hệ gia đình cũng không bao giờ được nạp. Người dùng Zalo không bao giờ được coi là quản trị. Danh bạ tắt mặc định ở khung chat khách vô danh trên Trang chủ. Lời dặn "đừng tiết lộ" trong lời nhắc hệ thống chỉ là lớp bảo vệ thứ hai.
 
@@ -238,14 +242,15 @@ Dự án vẫn hỗ trợ kỹ thuật nhưng ghi cảnh báo in đậm ở đ�
 
 Với trợ lý AI trò chuyện, rủi ro nằm trong phần cài đặt ít người mở ra xem. Theo trang giá và thông báo cập nhật điều khoản của Anthropic mà tôi đọc ngày 26/10/2026, các gói cá nhân Free, Pro, Max của Claude để người dùng tự chọn có cho dùng dữ liệu huấn luyện mô hình hay không; gói Team và Enterprise mặc định không huấn luyện trên nội dung. Để bật thì dữ liệu được lưu 5 năm; tắt thì thời hạn lưu là 30 ngày. Mục cần tắt nằm trong phần cài đặt quyền riêng tư (Privacy); tên mục có thể khác đôi chút tùy phiên bản.
 
-ChatGPT và Gemini có mục tương tự, nhưng tên nút đổi theo từng đợt cập nhật. Thói quen đúng: **tạo tài khoản xong, mở ngay Cài đặt → Quyền riêng tư hoặc Kiểm soát dữ liệu, tắt mục cho phép huấn luyện.** Tập 1 đã nhắc; Tập 2 nhắc lại vì giờ chúng ta còn dán cả mã nguồn, cấu trúc dữ liệu của cơ quan vào khung chat.
+ChatGPT và Gemini có mục tương tự, nhưng tên nút đổi theo từng đợt cập nhật. Thói quen đúng: **tạo tài khoản xong, mở ngay Cài đặt → Quyền riêng tư hoặc Kiểm soát dữ liệu, tắt mục cho phép huấn luyện.** Nhưng như Tập 1 (mục 7.2) đã cảnh báo, "không huấn luyện" không đồng nghĩa "không lưu trữ": tắt rồi vẫn chỉ đưa lên những gì thuộc cấp được phép. Tập 2 nhắc lại vì giờ chúng ta còn dán cả mã nguồn, cấu trúc dữ liệu của cơ quan vào khung chat.
 
 Với Sổ tay AI trên Gemini Notebook (trước đây là NotebookLM), nguồn tải lên được lưu trên máy chủ của Google, nên Văn phòng chỉ nạp văn bản đã công khai và chia sẻ quyền chỉ xem. Theo trang trợ giúp của Google, kiểu liên kết "chỉ hiện khung chat" không thu hồi quyền truy cập vào nguồn, nên không phải cơ chế bảo mật.
 
 ::: {.phaply}
 **Căn cứ pháp lý: những gì không được đưa lên AI**
 
-- Luật Bảo vệ bí mật nhà nước số 117/2025/QH15, thông qua ngày 10/12/2025, hiệu lực từ 01/3/2026. Điều 5 quy định các hành vi bị nghiêm cấm; khoản 10 cấm sử dụng hệ thống trí tuệ nhân tạo hoặc công nghệ mới để xâm phạm bí mật nhà nước. Cũng tại Điều 5 có quy định cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập), trừ trường hợp theo pháp luật về cơ yếu.
+- Luật Bảo vệ bí mật nhà nước số 117/2025/QH15, thông qua ngày 10/12/2025, hiệu lực từ 01/3/2026, thay Luật Bảo vệ bí mật nhà nước 2018 mà Tập 1 viện dẫn. Điều 5 quy định các hành vi bị nghiêm cấm; khoản 10 cấm sử dụng hệ thống trí tuệ nhân tạo hoặc công nghệ mới để xâm phạm bí mật nhà nước. Cũng tại Điều 5 có quy định cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập), trừ trường hợp theo pháp luật về cơ yếu.
+- Luật An ninh mạng số 116/2025/QH15, thông qua ngày 10/12/2025, hiệu lực từ 01/7/2026, hợp nhất và thay cho Luật An ninh mạng 2018 và Luật An toàn thông tin mạng 2015 mà Tập 1 viện dẫn. Mỗi ứng dụng tự làm của cơ quan là một hệ thống thông tin, nên khi chính thức hóa phải được bảo vệ theo luật này (xem Chương 20).
 - Công văn 557/BKHCN-CĐSQG ngày 31/3/2025 của Bộ Khoa học và Công nghệ về sử dụng chatbot AI: không đưa lên chatbot dữ liệu thuộc danh mục bí mật nhà nước, dữ liệu cá nhân, tài liệu nội bộ; tránh dùng tên, mật khẩu trùng tài khoản công vụ; thu hồi khóa hoặc hủy tài khoản khi cán bộ nghỉ việc, chuyển công tác.
 - Hướng dẫn khai thác, sử dụng AI cho cán bộ, đảng viên trong các cơ quan đảng, triển khai theo Công văn 19130-CV/VPTW ngày 26/11/2025 của Văn phòng Trung ương Đảng: không đưa tài liệu mật, thông tin nhạy cảm lên nền tảng AI; ưu tiên nền tảng do Việt Nam phát triển và làm chủ khi xử lý dữ liệu nội bộ, nhạy cảm.
 
@@ -264,7 +269,7 @@ Vòi thứ ba nguy hiểm nhất vì chảy theo số người dùng và theo l�
 
 | Lối gọi AI | Chưa đăng nhập | Đã đăng nhập, đã duyệt |
 |---|---|---|
-| Trợ lý AI nghiệp vụ, Sổ tay AI (dùng chung) | 1 lượt/ngày | 5 lượt/ngày |
+| Trợ lý AI nghiệp vụ; tra nhanh của Sổ tay AI (dùng chung) | 1 lượt/ngày | 5 lượt/ngày |
 | Người hướng dẫn ở Trang chủ | 3 lượt/ngày, đếm theo máy | Như cột bên |
 | Bot Telegram, Zalo | Phải đăng ký, chờ duyệt | 30 câu/người/ngày |
 
@@ -278,7 +283,7 @@ Xin nói thật một điểm còn mở: đọc lại mã khi viết chương n�
 
 **Chốt 4: thiếu cấu hình thì đóng.** Máy chủ thiếu khóa bí mật cơ sở dữ liệu, tức không đếm được, thì khách bị từ chối gọi AI; người đã đăng nhập vẫn dùng. Mặc định đóng với người lạ, để quên khai một biến không làm mất trần chi phí.
 
-Thêm hai van giảm lưu lượng: trần chờ AI 40 giây, nhỏ hơn trần 60 giây của hàm máy chủ; độ dài trả lời tối đa 900 token. Quan trọng hơn: **không phải việc gì cũng cần AI.** Khung chat Trang chủ có tầng kịch bản trả lời câu hỏi thường gặp ngay trong trình duyệt; lệnh `/solieu` của bot đọc thẳng cơ sở dữ liệu; bản tin pháp luật không gọi AI chút nào.
+Thêm hai van giảm lưu lượng: trần chờ AI 40 giây, nhỏ hơn trần 60 giây của hàm máy chủ; độ dài trả lời tối đa 900 token. Quan trọng hơn: **không phải việc gì cũng cần AI.** Khung chat Trang chủ có tầng kịch bản trả lời câu hỏi thường gặp ngay trong trình duyệt; lệnh `/solieu` của bot đọc thẳng cơ sở dữ liệu; bản tin pháp luật không gọi AI chút nào. Hỏi đáp chính của Sổ tay AI chạy trên Gemini Notebook bằng tài khoản Google của từng cán bộ, nên cơ quan không phát sinh kinh phí.
 
 ### 19.4.3. Gói miễn phí không phải miễn phí vô điều kiện
 
@@ -286,9 +291,9 @@ Thêm hai van giảm lưu lượng: trần chờ AI 40 giây, nhỏ hơn trần 
 |---|---|---|
 | Supabase Free | Tạm dừng dự án sau 1 tuần không hoạt động; tối đa 2 dự án đang chạy; 500 MB | Nghỉ dài ngày là ứng dụng "ngủ đông" |
 | Render Free | Máy chủ ngủ khi không có truy cập | Một dữ liệu mở lần đầu chậm 30–60 giây |
-| Vercel Hobby | Theo hiểu biết của tôi, dành cho mục đích cá nhân, phi thương mại | Dùng chính thức phải xem lại điều khoản |
+| Vercel Hobby | Theo hướng dẫn của Vercel, chỉ dành cho mục đích cá nhân, phi thương mại | Dùng chính thức phải xem lại điều khoản |
 
-Số liệu trong bảng là tham khảo tại thời điểm viết (10/2026), có thể thay đổi. Theo tài liệu của Supabase, dự án đã tạm dừng có một năm để khôi phục bằng một nút bấm; gói Pro từ 25 USD/tháng thì không bị tạm dừng. Riêng Zalo Official Account, từ 01/6/2026 gói cơ bản miễn phí không có chatbot và giao diện lập trình; muốn bot qua Zalo chạy lâu dài, cơ quan cần dự trù kinh phí cho gói có chức năng này.
+Số liệu trong bảng là tham khảo tại thời điểm viết (10/2026), có thể thay đổi. Theo tài liệu của Supabase, dự án đã tạm dừng có một năm để khôi phục bằng một nút bấm; gói Pro từ 25 USD/tháng thì không bị tạm dừng. Riêng Zalo Official Account, từ 01/6/2026 gói cơ bản miễn phí không có chatbot và giao diện lập trình; muốn bot qua Zalo chạy lâu dài, cơ quan cần dự trù kinh phí cho gói có chức năng này (theo các nguồn thứ ba, gói thấp nhất có chatbot và giao diện lập trình là gói Tăng trưởng, khoảng 2.500.000 đồng/năm; cần đối chiếu bảng giá chính thức của Zalo).
 
 ::: {.vidu}
 **Ví dụ minh họa: dự toán chi phí AI cho một ứng dụng của Ban**
@@ -323,7 +328,7 @@ Nam bộ đếm đặt lại. Rà mọi hàm gọi AI khác, báo hàm nào thi�
 
 ### 19.5.1. Nhật ký chẩn đoán: biết thời gian đi đâu thay vì đoán
 
-Ca trực nào cũng có sổ trực ban. Phần mềm cũng cần một cuốn sổ như vậy, gọi là nhật ký chẩn đoán (log); không có sổ thì khi sự cố xảy ra, người và tác tử AI chỉ còn cách đoán.
+Ca trực nào cũng có sổ trực ban. Phần mềm cũng cần sổ như vậy, gọi là nhật ký chẩn đoán (log); không có sổ thì khi sự cố xảy ra, chỉ còn cách đoán.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: "This operation was aborted" và hạn mức bị đốt gấp đôi**
@@ -383,7 +388,7 @@ quản trị; sự cố được ghi vào nhật ký thay đổi.
 
 Ngày 16/7/2026, Google đổi tên NotebookLM thành Gemini Notebook; sau đó `notebooklm.google.com` tự chuyển hướng sang `notebook.google.com`. Dự án chỉ phát hiện ngày 22/10/2026, khi tác tử AI kiểm tra thật đường dẫn tôi đưa thay vì tin trí nhớ của nó. Hàm chuẩn hóa nay nhận cả hai tên miền, luôn lưu về tên miền hiện hành, kèm 13 phép kiểm riêng.
 
-Chuyện tương tự xảy ra thường xuyên: Supabase đổi tên loại khóa bí mật; mã thông báo của Zalo hết hạn sau khoảng một giờ, mỗi lần làm mới lại cấp cặp mã mới phải lưu ngay. Cách phòng: gom địa chỉ dịch vụ bên ngoài vào một chỗ trong mã, dựng trang chẩn đoán, định kỳ nhờ AI kiểm tra thực tế đường dẫn, phiên bản, điều khoản.
+Chuyện tương tự còn nhiều: Supabase đổi tên loại khóa bí mật; mã thông báo của Zalo hết hạn sau khoảng một giờ, mỗi lần làm mới phải lưu ngay cặp mã mới. Cách phòng: gom địa chỉ dịch vụ bên ngoài vào một chỗ trong mã, dựng trang chẩn đoán, định kỳ nhờ AI kiểm tra thực tế đường dẫn, phiên bản, điều khoản.
 
 | Tình huống | Làm ngay | Làm sau |
 |---|---|---|

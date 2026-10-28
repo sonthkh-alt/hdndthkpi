@@ -2,16 +2,16 @@
 
 Bộ nhớ dự án là bộ hồ sơ mà tác tử AI lập trình tự đọc mỗi khi mở phiên làm việc: tệp CLAUDE.md ngắn ở thư mục gốc và thư mục quy tắc `.claude/rules/` chia theo chủ đề (mục 7.1). Mẫu dưới đây tôi dựng lại từ bộ nhớ thật của hệ thống thử nghiệm của Văn phòng (hdndthkpi.vercel.app), bỏ các chi tiết riêng, giữ khung và những quy tắc đã phải trả giá mới có.
 
-Chỗ trong [ngoặc vuông] đồng chí tự điền; dòng nào không hợp thì xóa. Tên tệp CLAUDE.md và thư mục `.claude/rules/` là quy ước của Claude Code; tác tử khác dùng tên tệp riêng, nội dung vẫn dùng lại được. Dòng mở đầu bằng `#` trong các khối dưới đây là tiêu đề trong tệp, không phải lệnh.
+Chỗ trong [ngoặc vuông] đồng chí tự điền; dòng nào không hợp thì xóa. Tên tệp CLAUDE.md và thư mục `.claude/rules/` là quy ước của Claude Code; tác tử khác dùng tên tệp riêng, nội dung vẫn dùng được. Dòng bắt đầu bằng `#` là tiêu đề trong tệp, không phải lệnh.
 
 ::: {.thuchanh}
 **Thực hành: lập bộ nhớ dự án trong 30 phút**
 
 1. Tạo thư mục dự án ở ổ thường, ngoài OneDrive, Dropbox (mục 7.3).
 2. Giao tác tử lập bộ nhớ theo Câu lệnh mẫu 7.1, dán kèm mẫu này làm khuôn.
-3. Tự điền phần căn cứ nghiệp vụ; không để AI tự viết phần ấy.
+3. Tự điền phần căn cứ nghiệp vụ; không để AI tự viết.
 4. Đọc lại từng tệp: thấy khóa bí mật, mật khẩu, số điện thoại là xóa.
-5. Ghi thay đổi, đẩy lên GitHub, mở trên máy thứ hai xem thư mục quy tắc đã có chưa.
+5. Commit, đẩy lên GitHub, mở trên máy thứ hai kiểm tra thư mục quy tắc.
 6. Mỗi tháng, giao AI đối chiếu bộ nhớ với mã nguồn theo Câu lệnh mẫu 7.2.
 :::
 
@@ -32,7 +32,7 @@ Chỗ trong [ngoặc vuông] đồng chí tự điền; dòng nào không hợp 
       changelog.md                nhật ký các bước đã làm
 ```
 
-Tệp CLAUDE.md được đọc ở mọi phiên, kể cả phiên chỉ sửa một dấu phẩy, nên phải ngắn; tệp thật của Văn phòng khoảng hai trăm chữ.
+Tệp CLAUDE.md được đọc ở mọi phiên nên phải ngắn; tệp thật của dự án khoảng hai trăm chữ.
 
 ```text
   # CLAUDE.md — Bộ nhớ dự án (đọc tự động mỗi phiên)
@@ -87,7 +87,7 @@ Tệp CLAUDE.md được đọc ở mọi phiên, kể cả phiên chỉ sửa m
 
 ## PL3.3. Dữ liệu, phân quyền và kiến trúc
 
-Hai tệp sau mở đầu bằng khai báo phạm vi đường dẫn (`paths`): tác tử chỉ nạp tệp khi công việc chạm vào các thư mục liệt kê, nên phiên không liên quan khỏi phải đọc.
+Hai tệp sau mở đầu bằng khai báo phạm vi đường dẫn (`paths`): tác tử chỉ nạp tệp khi công việc chạm vào các thư mục liệt kê.
 
 ```text
   ---
@@ -131,7 +131,7 @@ Hai tệp sau mở đầu bằng khai báo phạm vi đường dẫn (`paths`): 
   - Chỗ nguy hiểm trong mã có chú thích "CẢNH BÁO:" kèm lý do.
 ```
 
-Hai dòng cuối của tệp dữ liệu là hai bài học thật: trường danh bạ từng bị gọt mất ngay lúc lưu, và hai đồng chí trùng họ tên ở hai đơn vị từng bị ghép làm một. Dự án nhỏ đến đâu cũng nên giữ.
+Hai dòng cuối của tệp dữ liệu là hai bài học thật: trường danh bạ từng bị gọt mất ngay lúc lưu, và hai đồng chí trùng họ tên ở hai đơn vị từng bị ghép làm một.
 
 ## PL3.4. Quy ước, nhật ký và danh sách bỏ qua
 
@@ -180,36 +180,36 @@ Hai dòng cuối của tệp dữ liệu là hai bài học thật: trường da
   !.claude/rules/**
 ```
 
-Ba dòng cuối là chi tiết quyết định: thiếu chúng, bộ nhớ dự án chỉ tồn tại trên chiếc máy đã viết ra nó. Dòng `scratch/` thì dự án thật chưa có, nên dù quy ước ghi "không commit thư mục nháp", một tệp thử vẫn lọt lên kho (mục 7.4). Mẫu này biến quy ước thành cơ chế.
+Thiếu ba dòng cuối, bộ nhớ dự án chỉ tồn tại trên chiếc máy đã viết ra nó. Dòng `scratch/` thì dự án thật chưa có, nên dù quy ước ghi "không commit thư mục nháp", một tệp thử vẫn lọt lên kho (mục 7.4). Mẫu này biến quy ước thành cơ chế.
 
 ::: {.canhbao}
 **Cảnh báo: bộ nhớ dự án cũng có thể bị người ngoài đọc**
 
-Bộ nhớ dự án nằm trong kho mã; kho công khai thì ai cũng đọc được. Không ghi vào đó số điện thoại, mật khẩu tài khoản dùng thử, cách vào trang quản trị hay mô tả lỗ hổng chưa vá. Biến môi trường mang tiền tố `VITE_` được đóng vào mã chạy trên trình duyệt, tức là công khai; khóa gọi AI và khóa bí mật của cơ sở dữ liệu chỉ đọc ở phía máy chủ.
+Bộ nhớ dự án nằm trong kho mã; kho công khai thì ai cũng đọc được. Không ghi vào đó số điện thoại, mật khẩu tài khoản dùng thử, cách vào trang quản trị hay lỗ hổng chưa vá. Biến môi trường có tiền tố `VITE_` được đóng vào mã chạy trên trình duyệt, tức là công khai; khóa gọi AI và khóa bí mật của cơ sở dữ liệu chỉ đọc ở máy chủ.
 :::
 
 ::: {.ghinho}
 **Ghi nhớ**
 
-CLAUDE.md ngắn, chi tiết để ở thư mục quy tắc; mỗi quy tắc kèm một câu "vì sao"; một sự thật chỉ ghi một nơi; bộ nhớ cập nhật cùng lúc với mã. Bộ nhớ lỗi thời nguy hiểm hơn không có, vì AI tin và làm theo.
+CLAUDE.md ngắn, chi tiết để ở thư mục quy tắc; mỗi quy tắc kèm một câu "vì sao"; bộ nhớ cập nhật cùng lúc với mã. Bộ nhớ lỗi thời nguy hiểm hơn không có, vì AI tin và làm theo.
 :::
 
 # Phụ lục 4. Mẫu Quy tắc sử dụng trí tuệ nhân tạo tại cơ quan
 
 ## PL4.1. Nguồn gốc và cách dùng mẫu
 
-Mẫu ở mục PL4.2 giữ đúng mười điều như khung quy chế tôi đề xuất ở Tập 1, mục 7.6, và lấy nhiều câu chữ từ dự thảo Quy tắc 9 điều của phân hệ Sổ tay AI (toàn văn ở mục PL4.3). Căn cứ được cập nhật theo các văn bản có hiệu lực đến ngày 26/10/2026 và ghi ngay tại điều liên quan.
+Mẫu ở mục PL4.2 giữ mười điều như khung quy chế ở Tập 1, mục 7.6, và lấy nhiều câu chữ từ dự thảo Quy tắc 9 điều của phân hệ Sổ tay AI (toàn văn ở mục PL4.3). Căn cứ cập nhật đến ngày 26/10/2026, ghi ngay tại điều liên quan.
 
-So với Tập 1 có ba thay đổi. Dữ liệu cá nhân nay căn cứ Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP, không còn Nghị định 13/2023/NĐ-CP. Danh mục công cụ chỉ ghi nguyên tắc, không ghi tên sản phẩm, vì tên đổi nhanh: NotebookLM đã đổi tên thành Gemini Notebook từ 16/7/2026. Mẫu có thêm hai nội dung Tập 1 chưa có: minh bạch, gắn nhãn và ứng dụng do cán bộ tự xây dựng.
+So với Tập 1 có ba thay đổi. Một là căn cứ về dữ liệu cá nhân: Nghị định 13/2023/NĐ-CP mà Tập 1 dẫn đã hết hiệu lực từ 01/01/2026, nay căn cứ Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP. Hai là danh mục công cụ chỉ ghi nguyên tắc, không ghi tên sản phẩm, vì tên đổi nhanh: NotebookLM đã đổi tên thành Gemini Notebook từ 16/7/2026, địa chỉ nay là notebook.google.com. Ba là thêm hai nội dung Tập 1 chưa có: minh bạch, gắn nhãn và ứng dụng do cán bộ tự xây dựng.
 
-Một điểm cần nói thẳng. Bảng 7.1 của Tập 1 cho phép đưa dữ liệu nội bộ lên AI có cam kết doanh nghiệp sau khi ẩn danh; Công văn 557/BKHCN-CĐSQG lại khuyến cáo không đưa tài liệu nội bộ lên chatbot AI. Mẫu này chọn cách chặt hơn: mặc định không đưa, ngoại lệ phải có tên trong danh mục do cơ quan phê duyệt.
+Một điểm cần nói thẳng: Bảng 7.1 của Tập 1 cho phép đưa dữ liệu nội bộ lên AI có cam kết doanh nghiệp sau khi ẩn danh, còn Công văn 557/BKHCN-CĐSQG khuyến cáo không đưa tài liệu nội bộ lên chatbot AI. Mẫu này chọn cách chặt hơn: mặc định không đưa, ngoại lệ phải có trong danh mục cơ quan phê duyệt.
 
 ::: {.canhbao}
 **Cảnh báo: đây là dự thảo tham khảo**
 
-Mẫu không phải văn bản của Văn phòng hay của cơ quan nào. Cơ quan muốn dùng phải tự điều chỉnh theo chức năng, nhiệm vụ, lấy ý kiến các phòng, Ban, đối chiếu quy chế bảo vệ bí mật nhà nước và quy chế văn thư, trình bày theo Nghị định 30/2020/NĐ-CP, rồi trình người có thẩm quyền ban hành. Mọi căn cứ phải tra lại nguyên văn tại thời điểm ban hành.
+Mẫu không phải văn bản của Văn phòng hay cơ quan nào. Cơ quan muốn dùng phải tự điều chỉnh theo chức năng, nhiệm vụ, lấy ý kiến các phòng, Ban, đối chiếu quy chế bảo vệ bí mật nhà nước, trình bày theo Nghị định 30/2020/NĐ-CP, rồi trình người có thẩm quyền ban hành; mọi căn cứ phải tra lại nguyên văn khi ban hành.
 
-Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đảng. Cơ quan nhà nước không chịu ràng buộc trực tiếp, nhưng phần lớn cán bộ là đảng viên nên quy tắc của cơ quan nên đi cùng tinh thần ấy.
+Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đảng; cơ quan nhà nước không chịu ràng buộc trực tiếp, nhưng phần lớn cán bộ là đảng viên nên quy tắc nên đi cùng tinh thần ấy.
 :::
 
 ## PL4.2. Dự thảo Quy tắc
@@ -220,7 +220,7 @@ Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đản
 
 **Điều 1. Phạm vi, đối tượng áp dụng**
 
-1. Quy tắc này áp dụng khi cán bộ, công chức, viên chức, người lao động của [tên cơ quan] và [thành viên các Ban, đại biểu] dùng công cụ trí tuệ nhân tạo (AI) hoặc ứng dụng có dùng AI trong công tác chuyên môn: soạn thảo, tổng hợp, rà soát, tra cứu, phân tích dữ liệu, bot chat, ứng dụng do cán bộ tự xây dựng.
+1. Quy tắc này áp dụng khi cán bộ, công chức, viên chức, người lao động của [tên cơ quan] và [thành viên các Ban, đại biểu] dùng công cụ trí tuệ nhân tạo (AI) hoặc ứng dụng có dùng AI trong công tác chuyên môn, kể cả ứng dụng do cán bộ tự xây dựng.
 2. Không điều chỉnh việc dùng AI cho mục đích cá nhân ngoài công vụ. Tài liệu bí mật nhà nước thực hiện theo quy chế bảo vệ bí mật nhà nước của cơ quan.
 
 **Điều 2. Nguyên tắc chung**
@@ -235,10 +235,10 @@ Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đản
 
 | Cấp | Ví dụ ở cơ quan dân cử | Được dùng với AI |
 |---|---|---|
-| 1. Công khai | Văn bản đã đăng Công báo, tài liệu kỳ họp đã công bố | Công cụ trong danh mục |
+| 1. Công khai | Văn bản đã đăng Công báo, tài liệu kỳ họp đã công bố | Công cụ trong danh mục, kể cả AI nước ngoài |
 | 2. Nội bộ | Dự thảo chưa trình, báo cáo nội bộ | Mặc định không; chỉ công cụ được danh mục cho phép |
-| 3. Hạn chế tiếp cận | Hồ sơ cán bộ, danh bạ, đơn thư, kiến nghị có danh tính | Không dùng AI công cộng; chỉ hệ thống được phê duyệt |
-| 4. Bí mật nhà nước | Tài liệu có độ mật | Tuyệt đối không |
+| 3. Hạn chế tiếp cận | Hồ sơ cán bộ, danh bạ, đơn thư, kiến nghị có danh tính | Không dùng AI công cộng; chỉ AI có máy chủ trong nước hoặc tự triển khai nội bộ, có tên trong danh mục |
+| 4. Bí mật nhà nước | Tài liệu có độ mật | Tuyệt đối không dùng AI nước ngoài; không soạn thảo, lưu giữ trên thiết bị kết nối Internet |
 
 2. Dữ liệu cấp 2, cấp 3 được phép dùng phải thay các chi tiết nhận ra cá nhân, tổ chức bằng mã như [NGƯỜI A], [CƠ QUAN A].
 3. Dữ liệu cá nhân thực hiện theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP (danh mục dữ liệu cơ bản tại Điều 3, nhạy cảm tại Điều 4 Nghị định).
@@ -270,7 +270,7 @@ Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đản
 
 **Điều 8. Ứng dụng do cán bộ tự xây dựng**
 
-1. Trước khi mời người khác dùng, người làm ứng dụng đăng ký với [đơn vị được giao] và nộp phiếu mô tả: mục đích, người dùng, dữ liệu, nơi lưu, ai đọc, ai ghi, dịch vụ bên ngoài, người chịu trách nhiệm, vai trò theo Điều 3 Luật Trí tuệ nhân tạo.
+1. Trước khi mời người khác dùng, người làm ứng dụng đăng ký với [đơn vị được giao], nộp phiếu mô tả: mục đích, người dùng, dữ liệu, nơi lưu, ai đọc, ai ghi, dịch vụ bên ngoài, người chịu trách nhiệm, vai trò theo Điều 3 Luật Trí tuệ nhân tạo.
 2. Kho mã không chứa khóa bí mật, dữ liệu cá nhân; quyền đặt ở cơ sở dữ liệu; mọi lối gọi AI có hạn mức đếm ở máy chủ; có bộ nhớ dự án và nhật ký thay đổi.
 3. Ứng dụng có dùng AI được phân loại rủi ro theo Nghị định 142/2026/NĐ-CP trước khi đưa vào sử dụng, đối chiếu Quyết định 33/2026/QĐ-TTg.
 4. Chỉ dùng dữ liệu thật khi đã có quyết định đưa vào sử dụng, hồ sơ đề xuất cấp độ theo Nghị định 331/2026/NĐ-CP và, nếu xử lý dữ liệu cá nhân, hồ sơ đánh giá tác động theo Nghị định 356/2025/NĐ-CP.
@@ -289,7 +289,7 @@ Hướng dẫn kèm Công văn 19130-CV/VPTW áp dụng cho các cơ quan đản
 
 ## PL4.3. Toàn văn dự thảo Quy tắc 9 điều của phân hệ Sổ tay AI
 
-Dự thảo nằm trong mã nguồn phân hệ Sổ tay AI, để trống ngày ký, chờ Chánh Văn phòng xem xét ban hành. Phạm vi hẹp, chỉ cho thí điểm tra cứu, hỏi đáp; tôi in nguyên văn để đồng chí thấy một quy tắc thật trông thế nào.
+Dự thảo nằm trong mã nguồn phân hệ Sổ tay AI, để trống ngày ký, chờ Chánh Văn phòng xem xét ban hành. Phạm vi hẹp, chỉ cho thí điểm tra cứu, hỏi đáp; tôi in nguyên văn làm ví dụ. Điều 5 viết khi tra cứu còn chạy trong phân hệ; nay hỏi đáp đã chuyển sang Gemini Notebook.
 
 **Quy tắc sử dụng trí tuệ nhân tạo trong tra cứu, hỏi đáp nghiệp vụ** (dự thảo)
 
@@ -305,7 +305,7 @@ Dự thảo nằm trong mã nguồn phân hệ Sổ tay AI, để trống ngày 
 
 ## PL4.4. Mẫu bản cam kết của cán bộ
 
-Trong phân hệ Sổ tay AI, sổ cam kết là bản điện tử: cán bộ đọc quy tắc, ghi họ tên, đơn vị; hệ thống lưu kèm thời điểm xác nhận. Nơi chưa có phần mềm thì dùng bản giấy dưới đây.
+Trong phân hệ Sổ tay AI, sổ cam kết là bản điện tử: cán bộ ghi họ tên, đơn vị, bấm xác nhận; hệ thống lưu kèm thời điểm. Nơi chưa có phần mềm thì dùng bản giấy dưới đây.
 
 ```text
   [TÊN CƠ QUAN]
@@ -334,14 +334,13 @@ Trong phân hệ Sổ tay AI, sổ cam kết là bản điện tử: cán bộ �
 ::: {.lanhdao}
 **Dành cho lãnh đạo**
 
-- Quy tắc chỉ có giá trị khi cán bộ thực sự hiểu: tập huấn trước, ký cam kết sau.
-- Quy định quan trọng phải có cơ chế đi kèm: tài khoản do cơ quan cấp và thu hồi được, danh mục công cụ, kiểm tra định kỳ.
-- Giao một đầu mối giữ danh mục công cụ và sổ cam kết; người đứng đầu ký ban hành.
+- Tập huấn trước, ký cam kết sau; quy tắc chỉ có giá trị khi cán bộ thực sự hiểu.
+- Mỗi quy định quan trọng cần cơ chế đi kèm: tài khoản thu hồi được, danh mục công cụ, kiểm tra định kỳ; giao một đầu mối giữ danh mục và sổ cam kết.
 :::
 
 # Phụ lục 5. Danh mục văn bản pháp luật liên quan
 
-**Danh mục đối chiếu đến ngày 26/10/2026.** Bảng chỉ gồm văn bản đã được kiểm chứng số hiệu, tên, ngày qua nhiều nguồn chính thống. Khi viết sách, môi trường tra cứu không mở trực tiếp được các cổng .vn; vì vậy trước khi áp dụng, đồng chí phải tra nguyên văn và tình trạng hiệu lực trên Cơ sở dữ liệu quốc gia về văn bản pháp luật (vbpl.vn) hoặc Công báo (congbao.chinhphu.vn). Văn bản chưa xác minh được thì sách không nêu số hiệu.
+**Danh mục đối chiếu đến ngày 26/10/2026.** Bảng chỉ gồm văn bản đã được đối chiếu số hiệu, tên, ngày qua nhiều nguồn; văn bản chưa xác minh được thì sách không nêu số hiệu. Trước khi áp dụng, đồng chí tra nguyên văn và tình trạng hiệu lực trên Cơ sở dữ liệu quốc gia về văn bản pháp luật (vbpl.vn) hoặc Công báo (congbao.chinhphu.vn).
 
 Cột "Hiệu lực" ghi ngày có hiệu lực; văn bản của Đảng, văn bản hướng dẫn không ghi riêng ngày hiệu lực thì ghi ngày ban hành.
 
@@ -366,12 +365,12 @@ Cột "Hiệu lực" ghi ngày có hiệu lực; văn bản của Đảng, văn 
 | 142/2026/NĐ-CP | Nghị định hướng dẫn Luật Trí tuệ nhân tạo | 01/5/2026 | Phân loại rủi ro |
 | 33/2026/QĐ-TTg | Danh mục hệ thống AI có rủi ro cao | 15/8/2026 | Đối chiếu trước khi làm |
 | 05/2026/TT-BKHCN | Khung đạo đức trí tuệ nhân tạo quốc gia | 10/3/2026 | Bắt buộc với cơ quan nhà nước |
-| 1671/QĐ-TTg | Chiến lược quốc gia về trí tuệ nhân tạo đến năm 2030, tầm nhìn 2045 | 28/8/2026; thay Quyết định 127/QĐ-TTg | Định hướng quốc gia |
-| 14/CT-TTg | Chỉ thị về bồi dưỡng, đánh giá kỹ năng số của cán bộ, công chức, viên chức | 22/4/2026 | Đào tạo |
+| 1671/QĐ-TTg | Chiến lược quốc gia về trí tuệ nhân tạo đến năm 2030, tầm nhìn đến năm 2045 | 28/8/2026 | Định hướng quốc gia; Quyết định 127/QĐ-TTg đã được thay bằng văn bản này |
+| 14/CT-TTg | Chỉ thị về đẩy mạnh bồi dưỡng và đánh giá kiến thức, kỹ năng số đối với cán bộ, công chức, viên chức | 22/4/2026 | Đào tạo |
 | 557/BKHCN-CĐSQG | Nguyên tắc dùng chatbot AI trong cơ quan nhà nước | Ban hành 31/3/2025 | Dữ liệu, tài khoản |
 | 2766/BKHCN-TTCNTT | Hướng dẫn dùng AI hỗ trợ rà soát văn bản quy phạm pháp luật | Ban hành 29/4/2026 | AI không tự kết luận pháp lý |
-| 71/2025/QH15 | Luật Công nghiệp công nghệ số | 01/01/2026; Chương IV về AI bãi bỏ từ 01/3/2026 | Sản phẩm công nghệ số |
-| 148/2025/QH15 | Luật Chuyển đổi số | 01/7/2026 | Khung chung |
+| 71/2025/QH15 | Luật Công nghiệp công nghệ số | 01/01/2026; Chương IV về AI bị bãi bỏ từ 01/3/2026 | Sản phẩm công nghệ số |
+| 148/2025/QH15 | Luật Chuyển đổi số (thay Luật Công nghệ thông tin 2006) | 01/7/2026 | Khung chung |
 | 45/2026/NĐ-CP | Quản lý đầu tư ứng dụng công nghệ thông tin dùng ngân sách nhà nước | 01/3/2026 | Khi chính thức hóa |
 | 20/2014/TT-BTTTT | Phần mềm nguồn mở được ưu tiên mua sắm, sử dụng trong cơ quan nhà nước | 20/01/2015 | Chọn nền tảng |
 
@@ -381,12 +380,12 @@ Cột "Hiệu lực" ghi ngày có hiệu lực; văn bản của Đảng, văn 
 |---|---|---|---|
 | 60/2024/QH15 | Luật Dữ liệu (hướng dẫn: Nghị định 165/2025/NĐ-CP) | 01/7/2025 | Quản lý dữ liệu |
 | 91/2025/QH15 | Luật Bảo vệ dữ liệu cá nhân | 01/01/2026 | Hồ sơ, danh bạ, đơn thư |
-| 356/2025/NĐ-CP | Nghị định hướng dẫn Luật Bảo vệ dữ liệu cá nhân | 01/01/2026; thay Nghị định 13/2023/NĐ-CP | Danh mục dữ liệu; đánh giá tác động |
+| 356/2025/NĐ-CP | Nghị định hướng dẫn Luật Bảo vệ dữ liệu cá nhân | 01/01/2026; Nghị định 13/2023/NĐ-CP hết hiệu lực cùng ngày | Danh mục dữ liệu; đánh giá tác động |
 | 330/2026/NĐ-CP | Xử phạt vi phạm hành chính về an ninh mạng, bảo vệ dữ liệu cá nhân | 19/8/2026 | Chế tài |
 | 117/2025/QH15 | Luật Bảo vệ bí mật nhà nước (hướng dẫn: Nghị định 63/2026/NĐ-CP) | 01/3/2026 | Điều 5: điều cấm |
 | 116/2025/QH15 | Luật An ninh mạng | 01/7/2026 | An ninh hệ thống |
 | 331/2026/NĐ-CP | Bảo vệ an ninh mạng đối với hệ thống thông tin | 19/8/2026 | Cấp độ 1–5 |
-| 1121/QĐ-TTg | Chương trình chuyển đổi sang nền tảng điện toán đám mây 2025–2030 | Ban hành 11/6/2025 | Chọn hạ tầng |
+| 1121/QĐ-TTg | Chương trình hành động quốc gia về phát triển và chuyển đổi sang sử dụng nền tảng điện toán đám mây giai đoạn 2025–2030 | Ban hành 11/6/2025 | Chọn hạ tầng |
 
 ## PL5.4. Cơ quan dân cử, công vụ, văn thư
 
@@ -411,7 +410,7 @@ Cột "Hiệu lực" ghi ngày có hiệu lực; văn bản của Đảng, văn 
 ::: {.canhbao}
 **Cảnh báo: văn bản Tập 1 đã dẫn nay đã được thay thế**
 
-Từ khi Tập 1 hoàn thiện (tháng 5/2026) đến ngày 26/10/2026, nhiều căn cứ đã đổi. Khi dùng lại câu lệnh mẫu hay quy chế của Tập 1, đồng chí thay như sau:
+Từ khi Tập 1 hoàn thiện (tháng 5/2026) đến 26/10/2026, nhiều căn cứ đã đổi. Khi dùng lại câu lệnh mẫu hay quy chế của Tập 1, thay như sau:
 
 - Quyết định 127/QĐ-TTg → Quyết định 1671/QĐ-TTg (từ 28/8/2026).
 - Luật Bảo vệ bí mật nhà nước số 29/2018/QH14 → Luật số 117/2025/QH15 (từ 01/3/2026).
@@ -422,12 +421,12 @@ Từ khi Tập 1 hoàn thiện (tháng 5/2026) đến ngày 26/10/2026, nhiều 
 
 # Phụ lục 6. Bảng kiểm trước khi đưa một ứng dụng vào sử dụng
 
-Bảng kiểm ở mục 19.6 dùng trước khi gửi đường dẫn cho đồng nghiệp dùng thử. Bảng dưới đây dùng ở bước cao hơn: trước khi trình người có thẩm quyền quyết định đưa ứng dụng vào sử dụng chính thức (Chương 20). Hình thức giống Bảng kiểm 10 điểm trước khi trình ký ở Tập 1, mục 4.7: mục nào chưa đạt thì sửa, hoặc ghi lý do, người chịu trách nhiệm và hạn khắc phục.
+Bảng kiểm ở mục 19.6 dùng trước khi gửi đường dẫn cho đồng nghiệp dùng thử. Bảng dưới đây dùng trước khi trình người có thẩm quyền quyết định đưa ứng dụng vào sử dụng chính thức (Chương 20). Cách dùng giống Bảng kiểm 10 điểm trước khi trình ký ở Tập 1, mục 4.7: mục nào chưa đạt thì sửa, hoặc ghi lý do, người chịu trách nhiệm, hạn khắc phục.
 
 ::: {.ghinho}
 **Ghi nhớ**
 
-Đánh dấu một ô nghĩa là có bằng chứng: tệp, biên bản thử, chữ ký. Có thể giao tác tử AI tự chấm từng mục kèm tệp làm căn cứ (Câu lệnh mẫu 19.6), nhưng người trình phải tự đối chiếu vài mục trước khi ký.
+Đánh dấu một ô nghĩa là có bằng chứng: tệp, biên bản thử, chữ ký. Có thể giao tác tử AI tự chấm kèm căn cứ (Câu lệnh mẫu 19.6), nhưng người trình phải tự đối chiếu vài mục trước khi ký.
 :::
 
 ## PL6.1. Nghiệp vụ
@@ -436,7 +435,7 @@ Bảng kiểm ở mục 19.6 dùng trước khi gửi đường dẫn cho đồn
 - [ ] Chỗ văn bản chưa nhất quán được ghi chú, báo cơ quan soạn thảo; phần mềm không tự quyết thay.
 - [ ] Có bộ ca kiểm thử do người hiểu nghiệp vụ lập; kết quả phần mềm khớp từng ca.
 - [ ] Phê duyệt, xếp loại, kết luận do người có thẩm quyền thực hiện; sửa sau phê duyệt thì tự gỡ phê duyệt.
-- [ ] Đã thử kỳ mới chưa có dữ liệu, chuyển quý, chuyển năm, người trùng họ tên: không trắng trang, không mất người.
+- [ ] Đã thử kỳ mới chưa có dữ liệu, chuyển quý, người trùng họ tên: không trắng trang, không mất người.
 
 ## PL6.2. Dữ liệu
 
@@ -468,21 +467,19 @@ Bảng kiểm ở mục 19.6 dùng trước khi gửi đường dẫn cho đồn
 
 - [ ] Mọi lối gọi AI có hạn mức đếm ở máy chủ; thứ tự: kiểm tra yêu cầu, trừ lượt, gọi AI, hoàn lượt khi lỗi.
 - [ ] Trần thời gian chờ AI nhỏ hơn trần của nền tảng; tin nhắn bị gửi lại chỉ được xử lý một lần.
-- [ ] Đã đọc điều kiện từng gói dịch vụ: tạm dừng khi lâu không dùng, máy chủ "ngủ", giới hạn mục đích cá nhân.
+- [ ] Đã đọc điều kiện từng gói miễn phí: tạm dừng khi lâu không dùng, máy chủ "ngủ", giới hạn mục đích sử dụng.
 - [ ] Không dùng dịch vụ AI trung gian cho dữ liệu thật; khóa AI đứng tên cơ quan, có hạn mức chi tiêu.
 
 ## PL6.6. Vận hành
 
-- [ ] Bản dựng xanh; bộ kiểm thử nằm trong kho mã, chạy được trên máy khác.
-- [ ] Đã kiểm chứng trên bản triển khai thật: mọi đường dẫn mở được, không lỗi.
+- [ ] Bản dựng xanh; bộ kiểm thử nằm trong kho mã, chạy được trên máy khác; đã thử mọi đường dẫn trên bản triển khai thật.
 - [ ] Có trang chẩn đoán; quy trình sự cố viết ra giấy: ai báo ai, khi nào tạm dừng, khi nào khôi phục.
 - [ ] Tác vụ chạy theo lịch có nhật ký và có người kiểm tra nó thật sự chạy.
 
 ## PL6.7. Bàn giao
 
 - [ ] Bộ nhớ dự án và nhật ký thay đổi khớp với mã hiện tại.
-- [ ] Hướng dẫn cài đặt chạy được trên thư mục sạch; danh sách biến môi trường chỉ ghi tên, công dụng.
-- [ ] Người thứ hai đã tự vận hành, sửa một lỗi nhỏ và triển khai lại được.
+- [ ] Hướng dẫn cài đặt chạy được trên thư mục sạch; người thứ hai đã tự sửa một lỗi nhỏ và triển khai lại được.
 - [ ] Người dùng đã được tập huấn và ký cam kết theo Quy tắc sử dụng AI (Phụ lục 4).
 - [ ] Tài khoản dịch vụ, tên miền, kho mã đã chuyển sang đứng tên cơ quan hoặc đơn vị chuyên trách.
 
@@ -495,7 +492,7 @@ Danh mục chỉ gồm nguồn có thật mà sách đã dùng. Văn bản pháp
 1. Bộ Chính trị, Nghị quyết số 57-NQ/TW ngày 22/12/2024.
 2. Văn phòng Trung ương Đảng, Công văn số 19130-CV/VPTW ngày 26/11/2025 và Hướng dẫn kèm theo.
 3. Quốc hội, Luật Trí tuệ nhân tạo số 134/2025/QH15; Luật Bảo vệ bí mật nhà nước số 117/2025/QH15; Luật An ninh mạng số 116/2025/QH15 (cùng thông qua ngày 10/12/2025).
-4. Quốc hội, Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 ngày 26/6/2025; Chính phủ, Nghị định số 356/2025/NĐ-CP.
+4. Quốc hội, Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 ngày 26/6/2025; Chính phủ, Nghị định số 356/2025/NĐ-CP ngày 31/12/2025.
 5. Chính phủ, Nghị định số 142/2026/NĐ-CP ngày 30/4/2026; Nghị định số 331/2026/NĐ-CP ngày 19/8/2026; Nghị định số 335/2025/NĐ-CP ngày 21/12/2025.
 6. Bộ Khoa học và Công nghệ, Công văn số 557/BKHCN-CĐSQG ngày 31/3/2025; Thông tư số 05/2026/TT-BKHCN ngày 10/3/2026.
 
@@ -503,7 +500,7 @@ Danh mục chỉ gồm nguồn có thật mà sách đã dùng. Văn bản pháp
 
 7. Hà Ngọc Sơn (2026), *Trí tuệ nhân tạo trong công tác tham mưu*, Tập 1, 271 trang, hoàn thiện tháng 5/2026.
 8. Hà Ngọc Sơn (2026), Báo cáo mô tả sáng kiến "Xây dựng phần mềm đánh giá, xếp loại cán bộ, công chức, người lao động theo OKR/KPI…".
-9. Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (7/2026), Đặc tả yêu cầu phần mềm hệ thống theo dõi, đánh giá, xếp loại chất lượng theo KPI, kèm bảng tính mô phỏng Engine tính điểm; Dự thảo Quyết định ban hành Danh mục sản phẩm/công việc.
+9. Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa (7/2026), Đặc tả yêu cầu phần mềm hệ thống theo dõi, đánh giá, xếp loại chất lượng theo KPI; Dự thảo Danh mục sản phẩm/công việc.
 10. Thường trực HĐND tỉnh Thanh Hóa (2026), Dự thảo Quyết định ban hành Khung tiêu chí đánh giá, xếp loại HĐND cấp tỉnh, cấp xã, nhiệm kỳ 2026-2031.
 11. Ban Tổ chức Tỉnh ủy Thanh Hóa (2026), Dự thảo Hướng dẫn lập danh mục sản phẩm/công việc và đánh giá kết quả thực hiện nhiệm vụ gắn với OKR/KPI.
 12. Kho mã nguồn hệ thống thử nghiệm https://github.com/sonthkh-alt/hdndthkpi (CLAUDE.md; .claude/rules/, gồm nhật ký changelog.md; supabase/schema.sql; src/lib/soTaySeed.js; docs/BOT-CHAT.md). Bản chạy thử: https://hdndthkpi.vercel.app.

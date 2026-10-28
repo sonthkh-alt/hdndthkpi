@@ -14,7 +14,7 @@ Dành cho: cán bộ tham mưu công tác tổ chức, đảng vụ; lãnh đạ
 
 Chương 9 kể về việc chấm điểm cán bộ, công chức của Văn phòng hằng tháng. Chương này đi tiếp sang một đối tượng khác, một chu kỳ khác và một loại văn bản khác: kiểm điểm, đánh giá, xếp loại hằng quý đối với các đồng chí lãnh đạo diện Ban Thường vụ (BTV) Tỉnh ủy quản lý ở Hội đồng nhân dân (HĐND) tỉnh, Đoàn đại biểu Quốc hội (ĐBQH) tỉnh và Văn phòng Đoàn ĐBQH và HĐND tỉnh.
 
-Phân hệ nằm trong hệ thống thử nghiệm của Văn phòng tại địa chỉ hdndthkpi.vercel.app, đường dẫn `#/kiemdiem`. Nó dùng chung "bộ khung" với phân hệ OKR/KPI của Chương 9, nhưng có module tính điểm, kho dữ liệu và biểu mẫu xuất Word riêng.
+Phân hệ nằm trong hệ thống thử nghiệm của Văn phòng tại địa chỉ hdndthkpi.vercel.app, đường dẫn `#/kiemdiem`. Nó dùng chung "bộ khung" giao diện với phân hệ OKR/KPI của Chương 9, nhưng có phần tính điểm, kho dữ liệu và biểu mẫu xuất Word riêng.
 
 Đây là phân hệ cho tôi bài học đau nhất về nghiệp vụ. Phiên bản đầu tiên được dựng rất nhanh, bám sát câu chữ văn bản hướng dẫn, chạy trơn tru. Nhưng đặt cạnh tờ kế hoạch và bản tự đánh giá bằng giấy mà chính tôi đang dùng, nó lệch ở bốn chỗ lớn. Ngày 28/9/2026, tôi cùng tác tử AI lập trình dựng lại gần như toàn bộ phần đánh giá. Câu chuyện ấy, cùng các sự cố về kỳ dữ liệu theo quý, là phần cốt lõi của chương.
 
@@ -28,7 +28,7 @@ Yêu cầu đánh giá định kỳ theo quý, đo bằng sản phẩm, công vi
 
 Ngày 22/5/2026, Ban Tổ chức Trung ương ban hành Hướng dẫn 02-HD/BTCTW về một số nội dung đánh giá định kỳ hằng quý đối với cán bộ lãnh đạo, quản lý các cấp trong hệ thống chính trị. Văn bản này lấy Quy định 366-QĐ/TW ngày 30/8/2025 của Bộ Chính trị làm căn cứ. Ngày 02/7/2026, Tỉnh ủy Thanh Hóa ban hành Hướng dẫn 03-HD/TU cùng tên gọi, cụ thể hóa cho tỉnh, kèm một bộ phụ lục biểu mẫu. Theo hai hướng dẫn này, kết quả các trục kết quả trọng tâm được lấy làm cơ sở đánh giá, xếp loại bắt đầu từ Quý II năm 2026.
 
-Đọc hai văn bản như đọc một bản thiết kế (Chương 8), tôi tách được mấy ý mà phần mềm buộc phải "hiểu":
+Đọc hai văn bản như đọc một bản thiết kế (Chương 8, mục 8.1), tôi tách được mấy ý mà phần mềm buộc phải "hiểu":
 
 - **Chu kỳ là quý**: mỗi quý một lần lập kế hoạch, một lần tự đánh giá.
 - **Đo bằng sản phẩm** theo sáu trục kết quả trọng tâm, theo yêu cầu "sáu rõ: rõ người, rõ việc, rõ thời gian, rõ trách nhiệm, rõ sản phẩm, rõ thẩm quyền" của Hướng dẫn 02-HD/BTCTW.
@@ -55,7 +55,7 @@ Phân hệ phục vụ 15 đồng chí: 2 Phó Chủ tịch HĐND tỉnh; Trư�
 
 Ba đồng chí lãnh đạo Văn phòng có mặt ở cả hai phân hệ: hằng tháng chấm KPI cùng cán bộ, công chức Văn phòng (Chương 9), hằng quý kiểm điểm với tư cách cán bộ diện BTV quản lý. Nhật ký dự án ghi rõ đây là phương án do tôi chọn: ép mỗi người vào đúng một phân hệ thì gọn dữ liệu nhưng sai thực tế công việc.
 
-Ai thuộc phân hệ này không do phân hệ tự quyết. Hồ sơ cán bộ Mẫu 2C ở phân hệ Quản lý cán bộ có trường "Diện quản lý cán bộ"; phân hệ Kiểm điểm chỉ đọc những người được đánh dấu thuộc diện BTV Tỉnh ủy quản lý. Muốn thêm, bớt người thì sửa ở hồ sơ gốc. Nguyên tắc "danh sách cán bộ một mối" này được nói kỹ ở Chương 12.
+Ai thuộc phân hệ này không do phân hệ tự quyết. Hồ sơ cán bộ Mẫu 2C ở phân hệ Quản lý cán bộ có trường "Diện quản lý cán bộ"; phân hệ Kiểm điểm chỉ đọc những người được đánh dấu thuộc diện BTV Tỉnh ủy quản lý. Muốn thêm, bớt người thì sửa ở hồ sơ gốc. Nguyên tắc "danh sách cán bộ một mối" này được nói kỹ ở Chương 12, mục 12.1.
 
 Một lưu ý trung thực: trong bản demo thử nghiệm, chức danh là chức danh thật của cơ quan, còn toàn bộ điểm số, mức xếp loại là **dữ liệu mô phỏng** để trình diễn (bộ dữ liệu mẫu chia 2 hồ sơ loại A, 12 hồ sơ loại B, 1 hồ sơ loại C). Không ai được hiểu những con số đó là kết quả kiểm điểm thật.
 
@@ -73,7 +73,7 @@ Phần mềm không thay được phần nghĩ: nhiệm vụ nào là trọng t�
 
 ### 10.2.1. Phiên bản đầu tiên: đúng văn bản, lệch thực tiễn
 
-Phân hệ ra đời sau khi Hướng dẫn 03-HD/TU được ban hành. Tôi đưa cho tác tử AI lập trình văn bản hướng dẫn và các phụ lục, yêu cầu số hóa. Kết quả đầu tiên đúng khung: Nhóm A tiêu chí chung 30 điểm, Nhóm B kết quả nhiệm vụ 70 điểm chia cho sáu trục. Sau đó thêm vài vòng: dựng danh mục sản phẩm mỗi dòng tới mười ô nhập, bổ sung phần tự kiểm điểm bằng lời, rồi đơn giản hóa vì quá nhiều ô. Vòng nào cũng "build xanh".
+Phân hệ ra đời sau khi Hướng dẫn 03-HD/TU được ban hành. Tôi đưa cho tác tử AI lập trình văn bản hướng dẫn và các phụ lục, yêu cầu số hóa. Kết quả đầu tiên đúng khung: Nhóm A tiêu chí chung 30 điểm, Nhóm B kết quả nhiệm vụ 70 điểm chia cho sáu trục. Sau đó thêm vài vòng: dựng danh mục sản phẩm mỗi dòng tới mười ô nhập, bổ sung phần tự kiểm điểm bằng lời, rồi đơn giản hóa vì quá nhiều ô. Vòng nào bản dựng (build) cũng chạy được, không báo lỗi.
 
 Rồi tôi làm việc lẽ ra phải làm từ đầu: đặt màn hình phần mềm cạnh bản tự đánh giá Quý III và bản kế hoạch Quý IV/2026 bằng giấy của chính mình.
 
@@ -88,6 +88,8 @@ Còn một chỗ thứ năm, nhỏ mà không nhỏ: tiêu đề tệp Word in t
 
 Bản dựng lại được đưa lên kho mã nguồn sáng 28/9/2026, chạm tới chín tệp, trong đó có một tệp mẫu kế hoạch mới hơn sáu trăm dòng. Tôi ghi nhớ: văn bản hướng dẫn chưa phải là thực tiễn, và "chạy được" chưa phải là "đúng".
 :::
+
+Chương 8, mục 8.4 rút từ chính câu chuyện này phương pháp chung để biến biểu mẫu giấy thành màn hình; ở đây tôi chỉ đi vào cách phân hệ được dựng lại.
 
 ### 10.2.2. Bước một: lập kế hoạch quý
 
@@ -108,7 +110,7 @@ Bản dựng lại được đưa lên kho mã nguồn sáng 28/9/2026, chạm t
 
 **Thứ ba, trình tập thể lãnh đạo duyệt kế hoạch.** Dấu "kế hoạch quý đã được duyệt" tách biệt với dấu "bản tự đánh giá đã được phê duyệt" cuối kỳ; bảng tổng hợp có cột "Kế hoạch: Đã duyệt / Chưa duyệt".
 
-Vì sao bước duyệt kế hoạch quan trọng? Vì điểm tối đa do chính người được đánh giá đề xuất, nên dễ bị dồn vào trục chắc chắn làm tốt. Đó là dạng quen thuộc của quy luật Goodhart (Chương 9): khi thước đo thành mục tiêu, người ta tìm cách "đẹp số". Chốt chặn nằm ở tập thể lãnh đạo khi phê duyệt kế hoạch, không nằm ở phần mềm.
+Vì sao bước duyệt kế hoạch quan trọng? Vì điểm tối đa do chính người được đánh giá đề xuất, nên dễ bị dồn vào trục chắc chắn làm tốt. Đó là dạng quen thuộc của quy luật Goodhart (Chương 9, mục 9.3): khi thước đo thành mục tiêu, người ta tìm cách "đẹp số". Chốt chặn nằm ở tập thể lãnh đạo khi phê duyệt kế hoạch, không nằm ở phần mềm.
 
 ### 10.2.3. Bước hai: tự đánh giá ngay trên kế hoạch đã duyệt
 
@@ -149,7 +151,9 @@ Phần mềm tự đề xuất một trong bốn mức: Hoàn thành xuất sắ
 
 Các điều kiện này được đối chiếu từ quy định của Tỉnh ủy qua bản chụp (scan), phải chuyển từng trang thành ảnh mới đọc được; trước khi dùng thật cần đối chiếu lại nguyên văn hiện hành. Bảng tổng hợp tập thể còn cảnh báo khi số HTXS vượt 20% số HTT, theo cách khống chế tỷ lệ mà Quy định 1053-QĐ/TU áp dụng cho đánh giá hằng tháng; tỷ lệ cho kỳ quý cũng cần đối chiếu.
 
-Quan trọng hơn con số là phần giải thích: khi xếp loại thấp hơn mức tổng điểm gợi ý, phần mềm ghi rõ lý do, ví dụ "Chưa đạt ≥30% nhiệm vụ vượt mức (hiện 20%) nên chưa đạt Hoàn thành xuất sắc".
+Còn một cảnh báo riêng: khi có nhiệm vụ chỉ đạt dưới mức "Hoàn thành tốt", màn hình treo dòng nhắc điểm 6.2 của hướng dẫn (hoàn thành dưới 100% nhiệm vụ của quý thì xếp loại Không hoàn thành nhiệm vụ, trừ lý do khách quan, bất khả kháng được xác nhận) và mở ô "Lý do khách quan" để ghi. Phần mềm chỉ nhắc, không tự hạ loại: có lý do khách quan hay không là việc cấp có thẩm quyền xác nhận.
+
+Quan trọng hơn con số là phần giải thích: khi xếp loại thấp hơn mức tổng điểm gợi ý, phần mềm ghi rõ lý do, ví dụ "Chưa đạt ≥30% nhiệm vụ vượt mức (hiện 20%) nên chưa đạt Hoàn thành xuất sắc". Đó chính là Mô hình 1 "AI đề xuất, con người duyệt" trong nguyên tắc con người trong vòng lặp (Tập 1, mục 7.5), chỉ khác ở chỗ người đề xuất ở đây là một chương trình tính theo quy tắc cố định.
 
 ::: {.vidu}
 **Ví dụ minh họa: một bản tự đánh giá giả định**
@@ -217,11 +221,13 @@ Mỗi dòng hỏi "chức vụ có chứa cụm này không?"; dòng đầu tiê
 
 Có trường hợp máy không thể tự đoán: hai Phó Chánh Văn phòng cùng chức danh nhưng phụ trách hai khối khác nhau. Khi đó hồ sơ được ghi sẵn khóa mẫu ở một trường riêng, và khóa do người ghi luôn được ưu tiên hơn suy đoán của máy.
 
-Đây là cùng họ lỗi với cái bẫy "quốc gia" chứa "gia" ở Chương 15. Cách phòng giống nhau: biến ca lỗi thành phép kiểm thử hồi quy (regression test) để máy tự kiểm tra ở mọi lần sửa sau. Bộ kiểm thử mẫu kế hoạch có 127 phép kiểm: mẫu nào tổng cũng đúng 70; trục nào cũng có nhiệm vụ đủ ba cột và khai vai trò; suy mẫu đúng cho 10 chức danh thật; nút chia lại cho đủ 70 đúng trong mọi tình huống. Một thiếu sót tôi phải nhận: bộ kiểm thử này còn nằm ở thư mục làm việc tạm, chưa được đưa lên kho mã nguồn, nên máy khác chưa chạy lại được.
+Đây là cùng họ lỗi với cái bẫy "quốc gia" chứa "gia" ở Chương 15, mục 15.2. Cách phòng giống nhau: biến ca lỗi thành phép kiểm thử hồi quy (regression test) để máy tự kiểm tra ở mọi lần sửa sau. Bộ kiểm thử mẫu kế hoạch có 127 phép kiểm: mẫu nào tổng cũng đúng 70; trục nào cũng có nhiệm vụ đủ ba cột và khai vai trò; suy mẫu đúng cho 10 chức danh thật; nút chia lại cho đủ 70 đúng trong mọi tình huống. Một thiếu sót tôi phải nhận: bộ kiểm thử này còn nằm ở thư mục làm việc tạm, chưa được đưa lên kho mã nguồn, nên máy khác chưa chạy lại được.
 
 ### 10.3.3. Nâng cấp bản lưu cũ mà không mất phần đã chấm
 
-Khi dựng lại, trên máy chủ đã có các bản lưu theo mô hình cũ. Xóa đi làm lại là nhanh nhất, nhưng làm mất công sức người dùng. Tôi yêu cầu một hàm nâng cấp: bản lưu nào chưa có cấu hình trục thì dựng lại kế hoạch từ mẫu chức danh, nhưng **giữ nguyên** phần Nhóm A đã đánh dấu, phần tự luận và mức xếp loại đã có. Hàm này chạy ở cả ba đường nạp dữ liệu của phân hệ.
+Khi dựng lại, trên máy chủ đã có các bản lưu theo mô hình cũ. Xóa đi làm lại là nhanh nhất, nhưng làm mất công sức người dùng. Tôi yêu cầu một hàm (đoạn chương trình làm một việc) nâng cấp: bản lưu nào chưa có cấu hình trục thì dựng lại kế hoạch từ mẫu chức danh, nhưng **giữ nguyên** phần Nhóm A đã đánh dấu, phần tự luận và mức xếp loại đã có. Hàm này chạy ở cả ba đường nạp dữ liệu của phân hệ.
+
+Câu lệnh dưới đây đi theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2), thêm dòng "Nghiệm thu" là phần mở rộng của Tập 2 cho việc giao cho tác tử AI lập trình (Chương 6, mục 6.2).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 10.1 — Dựng mẫu kế hoạch theo chức danh, có kiểm thử thứ tự suy mẫu**
@@ -233,7 +239,7 @@ Tôi đính kèm biểu mẫu Kế hoạch quý và danh sách chức danh cần
 [liệt kê chức danh, đơn vị, lĩnh vực phụ trách — KHÔNG kèm họ tên].
 Việc: Tạo một tệp logic thuần (không giao diện, chạy được bằng Node) chứa
 mẫu kế hoạch cho từng chức danh: phân bổ điểm 6 trục, vai trò chính/phụ,
-8–11 nhiệm vụ có "kết quả cần đạt" và "thời gian hoàn thành".
+9–11 nhiệm vụ có "kết quả cần đạt" và "thời gian hoàn thành".
 Viết hàm suy mẫu từ chức vụ + đơn vị; cho phép ghi sẵn khóa mẫu để ghi đè.
 Dạng: Trình bày phương án bằng bảng trước, chờ tôi duyệt.
 Ràng buộc: Xét cụm dài trước cụm ngắn (phó trưởng ban trước trưởng ban,
@@ -270,14 +276,14 @@ Văn bản hành chính trình bày theo thể thức của Nghị định 30/20
 
 ### 10.4.3. Nghiệm thu bằng máy, không chỉ bằng mắt
 
-Xem bằng mắt là cần nhưng chưa đủ. Sau lần dựng lại, tác tử AI chạy trình duyệt tự động trên bản dựng thật, bấm nút xuất, nhận về hai tệp Word thật (khoảng 16 KB và 17 KB), rồi dùng thư viện python-docx đọc ngược để đối chiếu tiêu đề, khối thông tin, bảng A, bảng B. Như nghiệm thu công trình tại hiện trường, không trên bản vẽ.
+Xem bằng mắt là cần nhưng chưa đủ. Sau lần dựng lại, tác tử AI chạy trình duyệt tự động trên bản dựng thật, bấm nút xuất, nhận về hai tệp Word thật (khoảng 16 KB và 17 KB), rồi dùng python-docx (một thư viện đọc tệp Word) đọc ngược để đối chiếu tiêu đề, khối thông tin, bảng A, bảng B. Như nghiệm thu công trình tại hiện trường, không trên bản vẽ.
 
 ::: {.canhbao}
 **Cảnh báo: hồ sơ kiểm điểm không phải dữ liệu để "thử" trên AI công cộng**
 
 Hồ sơ kiểm điểm có họ tên, ngày sinh, chức vụ Đảng và nhận xét về phẩm chất, đạo đức của một con người. Họ tên, ngày sinh là dữ liệu cá nhân cơ bản theo Điều 3 Nghị định 356/2025/NĐ-CP hướng dẫn Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (cả hai có hiệu lực từ 01/01/2026). Hồ sơ kiểm điểm còn là tài liệu nội bộ của tổ chức đảng. Hướng dẫn khai thác, sử dụng AI cho cán bộ, đảng viên trong các cơ quan đảng, được Văn phòng Trung ương Đảng triển khai bằng Công văn 19130-CV/VPTW ngày 26/11/2025, yêu cầu không đưa tài liệu mật, thông tin nhạy cảm lên nền tảng AI và coi AI là công cụ "hỗ trợ, không thay thế". Với tài liệu có nội dung bí mật nhà nước, Điều 5 Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 nghiêm cấm soạn thảo, lưu giữ trên thiết bị đang kết nối Internet.
 
-Vì vậy, biểu mẫu thật dùng để đối chiếu nằm ở thư mục bị chặn khỏi kho mã nguồn công khai; mã nguồn chỉ chứa cấu trúc biểu mẫu. Với trợ lý AI trò chuyện công cộng, chỉ đưa cấu trúc biểu mẫu (vùng XANH), không dán bản tự đánh giá có tên người (vùng ĐỎ).
+Vì vậy, biểu mẫu thật dùng để đối chiếu nằm ở thư mục bị chặn khỏi kho mã nguồn công khai; mã nguồn chỉ chứa cấu trúc biểu mẫu. Theo phân loại dữ liệu 4 cấp (Tập 1, mục 7.1–7.2): cấu trúc biểu mẫu trống, chỉ có tên cột, đã phổ biến kèm hướng dẫn thì xếp Cấp 1 Công khai và đưa được cho trợ lý AI trò chuyện; bản kế hoạch, bản tự đánh giá có tên người, nhận xét về phẩm chất là Cấp 3 Hạn chế tiếp cận, chỉ được xử lý bằng AI có máy chủ trong nước hoặc tự triển khai nội bộ, tuyệt đối không dán lên AI công cộng nước ngoài. Khi không chắc chắn, chọn cấp cao hơn.
 
 Bản demo hiện mở quyền đọc dữ liệu kỳ kiểm điểm cho mọi người để trình diễn, với điểm số mô phỏng. Khi dùng dữ liệu thật, phải chuyển sang hạ tầng của cơ quan và gỡ quyền đọc công khai trước.
 :::
@@ -307,9 +313,9 @@ viện đọc .docx và báo cáo: tiêu đề hai cột đúng chữ, đủ s�
 
 Chỉ một khác biệt về đơn vị thời gian, tháng và quý, đã sinh ra chuỗi ba sự cố nối tiếp nhau.
 
-**Sự cố thứ nhất: hai phân hệ chung một bìa hồ sơ.** Mỗi kỳ được lưu thành một bản ghi mang tên kiểu "năm_tháng". Quý III của Kiểm điểm được lưu ở tháng 9, trùng tên với kỳ tháng 9 của OKR/KPI. Ai mở phân hệ sau, cơ chế tự lưu ghi đè danh sách của mình lên. Ngày 13/8/2026, cách sửa được áp dụng: thêm tiền tố riêng, gọi là không gian tên (namespace), để mỗi phân hệ có "tủ hồ sơ" riêng. Sửa xong lại lộ hệ quả: bot chat (Chương 14) dò tên bản ghi theo mẫu cũ nên mất hẳn phân hệ Kiểm điểm. Đây là một trong hai sự cố dây chuyền dẫn tới quy tắc "rà soát chức năng liên quan" (Chương 7).
+**Sự cố thứ nhất: hai phân hệ chung một bìa hồ sơ.** Mỗi kỳ được lưu thành một bản ghi mang tên kiểu "năm_tháng". Quý III của Kiểm điểm được lưu ở tháng 9, trùng tên với kỳ tháng 9 của OKR/KPI. Ai mở phân hệ sau, cơ chế tự lưu ghi đè danh sách của mình lên. Ngày 13/8/2026, cách sửa được áp dụng: thêm tiền tố riêng, gọi là không gian tên (namespace), để mỗi phân hệ có "tủ hồ sơ" riêng. Sửa xong lại lộ hệ quả: bot chat (Chương 14) dò tên bản ghi theo mẫu cũ nên mất hẳn phân hệ Kiểm điểm. Đây là một trong hai sự cố dây chuyền dẫn tới quy tắc "rà soát chức năng liên quan" (Chương 7, mục 7.5).
 
-**Sự cố thứ hai (từ 01/9/2026): đầu tháng, phân hệ trắng trang.** Kỳ mới chưa có dữ liệu, danh sách rỗng, một dòng mã cứ đòi lấy "người đứng đầu danh sách" nên cả phân hệ sập. Lỗi này chung cho ba phân hệ dùng tệp giao diện lõi; Chương 9 đã phân tích kỹ.
+**Sự cố thứ hai (từ 01/9/2026): đầu tháng, phân hệ trắng trang.** Kỳ mới chưa có dữ liệu, danh sách rỗng, một dòng mã cứ đòi lấy "người đứng đầu danh sách" nên cả phân hệ sập. Lỗi này chung cho ba phân hệ dùng tệp giao diện lõi; Chương 9, mục 9.5 đã phân tích kỹ.
 
 **Sự cố thứ ba: tháng 8 và tháng 9 cùng Quý III mà thành hai bản ghi.**
 
@@ -343,7 +349,7 @@ cách cũ được giữ lại thế nào. Chưa sửa mã; chờ tôi duyệt.
 
 ## 10.6. Tự làm phiên bản nhỏ
 
-Một bản kế hoạch quý tự tính điểm cho chính mình làm được ở Bậc 1 hoặc Bậc 2 của thang kiến tạo (Chương 2), trong một buổi.
+Một bản kế hoạch quý tự tính điểm cho chính mình làm được ở Bậc 1 hoặc Bậc 2 của thang kiến tạo (Chương 2, mục 2.3), trong một buổi.
 
 **Bậc 1, bảng tính.** Một tệp Excel ba trang: "Danh mục" (5 mức độ, 3 tầm quan trọng); "Kế hoạch" (mỗi dòng một nhiệm vụ với đủ các cột của biểu mẫu); "Tổng hợp" (mỗi trục một dòng: điểm tối đa, KPI, điểm đạt; ô kiểm tra tổng bằng 70; ô xếp loại gợi ý). Trợ lý AI trò chuyện viết công thức; đồng chí chỉ mô tả cấu trúc, không dán nội dung thật.
 

@@ -1,33 +1,35 @@
 # Phụ lục 1. Thuật ngữ Việt – Anh
 
-Bảng dưới đây gom 77 thuật ngữ dùng trong sách, giúp người đọc tra lại một khái niệm mà không phải lật về chỗ giải thích đầu tiên. Cột "Tiếng Anh" cho tên gốc thường gặp: phần lớn tài liệu hướng dẫn, giao diện công cụ và thông báo lỗi năm 2026 vẫn bằng tiếng Anh, biết tên gốc thì tra cứu nhanh hơn, giao việc cho tác tử AI lập trình cũng ít nhầm hơn.
+Bảng dưới đây gom 80 thuật ngữ dùng trong sách để người đọc tra lại nhanh. Cột "Tiếng Anh" ghi tên gốc, vì phần lớn tài liệu hướng dẫn, giao diện công cụ và thông báo lỗi vẫn bằng tiếng Anh.
 
 - Thuật ngữ xếp theo thứ tự chữ cái tiếng Việt (a, ă, â, b, c, d, đ…); dấu thanh xét sau cùng.
-- Lời giải thích chỉ để nhớ nhanh, nhiều chỗ dùng lại hình ảnh trụ sở cơ quan của sách: giao diện là phòng tiếp dân, máy chủ là phòng làm việc phía sau, cơ sở dữ liệu là kho lưu trữ hồ sơ.
-- Thuật ngữ pháp lý chỉ được tóm lược. Pháp luật trong sách đối chiếu đến ngày 26/10/2026; khi áp dụng phải đọc nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo. Tên sản phẩm cũng đổi nhanh: từ ngày 16/7/2026, NotebookLM đổi tên thành Gemini Notebook.
+- Lời giải thích chỉ để nhớ nhanh, nhiều chỗ dùng lại hình ảnh trụ sở cơ quan của sách.
+- Thuật ngữ pháp lý chỉ được tóm lược. Pháp luật trong sách đối chiếu đến ngày 26/10/2026; khi áp dụng phải đọc nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo; danh mục văn bản xem Phụ lục 5. Tên sản phẩm cũng đổi nhanh: ngày 16/7/2026, Google đổi tên NotebookLM thành Gemini Notebook, địa chỉ nay là notebook.google.com (Tập 1 còn ghi notebooklm.google.com).
 
 | Thuật ngữ | Tiếng Anh | Giải thích ngắn |
 |---|---|---|
 | Ảo giác (của AI) | Hallucination | AI viết ra điều nghe hợp lý nhưng sai hoặc bịa: số hiệu văn bản, điều khoản, số liệu. |
-| Ẩn danh hóa | Anonymisation | Xóa hoặc thay mọi chi tiết giúp nhận ra một người (họ tên, địa chỉ, số điện thoại, số định danh) trước khi dùng dữ liệu vùng VÀNG. |
+| Ẩn danh hóa | Anonymisation | Xóa hoặc thay mọi chi tiết giúp nhận ra một người (họ tên, địa chỉ, số điện thoại, số định danh) trước khi đưa dữ liệu Cấp 2 lên AI. |
 | Bản demo thử nghiệm | Demo, prototype | Phiên bản để dùng thử, chạy trên dữ liệu mô phỏng, có nhãn rõ; không thay thế văn bản, quy trình chính thức. |
 | Bản dựng | Build | Bước đóng gói mã nguồn thành bộ tệp chạy được; "bản dựng xanh" chưa phải bằng chứng đúng nghiệp vụ. |
 | Băm, chuỗi băm | Hash | Biến một chuỗi thành "vân tay" cố định: so khớp được, không dựng lại được bản gốc. |
 | Bên triển khai (hệ thống AI) | Deployer | Chủ thể được định nghĩa tại Điều 3 Luật Trí tuệ nhân tạo số 134/2025/QH15; cơ quan đưa chatbot vào công việc thường ở vai này. |
+| Bí mật nhà nước | State secret | Cấp 4 trong phân loại của Tập 1 (mục 7.2); không đưa lên AI nước ngoài, không soạn thảo, lưu giữ trên thiết bị kết nối Internet theo Luật Bảo vệ bí mật nhà nước số 117/2025/QH15. |
 | Biến môi trường | Environment variable | Thông số cấu hình khai ngoài mã nguồn (tệp .env, trang quản trị Vercel); nơi đúng để cất khóa bí mật. |
 | Bot chat | Chatbot, bot | Chương trình tự trả lời tin nhắn trên Telegram, Zalo OA; bot của Văn phòng đọc số liệu thật từ các phân hệ. |
 | Bộ nhớ dự án | Project memory | Tệp CLAUDE.md và thư mục .claude/rules/ trong kho mã, tác tử tự đọc đầu mỗi phiên; như sổ bàn giao. |
-| Câu lệnh | Prompt | Lời giao việc gửi cho AI, nên theo khung V-B-V-D-R; giao cho tác tử thì thêm Nghiệm thu. |
-| Chế độ lập kế hoạch | Plan mode | Tác tử chỉ đọc, phân tích, trình phương án, chưa sửa tệp nào; người duyệt như duyệt tờ trình. |
+| Câu lệnh | Prompt | Lời giao việc gửi cho AI, nên theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2); giao cho tác tử thì thêm Nghiệm thu. |
+| Chèn lệnh độc hại | Prompt injection | Câu chữ cài sẵn trong tài liệu, trang web hay tin nhắn nhằm khiến AI làm trái lời dặn; như một tờ giấy lạ kẹp vào hồ sơ trình ký. |
+| Chế độ lập kế hoạch | Plan mode | Tác tử chỉ đọc, phân tích, trình phương án, chưa sửa tệp; người duyệt như duyệt tờ trình. |
 | Chỉ số đo lường kết quả | Key Performance Indicator (KPI) | Chỉ số đo kết quả công việc; phân hệ OKR/KPI dùng Số lượng, Chất lượng, Tiến độ theo Nghị định 335/2025/NĐ-CP. |
 | Chính sách bảo mật theo dòng | Row Level Security (RLS) | Quy tắc trong cơ sở dữ liệu quyết định ai đọc, ghi được dòng nào; như thẻ ra vào từng phòng. |
+| Con người trong vòng lặp | Human-in-the-Loop (HITL) | AI không tự quyết định cuối, luôn có cán bộ kiểm tra, quyết định; Tập 1 (mục 7.5) nêu ba mô hình, khu vực công không dùng mô hình tự động hoàn toàn. |
 | Cơ sở dữ liệu | Database | "Kho lưu trữ hồ sơ" của ứng dụng; hệ thống thử nghiệm dùng Supabase (PostgreSQL), dữ liệu nằm trong bảng app_state. |
 | Cửa sổ ngữ cảnh | Context window | Lượng văn bản tối đa AI "nhìn thấy" trong một lượt; tài liệu quá dài phải chia nhỏ hoặc chọn đoạn liên quan. |
 | Danh sách trắng | Allowlist | Chỉ chấp nhận mục đã khai sẵn; quên khai mục mới thì dữ liệu bị gọt mất, như trường danh bạ từng bị. |
 | Dịch vụ AI trung gian | AI proxy, reseller API | Bên bán lại quyền gọi mô hình AI; rẻ, tiện, nhưng dữ liệu gửi kèm đi qua máy chủ của họ. |
-| Dữ liệu cá nhân nhạy cảm | Sensitive personal data | Dữ liệu cá nhân được bảo vệ chặt hơn theo Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP, như tình trạng sức khỏe. |
+| Dữ liệu cá nhân nhạy cảm | Sensitive personal data | Dữ liệu cá nhân được bảo vệ chặt hơn, như tình trạng sức khỏe (Luật số 91/2025/QH15, Nghị định 356/2025/NĐ-CP). |
 | Dữ liệu mô phỏng | Mock data | Dữ liệu giả lập để trình diễn, thử nghiệm; phải gắn nhãn, không trình bày như kết quả thật. |
-| Dữ liệu vùng ĐỎ, VÀNG, XANH | Data classification | Phân loại của Tập 1: ĐỎ là mật, nhạy cảm, không đưa lên AI công cộng; VÀNG là nội bộ, phải ẩn danh; XANH là công khai. |
 | Đánh giá tác động xử lý dữ liệu cá nhân | Data Protection Impact Assessment (DPIA) | Hồ sơ đánh giá rủi ro khi xử lý dữ liệu cá nhân; biểu mẫu ban hành kèm Nghị định 356/2025/NĐ-CP. |
 | Đặc tả yêu cầu phần mềm | Software requirements specification | Văn bản nêu phần mềm phục vụ ai, làm gì, theo quy trình nào, nghiệm thu ra sao; viết trước khi làm. |
 | Đẩy lên, kéo về | Push, pull | Đưa thay đổi từ máy lên GitHub và lấy bản mới nhất về máy; đầu phiên kéo về, cuối phiên đẩy lên. |
@@ -40,50 +42,51 @@ Bảng dưới đây gom 77 thuật ngữ dùng trong sách, giúp người đ�
 | Gói miễn phí | Free tier | Mức dùng không mất tiền, kèm giới hạn; tại thời điểm 10/2026, Supabase Free tạm dừng dự án sau một tuần không dùng. |
 | Hàm máy chủ | Serverless function | Đoạn mã chạy trên máy chủ khi có yêu cầu rồi tắt; không nhớ gì giữa các lần gọi, có giới hạn thời gian chạy. |
 | Hạn mức | Quota, rate limit | Số lượt tối đa trong một khoảng thời gian; Trợ lý AI của hệ thống cho khách 1, người đăng nhập 5 lượt mỗi ngày. |
-| Huấn luyện mô hình | Model training | Nhà cung cấp dùng dữ liệu, có thể gồm hội thoại, để cải thiện mô hình; gói cá nhân thường phải tự tắt trong mục quyền riêng tư. |
+| Huấn luyện mô hình | Model training | Nhà cung cấp dùng dữ liệu, có thể gồm hội thoại, để cải thiện mô hình; gói cá nhân thường phải tự tắt. |
 | Kho mã nguồn | Repository | "Tủ lưu bản vẽ" có lịch sử từng lần sửa; kho công khai thì ai cũng đọc được mọi tệp. |
 | Khóa API | API key | Chuỗi bí mật chứng minh quyền gọi một dịch vụ, gắn với hóa đơn; lộ khóa như lộ con dấu kèm tài khoản. |
 | Khóa bí mật | Secret key, service role key | Khóa vượt mọi phân quyền của cơ sở dữ liệu; chỉ đặt ở máy chủ, không bao giờ mang tiền tố VITE_. |
 | Khóa lạc quan | Optimistic locking | Chỉ ghi khi dữ liệu trên máy chủ chưa bị ai sửa kể từ lúc mình mở; có người sửa thì báo xung đột. |
 | Không gian tên | Namespace | Tiền tố tách dữ liệu từng phân hệ, như state_kiemdiem_…; thiếu nó, phân hệ này từng ghi đè phân hệ kia. |
 | Khởi động nguội | Cold start | Lần gọi đầu sau thời gian nghỉ nên chậm; phân hệ Một dữ liệu trên gói miễn phí mở lần đầu mất 30–60 giây. |
-| Khung lệnh V-B-V-D-R | Prompt framework | Vai, Bối cảnh, Việc, Dạng, Ràng buộc (Tập 1); Tập 2 thêm Nghiệm thu khi giao việc cho tác tử. |
+| Khung VAI-BỐI-VIỆC-DẠNG-RÀNG | Prompt framework | Năm thành phần của câu lệnh tốt: Vai trò, Bối cảnh, Việc, Dạng đầu ra, Ràng buộc (Tập 1, mục 3.2); Tập 2 thêm Nghiệm thu khi giao việc cho tác tử. |
 | Kiểm thử | Test | Chạy thử có chủ đích để chứng minh phần mềm đúng; mỗi phép kiểm có đáp án biết trước. |
 | Kiểm thử hồi quy | Regression test | Phép kiểm giữ lại sau mỗi lỗi đã gặp để lỗi không quay lại, như bẫy "phó trưởng ban" và "trưởng ban". |
 | Lập trình bằng lời nói | Vibe coding | Mô tả tự nhiên để AI viết mã; nhanh, nhưng thiếu đặc tả và nghiệm thu thì sinh nhiều lựa chọn ẩn. |
-| Lõi nghiệp vụ thuần | Pure business logic | Phần tính toán tách khỏi giao diện và mạng; nhờ vậy máy chạy hàng trăm phép kiểm trong vài giây. |
+| Lõi nghiệp vụ thuần | Pure business logic | Phần tính toán tách khỏi giao diện và mạng, nên kiểm thử tự động được. |
 | Lời nhắc hệ thống | System prompt | Lời dặn cố định đặt trước mọi câu hỏi gửi AI: vai trò, giới hạn, điều cấm. |
 | Mã nguồn | Source code | "Bộ bản vẽ thiết kế" của phần mềm, viết bằng ngôn ngữ lập trình. |
-| Mã nguồn mở | Open source | Mã công bố kèm giấy phép cho phép xem, dùng, sửa theo điều kiện; đọc kỹ giấy phép trước khi dùng lại. |
+| Mã nguồn mở | Open source | Mã công bố kèm giấy phép cho xem, dùng, sửa theo điều kiện; đọc giấy phép trước khi dùng lại. |
 | Máy chủ | Server, backend | "Phòng làm việc phía sau": xử lý yêu cầu, giữ khóa bí mật, gọi AI; người dùng không nhìn thấy. |
-| Mô hình chạy cục bộ | Local model | Mô hình AI chạy trên máy cơ quan, dữ liệu không rời máy; đổi lại, chất lượng tiếng Việt thấp hơn bản đám mây. |
-| Mô hình ngôn ngữ lớn | Large language model (LLM) | Mô hình AI học từ khối văn bản rất lớn để sinh chữ; "bộ não" phía sau Claude, ChatGPT, Gemini. |
-| Mục tiêu và kết quả then chốt | Objectives and Key Results (OKR) | Mục tiêu định hướng kèm kết quả then chốt đo được; đạt 60–70% là vùng tốt; không dùng để xếp loại cá nhân. |
-| Nghiệm thu | Acceptance criteria | Thành phần thứ sáu thêm vào V-B-V-D-R: tiêu chí hoàn thành đếm được, thử được, viết trước khi giao việc. |
-| Nguyên tắc máy đề xuất – người quyết định | Human-in-the-loop | Máy tính toán, gợi ý; người có thẩm quyền duyệt, sửa, ký và chịu trách nhiệm cuối cùng. |
+| Mô hình chạy cục bộ | Local model | Mô hình AI chạy trên máy của cơ quan, dữ liệu không rời máy (Tập 1 gọi là tự triển khai mô hình AI nội bộ); cần máy đủ mạnh. |
+| Mô hình ngôn ngữ lớn | Large language model (LLM) | Mô hình AI học từ khối văn bản rất lớn để sinh chữ; "bộ não" của Claude, ChatGPT, Gemini. |
+| Mục tiêu và kết quả then chốt | Objectives and Key Results (OKR) | Mục tiêu định hướng kèm kết quả then chốt đo được; đạt 60–70% là tốt; không dùng để xếp loại cá nhân. |
+| Nghiệm thu | Acceptance criteria | Thành phần thứ sáu Tập 2 thêm vào khung VAI-BỐI-VIỆC-DẠNG-RÀNG (xem Chương 6): tiêu chí hoàn thành đếm được, thử được, viết trước khi giao việc. |
+| Nguyên tắc máy đề xuất – người quyết định | Human-in-the-loop (Model 1) | Máy tính toán, gợi ý; người có thẩm quyền duyệt, ký và chịu trách nhiệm; ứng với Mô hình 1 "AI đề xuất, con người duyệt" (Tập 1, mục 7.5). |
 | Nhận dạng ký tự quang học | Optical character recognition (OCR) | Chuyển bản scan, ảnh chụp thành chữ; PDF scan không có lớp chữ nên phải qua bước này và đọc soát. |
 | Nhật ký thay đổi | Changelog | "Sổ giao ban" của dự án: làm gì, vì sao, sửa tệp nào, kiểm thử ra sao. |
 | Phân hệ | Module | Khối chức năng có đường dẫn riêng, như Đánh giá OKR/KPI, Kiểm điểm, Biểu quyết Online, Sổ tay AI. |
+| Phân loại dữ liệu 4 cấp | Data classification | Phân loại của Tập 1 (mục 7.1–7.2): Cấp 1 Công khai, Cấp 2 Nội bộ, Cấp 3 Hạn chế tiếp cận, Cấp 4 Bí mật nhà nước; không chắc thì chọn cấp cao hơn. |
 | Phân quyền | Authorization | Quy định ai được xem, sửa, phê duyệt gì; khác xác thực. |
 | Phiên đăng nhập | Session | Khoảng thời gian hệ thống ghi nhận người dùng đã đăng nhập; nạp dữ liệu trước khi biết phiên từng gây ghi đè. |
 | Quy luật Goodhart | Goodhart's law | Thước đo bị biến thành mục tiêu thì không còn đo tốt; lý do không lấy % đạt OKR để chấm điểm cá nhân. |
 | Ranh giới từ | Word boundary | So khớp theo trọn từ thay vì chuỗi con, để "quốc gia" không bị coi là chứa "gia"; với tiếng Việt phải giữ dấu. |
 | Sản phẩm khả dụng tối thiểu | Minimum Viable Product (MVP) | Phiên bản nhỏ nhất đủ dùng thử thật để lấy ý kiến; làm nhỏ, đo, sửa rồi mới mở rộng. |
 | Soát lỗi cú pháp | Linting | Công cụ dò lỗi cú pháp, lối viết mã dễ sinh lỗi; dự án yêu cầu 0 lỗi trước khi ghi thay đổi. |
-| Sổ tay AI | AI notebook | Một sổ tay trên Gemini Notebook (trước đây là NotebookLM), chỉ trả lời dựa trên nguồn đã nạp, kèm trích dẫn. |
+| Sổ tay AI | AI notebook | Sổ tay theo lĩnh vực trên Gemini Notebook (trước đây là NotebookLM), hỏi đáp kèm trích dẫn nguồn; phân hệ Sổ tay AI quản lý 06 sổ tay thí điểm. |
 | Tác tử AI lập trình | AI coding agent | AI tự đọc kho mã, sửa tệp, chạy lệnh, kiểm thử; như tổ chuyên viên kỹ thuật làm theo phiếu giao việc. |
 | Tên miền | Domain name | Địa chỉ dễ nhớ của trang web; có thể đổi, như NotebookLM chuyển sang notebook.google.com. |
 | Thao tác nguyên tử | Atomic operation | Hoặc làm trọn, hoặc không làm gì, không bị chen giữa chừng; dùng để bot không trả lời một tin hai lần. |
-| Thử nghiệm có kiểm soát | Regulatory sandbox | Thử giải pháp mới trong phạm vi, thời hạn được phê duyệt; ứng dụng tự làm ngoài khuôn khổ đó không mặc nhiên được miễn trách nhiệm. |
-| Token | Token | Đơn vị chia nhỏ văn bản mà mô hình AI đọc, viết và tính phí; bot của Văn phòng giới hạn mỗi câu trả lời 900 token. |
+| Thử nghiệm có kiểm soát | Regulatory sandbox | Thử giải pháp mới trong phạm vi, thời hạn được phê duyệt; ứng dụng tự làm ngoài khuôn khổ đó không mặc nhiên được miễn trách nhiệm (xem Chương 3). |
+| Token | Token | Đơn vị chia nhỏ văn bản mà mô hình AI đọc, viết và tính phí; bot của Văn phòng mặc định giới hạn mỗi câu trả lời 900 token. |
 | Trích dẫn nguồn | Citation, grounding | Gắn từng ý trả lời với đoạn văn bản gốc, đánh số [1], [2], để người đọc mở ra kiểm chứng. |
 | Triển khai | Deploy | "Khánh thành, mở cửa đón khách": đưa bản dựng lên máy chủ cho mọi người dùng. |
 | Trình duyệt không giao diện | Headless browser | Trình duyệt chạy ngầm do chương trình điều khiển, dùng bấm thử từng trang trên bản dựng thật. |
 | Trợ lý AI trò chuyện | AI chatbot, AI assistant | Ứng dụng hỏi đáp như Claude, ChatGPT, Gemini; trả lời trên màn hình, không tự hành động trên máy. |
 | Truy hồi tăng cường sinh | Retrieval-Augmented Generation (RAG) | Tìm đoạn tài liệu liên quan trước, rồi mới cho AI trả lời dựa trên đúng các đoạn đó, kèm trích dẫn. |
-| Tự động lưu | Autosave | Tự ghi lên máy chủ sau mỗi thay đổi (hệ thống: 0,9 giây); nạp dữ liệu sai thời điểm thì có thể ghi đè. |
+| Tự động lưu | Autosave | Tự ghi lên máy chủ sau mỗi thay đổi (hệ thống: sau 0,9 giây); nạp dữ liệu sai thời điểm thì có thể ghi đè. |
 | Tương thích ngược | Backward compatibility | Bản mới vẫn mở đúng dữ liệu lưu theo quy tắc cũ; bắt buộc mỗi khi đổi tiêu chí, công thức. |
-| Ứng dụng web | Web application | Phần mềm chạy trong trình duyệt, không cần cài đặt, dùng được trên máy tính và điện thoại. |
+| Ứng dụng web | Web application | Phần mềm chạy trong trình duyệt, không cần cài đặt. |
 | Xác thực | Authentication | Bước xác minh người dùng là ai, thường bằng đăng nhập; xác thực xong vẫn phải phân quyền. |
 
 ::: {.ghinho}
@@ -98,12 +101,12 @@ Bảng dưới đây gom 77 thuật ngữ dùng trong sách, giúp người đ�
 
 # Phụ lục 2. Thư viện câu lệnh mẫu
 
-Thư viện gồm 40 câu lệnh. Nhóm A (PL2.1–PL2.15) dùng khi làm việc với tác tử AI lập trình, tái dựng theo cách tôi đã giao việc khi xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa (hdndthkpi.vercel.app). Nhóm B (PL2.16–PL2.40) dùng cho nghiệp vụ cơ quan dân cử; đây là các mẫu soạn cho sách theo quy trình ở Chương 16, không phải bản ghi những lần dùng thật, nên đồng chí cần thử và chỉnh cho hợp việc của mình.
+Thư viện gồm 40 câu lệnh. Nhóm A (PL2.1–PL2.15) dùng với tác tử AI lập trình, tái dựng theo cách tôi đã giao việc khi xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội (ĐBQH) và Hội đồng nhân dân (HĐND) tỉnh Thanh Hóa (hdndthkpi.vercel.app). Nhóm B (PL2.16–PL2.40) dùng cho nghiệp vụ cơ quan dân cử; đây là các mẫu soạn cho sách theo quy trình ở Chương 16, không phải bản ghi những lần dùng thật, nên đồng chí cần thử và chỉnh cho hợp việc của mình. Mỗi câu lệnh gồm bốn phần: tên, mục đích, cấp dữ liệu được phép và nội dung câu lệnh; chỗ trong [ngoặc vuông] là chỗ cần điền. Thư viện 60 prompt mẫu của Tập 1 (Phụ lục A) vẫn dùng được; phụ lục này chỉ bổ sung việc Tập 1 chưa có.
 
 | Nhóm | Câu lệnh | Đọc kèm |
 |---|---|---|
 | A. Làm việc với tác tử AI lập trình | PL2.1–PL2.15 | Chương 6, 7, 8, 19 |
-| B1. Kỳ họp, hoạt động của Đoàn ĐBQH | PL2.16–PL2.20 | Chương 13, 16 |
+| B1. Kỳ họp, hoạt động của Đoàn ĐBQH | PL2.16–PL2.20 | Chương 12, 13, 16 |
 | B2. Thẩm tra | PL2.21–PL2.23 | Chương 8, 16 |
 | B3. Giám sát | PL2.24–PL2.27 | Chương 16 |
 | B4. Tiếp công dân, xử lý đơn | PL2.28–PL2.29 | Chương 3, 16 |
@@ -113,18 +116,21 @@ Thư viện gồm 40 câu lệnh. Nhóm A (PL2.1–PL2.15) dùng khi làm việc
 | B8. Công việc nội bộ | PL2.38–PL2.40 | Chương 16, 18 |
 
 ::: {.canhbao}
-**Cảnh báo: đọc dòng "Vùng dữ liệu được phép" trước khi dán bất cứ thứ gì**
+**Cảnh báo: đọc dòng "Cấp dữ liệu được phép" trước khi dán bất cứ thứ gì**
 
-- **XANH:** văn bản đã ban hành, tài liệu đã công khai; dùng được với mọi công cụ.
-- **VÀNG (đã ẩn danh):** tài liệu nội bộ, dự thảo, danh sách kiến nghị, tóm tắt đơn đã bỏ hết chi tiết nhận diện người; chỉ dùng tài khoản đã tắt huấn luyện hoặc tài khoản tổ chức cam kết không huấn luyện.
-- **ĐỎ:** tài liệu mật, hồ sơ nhân sự, danh tính người khiếu nại, tố cáo, dữ liệu cá nhân nhạy cảm; không câu lệnh nào ở đây cho phép dùng, theo các quy định về bảo vệ bí mật nhà nước và Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15.
-- Với nhóm A, tác tử đọc mọi tệp trong thư mục dự án, nên ranh giới vùng dữ liệu áp cho cả thư mục.
+Mỗi câu lệnh ghi cấp dữ liệu theo phân loại 4 cấp của Tập 1 (mục 7.1–7.2). Khi không chắc tài liệu thuộc cấp nào, chọn cấp cao hơn.
+
+- **Cấp 1 — Công khai:** văn bản đã ban hành, tài liệu đã công bố; dùng được với mọi công cụ AI.
+- **Cấp 2 — Nội bộ:** dự thảo, tài liệu nội bộ, danh sách kiến nghị, tóm tắt đơn đã bỏ hết chi tiết nhận diện người; chỉ dùng AI có cam kết doanh nghiệp về bảo mật, sau khi đã ẩn danh. Tài khoản cá nhân đã tắt tùy chọn huấn luyện chưa phải là cam kết doanh nghiệp.
+- **Cấp 3 — Hạn chế tiếp cận:** hồ sơ nhân sự, dữ liệu cá nhân, danh tính người khiếu nại, tố cáo, kiến nghị còn họ tên; chỉ dùng AI có máy chủ trong nước hoặc tự triển khai nội bộ (Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, Nghị định 356/2025/NĐ-CP). Không câu lệnh nào ở đây dành cho dữ liệu Cấp 3 chưa ẩn danh.
+- **Cấp 4 — Bí mật nhà nước:** tuyệt đối không dùng AI nước ngoài, không soạn thảo, lưu giữ trên máy tính, thiết bị kết nối Internet, theo Luật Bảo vệ bí mật nhà nước số 117/2025/QH15.
+- Với nhóm A, tác tử đọc mọi tệp trong thư mục dự án, nên cấp dữ liệu cao nhất có trong thư mục là cấp của cả thư mục.
 :::
 
 ::: {.thuchanh}
 **Thực hành: dùng một câu lệnh mẫu**
 
-1. Xác định vùng dữ liệu của tài liệu; vùng ĐỎ thì dừng.
+1. Xác định cấp dữ liệu của tài liệu (Tập 1, mục 7.2). Cấp 3 chưa ẩn danh thì chỉ dùng AI có máy chủ trong nước hoặc tự triển khai; Cấp 4 thì dừng.
 2. Thay chỗ [ngoặc vuông], xóa dòng không cần, giữ nguyên các dòng ràng buộc.
 3. Dán tài liệu sau dòng "---", ưu tiên bản điện tử có lớp chữ.
 4. Đọc kết quả như bản nháp của chuyên viên mới: kiểm số liệu, đối chiếu trích dẫn, sửa văn phong. Luật Trí tuệ nhân tạo số 134/2025/QH15 (khoản 2 Điều 4) ghi: "Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người."
@@ -132,13 +138,13 @@ Thư viện gồm 40 câu lệnh. Nhóm A (PL2.1–PL2.15) dùng khi làm việc
 
 ## Nhóm A. Câu lệnh làm việc với tác tử AI lập trình
 
-PL2.1 là khung đầy đủ; các câu còn lại giả định bộ nhớ dự án đã ghi sẵn ràng buộc thường trực (Chương 7). Chưa có bộ nhớ thì ghép thêm phần [RÀNG BUỘC] của PL2.1.
+PL2.1 là khung đầy đủ; các câu sau giả định bộ nhớ dự án đã ghi sẵn ràng buộc thường trực (Chương 7), chưa có thì ghép thêm phần [RÀNG BUỘC] của PL2.1.
 
 ## PL2.1. Phiếu giao việc đủ sáu thành phần
 
-**Mục đích:** khung chung để giao một việc cho tác tử: V-B-V-D-R cộng Nghiệm thu.
+**Mục đích:** giao một việc cho tác tử theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2) cộng thành phần Nghiệm thu (xem Chương 6).
 
-**Vùng dữ liệu được phép:** XANH (mô tả nghiệp vụ, văn bản đã ban hành, mã nguồn).
+**Cấp dữ liệu được phép:** Cấp 1 (mô tả nghiệp vụ, văn bản đã ban hành, mã nguồn không chứa dữ liệu thật).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.1 — Phiếu giao việc**
@@ -162,7 +168,7 @@ Cuối việc báo: sửa gì, tệp nào, kiểm thế nào, việc tôi phải
 
 **Mục đích:** duyệt phương án như duyệt tờ trình trước khi tác tử sửa tệp.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.2 — Trình phương án**
@@ -181,7 +187,7 @@ Không dán mã. Chờ tôi duyệt.
 
 **Mục đích:** chia một yêu cầu lớn thành 10–15 bước, mỗi bước nghiệm thu được ngay.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.3 — Lập lộ trình**
@@ -200,7 +206,7 @@ Thứ tự: tính toán trước giao diện; dữ liệu, phân quyền trướ
 
 **Mục đích:** bóc tách văn bản quy định thành bảng đặc tả trước khi viết mã.
 
-**Vùng dữ liệu được phép:** XANH (văn bản đã ban hành); dự thảo chỉ dùng khi được phép.
+**Cấp dữ liệu được phép:** Cấp 1 (văn bản đã ban hành); dự thảo là Cấp 2, chỉ dùng khi được phép.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.4 — Bảng đặc tả**
@@ -220,7 +226,7 @@ thuẫn (tổng điểm, cột số so với lời văn, đánh số khoản).
 
 **Mục đích:** để phần mềm khớp bảng tính đã thống nhất tới hai chữ số thập phân.
 
-**Vùng dữ liệu được phép:** XANH (bảng tính chỉ có số liệu ví dụ).
+**Cấp dữ liệu được phép:** Cấp 1 (bảng tính chỉ có số liệu ví dụ).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.5 — Ca kiểm thử từ bảng tính**
@@ -239,7 +245,7 @@ công thức "cho khớp" khi chưa được đồng ý.
 
 **Mục đích:** thêm phân hệ mà không đè dữ liệu cũ, không làm bot "mù" dữ liệu mới.
 
-**Vùng dữ liệu được phép:** XANH; dữ liệu mẫu là dữ liệu mô phỏng có nhãn.
+**Cấp dữ liệu được phép:** Cấp 1; dữ liệu mẫu là dữ liệu mô phỏng có nhãn.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.6 — Thêm phân hệ**
@@ -259,7 +265,7 @@ CHƯA SỬA. Cần thêm phân hệ [tên] tại [#/...] cho [ai], làm [việc]
 
 **Mục đích:** tìm chỗ phần mềm lệch biểu mẫu giấy đang dùng thật.
 
-**Vùng dữ liệu được phép:** XANH (biểu mẫu trắng); mẫu đã điền phải che thông tin cá nhân, để ngoài kho mã công khai.
+**Cấp dữ liệu được phép:** Cấp 1 (biểu mẫu trắng). Mẫu đã điền có dữ liệu cá nhân là Cấp 3: chỉ dùng sau khi đã che hết thông tin cá nhân, và luôn để ngoài kho mã công khai.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.7 — Đối chiếu biểu mẫu**
@@ -278,7 +284,7 @@ chính; khổ giấy. CHƯA SỬA. Khi sửa: xuất thử tệp thật, đọc 
 
 **Mục đích:** mô tả lỗi đủ để tác tử tái hiện và tìm nguyên nhân gốc.
 
-**Vùng dữ liệu được phép:** XANH; thông báo lỗi, ảnh chụp phải xóa họ tên, số liệu cá nhân.
+**Cấp dữ liệu được phép:** Cấp 1; thông báo lỗi, ảnh chụp màn hình phải xóa họ tên, số liệu cá nhân trước khi dán.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.8 — Báo lỗi**
@@ -297,7 +303,7 @@ Sửa xong: thêm phép kiểm hồi quy đúng ca này, ghi cảnh báo tại d
 
 **Mục đích:** áp quy tắc ra đời sau sự cố dây chuyền ngày 13/8/2026.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.9 — Rà soát dây chuyền**
@@ -314,9 +320,9 @@ thì ghi "chưa kiểm", không ghi "ổn".
 
 ## PL2.10. Rà soát an toàn trước khi chia sẻ
 
-**Mục đích:** kiểm toán bảo mật, chỉ rà và báo cáo, trước khi chia sẻ ứng dụng.
+**Mục đích:** rà soát bảo mật, chỉ rà và báo cáo, trước khi chia sẻ ứng dụng.
 
-**Vùng dữ liệu được phép:** XANH; chỉ ghi tên biến, không in giá trị khóa.
+**Cấp dữ liệu được phép:** Cấp 1; chỉ ghi tên biến, không in giá trị khóa.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.10 — Kiểm toán bảo mật**
@@ -334,9 +340,9 @@ Bảng: Mức độ | Vấn đề | Vị trí | Đề xuất.
 
 ## PL2.11. Đặt trần chi phí cho tính năng gọi AI
 
-**Mục đích:** để chi phí gọi AI có trần, kể cả khi người dùng bấm liên tiếp hay AI lỗi.
+**Mục đích:** chi phí gọi AI có trần, kể cả khi bấm liên tiếp hay AI lỗi.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.11 — Trần chi phí**
@@ -356,7 +362,7 @@ chờ AI nhỏ hơn giới hạn của nền tảng, báo lỗi tiếng Việt.
 
 **Mục đích:** có phép kiểm mà người không đọc mã vẫn đọc được.
 
-**Vùng dữ liệu được phép:** XANH; họ tên trong ca kiểm là tên giả.
+**Cấp dữ liệu được phép:** Cấp 1; họ tên trong ca kiểm là tên giả.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.12 — Phép kiểm nghiệp vụ**
@@ -376,7 +382,7 @@ Chạy, báo số đạt/không đạt, in danh sách mô tả để tôi đọc
 
 **Mục đích:** buộc tác tử chứng minh bằng thao tác thật, giải thích bằng lời thường.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.13 — Chứng minh bằng thao tác**
@@ -395,7 +401,7 @@ khác ở đâu, rủi ro còn lại, việc tôi phải tự làm.
 
 **Mục đích:** giữ bối cảnh cho phiên sau và cho máy khác.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.14 — Khép phiên**
@@ -414,7 +420,7 @@ lên GitHub. Báo lại việc dở dang cho phiên sau.
 
 **Mục đích:** để người tiếp nhận vận hành, khôi phục được hệ thống.
 
-**Vùng dữ liệu được phép:** XANH; chỉ ghi chức danh, tên biến; không ghi tên người, giá trị khóa.
+**Cấp dữ liệu được phép:** Cấp 1; chỉ ghi chức danh, tên biến; không ghi tên người, giá trị khóa.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.15 — Hồ sơ bàn giao**
@@ -431,13 +437,13 @@ trước khi dùng chính thức; chỗ quy ước lệch với thực tế kho 
 
 ## Nhóm B. Câu lệnh cho nghiệp vụ cơ quan dân cử
 
-Nên đặt một lần trong mục hướng dẫn tùy chỉnh của trợ lý AI trò chuyện năm ràng buộc chung: tiếng Việt có dấu, văn phong hành chính trung lập; chỉ dựa trên tài liệu được cung cấp; không bịa số hiệu, điều, khoản, số liệu; chỉ ghi chức danh, không ghi họ tên; kết quả là bản nháp. Các câu lệnh dưới đây vẫn nhắc ràng buộc chính để dùng độc lập được.
+Nên đặt sẵn trong mục hướng dẫn tùy chỉnh của trợ lý AI trò chuyện năm ràng buộc chung: tiếng Việt có dấu, văn phong hành chính trung lập; chỉ dựa trên tài liệu được cung cấp; không bịa số hiệu, điều, khoản, số liệu; chỉ ghi chức danh, không ghi họ tên; kết quả là bản nháp. Các câu lệnh dưới đây vẫn nhắc ràng buộc chính.
 
 ## PL2.16. Tóm tắt bộ tài liệu kỳ họp
 
 **Mục đích:** nắm nhanh nội dung, số liệu chính của tài liệu kỳ họp.
 
-**Vùng dữ liệu được phép:** XANH (tài liệu kỳ họp đã phát hành).
+**Cấp dữ liệu được phép:** Cấp 1 (tài liệu kỳ họp đã phát hành).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.16 — Tóm tắt tài liệu kỳ họp**
@@ -458,7 +464,7 @@ không nêu"; không thêm nhận định chính trị.
 
 **Mục đích:** phát hiện số liệu vênh nhau giữa các báo cáo.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.17 — Tìm mâu thuẫn số liệu**
@@ -478,7 +484,7 @@ Kết thúc bằng danh sách câu hỏi cần làm rõ.
 
 **Mục đích:** gợi ý câu hỏi có căn cứ để đại biểu chọn và tự hoàn thiện.
 
-**Vùng dữ liệu được phép:** XANH; VÀNG (tổng hợp kiến nghị đã ẩn danh).
+**Cấp dữ liệu được phép:** Cấp 1; Cấp 2 (tổng hợp kiến nghị đã ẩn danh).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.18 — Câu hỏi chất vấn**
@@ -497,7 +503,7 @@ người trả lời; không quy kết; ưu tiên vấn đề cử tri phản á
 
 **Mục đích:** dự thảo kịch bản một phiên họp theo chương trình đã thông qua.
 
-**Vùng dữ liệu được phép:** XANH (chương trình đã công bố).
+**Cấp dữ liệu được phép:** Cấp 1 (chương trình đã công bố).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.19 — Kịch bản điều hành**
@@ -517,7 +523,7 @@ TỔNG SỐ đại biểu, theo quy chế làm việc của HĐND. Chỗ phụ t
 
 **Mục đích:** gom góp ý theo từng điều để Đoàn ĐBQH tỉnh xây dựng ý kiến.
 
-**Vùng dữ liệu được phép:** XANH (dự thảo đã công bố); VÀNG (văn bản góp ý đã bỏ tên người).
+**Cấp dữ liệu được phép:** Cấp 1 (dự thảo đã công bố); Cấp 2 (văn bản góp ý đã bỏ tên người).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.20 — Tổng hợp góp ý dự án luật**
@@ -536,7 +542,7 @@ nguyên ý từng cơ quan, không gộp ý trái nhau, không thêm ý của m�
 
 **Mục đích:** lập bảng để đối chiếu với văn bản gốc, không thay kết luận thẩm tra.
 
-**Vùng dữ liệu được phép:** XANH (văn bản pháp luật); VÀNG (tờ trình, dự thảo đang thẩm tra).
+**Cấp dữ liệu được phép:** Cấp 1 (văn bản pháp luật); Cấp 2 (tờ trình, dự thảo đang thẩm tra).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.21 — Bảng kiểm căn cứ, thẩm quyền**
@@ -556,7 +562,7 @@ lực hay số điều; không có thì ghi "chưa có căn cứ trong tài li�
 
 **Mục đích:** dựng khung báo cáo thẩm tra bốn phần để Ban hoàn thiện.
 
-**Vùng dữ liệu được phép:** VÀNG (tờ trình, dự thảo đang thẩm tra); tài liệu mật thì không dùng.
+**Cấp dữ liệu được phép:** Cấp 2 (tờ trình, dự thảo đang thẩm tra); tài liệu mật (Cấp 4) tuyệt đối không dùng.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.22 — Khung báo cáo thẩm tra**
@@ -576,7 +582,7 @@ không tự kết luận "thống nhất" hay "không thống nhất".
 
 **Mục đích:** soát tổng điểm, đánh số, dẫn chiếu; đây là cách đã soi ra sáu chỗ chưa nhất quán của dự thảo Khung tiêu chí HĐND.
 
-**Vùng dữ liệu được phép:** XANH hoặc VÀNG (dự thảo không có thông tin cá nhân).
+**Cấp dữ liệu được phép:** Cấp 1 hoặc Cấp 2 (dự thảo không có thông tin cá nhân).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.23 — Soát nhất quán**
@@ -594,9 +600,9 @@ phương án là KIẾN NGHỊ cho cơ quan soạn thảo.
 
 ## PL2.24. Đề cương báo cáo phục vụ giám sát chuyên đề
 
-**Mục đích:** dự thảo đề cương báo cáo bám đúng kế hoạch giám sát, thực hiện theo Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân số 121/2025/QH15.
+**Mục đích:** dự thảo đề cương báo cáo bám đúng kế hoạch giám sát (Luật Hoạt động giám sát của Quốc hội và Hội đồng nhân dân số 121/2025/QH15).
 
-**Vùng dữ liệu được phép:** XANH (kế hoạch giám sát đã ban hành).
+**Cấp dữ liệu được phép:** Cấp 1 (kế hoạch giám sát đã ban hành).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.24 — Đề cương báo cáo giám sát**
@@ -616,7 +622,7 @@ lại số liệu đã có: [danh mục].
 
 **Mục đích:** thiết kế phiếu khảo sát ngắn, trung lập.
 
-**Vùng dữ liệu được phép:** XANH.
+**Cấp dữ liệu được phép:** Cấp 1 (Công khai).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.25 — Phiếu khảo sát**
@@ -635,7 +641,7 @@ số định danh; câu chữ trung lập. Kèm cách tổng hợp từng câu.
 
 **Mục đích:** gom báo cáo theo đề cương, chỉ ra chỗ thiếu, chỗ bất thường.
 
-**Vùng dữ liệu được phép:** VÀNG (đã bỏ tên cá nhân); báo cáo mật thì không dùng.
+**Cấp dữ liệu được phép:** Cấp 2 (đã bỏ tên cá nhân); báo cáo mật (Cấp 4) tuyệt đối không dùng.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.26 — Tổng hợp báo cáo giám sát**
@@ -655,7 +661,7 @@ cáo", không coi là 0; không nhận định thay Đoàn giám sát.
 
 **Mục đích:** biến kiến nghị sau giám sát thành bảng đôn đốc.
 
-**Vùng dữ liệu được phép:** XANH (văn bản giám sát đã ban hành).
+**Cấp dữ liệu được phép:** Cấp 1 (văn bản giám sát đã ban hành).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.27 — Theo dõi kiến nghị sau giám sát**
@@ -674,7 +680,7 @@ chỉ dùng: Chưa đến hạn · Đang thực hiện · Đã thực hiện · 
 
 **Mục đích:** gợi ý loại đơn và hướng chuyển; chuyên viên quyết định.
 
-**Vùng dữ liệu được phép:** VÀNG, đã ẩn danh hoàn toàn (không còn họ tên, địa chỉ, số điện thoại, số định danh, chi tiết nhận diện). Đơn còn danh tính là vùng ĐỎ.
+**Cấp dữ liệu được phép:** Cấp 2, chỉ khi bản tóm tắt đã ẩn danh hoàn toàn (không còn họ tên, địa chỉ, số điện thoại, số định danh, chi tiết nhận diện). Đơn còn danh tính người khiếu nại, tố cáo là Cấp 3: không đưa lên AI có máy chủ ở nước ngoài. Không chắc đã ẩn danh hết thì coi là Cấp 3.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.28 — Phân loại đơn**
@@ -694,7 +700,7 @@ xét"; không đánh giá nội dung đơn, không suy đoán danh tính.
 
 **Mục đích:** lập quy trình, thời hạn từ nguyên văn quy định, không dùng nội dung vụ việc.
 
-**Vùng dữ liệu được phép:** XANH (văn bản pháp luật).
+**Cấp dữ liệu được phép:** Cấp 1 (văn bản pháp luật).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.29 — Quy trình xử lý đơn**
@@ -714,7 +720,7 @@ khác nhau thì nêu rõ để hỏi bộ phận pháp chế.
 
 **Mục đích:** phân loại kiến nghị theo tám lĩnh vực mà phân hệ Trợ lý AI đang dùng.
 
-**Vùng dữ liệu được phép:** VÀNG (bỏ họ tên, số điện thoại, địa chỉ chi tiết; giữ địa bàn cấp xã).
+**Cấp dữ liệu được phép:** Cấp 2 sau khi đã bỏ họ tên, số điện thoại, địa chỉ chi tiết (giữ địa bàn cấp xã); danh sách còn họ tên cử tri là Cấp 3.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.30 — Gán nhãn kiến nghị**
@@ -734,7 +740,7 @@ Cột Nhóm đánh dấu kiến nghị trùng nội dung ở nhiều địa bàn
 
 **Mục đích:** dự thảo báo cáo tổng hợp kiến nghị cử tri gửi kỳ họp.
 
-**Vùng dữ liệu được phép:** VÀNG (bảng kiến nghị đã ẩn danh).
+**Cấp dữ liệu được phép:** Cấp 2 (bảng kiến nghị đã ẩn danh).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.31 — Báo cáo tổng hợp kiến nghị**
@@ -753,7 +759,7 @@ bàn ghi số địa bàn. Giữ nguyên ý cử tri; không thêm số liệu; 
 
 **Mục đích:** thấy kiến nghị nào chưa được trả lời hoặc trả lời chưa đúng trọng tâm.
 
-**Vùng dữ liệu được phép:** XANH; VÀNG (bảng kiến nghị đã ẩn danh).
+**Cấp dữ liệu được phép:** Cấp 1; Cấp 2 (bảng kiến nghị đã ẩn danh).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.32 — Đối chiếu trả lời kiến nghị**
@@ -772,7 +778,7 @@ Chưa đúng trọng tâm. Mức chính thức do Thường trực HĐND, các B
 
 **Mục đích:** có bản nháp công văn đủ thành phần thể thức.
 
-**Vùng dữ liệu được phép:** XANH; VÀNG nếu là việc nội bộ chưa công bố.
+**Cấp dữ liệu được phép:** Cấp 1; Cấp 2 nếu là việc nội bộ chưa công bố.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.33 — Dự thảo công văn**
@@ -792,7 +798,7 @@ dán, không tự thêm số hiệu.
 
 **Mục đích:** soát dự thảo theo bốn trọng tâm như tác vụ Soát xét của Trợ lý AI.
 
-**Vùng dữ liệu được phép:** XANH hoặc VÀNG (không có thông tin cá nhân).
+**Cấp dữ liệu được phép:** Cấp 1 hoặc Cấp 2 (không có thông tin cá nhân).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.34 — Soát xét văn bản**
@@ -813,7 +819,7 @@ tôi kiểm. Nếu là văn bản của tổ chức Đảng thì báo tôi, khô
 
 **Mục đích:** viết đúng bố cục, văn phong cơ quan nhờ văn bản mẫu.
 
-**Vùng dữ liệu được phép:** XANH (văn bản mẫu); VÀNG (số liệu nội bộ, không có thông tin cá nhân).
+**Cấp dữ liệu được phép:** Cấp 1 (văn bản mẫu); Cấp 2 (số liệu nội bộ, không có thông tin cá nhân).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.35 — Viết theo văn bản mẫu**
@@ -832,7 +838,7 @@ mức; hạn chế nêu thẳng kèm nguyên nhân.
 
 **Mục đích:** viết tin mà không thêm điều tài liệu không có.
 
-**Vùng dữ liệu được phép:** XANH (thông cáo, kết quả đã công bố).
+**Cấp dữ liệu được phép:** Cấp 1 (thông cáo, kết quả đã công bố).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.36 — Viết tin**
@@ -848,11 +854,11 @@ tôi kiểm tra quy định về gắn nhãn nội dung do AI tạo.
 ```
 :::
 
-## PL2.37. Tóm tắt văn bản mới ban hành cho bạn đọc phổ thông
+## PL2.37. Tóm tắt văn bản mới ban hành cho người đọc phổ thông
 
 **Mục đích:** tóm tắt dễ hiểu một văn bản pháp luật mới.
 
-**Vùng dữ liệu được phép:** XANH (nguyên văn văn bản từ nguồn chính thống).
+**Cấp dữ liệu được phép:** Cấp 1 (nguyên văn văn bản từ nguồn chính thống).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.37 — Tóm tắt văn bản mới**
@@ -872,7 +878,7 @@ bản quy định việc gì, cho ai; ngày hiệu lực chép đúng điều kh
 
 **Mục đích:** lập kế hoạch tháng, mỗi việc có sản phẩm đầu ra và thời hạn.
 
-**Vùng dữ liệu được phép:** VÀNG; chỉ ghi chức danh, không kèm nội dung mật.
+**Cấp dữ liệu được phép:** Cấp 2; chỉ ghi chức danh; nội dung mật (Cấp 4) không đưa vào.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.38 — Kế hoạch tháng**
@@ -891,7 +897,7 @@ ra | Chủ trì (chức danh) | Phối hợp | Thời hạn. Mỗi nhiệm vụ 
 
 **Mục đích:** nhận xét bám số liệu, không tính sai, không tô hồng.
 
-**Vùng dữ liệu được phép:** XANH hoặc VÀNG (số liệu tổng hợp, không có dữ liệu cá nhân).
+**Cấp dữ liệu được phép:** Cấp 1 hoặc Cấp 2 (số liệu tổng hợp, không có dữ liệu cá nhân).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.39 — Nhận xét số liệu**
@@ -911,7 +917,7 @@ bậc", "đột phá"; không thêm số ngoài bảng.
 
 **Mục đích:** phân công hậu cần và lập bảng kiểm ngày diễn ra.
 
-**Vùng dữ liệu được phép:** VÀNG; không ghi họ tên, số điện thoại, biển số xe.
+**Cấp dữ liệu được phép:** Cấp 2; không ghi họ tên, số điện thoại, biển số xe.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu PL2.40 — Kế hoạch hậu cần**

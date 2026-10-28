@@ -151,7 +151,7 @@ Một số nguồn ghi nghị định này đã hết hiệu lực một phần 
 Ba kết quả này đã được chạy thử bằng chính hàm tính của phần mềm. Nghiệm thu đúng là lấy vài ca biết trước đáp án, có cả ca rơi đúng năm lộ trình chạm trần, rồi so.
 :::
 
-Phần mềm chỉ nhắc, không quyết định. Quyết định nghỉ hưu, nâng bậc lương do cơ quan có thẩm quyền ban hành; nhắc việc không thay cho rà soát hồ sơ gốc.
+Phần mềm chỉ nhắc, không quyết định, đúng nguyên tắc máy đề xuất – người quyết định. Quyết định nghỉ hưu, nâng bậc lương do cơ quan có thẩm quyền ban hành; nhắc việc không thay cho rà soát hồ sơ gốc.
 
 ### 12.2.3. Biên chế và nhiệm vụ có hạn
 
@@ -163,10 +163,10 @@ Khu vực Biên chế so số người thực có của từng loại đối tư
 **Căn cứ pháp lý**
 
 - Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026, phân dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm.
-- Nghị định số 356/2025/NĐ-CP quy định chi tiết Luật này, có hiệu lực từ 01/01/2026, thay thế Nghị định 13/2023/NĐ-CP. Theo Điều 3, ngày sinh, giới tính, quê quán, số điện thoại, số định danh cá nhân, tình trạng hôn nhân, quan hệ gia đình là dữ liệu cá nhân cơ bản. Theo khoản 1 Điều 4, tôn giáo, tình trạng sức khỏe là dữ liệu cá nhân nhạy cảm.
+- Nghị định số 356/2025/NĐ-CP quy định chi tiết Luật này, có hiệu lực từ 01/01/2026; Nghị định 13/2023/NĐ-CP mà Tập 1 dẫn đã hết hiệu lực từ cùng ngày. Theo Điều 3, ngày sinh, giới tính, quê quán, số điện thoại, số định danh cá nhân, tình trạng hôn nhân, quan hệ gia đình là dữ liệu cá nhân cơ bản. Theo khoản 1 Điều 4, tôn giáo, tình trạng sức khỏe là dữ liệu cá nhân nhạy cảm.
 :::
 
-Hồ sơ 2C có gần như đủ các loại dữ liệu nói trên, kể cả hai trường tôn giáo và sức khỏe thuộc nhóm nhạy cảm.
+Hồ sơ 2C có gần như đủ các loại dữ liệu nói trên, kể cả hai trường tôn giáo và sức khỏe thuộc nhóm nhạy cảm. Theo phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), hồ sơ này thuộc Cấp 3 — Hạn chế tiếp cận; hồ sơ nào có nội dung thuộc bí mật nhà nước thì là Cấp 4 và không bao giờ được đưa vào một hệ thống thử nghiệm trên đám mây. Khi phân vân, chọn cấp cao hơn.
 
 Ban đầu, thẻ Quản lý cán bộ chỉ hiện với Quản trị, nhưng chính sách phân quyền cũ ở cơ sở dữ liệu cho mọi tài khoản đã đăng nhập đọc mọi dòng. Người dùng thường biết gọi thẳng vào cửa giao dịch (API) vẫn đọc được hồ sơ. Ẩn thẻ chỉ là gỡ tấm biển "Phòng lưu trữ", cửa vẫn mở.
 
@@ -215,7 +215,7 @@ Với một phòng vài chục người, một bảng tính có công thức do 
 **Thực hành: lập sổ nhắc mốc nhân sự trong một buổi**
 
 1. Tạo các cột: Mã cán bộ, Giới tính, Ngày sinh, Ngạch, Bậc, Ngày hưởng bậc, Ngày hết hạn hợp đồng.
-2. Dùng Câu lệnh mẫu 12.3 nhờ AI viết công thức. Chỉ mô tả cấu trúc cột, không dán dữ liệu thật của cán bộ vào AI công cộng: đây là dữ liệu vùng ĐỎ theo cách phân loại của Tập 1.
+2. Dùng Câu lệnh mẫu 12.3 nhờ AI viết công thức. Chỉ mô tả cấu trúc cột, không dán dữ liệu thật của cán bộ vào AI công cộng: ngày sinh, giới tính gắn với một người là dữ liệu cá nhân, thuộc Cấp 3 — Hạn chế tiếp cận trong phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), chỉ được xử lý bằng AI có máy chủ tại Việt Nam hoặc AI tự triển khai nội bộ.
 3. Nhập vài dòng giả định có đáp án biết trước, như ba ca ở mục 12.2.2, và so kết quả.
 4. Tô màu có điều kiện: đỏ khi quá hạn, vàng khi sắp tới hạn.
 5. Công thức đúng hết các ca thử mới nhập dữ liệu thật trên máy của cơ quan, đặt mật khẩu cho tệp.
@@ -297,7 +297,7 @@ Trước khi có hàm `bq_vote`, lá phiếu chỉ nằm trên máy đang bấm,
 Cách sửa theo đúng nguyên tắc "dữ liệu mẫu là dữ liệu chính thống" (mục 12.5): người đăng nhập đầu tiên mở phân hệ sẽ tự ghi bộ mẫu lên máy chủ, từ đó mọi máy bỏ phiếu vào cùng một kết quả. Thông báo lỗi được viết lại để phân biệt "máy chủ chưa có dữ liệu phiên" với "chưa bật hàm bỏ phiếu dùng chung".
 :::
 
-Mẫu "mở quyền đọc, chỉ cho ghi qua một hàm hẹp có kiểm tra" được dùng lại ba lần trong hệ thống: bộ đếm lượt truy cập chỉ cộng thêm 1; đơn vị cấp xã ghi đúng phiếu tiêu chí của mình (Chương 11); đại biểu ghi đúng lá phiếu của mình.
+Mẫu "mở quyền đọc, chỉ cho ghi qua một hàm hẹp có kiểm tra" được dùng lại ba lần trong hệ thống: bộ đếm lượt truy cập chỉ cộng thêm 1; mỗi đơn vị HĐND chỉ ghi đúng phiếu tiêu chí của mình (Chương 11); đại biểu ghi đúng lá phiếu của mình.
 
 ### 12.3.5. Phiếu mô phỏng có "hạt giống" và nhãn mô phỏng
 
@@ -393,6 +393,8 @@ Nhìn cả hệ thống, toàn bộ dữ liệu nằm trong một bảng duy nh�
 | Chỉ người đăng nhập đọc, ghi | Kiến nghị cử tri của Trợ lý AI | Có tên người dân; cố ý không mở công khai |
 | Ai cũng đọc; ghi qua hàm hẹp | Phiếu tiêu chí, lá phiếu, bộ đếm | Người không có tài khoản vẫn dùng được |
 
+Ba kiểu cửa này chính là cách phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2) được "đúc" vào phần mềm: dữ liệu Cấp 1 — Công khai thì khách đọc được; dữ liệu Cấp 2 — Nội bộ phải đăng nhập; dữ liệu Cấp 3 — Hạn chế tiếp cận như hồ sơ cán bộ, danh bạ, kiến nghị có tên người dân thì khóa chặt nhất và không đưa vào nội dung gửi cho AI công cộng; dữ liệu Cấp 4 — Bí mật nhà nước không có chỗ trong hệ thống này, vì theo Luật Bảo vệ bí mật nhà nước số 117/2025/QH15, nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên thiết bị đang kết nối Internet.
+
 Dòng thứ hai có ghi chú riêng trong tệp lược đồ: khách vào thấy danh sách kiến nghị trống là đúng thiết kế, đừng "sửa" bằng cách mở quyền đọc công khai. Một câu dặn như vậy cứu được người duy trì sau này khỏi một sai lầm nghe rất hợp lý.
 
 ### 12.5.3. Bảng kiểm khi thêm một phân hệ vào cổng
@@ -435,9 +437,9 @@ hỏi của bảng kiểm; bản dựng xanh; thử ba vai; ghi nhật ký thay 
 
 - Một cổng nhiều phân hệ chỉ vững khi có quy ước chung về danh sách cán bộ, nơi cất dữ liệu và quyền xem. Đó là việc của người chủ hệ thống, không thể phó mặc cho AI.
 - Dữ liệu demo đọc công khai là lựa chọn có chủ đích của giai đoạn thử nghiệm. Trước khi dùng dữ liệu thật phải gỡ các quyền đọc công khai và chuyển sang hạ tầng của cơ quan.
-- Mỗi hệ thống ngoài là thêm một chỗ phụ thuộc: một hạ tầng, một hệ tài khoản, một người hiểu nó. Cơ quan nên có danh mục các hệ thống, ghi rõ người chịu trách nhiệm; Nghị định 331/2026/NĐ-CP cũng yêu cầu mỗi hệ thống có một chủ quản duy nhất.
-- Gói miễn phí có điều kiện: cơ sở dữ liệu gói miễn phí của Supabase tạm dừng sau một tuần không hoạt động; máy chủ miễn phí của phân hệ Một dữ liệu "ngủ" khi không ai dùng (theo tài liệu dịch vụ và ghi nhận của dự án, tại thời điểm viết 10/2026, có thể thay đổi).
-- Theo Nghị định 331/2026/NĐ-CP, hệ thống phục vụ hoạt động nội bộ có xử lý thông tin cá nhân của người sử dụng (không xử lý bí mật nhà nước) thuộc tiêu chí cấp độ 2. Khoản 2 Điều 6 của Nghị định quy định hệ thống đáp ứng tiêu chí của nhiều cấp độ thì áp dụng cấp độ cao nhất, và không được xác định phạm vi hệ thống một cách hình thức để giảm yêu cầu an ninh mạng. Vì vậy phân hệ hồ sơ cán bộ dùng thật phải được xác định cấp độ; tách hay gộp hệ thống phải dựa trên nghiệp vụ, không dựa trên mong muốn nhẹ thủ tục.
+- Mỗi hệ thống ngoài là thêm một chỗ phụ thuộc: một hạ tầng, một hệ tài khoản, một người hiểu nó. Cơ quan nên có danh mục các hệ thống, ghi rõ người chịu trách nhiệm; Nghị định về bảo vệ an ninh mạng đối với hệ thống thông tin (dòng dưới) cũng yêu cầu mỗi hệ thống có một chủ quản duy nhất.
+- Gói miễn phí có điều kiện: cơ sở dữ liệu gói miễn phí của Supabase tạm dừng sau một tuần không hoạt động; máy chủ miễn phí của phân hệ Một dữ liệu "ngủ" khi không ai dùng (theo tài liệu của Supabase và ghi nhận thực tế của dự án; thông tin tham khảo tại thời điểm viết (10/2026), có thể thay đổi).
+- Theo Nghị định 331/2026/NĐ-CP ngày 19/8/2026 về bảo vệ an ninh mạng đối với hệ thống thông tin (quy định chi tiết Luật An ninh mạng số 116/2025/QH15), hệ thống phục vụ hoạt động nội bộ có xử lý thông tin cá nhân của người sử dụng (không xử lý bí mật nhà nước) thuộc tiêu chí cấp độ 2. Khoản 2 Điều 6 của Nghị định quy định hệ thống đáp ứng tiêu chí của nhiều cấp độ thì áp dụng cấp độ cao nhất, và không được xác định phạm vi hệ thống một cách hình thức để giảm yêu cầu an ninh mạng. Vì vậy phân hệ hồ sơ cán bộ dùng thật phải được xác định cấp độ; tách hay gộp hệ thống phải dựa trên nghiệp vụ, không dựa trên mong muốn nhẹ thủ tục.
 :::
 
 ## Tóm tắt chương 12

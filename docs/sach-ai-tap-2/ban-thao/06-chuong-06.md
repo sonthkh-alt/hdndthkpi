@@ -1,10 +1,10 @@
-# Chương 6. Giao việc cho tác tử AI lập trình: V-B-V-D-R phiên bản kiến tạo
+# Chương 6. Giao việc cho tác tử AI lập trình: khung VAI-BỐI-VIỆC-DẠNG-RÀNG phiên bản kiến tạo
 
 ::: {.muctieu}
 **Mục tiêu của chương**
 
 - Phân biệt việc hỏi trợ lý AI trò chuyện với việc giao việc cho một tác tử AI lập trình có quyền hành động trên máy tính và trong kho mã nguồn.
-- Vận dụng khung lệnh V-B-V-D-R của Tập 1, bổ sung thành phần thứ sáu là Nghiệm thu, để viết một "phiếu giao việc" rõ phạm vi, rõ điều cấm, rõ tiêu chí hoàn thành.
+- Vận dụng khung VAI-BỐI-VIỆC-DẠNG-RÀNG của Tập 1 (mục 3.2), bổ sung thành phần thứ sáu là Nghiệm thu (phần mở rộng của Tập 2), để viết một "phiếu giao việc" rõ phạm vi, rõ điều cấm, rõ tiêu chí hoàn thành.
 - Biết bắt tác tử trình phương án trước khi làm, chia yêu cầu lớn thành bước nhỏ, đưa tài liệu nghiệp vụ và dặn đối chiếu từng mục.
 - Tự nghiệm thu được kết quả khi không đọc được mã; nhận ra lúc tác tử đi lạc và biết cách kéo lại.
 - Có sẵn bộ câu lệnh mẫu cho tám việc hay gặp nhất.
@@ -16,7 +16,7 @@ Chương 5 đã dựng xong "xưởng làm việc số". Từ đây, phần khó
 
 ## 6.1. Hỏi AI trò chuyện và giao việc cho tác tử: khác nhau ở đâu
 
-Ở Tập 1, trợ lý AI trò chuyện (chatbot) được ví như một thư ký cao cấp. Đồng chí đưa yêu cầu, thư ký trả lại bản nháp; đồng chí đọc, sửa, rồi quyết định dùng hay không. Bản nháp sai mà không dùng thì không gây hại gì.
+Lời nói đầu của Tập 1 ví trợ lý AI trò chuyện (chatbot) như một thư ký mới. Đồng chí đưa yêu cầu, thư ký trả lại bản nháp; đồng chí đọc, sửa, rồi quyết định dùng hay không. Bản nháp sai mà không dùng thì không gây hại gì.
 
 Tác tử AI lập trình (AI coding agent) như Claude Code khác về bản chất. Nó giống một tổ chuyên viên kỹ thuật được giao chìa khóa trụ sở: tự mở kho mã nguồn (repository), đọc hàng chục tệp, sửa tệp, chạy lệnh, chạy kiểm thử (test), tạo bản dựng (build), ghi thay đổi vào lịch sử (commit) và đẩy lên GitHub (push). Với hệ thống nhiều phân hệ (module) của Văn phòng, đẩy lên nhánh chính nghĩa là một đến hai phút sau, Vercel tự triển khai (deploy) và mọi người truy cập đều thấy thay đổi. Sai sót của trợ lý trò chuyện nằm trên trang giấy; sai sót của tác tử nằm ngay trong hệ thống đang chạy.
 
@@ -28,7 +28,7 @@ Tác tử AI lập trình (AI coding agent) như Claude Code khác về bản ch
 | Khi sai | Không chép là xong | Lỗi đã nằm trong hệ thống |
 | Cần ở người giao | Câu hỏi rõ | Phạm vi, điều cấm, nghiệm thu |
 
-Còn hai khác biệt ít người để ý. Thứ nhất, phần kỹ thuật trong câu lệnh (prompt) có thể ngắn, vì tác tử tự đọc được mã; nhưng phần nghiệp vụ phải dài hơn, vì nó không biết biểu mẫu giấy trông ra sao, dữ liệu nào là nhạy cảm. Thứ hai, tác tử chủ động lấp chỗ trống: chỗ nào câu lệnh không nói, nó tự chọn thay đồng chí. Khi số hóa điều kiện xếp loại, tác tử từng hiểu "không hoàn thành" là "chưa đạt đủ 100%", nên một nhiệm vụ làm được 9/10 sản phẩm bị coi là không hoàn thành, kéo cả cán bộ có điểm cao xuống mức xếp loại thấp nhất. Không ai bảo nó hiểu như vậy, nhưng cũng không ai bảo nó phải hỏi lại.
+Còn hai khác biệt ít người để ý. Thứ nhất, phần kỹ thuật trong câu lệnh (prompt) có thể ngắn, vì tác tử tự đọc được mã; nhưng phần nghiệp vụ phải dài hơn, vì nó không biết biểu mẫu giấy trông ra sao, dữ liệu nào là nhạy cảm. Thứ hai, tác tử chủ động lấp chỗ trống: chỗ nào câu lệnh không nói, nó tự chọn thay đồng chí. Khi số hóa điều kiện xếp loại theo Điều 8 Quy định 1053-QĐ/TU, tác tử từng hiểu "không hoàn thành" là "chưa đạt đủ 100%", nên một nhiệm vụ làm được 9/10 sản phẩm bị coi là không hoàn thành, kéo cả cán bộ có điểm cao xuống mức xếp loại thấp nhất. Không ai bảo nó hiểu như vậy, nhưng cũng không ai bảo nó phải hỏi lại.
 
 ::: {.vidu}
 **Ví dụ minh họa: cùng một câu, hai kết cục**
@@ -42,14 +42,14 @@ Vì vậy, yêu cầu gửi tác tử phải có ba thứ mà câu hỏi gửi t
 **Cảnh báo: tác tử hành động trên máy thật**
 
 - Tùy cấu hình quyền, tác tử hỏi trước khi sửa tệp, chạy lệnh, hoặc tự làm trong phạm vi đã cho phép. Đừng bấm "đồng ý tất cả" khi chưa đọc lệnh nó định chạy.
-- Theo tài liệu chính thức của Claude Code (10/2026), bản cài gốc trên Windows không có chế độ "hộp cát" (sandbox) cô lập lệnh: lệnh chạy là chạy thật.
+- Theo tài liệu chính thức của Claude Code (đọc tháng 10/2026), bản cài gốc trên Windows không có chế độ "hộp cát" (sandbox) cô lập lệnh; muốn có thì phải chạy qua WSL 2. Nói cách khác, lệnh chạy là chạy thật trên máy.
 - Kho mã của dự án này là kho công khai; không dặn thì tệp nào trong thư mục dự án cũng có thể bị commit lên đó.
-- Mọi thứ tác tử đọc đều được gửi tới mô hình AI trên máy chủ của nhà cung cấp. Thư mục dự án không phải nơi để tài liệu mật hay hồ sơ cá nhân chưa che.
+- Mọi thứ tác tử đọc đều được gửi tới mô hình AI trên máy chủ của nhà cung cấp ở nước ngoài. Theo phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), thư mục dự án chỉ nên chứa dữ liệu Cấp 1 (Công khai); hồ sơ cá nhân, đơn thư thuộc Cấp 3 và tài liệu mật thuộc Cấp 4 không bao giờ được đặt vào đây (xem mục 6.5).
 :::
 
-## 6.2. Khung V-B-V-D-R mở rộng: thêm chữ N là Nghiệm thu
+## 6.2. Khung VAI-BỐI-VIỆC-DẠNG-RÀNG mở rộng: thêm phần Nghiệm thu
 
-Tập 1 dạy khung lệnh năm thành phần V-B-V-D-R: Vai, Bối cảnh, Việc, Dạng, Ràng buộc. Khung ấy vẫn dùng được với tác tử, nhưng mỗi chữ mang nghĩa rộng hơn. Tôi thêm thành phần thứ sáu: **N — Nghiệm thu**, tức tiêu chí hoàn thành đo được, viết ra trước khi tác tử bắt tay vào làm. Tập 1 khuyên dành 80% thời gian cho biên tập, kiểm chứng; với tác tử, phần ấy chính là nghiệm thu, và viết sẵn tiêu chí vào câu lệnh giúp rút ngắn nó.
+Tập 1 (mục 3.2) dạy khung VAI-BỐI-VIỆC-DẠNG-RÀNG gồm năm thành phần: Vai trò, Bối cảnh, Việc, Dạng đầu ra, Ràng buộc. Khung ấy vẫn dùng được với tác tử, nhưng mỗi thành phần mang nghĩa rộng hơn. Tập 2 thêm thành phần thứ sáu: **NGHIỆM THU**, tức tiêu chí hoàn thành đo được, viết ra trước khi tác tử bắt tay vào làm. Đây là phần mở rộng của cuốn sách này, Tập 1 không có. Nguyên tắc 20-80 của Tập 1 (mục 3.1) dành 20% thời gian cho câu lệnh, 80% cho chỉnh sửa kết quả; với tác tử, phần 80% ấy chủ yếu là nghiệm thu, và viết sẵn tiêu chí vào câu lệnh giúp rút ngắn nó.
 
 | Thành phần | Với trợ lý trò chuyện | Với tác tử lập trình |
 |---|---|---|
@@ -62,7 +62,7 @@ Tập 1 dạy khung lệnh năm thành phần V-B-V-D-R: Vai, Bối cảnh, Vi�
 
 ### 6.2.1. Vai: ai là chủ đầu tư, ai là tổ thi công
 
-Với trợ lý trò chuyện, Vai giúp chọn giọng văn. Với tác tử, Vai vạch ranh giới trách nhiệm. Câu tôi hay dùng: "Đóng vai lập trình viên cẩn trọng của dự án này; ưu tiên không làm mất dữ liệu hơn làm nhanh. Tôi là người quyết định về nghiệp vụ; chỗ nào nghiệp vụ chưa rõ thì hỏi tôi, không tự chọn." Câu cuối biến nguyên tắc máy đề xuất – người quyết định thành một mệnh lệnh cụ thể. Ngoài vai "người làm", nên dùng thêm vai người phản biện, kiểm toán viên bảo mật, người viết tài liệu; vai dùng lâu dài thì ghi vào bộ nhớ dự án, tức tệp CLAUDE.md và thư mục quy tắc mà tác tử tự đọc mỗi phiên (Chương 7).
+Với trợ lý trò chuyện, Vai giúp chọn giọng văn. Với tác tử, Vai vạch ranh giới trách nhiệm. Câu tôi hay dùng: "Đóng vai lập trình viên cẩn trọng của dự án này; ưu tiên không làm mất dữ liệu hơn làm nhanh. Tôi là người quyết định về nghiệp vụ; chỗ nào nghiệp vụ chưa rõ thì hỏi tôi, không tự chọn." Câu cuối biến nguyên tắc máy đề xuất – người quyết định, tức mô hình "AI đề xuất, con người duyệt" trong ba mô hình con người trong vòng lặp của Tập 1 (mục 7.5), thành một mệnh lệnh cụ thể. Ngoài vai "người làm", nên dùng thêm vai người phản biện, kiểm toán viên bảo mật, người viết tài liệu; vai dùng lâu dài thì ghi vào bộ nhớ dự án, tức tệp CLAUDE.md và thư mục quy tắc mà tác tử tự đọc mỗi phiên (mục 7.1).
 
 ### 6.2.2. Bối cảnh: những gì tác tử không tự nhìn thấy
 
@@ -206,7 +206,7 @@ Giao một câu "làm cho tôi hệ thống đánh giá cán bộ", tác tử v�
 
 Một bước giao việc tốt thỏa mãn năm điều: có một sản phẩm thấy được hoặc đo được; nghiệm thu xong trong một lần ngồi (với tôi là khoảng mười lăm phút); kết thúc bằng bản dựng xanh và một lần commit, tức một điểm khôi phục an toàn; phần "tính" làm trước phần "đẹp", dữ liệu và phân quyền làm trước tiện ích; bước nào chạm dữ liệu đã lưu thì tách riêng.
 
-Bảng dưới đây là cách tôi sẽ chia nếu làm lại phân hệ OKR/KPI, vốn dựa trên Nghị định 335/2025/NĐ-CP và Quy định 1053-QĐ/TU của Ban Thường vụ Tỉnh ủy. Thực tế dự án không đi thẳng như vậy: phần chấm Nhóm II đã trải qua ba cách chấm, từ nhập số lần sai sót, sang chọn mức độ hoàn thành, rồi mới đến ba tiêu chí Số lượng – Chất lượng – Tiến độ.
+Bảng dưới đây là cách tôi sẽ chia nếu làm lại phân hệ OKR/KPI, vốn dựa trên Nghị định 335/2025/NĐ-CP và Quy định 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa. Thực tế dự án không đi thẳng như vậy: phần chấm Nhóm II đã trải qua ba cách chấm, từ nhập số lần sai sót, sang chọn mức độ hoàn thành, rồi mới đến ba tiêu chí Số lượng – Chất lượng – Tiến độ.
 
 | Bước | Việc giao cho tác tử | Nghiệm thu bằng |
 |---|---|---|
@@ -271,8 +271,8 @@ Phân hệ Kiểm điểm ban đầu được dựng theo Hướng dẫn 03-HD/T
 ::: {.canhbao}
 **Cảnh báo: tài liệu đưa cho tác tử cũng là dữ liệu đi ra ngoài**
 
-- Phân loại theo ba vùng ĐỎ/VÀNG/XANH của Tập 1 trước khi đưa. Tài liệu mật thuộc vùng ĐỎ. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực từ 01/3/2026), tại Điều 5, cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập). Máy chạy tác tử là máy nối mạng, nên tài liệu mật không bao giờ được đặt vào thư mục dự án.
-- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) phân dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Biểu mẫu thật dùng làm mẫu phải được che họ tên, ngày sinh, số định danh, số điện thoại trước khi đưa.
+- Phân loại theo bốn cấp dữ liệu của Tập 1 (mục 7.1–7.2) trước khi đưa; khi không chắc chắn, chọn cấp cao hơn. Cấp 1 (Công khai) đưa được. Cấp 2 (Nội bộ) chỉ đưa khi dịch vụ AI có cam kết doanh nghiệp và đã ẩn danh. Cấp 3 (Hạn chế tiếp cận, như hồ sơ cán bộ, đơn thư, danh tính người khiếu nại) chỉ được xử lý bằng AI có máy chủ tại Việt Nam hoặc tự triển khai, nên không đặt vào thư mục của tác tử dùng dịch vụ nước ngoài. Cấp 4 (Bí mật nhà nước) tuyệt đối không. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực từ 01/3/2026), tại Điều 5, cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập). Máy chạy tác tử là máy nối mạng, nên tài liệu mật không bao giờ được đặt vào thư mục dự án.
+- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026, hướng dẫn bởi Nghị định 356/2025/NĐ-CP) phân dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Biểu mẫu thật dùng làm mẫu phải được che họ tên, ngày sinh, số định danh, số điện thoại trước khi đưa.
 - Tài liệu thật đặt vào thư mục dự án mà quên khai báo chặn trong tệp `.gitignore` thì lần commit kế tiếp có thể đưa nó lên kho công khai.
 :::
 
@@ -309,7 +309,7 @@ Hệ thống thử nghiệm của Văn phòng có khoảng 21.400 dòng mã. Tô
 ::: {.cauchuyen}
 **Câu chuyện thực tế: ngày 13/8/2026**
 
-Hôm ấy có hai thay đổi đều đúng yêu cầu: tách kho dữ liệu riêng cho từng phân hệ, và gộp danh sách cán bộ về một mối. Cả hai đều chạy. Nhưng bot chat dò dữ liệu bằng một quy tắc riêng nên mất hẳn phân hệ Kiểm điểm; còn việc gộp danh sách làm hai đồng chí trùng cả họ và tên ở hai đơn vị khác nhau bị ghép làm một, phân hệ OKR/KPI chỉ còn 27 thay vì 28 người. Từ đó, quy ước của dự án có quy tắc bắt buộc "rà soát chức năng liên quan", mà Chương 7 sẽ trình bày đầy đủ.
+Hôm ấy có hai thay đổi đều đúng yêu cầu: tách kho dữ liệu riêng cho từng phân hệ, và gộp danh sách cán bộ về một mối. Cả hai đều chạy. Nhưng bot chat dò dữ liệu bằng một quy tắc riêng nên mất hẳn phân hệ Kiểm điểm; còn việc gộp danh sách làm hai đồng chí trùng cả họ và tên ở hai đơn vị khác nhau bị ghép làm một, phân hệ OKR/KPI chỉ còn 27 thay vì 28 người. Từ đó, quy ước của dự án có quy tắc bắt buộc "rà soát chức năng liên quan", mà mục 7.5 sẽ trình bày đầy đủ.
 :::
 
 Cuối cùng, hãy nghiệm thu ở đúng nơi người dùng nhìn thấy. Bản tin pháp luật trên Trang chủ từng được giao cho một tác vụ định kỳ trên đám mây, được coi là chạy hằng ngày; đến khi rà soát mới biết bước đẩy ảnh lên chưa từng chạy được lần nào. Tác tử cũng tự nghiệm thu được: mở trang thật bằng trình duyệt tự động, đếm lỗi; xuất tệp Word rồi đọc lại; đo kích thước chữ.
@@ -361,11 +361,11 @@ Tác tử không mệt, không nản, và rất ít khi tự nhận là mình đ
 | Nói chắc về dịch vụ bên ngoài | Kiến thức có hạn sử dụng | Đòi kiểm tra thực tế |
 | Quên điều đã dặn đầu phiên | Phiên làm việc quá dài | Ghi vào bộ nhớ dự án, mở phiên mới |
 
-Dấu hiệu "nói chắc về dịch vụ bên ngoài" có ví dụ thật: khi gắn đường dẫn NotebookLM vào phân hệ Sổ tay AI, tác tử kiểm tra thực tế mới biết Google đã chuyển tên miền sang `notebook.google.com`. Cứ tin trí nhớ thì phần mềm sẽ lưu địa chỉ cũ, chỉ còn chạy nhờ chuyển hướng.
+Dấu hiệu "nói chắc về dịch vụ bên ngoài" có ví dụ thật: ngày 22/10/2026, khi gắn đường dẫn NotebookLM (nay Google đổi tên là Gemini Notebook) vào phân hệ Sổ tay AI, tác tử kiểm tra đường dẫn tôi đưa mới biết Google đã chuyển tên miền sang `notebook.google.com`, tên miền cũ chỉ còn chuyển hướng. Cứ tin trí nhớ thì phần mềm sẽ lưu địa chỉ cũ, chỉ còn chạy nhờ chuyển hướng.
 
 Kéo tác tử lại gồm bốn động tác. **Dừng:** ở bản dòng lệnh, phím Esc ngắt việc đang chạy. **Bắt tóm tắt:** đã thử gì, kết quả ra sao, đang nghi điều gì. **Đo trước khi sửa:** bot chat của dự án từng trả lời bằng dòng tiếng Anh khó hiểu "This operation was aborted"; nhật ký chẩn đoán cho thấy đó là trần 45 giây chờ AI bị chạm; từ đó dự án ghi thêm số đo thời gian từng khâu. **Quay về điểm an toàn:** nhờ mỗi bước kết thúc bằng một lần commit, đồng chí luôn có thể yêu cầu bỏ các thay đổi chưa commit hoặc quay về bản chạy tốt gần nhất. Đây là thao tác xóa bỏ công sức, nên tác tử phải nói rõ sẽ mất gì và chờ đồng chí đồng ý.
 
-Nên làm lại từ đầu thay vì vá tiếp khi: ba lượt sửa cùng một lỗi mà không tiến; thay đổi lan ra nhiều tệp không ai giải thích được; nền móng sai, như mô hình dữ liệu không khớp quy trình thật; hoặc chính đồng chí không còn hiểu hệ thống chạy thế nào. Làm lại không có nghĩa là mất hết: quay về bản sạch gần nhất, mở phiên mới, giao lại việc bằng câu lệnh tốt hơn kèm bài học vừa rút ra. Tập 1 dặn: phải sửa tới 60–70% câu chữ AI viết thì lỗi nằm ở câu lệnh; với tác tử cũng vậy. Hai bản giao diện "Mới" và "PRO" của dự án từng được làm thêm rất nhanh, rồi bị gỡ hẳn khi mỗi tính năng phải làm ba lần; mã của chúng vẫn còn trong lịch sử Git.
+Nên làm lại từ đầu thay vì vá tiếp khi: ba lượt sửa cùng một lỗi mà không tiến; thay đổi lan ra nhiều tệp không ai giải thích được; nền móng sai, như mô hình dữ liệu không khớp quy trình thật; hoặc chính đồng chí không còn hiểu hệ thống chạy thế nào. Làm lại không có nghĩa là mất hết: quay về bản sạch gần nhất, mở phiên mới, giao lại việc bằng câu lệnh tốt hơn kèm bài học vừa rút ra. Nguyên tắc 20-80 của Tập 1 (mục 3.1) dặn: nếu phải dành 60–70% thời gian sửa kết quả thì nên viết lại câu lệnh; với tác tử cũng vậy. Hai bản giao diện "Mới" và "PRO" của dự án từng được làm thêm, rồi bị gỡ hẳn khi mỗi tính năng phải làm ba lần; mã của chúng vẫn còn trong lịch sử Git.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.6 — Kéo tác tử về khi đang đi lạc**
@@ -383,7 +383,7 @@ DỪNG sửa. Chưa sửa thêm tệp nào.
 
 ## 6.8. Bộ câu lệnh mẫu giao việc
 
-Tám câu lệnh dưới đây dùng cho tám việc tôi gặp nhiều nhất. Chỗ trong ngoặc vuông là chỗ đồng chí điền; ràng buộc nào đã có trong bộ nhớ dự án thì bỏ bớt. Với việc lớn, gửi Câu lệnh mẫu 6.2 trước.
+Tám câu lệnh dưới đây dùng cho tám việc tôi gặp nhiều nhất. Chỗ trong ngoặc vuông là chỗ đồng chí điền; ràng buộc nào đã có trong bộ nhớ dự án thì bỏ bớt. Với việc lớn, gửi Câu lệnh mẫu 6.2 trước. Phụ lục 2 tập hợp lại các câu lệnh này cùng các câu lệnh của những chương khác.
 
 **Tạo phân hệ mới.** Phân hệ Sổ tay AI phải được khai báo ở nhiều nơi mới "sống" được: danh mục phân hệ, bộ định tuyến, Trang chủ, trang Hướng dẫn, kiến thức của bot chat, chính sách quyền trong cơ sở dữ liệu. Câu lệnh phải buộc tác tử tìm đủ những chỗ ấy.
 
@@ -435,7 +435,7 @@ các cột theo thứ tự và hai dòng đầu của bảng.
 ```
 :::
 
-**Rà soát bảo mật.** Giao vai kiểm toán viên và cấm sửa, để nhận về một bảng rủi ro thay vì một loạt thay đổi. Một lần đối chiếu quy ước với thực tế kho mã (tháng 10/2026) đã phát hiện một tệp thử nghiệm lọt lên kho công khai, dù quy ước cấm commit thư mục chứa nó.
+**Rà soát bảo mật.** Giao vai kiểm toán viên và cấm sửa, để nhận về một bảng rủi ro thay vì một loạt thay đổi. Một lần đối chiếu quy ước với thực tế kho mã đã phát hiện một tệp thử nghiệm lọt lên kho công khai, dù quy ước cấm commit thư mục chứa nó.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.10 — Rà soát bảo mật, chỉ báo cáo**
@@ -487,7 +487,7 @@ Câu ngắn; thuật ngữ nào cũng phải giải thích.
 ```
 :::
 
-**Cập nhật nhật ký thay đổi.** Nhật ký là "sổ giao ban" của dự án (Chương 7).
+**Cập nhật nhật ký thay đổi.** Nhật ký là "sổ giao ban" của dự án (mục 7.2).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 6.13 — Ghi nhật ký cho việc vừa làm**
@@ -524,7 +524,7 @@ Soạn docs/BAN-GIAO.md cho người tiếp nhận không chuyên lập trình, 
 
 ::: {.tomtat}
 1. Hỏi trợ lý AI trò chuyện là xin bản nháp; giao việc cho tác tử AI lập trình là ủy quyền hành động trên hệ thống thật, nên phải có phạm vi, điều cấm, tiêu chí nghiệm thu.
-2. Khung V-B-V-D-R thêm chữ N: Nghiệm thu, tức tiêu chí đo được, viết ra trước khi tác tử làm.
+2. Khung VAI-BỐI-VIỆC-DẠNG-RÀNG của Tập 1 (mục 3.2) được Tập 2 bổ sung phần Nghiệm thu, tức tiêu chí đo được, viết ra trước khi tác tử làm.
 3. Câu "chỗ nào nghiệp vụ chưa rõ thì hỏi tôi, không tự chọn" biến nguyên tắc máy đề xuất – người quyết định thành mệnh lệnh.
 4. Việc chạm dữ liệu, quyền, nhiều phân hệ hoặc diễn giải văn bản thì bắt trình phương án trước, đọc như đọc tờ trình.
 5. Mỗi bước nhỏ: một sản phẩm, một cách nghiệm thu, một lần commit.
@@ -537,6 +537,6 @@ Soạn docs/BAN-GIAO.md cho người tiếp nhận không chuyên lập trình, 
 
 1. Chọn một việc thật của phòng, Ban nơi đồng chí công tác, viết phiếu giao việc đủ sáu thành phần. Mỗi tiêu chí nghiệm thu có đếm được, so được hoặc thử được không?
 2. Chia yêu cầu "phần mềm theo dõi việc trả lời kiến nghị cử tri" thành 10 đến 15 bước theo mẫu bảng ở mục 6.4.
-3. Vì sao "không đưa dữ liệu nhạy cảm cho AI đọc" chắc chắn hơn "dặn AI đừng nói ra"?
+3. Vì sao "không đưa dữ liệu nhạy cảm cho AI đọc" chắc chắn hơn "dặn AI đừng nói ra"? Với một tài liệu của phòng, Ban, đồng chí xếp nó vào cấp nào trong bốn cấp dữ liệu của Tập 1 (mục 7.2), và cấp ấy có được đặt vào thư mục dự án không?
 4. Bài tập nhóm hai người: một người viết câu lệnh, người kia đóng vai tác tử "làm đúng từng chữ, chỗ nào không nói thì tự chọn". Mọi chỗ người đóng vai phải tự chọn chính là lỗ hổng của câu lệnh.
 5. Với một hệ thống đồng chí dùng hằng ngày, kể ba "chỗ khác" đang đọc, ghi một loại dữ liệu quan trọng. Nếu dữ liệu ấy đổi định dạng, chỗ nào hỏng trước?

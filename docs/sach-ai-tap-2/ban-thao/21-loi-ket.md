@@ -16,7 +16,7 @@ Luật Trí tuệ nhân tạo số 134/2025/QH15, có hiệu lực từ 01/3/202
 
 "Người kiến tạo" trong tên tập sách không phải là kỹ sư phần mềm. Đó là người cán bộ biết đóng ba vai đã bàn ở mục 2.6: chủ đầu tư nêu đúng nhu cầu, tổng công trình sư giữ đúng thiết kế, người nghiệm thu không ký khi công trình chưa đạt. Tác tử AI viết mã nhanh hơn tôi rất nhiều lần, nhưng những lỗi nặng nhất của dự án lại là lỗi nghiệp vụ. Phân hệ Kiểm điểm lệch biểu mẫu giấy ở bốn chỗ lớn, và chỉ lộ ra khi tôi đưa chính bản tự đánh giá, kế hoạch quý của mình vào đối chiếu. Người làm nghiệp vụ thấy ngay những điều AI không tự thấy: văn bản của Đảng phải mang tiêu đề của tổ chức Đảng; chuỗi chữ "trưởng ban" nằm gọn trong "phó trưởng ban"; "báo" và "bão" chỉ khác nhau một dấu thanh.
 
-Kiến tạo cũng là biết bớt đi. Tôi đã gỡ hai bản giao diện thừa, vì mỗi tính năng phải làm ba lần. Kiến tạo còn là biết khi nào không cần AI: chính bản tin pháp luật nói trên chạy bằng một chương trình nhỏ, không gọi AI, vì việc lấy tin, vẽ ảnh có quy tắc cố định. AI vẫn có ích ở đó, trong vai người viết ra chương trình.
+Kiến tạo cũng là biết bớt đi. Tôi đã gỡ hai bản giao diện thừa: ba giao diện cho cùng một logic thì mỗi thay đổi phải sửa nhiều nơi và dễ ghi đè dữ liệu của nhau. Kiến tạo còn là biết khi nào không cần AI: chính bản tin pháp luật nói trên chạy bằng một chương trình nhỏ, không gọi AI, vì việc lấy tin, vẽ ảnh có quy tắc cố định. AI vẫn có ích ở đó, trong vai người viết ra chương trình.
 
 Kiến tạo là ghi chép để người khác tiếp nhận được. Nhật ký thay đổi của dự án có hơn 100 mục, mỗi mục ghi làm gì, vì sao, kiểm chứng thế nào. Bộ nhớ dự án nằm ngay trong kho mã, để tác tử AI tự đọc mỗi phiên và đồng nghiệp có thể nối tiếp khi tôi vắng mặt. Một ứng dụng chỉ một người hiểu thì chưa phải tài sản của cơ quan.
 
@@ -51,7 +51,7 @@ Tập 1 viết: "Cán bộ tham mưu giỏi trong kỷ nguyên AI là người d
 - Nói thật cả giới hạn; ghi chép để người khác tiếp nhận được.
 :::
 
-Như Tập 1 đã nói, công cụ sẽ đổi, kỹ năng giữ lại. Người làm nghiệp vụ cẩn trọng, trung thực, dám làm và dám chịu trách nhiệm vẫn là người không công cụ nào thay được.
+Như Tập 1 đã viết ở phần tổng kết Chương 2, công cụ sẽ đổi, kỹ năng giữ lại. Người làm nghiệp vụ cẩn trọng, trung thực, dám làm và dám chịu trách nhiệm vẫn là người không công cụ nào thay được.
 
 *Thanh Hóa, tháng 10 năm 2026*
 

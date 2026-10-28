@@ -75,7 +75,7 @@ Từ bảng này, tôi gợi ý ba phương án.
 
 **Phương án 2 — Một thuê bao.** Trả một gói tác tử khoảng 10–20 USD/tháng (Claude Pro, Copilot Pro, hoặc ChatGPT Plus để dùng Codex), hạ tầng vẫn ở mức miễn phí. Đây là phương án tôi khuyến nghị cho cán bộ muốn làm trọn một ứng dụng nhỏ. Hệ thống thử nghiệm của Văn phòng được xây dựng bằng Claude Code, nên các ví dụ trong sách dùng công cụ này.
 
-**Phương án 3 — Chính thức của cơ quan.** Dùng gói tổ chức có cam kết về dữ liệu, chẳng hạn Claude Team (25 USD/chỗ/tháng, 20 USD nếu trả năm) hoặc GitHub Copilot Business (19 USD/ghế/tháng); ứng dụng chạy trên hạ tầng chính thức. Phương án này gắn với thủ tục đề xuất, kinh phí và an toàn hệ thống thông tin (Chương 17, Chương 20).
+**Phương án 3 — Chính thức của cơ quan.** Dùng gói tổ chức có cam kết về dữ liệu, chẳng hạn Claude Team (25 USD/chỗ/tháng, 20 USD nếu trả năm) hoặc GitHub Copilot Business (19 USD/ghế/tháng), giá tham khảo tại thời điểm viết (10/2026); ứng dụng chạy trên hạ tầng chính thức. Phương án này gắn với thủ tục đề xuất, kinh phí và an toàn hệ thống thông tin (Chương 17, Chương 20).
 
 Cần phân biệt hai loại chi phí. Thuê bao tác tử là tiền để AI *viết phần mềm giúp đồng chí*. Còn nếu bản thân ứng dụng có chức năng gọi AI (trợ lý chat, trợ lý soạn thảo), mỗi lượt gọi tốn tiền theo khóa API, tính riêng. Hệ thống của Văn phòng giữ khoản này trong tầm kiểm soát bằng hạn mức lượt gọi mỗi ngày (Chương 13, Chương 19). Dự án đầu tiên trong chương này không gọi AI nên không phát sinh khoản đó.
 
@@ -92,13 +92,13 @@ Cần phân biệt hai loại chi phí. Thuê bao tác tử là tiền để AI 
 
 - Gói Hobby của Vercel dành cho mục đích cá nhân, phi thương mại. Ứng dụng phục vụ chính thức hoạt động của cơ quan phải được cân nhắc lại về điều khoản sử dụng.
 - Dự án Supabase bản miễn phí tự tạm dừng sau 1 tuần không hoạt động; ứng dụng "ngủ" cho đến khi đồng chí bấm khôi phục.
-- Các dịch vụ trong bảng đều là dịch vụ của doanh nghiệp nước ngoài. Tuyệt đối không đưa tài liệu mật, hồ sơ cá nhân thật lên đó (mục 5.3 và Chương 3).
+- Các dịch vụ trong bảng đều là dịch vụ của doanh nghiệp nước ngoài. Theo phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), với tài khoản cá nhân chỉ nên đưa dữ liệu Cấp 1 (Công khai); dữ liệu Cấp 2 (Nội bộ) chỉ dùng với dịch vụ có cam kết dành cho tổ chức và sau khi đã ẩn danh; dữ liệu Cấp 3 (Hạn chế tiếp cận, như hồ sơ cá nhân, đơn thư) và Cấp 4 (Bí mật nhà nước) tuyệt đối không đưa lên. Khi không chắc chắn, chọn cấp cao hơn (mục 5.3 và Chương 3).
 :::
 
 ::: {.lanhdao}
 **Dành cho lãnh đạo**
 
-- Một cán bộ bắt đầu học làm ứng dụng cần khoảng một thuê bao 10–20 USD/tháng (giá tham khảo 10/2026); hạ tầng thử nghiệm có thể ở mức miễn phí.
+- Một cán bộ bắt đầu học làm ứng dụng cần khoảng một thuê bao 10–20 USD/tháng (giá tham khảo tại thời điểm viết, 10/2026); hạ tầng thử nghiệm có thể ở mức miễn phí.
 - Tài khoản cá nhân dùng để học và làm bản demo; dùng chính thức phải chuyển sang gói tổ chức và hạ tầng được phê duyệt.
 - Nên hỏi cán bộ: "Đã tắt chế độ cho phép dùng dữ liệu để huấn luyện chưa? Ứng dụng lưu dữ liệu gì, ở đâu?"
 - Không để một người duy nhất nắm toàn bộ tài khoản; cần người thứ hai được bàn giao (rủi ro "người duy nhất biết", Chương 17).
@@ -247,7 +247,7 @@ Cách mở tài khoản và tạo dự án, theo đúng hướng dẫn trong t�
 
 Supabase đã đổi tên các loại khóa vài lần; dự án của Văn phòng từng phải sửa mã để nhận cả tên biến mới `SUPABASE_SECRET_KEY`. Đừng học thuộc tên nút, hãy nhớ nguyên tắc: **khóa công khai** được nằm trong trình duyệt, vì việc bảo vệ dữ liệu do bảng phân quyền ở cơ sở dữ liệu đảm nhận; **khóa bí mật** bỏ qua mọi phân quyền, chỉ được nằm ở máy chủ, tuyệt đối không chia sẻ.
 
-Theo tài liệu của Supabase (đọc ngày 26/10/2026), gói miễn phí cho tối đa 2 dự án đang hoạt động, mỗi dự án 500 MB cơ sở dữ liệu, 50.000 người dùng hoạt động mỗi tháng, 1 GB lưu trữ tệp; dự án tạm dừng sau 1 tuần không hoạt động và khôi phục được bằng một nút bấm. Với bản demo thử nghiệm, chừng ấy là dư dả. Dự án đầu tiên ở mục 5.4 chưa cần Supabase, nhưng nên mở sẵn tài khoản để khi bước sang ứng dụng có đăng nhập (Bậc 3, Chương 18) thì không phải dừng lại làm thủ tục.
+Theo tài liệu của Supabase (đọc ngày 26/10/2026), gói miễn phí cho tối đa 2 dự án đang hoạt động, mỗi dự án 500 MB cơ sở dữ liệu, 50.000 người dùng hoạt động mỗi tháng, 1 GB lưu trữ tệp; dự án tạm dừng sau 1 tuần không hoạt động và khôi phục được bằng một nút bấm. Với bản demo thử nghiệm, chừng ấy là dư dả. Dự án đầu tiên ở mục 5.4 chưa cần Supabase, nhưng nên mở sẵn tài khoản để khi bước sang ứng dụng có đăng nhập (Bậc 3 ở Chương 2, mục 2.3; thực hành ở Tuần 4 của Chương 18) thì không phải dừng lại làm thủ tục.
 
 ### 5.3.3. Tệp `.env` và vì sao không bao giờ đưa lên GitHub
 
@@ -275,7 +275,7 @@ Có một cái bẫy về tên biến. Với công cụ dựng trang Vite mà d�
 ::: {.phaply}
 **Căn cứ pháp lý**
 
-- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) và Nghị định 356/2025/NĐ-CP (hiệu lực từ 01/01/2026, thay thế Nghị định 13/2023/NĐ-CP). Điều 3 Nghị định 356/2025/NĐ-CP xếp họ tên, ngày sinh, số điện thoại, số định danh cá nhân, quan hệ gia đình vào dữ liệu cá nhân cơ bản. Những thông tin này không được nằm trong mã nguồn, tệp mẫu hay kho mã công khai.
+- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực từ 01/01/2026) và Nghị định 356/2025/NĐ-CP (hiệu lực từ 01/01/2026, thay thế nghị định năm 2023 về bảo vệ dữ liệu cá nhân). Điều 3 Nghị định 356/2025/NĐ-CP xếp họ tên, ngày sinh, số điện thoại, số định danh cá nhân, quan hệ gia đình vào dữ liệu cá nhân cơ bản. Những thông tin này không được nằm trong mã nguồn, tệp mẫu hay kho mã công khai.
 - Luật An ninh mạng số 116/2025/QH15 (hiệu lực từ 01/7/2026) và Nghị định 331/2026/NĐ-CP (hiệu lực từ 19/8/2026) phân hệ thống thông tin theo cấp độ. Hệ thống phục vụ hoạt động nội bộ chỉ xử lý thông tin công cộng thuộc cấp độ 1; hệ thống phục vụ hoạt động nội bộ có xử lý thông tin cá nhân của người sử dụng (không xử lý bí mật nhà nước) thuộc cấp độ 2, yêu cầu bảo vệ cao hơn.
 - Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực từ 01/3/2026), Điều 5, nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên máy tính, thiết bị đang kết nối Internet, mạng viễn thông hoặc mạng máy tính (trừ mạng LAN độc lập), trừ trường hợp theo pháp luật về cơ yếu. Xưởng làm việc số trong chương này gắn liền với Internet và dịch vụ đám mây, nên không dùng cho tài liệu mật dưới bất kỳ hình thức nào.
 :::
@@ -284,7 +284,7 @@ Có một cái bẫy về tên biến. Với công cụ dựng trang Vite mà d�
 
 Bài toán rất đời thường. Mỗi Ban có một danh mục văn bản hay phải tra: luật, nghị định, nghị quyết thuộc lĩnh vực phụ trách, nằm rải trong vài tệp Excel. Chúng ta sẽ làm một trang web gõ từ khóa là ra ngay, lọc được theo lĩnh vực, mở được trên điện thoại.
 
-Đây là ứng dụng Bậc 2 trong thang 5 bậc ở Chương 2: trang công cụ chạy trong trình duyệt, chưa cần cơ sở dữ liệu, chưa cần đăng nhập. Dữ liệu chỉ gồm văn bản đã công khai, tức vùng XANH theo cách phân loại của Tập 1. Con số 30 phút là thời lượng mục tiêu khi xưởng đã cài xong; lần đầu thường lâu hơn vì đọc kỹ từng bước, điều đó hoàn toàn bình thường.
+Đây là ứng dụng Bậc 2 trong thang 5 bậc ở Chương 2: trang công cụ chạy trong trình duyệt, chưa cần cơ sở dữ liệu, chưa cần đăng nhập. Dữ liệu chỉ gồm văn bản đã công khai, tức Cấp 1 (Công khai) trong phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), loại duy nhất được đưa vào bất kỳ công cụ AI nào. Con số 30 phút là thời lượng mục tiêu khi xưởng đã cài xong; lần đầu thường lâu hơn vì đọc kỹ từng bước, điều đó hoàn toàn bình thường.
 
 **Bước 1 (3 phút) — Chuẩn bị dữ liệu.** Mở Excel, lập bảng bốn cột rồi lưu thành tệp CSV mã hóa UTF-8 (khi lưu bằng lệnh Save As, chọn kiểu tệp "CSV UTF-8").
 
@@ -303,13 +303,13 @@ Bốn dòng trên lấy từ danh mục pháp lý đã kiểm chứng của cu�
 
 **Bước 2 (2 phút) — Mở xưởng.** Tạo thư mục `C:\Projects\tra-cuu-van-ban`, chép tệp CSV vào đó. Bấm chuột phải vào thư mục, chọn "Open with Code". Mở cửa sổ lệnh, gõ `claude`.
 
-**Bước 3 (5 phút) — Giao việc.** Dán câu lệnh (prompt) mẫu dưới đây, sửa các chỗ trong ngoặc vuông. Câu lệnh theo khung V-B-V-D-R của Tập 1, thêm phần "Nghiệm thu" mà Chương 6 sẽ phân tích kỹ.
+**Bước 3 (5 phút) — Giao việc.** Dán câu lệnh (prompt) mẫu dưới đây, sửa các chỗ trong ngoặc vuông. Câu lệnh theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG của Tập 1 (mục 3.2), cộng thêm phần "Nghiệm thu". Phần thứ sáu này là phần mở rộng riêng của Tập 2 cho việc giao việc lập trình, sẽ được phân tích kỹ ở Chương 6, mục 6.2.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 5.1 — Dựng trang tra cứu danh mục văn bản**
 
 ```text
-VAI: Đồng chí là kỹ sư phần mềm giúp tôi, một cán bộ không chuyên lập trình.
+VAI: Hãy đóng vai kỹ sư phần mềm giúp tôi, một cán bộ không chuyên lập trình.
 BỐI CẢNH: Tôi là cán bộ [Ban ...] thuộc Văn phòng Đoàn ĐBQH và HĐND tỉnh.
 Thư mục này có tệp [danh-muc.csv] gồm 4 cột: Số hiệu, Tên văn bản,
 Hiệu lực từ, Lĩnh vực. Toàn bộ là văn bản đã công khai.
@@ -370,7 +370,7 @@ Lần đẩy đầu tiên, trình duyệt sẽ bật lên trang đăng nhập Gi
 
 Từ giờ, mỗi lần tác tử sửa trang và đẩy lên GitHub, Vercel tự triển khai lại. Hãy thử ngay: bảo tác tử "thêm vào chân trang dòng: Cập nhật danh mục ngày [hôm nay]", cho nó commit và đẩy lên, đợi một hai phút rồi tải lại trang trên điện thoại. Thấy dòng chữ mới hiện ra là đồng chí đã đi trọn một vòng của xưởng: giao việc, nghiệm thu, lưu trữ, khánh thành.
 
-Dự án này nhỏ, và nên nhỏ như vậy. Hệ thống của Văn phòng hôm nay có khoảng 21.400 dòng mã, nhưng nó bắt đầu từ một bài toán cụ thể rồi lớn dần qua từng vòng như trên. Nhỏ trước, lớn sau là nguyên tắc thứ ba trong bảy nguyên tắc vàng ở Chương 4.
+Dự án này nhỏ, và nên nhỏ như vậy. Hệ thống của Văn phòng, theo lần đếm khi viết sách, có khoảng 21.400 dòng mã, nhưng nó bắt đầu từ một bài toán cụ thể rồi lớn dần qua từng vòng như trên. Nhỏ trước, lớn sau là nguyên tắc thứ ba trong bảy nguyên tắc vàng ở Chương 4.
 
 ## 5.5. Kiểm tra "xưởng" đã sẵn sàng: bảng kiểm
 
@@ -450,12 +450,12 @@ kiến bộ phận quản trị mạng trước.
 
 ::: {.tomtat}
 1. Xưởng làm việc số gồm: VS Code (bàn làm việc), Node.js (điện nước), Git (sổ đăng ký), GitHub (kho lưu trữ có lịch sử), tác tử AI lập trình (tổ chuyên viên kỹ thuật), Vercel (khánh thành), Supabase (kho hồ sơ và cửa đăng nhập).
-2. Claude Code không có trong gói Free; gói thấp nhất là Pro 20 USD/tháng (giá tham khảo 10/2026). Hạ tầng thử nghiệm có thể ở mức miễn phí, kèm điều kiện phải đọc kỹ.
+2. Claude Code không có trong gói Free; gói thấp nhất là Pro 20 USD/tháng (giá tham khảo tại thời điểm viết, 10/2026). Hạ tầng thử nghiệm có thể ở mức miễn phí, kèm điều kiện phải đọc kỹ.
 3. Trên Windows, cài Claude Code bằng trình cài đặt gốc; WinGet không tự cập nhật; đường npm không còn được khuyến nghị.
 4. Đặt thư mục dự án ngoài OneDrive; đồng bộ giữa các máy bằng GitHub: đầu phiên kéo về, cuối phiên đẩy lên.
 5. Tệp `.env` không bao giờ lên GitHub; chỉ khóa công khai mới được mang tiền tố `VITE_`; lỡ lộ khóa bí mật thì thu hồi ngay.
-6. Ngay sau khi đăng ký, tắt chế độ cho phép dùng dữ liệu để huấn luyện; không đưa tài liệu mật, dữ liệu cá nhân thật vào xưởng.
-7. Dự án đầu tiên nên nhỏ, dữ liệu vùng XANH, đi trọn vòng: giao việc → nghiệm thu → lưu trữ → khánh thành.
+6. Ngay sau khi đăng ký, tắt chế độ cho phép dùng dữ liệu để huấn luyện; với tài khoản cá nhân chỉ dùng dữ liệu Cấp 1 (Công khai), không bao giờ đưa dữ liệu Cấp 3, Cấp 4 vào xưởng.
+7. Dự án đầu tiên nên nhỏ, chỉ dùng dữ liệu Cấp 1 (Công khai), đi trọn vòng: giao việc → nghiệm thu → lưu trữ → khánh thành.
 :::
 
 ## Câu hỏi suy ngẫm và bài tập

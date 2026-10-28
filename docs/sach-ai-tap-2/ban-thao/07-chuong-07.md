@@ -12,11 +12,11 @@
 Dành cho: cán bộ muốn tự làm ứng dụng (đọc kỹ cả chương, làm theo các câu lệnh mẫu); lãnh đạo nên đọc mục 7.2, 7.7 và hộp "Dành cho lãnh đạo".
 :::
 
-Ai làm việc với tác tử AI lập trình cũng sẽ gặp chuyện này ngay trong tuần đầu. Buổi sáng, đồng chí dặn AI rất kỹ: phần mềm này của cơ quan dân cử, chữ trên giao diện phải là tiếng Việt có dấu, điểm Nhóm I tối đa 30, không được đụng vào phần xuất Word. Buổi chiều mở phiên mới, AI làm như chưa từng nghe những lời dặn ấy. Tối về nhà mở máy khác, máy ở nhà càng không biết buổi sáng đã bàn gì.
+Ai làm việc với tác tử AI lập trình cũng sẽ gặp chuyện này ngay trong tuần đầu. Hãy hình dung: buổi sáng, đồng chí dặn AI rất kỹ: phần mềm này của cơ quan dân cử, chữ trên giao diện phải là tiếng Việt có dấu, điểm Nhóm I tối đa 30, không được đụng vào phần xuất Word. Buổi chiều mở phiên mới, AI làm như chưa từng nghe những lời dặn ấy. Tối về nhà mở máy khác, máy ở nhà càng không biết buổi sáng đã bàn gì.
 
-Tôi đã gặp đúng chuyện đó khi xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội và Hội đồng nhân dân tỉnh Thanh Hóa (địa chỉ hdndthkpi.vercel.app) cùng tác tử AI lập trình Claude Code trong năm 2026. Hãy hình dung tổ chuyên viên kỹ thuật mà ta giao việc, sáng nào cũng là người mới đến lần đầu. Họ giỏi, nhanh, nhưng không biết hôm qua đã quyết định điều gì, vì sao. Không có sổ bàn giao thì ngày nào cũng phải kể lại từ đầu, và sớm muộn sẽ quên kể một điều hệ trọng.
+Tôi đã gặp những chuyện như vậy khi xây dựng hệ thống thử nghiệm của Văn phòng Đoàn đại biểu Quốc hội và Hội đồng nhân dân tỉnh Thanh Hóa (địa chỉ hdndthkpi.vercel.app) cùng tác tử AI lập trình Claude Code trong năm 2026. Có thể ví tác tử như tổ chuyên viên kỹ thuật mà ta giao việc, nhưng sáng nào cũng là người mới đến lần đầu. Họ giỏi, nhanh, nhưng không biết hôm qua đã quyết định điều gì, vì sao. Không có sổ bàn giao thì ngày nào cũng phải kể lại từ đầu, và sớm muộn sẽ quên kể một điều hệ trọng.
 
-Chương 5 đã dựng "xưởng làm việc số", Chương 6 đã bàn cách giao việc. Chương này trả lời câu hỏi tiếp theo: làm sao để công việc tích lũy qua nhiều tháng mà không rơi rớt, không đổ vỡ dây chuyền, và người khác tiếp nhận được. Không điều nào ở đây đòi hỏi biết lập trình; đó là thói quen của người làm văn phòng cẩn thận, áp vào một loại hồ sơ mới. Phần lớn các kỷ luật này ra đời sau một sự cố, và tôi sẽ kể cả những sự cố đó.
+Chương 5 đã dựng "xưởng làm việc số", Chương 6 đã bàn cách giao việc. Chương này trả lời câu hỏi tiếp theo: làm sao để công việc tích lũy qua nhiều tháng mà không rơi rớt, không đổ vỡ dây chuyền, và người khác tiếp nhận được. Không điều nào ở đây đòi hỏi biết lập trình; phần lớn các kỷ luật này ra đời sau một sự cố, và tôi sẽ kể cả những sự cố đó.
 
 ## 7.1. Vì sao AI "quên" và cách cho AI một bộ nhớ
 
@@ -26,11 +26,11 @@ Muốn biết AI quên cái gì, cần phân biệt ba tầng trí nhớ.
 
 Tầng thứ nhất là những gì AI đang "bày trên bàn" trong phiên làm việc, gọi là cửa sổ ngữ cảnh (context window). Mọi lời đồng chí dặn, mọi tệp AI vừa đọc, mọi kết quả lệnh vừa chạy đều nằm ở đây. Bàn có giới hạn: phiên càng dài, lời dặn từ đầu phiên càng dễ bị tóm tắt lại và rơi mất chi tiết. Đóng phiên là dọn sạch bàn.
 
-Tầng thứ hai là lịch sử hội thoại mà công cụ lưu trên chính chiếc máy đang dùng, nhờ đó mở lại được phiên cũ. Nhưng tệp quy tắc đa máy của dự án ghi một nhận xét mà tôi phải trả giá mới hiểu: "Bộ nhớ hội thoại của Claude Code là cục bộ từng máy, KHÔNG tự đồng bộ." Dặn ở máy cơ quan thì máy ở nhà không biết.
+Tầng thứ hai là lịch sử hội thoại mà công cụ lưu trên chính chiếc máy đang dùng, nhờ đó mở lại được phiên cũ. Nhưng tệp quy tắc đa máy của dự án ghi một nhận xét rất đáng nhớ: "Bộ nhớ hội thoại của Claude Code là cục bộ từng máy, KHÔNG tự đồng bộ." Dặn ở máy cơ quan thì máy ở nhà không biết.
 
 Tầng thứ ba là bộ nhớ dự án: những tệp văn bản nằm ngay trong kho mã nguồn (repository) và được tác tử tự đọc mỗi khi mở phiên. Đây là tầng duy nhất đi theo dự án sang mọi máy, vì nó được lưu cùng mã nguồn lên GitHub. Tệp quy tắc ấy kết luận: mọi bối cảnh quan trọng phải nằm ở (a) mã nguồn, (b) lịch sử các lần ghi sổ (commit), (c) tệp CLAUDE.md và thư mục `.claude/rules/`.
 
-Ví von cho dễ nhớ: tầng thứ nhất là trí nhớ trong buổi làm việc của chuyên viên. Tầng thứ hai là cuốn sổ tay riêng trong ngăn bàn ở một trụ sở. Tầng thứ ba là bộ hồ sơ cất trong tủ chung, ai đến làm cũng phải mở ra đọc trước.
+Ví von cho dễ nhớ: tầng một là trí nhớ trong buổi làm việc; tầng hai là sổ tay riêng trong ngăn bàn ở một trụ sở; tầng ba là bộ hồ sơ trong tủ chung, ai đến làm cũng phải đọc trước.
 
 ::: {.ghinho}
 **Ghi nhớ**
@@ -58,7 +58,7 @@ Trong dự án của Văn phòng, CLAUDE.md chỉ khoảng hai trăm chữ. Nó 
   - ... (sáu tệp khác)
 ```
 
-Vì sao phải ngắn? Vì tệp này được đọc ở mọi phiên, kể cả phiên chỉ sửa một dấu phẩy. Viết dài thì phiên nào AI cũng phải "đọc" hết, chiếm chỗ trên bàn làm việc mà phần lớn không dùng tới. Ban đầu mọi thứ nằm trong một tệp CLAUDE.md; khi dự án lớn dần, tôi giao AI tách theo chủ đề sang thư mục quy tắc.
+Vì sao phải ngắn? Vì tệp này được đọc ở mọi phiên, kể cả phiên chỉ sửa một dấu phẩy. Viết dài là chiếm chỗ trên bàn làm việc của AI mà phần lớn không dùng tới. Ban đầu mọi thứ nằm trong một tệp CLAUDE.md; khi dự án lớn dần, tôi giao AI tách theo chủ đề sang thư mục quy tắc.
 
 ### 7.1.3. Thư mục quy tắc — bộ hồ sơ theo chủ đề
 
@@ -70,11 +70,11 @@ Thư mục `.claude/rules/` của dự án hiện có bảy tệp:
 | commands-and-deploy.md | Lệnh dựng, chạy thử, triển khai | Mọi phiên |
 | multi-machine-workflow.md | Quy trình cơ quan ↔ nhà | Mọi phiên |
 | conventions.md | Quy ước viết mã, commit, ủy quyền | Mọi phiên |
-| architecture.md | Tệp nào làm gì, sửa ở đâu | Khi sửa mã |
-| data-model.md | Đối tượng, dữ liệu, công thức điểm | Khi sửa giao diện |
+| architecture.md | Tệp nào làm gì, sửa ở đâu | Khi đọc, sửa tệp mã |
+| data-model.md | Đối tượng, dữ liệu, công thức điểm | Khi đọc, sửa tệp trong src/ |
 | changelog.md | Nhật ký các bước đã làm | Mọi phiên |
 
-Tệp kiến trúc dài khoảng sáu nghìn chữ. Không lẽ phiên nào cũng bắt AI đọc? Cách giải quyết là khai "phạm vi đường dẫn" ở đầu tệp:
+Tệp kiến trúc dài gần tám nghìn chữ (đếm tháng 10/2026). Không lẽ phiên nào cũng bắt AI đọc? Cách giải quyết là khai "phạm vi đường dẫn" ở đầu tệp:
 
 ```text
   ---
@@ -86,7 +86,7 @@ Tệp kiến trúc dài khoảng sáu nghìn chữ. Không lẽ phiên nào cũn
   # Kiến trúc & nơi sửa
 ```
 
-Mấy dòng này có nghĩa: chỉ khi công việc chạm vào thư mục `src/`, `api/` hoặc `supabase/` thì tệp mới được đưa lên bàn. Giống như hồ sơ kỹ thuật công trình chỉ mang ra khi bàn chuyện sửa trụ sở; họp về nhân sự thì để yên trong tủ.
+Mấy dòng này có nghĩa: chỉ khi AI mở đọc hoặc sửa một tệp trong thư mục `src/`, `api/` hoặc `supabase/` thì tệp mới được đưa lên bàn; tệp không khai phạm vi thì được nạp ở mọi phiên (theo tài liệu chính thức của Claude Code, tháng 10/2026). Giống như hồ sơ kỹ thuật công trình chỉ mang ra khi bàn chuyện sửa trụ sở; họp về nhân sự thì để yên trong tủ.
 
 Thư mục quy tắc phải được đưa lên GitHub thì máy khác mới đọc được, trong khi cùng thư mục `.claude` còn có cấu hình riêng của từng máy, không nên đồng bộ. Tệp `.gitignore` (danh sách những gì Git bỏ qua) của dự án xử lý bằng ba dòng: bỏ qua mọi thứ trong `.claude`, trừ thư mục `rules`. Chi tiết nhỏ nhưng quyết định: thiếu ba dòng này, bộ nhớ dự án chỉ tồn tại trên chiếc máy đã viết ra nó.
 
@@ -97,13 +97,13 @@ Kinh nghiệm của tôi gói trong sáu điều.
 1. **Viết như quy chế, không như tâm sự.** Mỗi quy tắc là một câu mệnh lệnh rõ việc, rõ thời điểm: "Trước khi commit: `npm run build` phải xanh", tức lệnh tạo bản dựng (build) phải chạy hết, không báo lỗi.
 2. **Kèm lý do và bài học.** Quy tắc có lý do thì AI áp dụng đúng cả trong tình huống chưa gặp; tệp quy ước ghi luôn sự cố ngày 13/8/2026 vào quy tắc rà soát (mục 7.5).
 3. **Đặt cảnh báo ngay tại chỗ trong mã.** Ngoài bộ nhớ chung, chỗ nguy hiểm có dòng chú thích tiếng Việt mở đầu bằng ký hiệu ⚠️. Ở tệp lưu hồ sơ cán bộ có dòng: "normalize là DANH SÁCH TRẮNG các trường được giữ lại — thêm trường mới vào hồ sơ thì PHẢI khai ở đây, nếu không sẽ bị gọt mất ngay lúc lưu/nạp". Ai mở tệp ấy cũng thấy cảnh báo trước khi sửa.
-4. **Ghi cả điều cấm và điều AI hay nói sai.** Kiến thức của bot chat từng được dặn thẳng: điểm tối đa từng trục kiểm điểm không cố định, "đừng nói là 15/10/10/15/10/10".
+4. **Ghi cả điều cấm và điều AI hay nói sai.** Kiến thức của bot chat được dặn thẳng: điểm tối đa từng trục kiểm điểm không cố định, "đừng nói là 15/10/10/15/10/10".
 5. **Một sự thật, một nơi ghi.** Công thức đã nằm ở tệp mô hình dữ liệu thì tệp khác chỉ dẫn chiếu; chép hai nơi thì có ngày hai nơi lệch nhau.
 6. **Cập nhật cùng lúc với mã.** Đây là điều khó giữ nhất.
 
-Điều thứ sáu khó đến mức chính dự án của tôi chưa giữ trọn. Đọc lại bộ nhớ dự án vào tháng 10/2026, tôi thấy vài chỗ lỗi thời. Tệp quy ước vẫn dặn sửa công thức dùng chung thì "chỉ sửa src/App.jsx (2 bản giao diện kia import lại từ đó)", trong khi hai bản giao diện ấy đã bị gỡ bỏ từ lâu. Dòng đầu CLAUDE.md vẫn giới thiệu "Hệ thống Đánh giá, xếp loại cán bộ, công chức theo OKR/KPI", dù hệ thống đã thành cổng nhiều phân hệ và tên trang đã đổi thành tên cơ quan. Trước đó, trang hướng dẫn từng ghi ngưỡng xếp loại kiểm điểm là 80/65 trong khi phần mềm tính theo 70/50.
+Chính dự án của tôi chưa giữ trọn điều thứ sáu. Đọc lại bộ nhớ dự án vào tháng 10/2026, tôi thấy vài chỗ lỗi thời. Tệp quy ước vẫn dặn sửa công thức dùng chung thì "chỉ sửa src/App.jsx (2 bản giao diện kia import lại từ đó)", trong khi hai bản giao diện ấy đã bị gỡ bỏ từ lâu. Câu giới thiệu ở đầu CLAUDE.md (và tệp tổng quan) vẫn ghi "Hệ thống Đánh giá, xếp loại cán bộ, công chức theo OKR/KPI", dù hệ thống đã thành cổng nhiều phân hệ và tên trang đã đổi thành tên cơ quan. Trước đó, trang hướng dẫn từng ghi ngưỡng xếp loại kiểm điểm là 80/65 trong khi phần mềm tính theo 70/50.
 
-Mỗi chỗ lỗi thời là một cái bẫy. AI đọc bộ nhớ, tin là đúng, rồi làm theo điều không còn đúng. Cách chữa là định kỳ giao chính AI đối chiếu bộ nhớ với mã nguồn, như một cuộc kiểm tra nội bộ. Mẫu bộ nhớ dự án cho cơ quan có ở Phụ lục 3; dưới đây là hai câu lệnh để lập mới và để kiểm tra.
+Mỗi chỗ lỗi thời là một cái bẫy. AI đọc bộ nhớ, tin là đúng, rồi làm theo điều không còn đúng. Cách chữa là định kỳ giao chính AI đối chiếu bộ nhớ với mã nguồn, như một cuộc kiểm tra nội bộ. Mẫu bộ nhớ dự án cho cơ quan có ở Phụ lục 3; dưới đây là hai câu lệnh để lập mới và để kiểm tra. Các câu lệnh mẫu của chương viết theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2), thêm phần NGHIỆM THU là phần mở rộng của Tập 2 đã trình bày ở Chương 6; thành phần nào không cần thì lược bớt.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 7.1 — Lập bộ nhớ dự án cho một dự án mới**
@@ -117,7 +117,8 @@ VIỆC: Hãy lập bộ nhớ dự án gồm:
 1. Tệp CLAUDE.md ở thư mục gốc, dưới 250 chữ: dự án là gì, quy
    tắc vàng đa máy, mục lục trỏ tới các tệp quy tắc.
 2. Thư mục .claude/rules/ gồm: tổng quan; lệnh và triển khai; làm
-   việc đa máy; kiến trúc (chỉ nạp khi sửa mã); quy ước; nhật ký.
+   việc đa máy; kiến trúc (chỉ nạp khi làm với tệp mã); quy ước;
+   nhật ký.
 3. Sửa .gitignore để commit thư mục .claude/rules/ nhưng bỏ qua
    cấu hình cục bộ khác trong .claude.
 DẠNG: tiếng Việt có dấu; câu mệnh lệnh ngắn; mỗi quy tắc kèm một
@@ -150,7 +151,7 @@ phiên sau làm sai), rồi dừng lại chờ tôi duyệt mới sửa.
 
 Lịch sử commit cho biết đã đổi những gì, nhưng trả lời kém câu hỏi quan trọng hơn: vì sao. Vì sao phân hệ Kiểm điểm lưu ở một chỗ riêng? Vì sao điểm thưởng vượt định mức có trần +5? Không ghi lại thì ba tháng sau chính tôi cũng quên, còn AI phiên sau có thể "dọn cho gọn" và đưa lỗi cũ quay về.
 
-Vì thế dự án có tệp nhật ký thay đổi (changelog) nằm ngay trong thư mục quy tắc. Đến tháng 10/2026, nhật ký dài khoảng 24.000 chữ với hơn 100 mục, mục mới nhất ở trên cùng. Tôi gọi nó là "sổ giao ban": xong mỗi việc lớn thì ghi một mục, như cuối buổi giao ban ghi kết luận.
+Vì thế dự án có tệp nhật ký thay đổi (changelog) nằm ngay trong thư mục quy tắc. Cuối tháng 10/2026, nhật ký dài hơn 26.000 chữ với hơn 110 mục, mục mới nhất ở trên cùng. Tôi gọi nó là "sổ giao ban": xong mỗi việc lớn thì ghi một mục, như cuối buổi giao ban ghi kết luận.
 
 Một mục nhật ký tốt trả lời năm câu hỏi. Bảng dưới đây lấy ví dụ từ mục ghi việc vá lỗi danh bạ điện thoại "lưu xong mở lại thì biến mất":
 
@@ -159,16 +160,14 @@ Một mục nhật ký tốt trả lời năm câu hỏi. Bảng dưới đây l
 | Tiêu đề in đậm | Đã làm gì? | Vá lỗi danh bạ lưu xong thì mất |
 | Nguyên nhân gốc | Vì sao hỏng? | Hàm chuẩn hóa là danh sách trắng, gọt trường mới |
 | Cách sửa, tệp nào | Sửa ở đâu? | Khai trường mới vào hàm chuẩn hóa, kèm cảnh báo |
-| Ký hiệu ⚠️ | Người còn phải làm gì? | Quản trị nhập lại danh bạ, lưu một lần |
+| Ký hiệu ⚠️ (việc người làm) | Người còn phải làm gì? | Quản trị nhập lại danh bạ, lưu một lần |
 | Kiểm thử | Lấy gì chứng minh? | 28 phép kiểm đạt; lint 0 lỗi; dựng xanh |
 
-Hai thành phần cuối hay bị quên nhất mà lại đáng giá nhất. Ký hiệu ⚠️ đánh dấu việc AI không tự làm được: chạy một đoạn lệnh trên cơ sở dữ liệu, đăng ký lại địa chỉ nhận tin của bot, nhập lại dữ liệu. Không ghi thì phần mềm "đã sửa" mà người dùng vẫn gặp lỗi. Dòng kiểm thử biến câu "đã xong" thành câu có bằng chứng.
+Hai thành phần cuối hay bị quên nhất mà lại đáng giá nhất. Ký hiệu ⚠️ đánh dấu điều phải đặc biệt lưu ý, trong đó quan trọng nhất là việc AI không tự làm được: chạy một đoạn lệnh trên cơ sở dữ liệu, đăng ký lại địa chỉ nhận tin của bot, nhập lại dữ liệu. Không ghi thì phần mềm "đã sửa" mà người dùng vẫn gặp lỗi. Dòng kiểm thử biến câu "đã xong" thành câu có bằng chứng.
 
-Nhật ký còn có một đặc điểm tôi cố ý giữ: quyết định do tôi chọn đều ghi rõ "người dùng chốt". Chẳng hạn: chuyển Sổ tay AI sang NotebookLM; giữ nguyên công thức của nghị định, chỉ thêm cảnh báo khi điểm số với xếp loại chênh nhau. AI đưa phương án kèm hệ quả, người chọn, sổ ghi lại. Chính quy trình làm phần mềm cũng theo nguyên tắc máy đề xuất – người quyết định.
+Nhật ký còn có một đặc điểm tôi cố ý giữ: quyết định do tôi chọn thường được ghi rõ là của người dùng ("người dùng chốt định hướng", "theo lựa chọn người dùng", "người dùng chọn phương án này"). Chẳng hạn: chuyển Sổ tay AI sang NotebookLM (nay Google đã đổi tên thành Gemini Notebook, địa chỉ notebook.google.com); giữ nguyên công thức của nghị định, chỉ thêm cảnh báo khi điểm số với xếp loại chênh nhau. Từ nay, nên thống nhất một cụm cố định như "người dùng chốt" để dễ tra. AI đưa phương án kèm hệ quả, người chọn, sổ ghi lại. Chính quy trình làm phần mềm cũng theo nguyên tắc máy đề xuất – người quyết định.
 
-Người đọc cuốn sổ là AI ở phiên sau, là tôi khi sang máy khác, là người tiếp nhận dự án sau này. Ngày tháng, con số, sự cố kể trong sách này cũng phần lớn được đối chiếu với nhật ký.
-
-Cần lưu ý khi nhật ký dài ra. Tệp nằm trong thư mục quy tắc, không khai phạm vi đường dẫn, nên phiên nào cũng được nạp. Hai mươi bốn nghìn chữ là một chồng giấy dày trên bàn làm việc của AI. Đến một mức nào đó nên tách: giữ vài chục mục gần nhất, chuyển phần cũ sang tệp lưu trữ để tra khi cần. Dòng hướng dẫn đầu tệp cũng cần sửa: nó vẫn dặn "thêm 1 dòng vào đây", trong khi mỗi mục thực tế dài cả trăm chữ.
+Cần lưu ý khi nhật ký dài ra. Tệp nằm trong thư mục quy tắc, không khai phạm vi đường dẫn, nên phiên nào cũng được nạp. Hơn hai mươi sáu nghìn chữ là một chồng giấy dày trên bàn làm việc của AI. Đến một mức nào đó nên tách: giữ vài chục mục gần nhất, chuyển phần cũ sang tệp lưu trữ để tra khi cần. Dòng hướng dẫn đầu tệp cũng cần sửa: nó vẫn dặn "thêm 1 dòng vào đây", trong khi mỗi mục thực tế dài cả trăm chữ.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 7.3 — Ghi nhật ký sau khi xong một việc**
@@ -189,7 +188,7 @@ NGHIỆM THU: in mục vừa thêm cho tôi đọc trước khi commit.
 
 Mã nguồn là bộ bản vẽ thiết kế, GitHub là sổ lưu trữ bản vẽ có ghi lịch sử từng lần sửa. Mỗi máy đang làm việc giữ một bản sao đầy đủ của bộ bản vẽ. Giữa máy và GitHub chỉ có hai động tác: kéo về (pull) là lấy những lần sửa mới nhất từ GitHub về máy; đẩy lên (push) là gửi những lần sửa đã ghi sổ trên máy lên GitHub.
 
-Trong dự án của Văn phòng, mỗi lần đẩy lên nhánh chính (main), Vercel tự dựng và triển khai bản mới sau khoảng một đến hai phút. Cùng lúc, dây chuyền kiểm tra tự động trên GitHub (GitHub Actions) chạy lại bước kiểm tra mã và bước dựng. Cái gì nằm trên GitHub thì đó là phần mềm người dùng đang thấy. Không có chuyện "bản ở máy tôi mới là bản đúng".
+Trong dự án của Văn phòng, mỗi lần đẩy lên nhánh chính (main), Vercel tự dựng và triển khai bản mới sau khoảng một đến hai phút. Cùng lúc, dây chuyền kiểm tra tự động trên GitHub (GitHub Actions) chạy lại bước kiểm tra mã và bước dựng. Mã trên nhánh chính là mã đang chạy; không có chuyện "bản ở máy tôi mới là bản đúng". Những gì không nằm trên GitHub, như khóa khai trên Vercel hay các lệnh đã chạy trên cơ sở dữ liệu, thì phải được ghi lại trong nhật ký, nếu không sẽ không ai biết.
 
 Từ đó ra quy tắc vàng, ghi ngay đầu CLAUDE.md: đầu phiên `git pull`, cuối phiên commit và `git push`. Lệnh `git log --oneline` liệt kê mọi lần ghi sổ, mỗi lần một dòng, nên nó cũng là nhật ký "các bước đã làm" luôn đồng bộ giữa các máy.
 
@@ -203,9 +202,9 @@ Phải thành thật rằng chính dự án của tôi cũng có chỗ chưa the
 
 ### 7.3.2. Máy mới và tệp .env
 
-Phần "máy mới, làm một lần" trong bộ nhớ dự án có bốn bước, Chương 5 đã hướng dẫn chi tiết. Bước hay bị quên nhất là tạo tệp `.env` từ tệp mẫu `.env.example`: tệp này chứa khóa kết nối cơ sở dữ liệu, cố ý không đưa lên GitHub, nên máy nào cũng phải tạo lại bằng tay.
+Phần "máy mới, làm một lần" trong bộ nhớ dự án có bốn bước, Chương 5 đã hướng dẫn chi tiết. Bước hay bị quên nhất là tạo tệp `.env` từ tệp mẫu `.env.example`: tệp này chứa khóa kết nối cơ sở dữ liệu và có thể cả các khóa bí mật (khóa AI, mã bot), cố ý không đưa lên GitHub, nên máy nào cũng phải tạo lại bằng tay.
 
-Dự án có tác vụ tự động thì càng phải chú ý. Máy ở cơ quan của tôi tự chạy bộ sinh bản tin mỗi sáng rồi tự đẩy lên, nên gần như ngày nào GitHub cũng có lần ghi sổ mới mà máy ở nhà chưa có. Quên kéo về mà cứ làm thì đến lúc đẩy lên sẽ bị từ chối, phải gộp hai dòng lịch sử. Kéo về đầu phiên là cách rẻ nhất để tránh rắc rối đó.
+Dự án có tác vụ tự động thì càng phải chú ý. Máy ở cơ quan của tôi tự chạy bộ sinh bản tin mỗi sáng rồi tự đẩy lên, nên gần như ngày nào GitHub cũng có lần ghi sổ mới mà máy ở nhà chưa có. Quên kéo về mà cứ làm thì đến lúc đẩy lên sẽ bị từ chối, phải gộp hai dòng lịch sử.
 
 ::: {.thuchanh}
 **Thực hành: một phiên làm việc chuẩn**
@@ -242,8 +241,7 @@ Quy ước của dự án còn dặn một điều: chỉ đưa vào sổ đúng
 Thông điệp commit của dự án viết bằng tiếng Việt có dấu, theo khuôn: dòng đầu nêu phân hệ và việc; một dòng trống; thân gồm các gạch đầu dòng nêu nguyên nhân, cách sửa; dòng cuối ghi AI là đồng tác giả. Đây là thông điệp thật của lần vá lỗi ngày 28/9/2026, đã lược bớt và giản lược vài chữ kỹ thuật:
 
 ```text
-Vá lỗi sập phân hệ đầu mỗi kỳ mới (OKR/KPI, Kiểm điểm,
-Quản lý cán bộ)
+Vá lỗi sập phân hệ đầu mỗi kỳ mới
 
 - useState(people[0].id): biểu thức truyền vào useState vẫn được
   TÍNH ở mọi lần render, nên khi kỳ chưa có dữ liệu thì ném lỗi
@@ -254,7 +252,7 @@ Quản lý cán bộ)
 Co-Authored-By: [tên mô hình AI] <...>
 ```
 
-Người không biết lập trình đọc vẫn hiểu: hỏng gì, vì sao, đã làm gì.
+Dòng đầu thực tế dài hơn một chút nhưng vẫn nằm trên một dòng. Người không biết lập trình đọc vẫn hiểu: hỏng gì, vì sao, đã làm gì.
 
 | Thông điệp kém | Thông điệp tốt |
 |---|---|
@@ -274,18 +272,18 @@ git show <mã>:<đường dẫn>    # xem lại một tệp ở thời điểm c
 git revert <mã>              # hoàn tác một lần ghi sổ
 ```
 
-Lệnh thứ hai từng được dùng khi làm chức năng chọn ngày xem lại bản tin: kho lưu trữ mới có một ngày, AI lấy lại bản tin ngày 09/9/2026 từ lịch sử để kho có ngay hai ngày. Lệnh thứ ba hoàn tác bằng cách ghi thêm một lần sửa ngược lại, không xóa gì khỏi sổ. Hai bản giao diện "Mới" và "PRO" đã gỡ khỏi dự án cũng vậy: mã của chúng vẫn nằm trong lịch sử, cần thì lấy lại được.
+Lệnh thứ hai từng được dùng khi làm chức năng chọn ngày xem lại bản tin: kho lưu trữ mới có một ngày, AI lấy lại bản tin ngày 09/9/2026 từ lịch sử để kho có ngay hai ngày. Lệnh thứ ba hoàn tác bằng một lần sửa ngược lại, không xóa gì khỏi sổ. Hai bản giao diện "Mới" và "PRO" đã gỡ khỏi dự án cũng vậy: mã của chúng vẫn nằm trong lịch sử, cần thì lấy lại được.
 
-Những lệnh "viết lại lịch sử", xóa hẳn các lần ghi sổ, thuộc nhóm việc luôn phải hỏi người (mục 7.7). Cũng cần phân biệt: lịch sử Git là hồ sơ kỹ thuật, không thay thế hồ sơ lưu trữ theo quy định về văn thư, lưu trữ. Kết quả đánh giá, biên bản chính thức vẫn phải được ký, ban hành, lưu trữ theo quy trình của cơ quan.
+Những lệnh "viết lại lịch sử", xóa hẳn các lần ghi sổ, thuộc nhóm việc luôn phải hỏi người (mục 7.7). Cũng cần phân biệt: lịch sử Git là hồ sơ kỹ thuật, không thay thế hồ sơ lưu trữ theo Luật Lưu trữ số 33/2024/QH15 và quy định về văn thư (đây là nhận định nghiệp vụ của tôi, không phải trích một điều luật). Kết quả đánh giá, biên bản chính thức vẫn phải được ký, ban hành, lưu trữ theo quy trình của cơ quan.
 
 ### 7.4.4. Lịch sử nhớ dai — con dao hai lưỡi
 
-Cũng vì sổ không xóa, tệp lỡ commit rồi thì xóa ở lần sau vẫn còn trong lịch sử; với kho công khai là đã công bố. Dự án của tôi từng để lọt một tệp thử trong thư mục nháp vì `.gitignore` chưa chặn thư mục đó. May là tệp chỉ chứa địa chỉ dự án và khóa công khai, loại khóa vốn được thiết kế để nằm trong mã trình duyệt. Nếu đó là số điện thoại hay hồ sơ cán bộ thì chuyện đã khác.
+Cũng vì sổ không xóa, tệp lỡ commit rồi thì xóa ở lần sau vẫn còn trong lịch sử; với kho công khai là đã công bố. Dự án của tôi để lọt một tệp thử trong thư mục nháp vì `.gitignore` chưa chặn thư mục đó; khi viết sách (10/2026) tệp vẫn còn trong kho. May là tệp chỉ chứa địa chỉ dự án và khóa công khai, loại khóa vốn được thiết kế để nằm trong mã trình duyệt. Nếu đó là số điện thoại hay hồ sơ cán bộ thì chuyện đã khác.
 
 ::: {.phaply}
 **Căn cứ pháp lý**
 
-Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 được Quốc hội thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026. Luật phân dữ liệu cá nhân thành dữ liệu cá nhân cơ bản và dữ liệu cá nhân nhạy cảm; danh mục cụ thể do Chính phủ quy định. Theo Điều 3 Nghị định 356/2025/NĐ-CP (quy định chi tiết thi hành Luật, có hiệu lực cùng ngày), họ tên, ngày sinh, số điện thoại, số định danh cá nhân, quan hệ gia đình đều thuộc danh mục dữ liệu cá nhân cơ bản. Đưa chúng vào kho mã công khai là công bố dữ liệu cá nhân, và lịch sử Git giữ chúng lại cả khi tệp đã bị xóa. Đồng chí nên tra nguyên văn Luật trên Cơ sở dữ liệu quốc gia về văn bản pháp luật trước khi áp dụng.
+Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 được Quốc hội thông qua ngày 26/6/2025, có hiệu lực từ 01/01/2026. Luật phân dữ liệu cá nhân thành dữ liệu cá nhân cơ bản và dữ liệu cá nhân nhạy cảm; danh mục cụ thể do Chính phủ quy định. Theo Điều 3 Nghị định 356/2025/NĐ-CP quy định chi tiết một số điều và biện pháp thi hành Luật Bảo vệ dữ liệu cá nhân (có hiệu lực cùng ngày 01/01/2026), họ tên, ngày sinh, số điện thoại, số định danh cá nhân, quan hệ gia đình đều thuộc danh mục dữ liệu cá nhân cơ bản. Đưa chúng vào kho mã công khai là làm lộ dữ liệu cá nhân cho bất kỳ ai, và lịch sử Git giữ chúng lại cả khi tệp đã bị xóa. Đồng chí nên tra nguyên văn Luật trên Cơ sở dữ liệu quốc gia về văn bản pháp luật trước khi áp dụng.
 :::
 
 ::: {.lenhmau}
@@ -320,7 +318,7 @@ Sau đó, tôi yêu cầu ghi vào tệp quy ước một quy tắc bắt buộc
 
 Quy tắc ấy nguyên văn như sau: sửa xong một chỗ thì "chủ động kiểm tra và hoàn thiện MỌI chức năng liên quan trong cùng lần sửa, không chờ người dùng phát hiện hỏng". Câu hỏi then chốt là: "chỗ nào khác đang đọc/ghi thứ vừa đổi?". Và cách trả lời phải là "kiểm chứng THẬT (chạy thử, không đoán)".
 
-Giống như đổi số phòng của một phòng ban mà quên báo tổng đài, quên sửa bảng chỉ dẫn ở sảnh: phòng vẫn làm việc, chỉ khách là không tìm thấy. Lỗi dây chuyền nguy hiểm vì nó không hiện ra ở chỗ vừa sửa.
+Giống như đổi số phòng mà quên sửa bảng chỉ dẫn ở sảnh: phòng vẫn làm việc, chỉ khách là không tìm thấy. Lỗi dây chuyền nguy hiểm vì nó không hiện ra ở chỗ vừa sửa.
 
 Giá trị lớn nhất của quy tắc nằm ở danh mục "đường dây" cụ thể đi kèm. Dưới đây là bản đồ của dự án Văn phòng; ba dòng đầu ghi sẵn trong tệp quy ước, các dòng sau tôi rút từ các sự cố khác:
 
@@ -333,9 +331,9 @@ Giá trị lớn nhất của quy tắc nằm ở danh mục "đường dây" c�
 | Thêm phân hệ mới | Kho dữ liệu riêng; Trang chủ; Hướng dẫn; bot |
 | Công thức, ngưỡng xếp loại | Trang hướng dẫn; phiếu Word; bot |
 
-Cách lập bản đồ cho dự án của đồng chí rất đơn giản: mỗi lần gặp một lỗi dây chuyền, thêm một dòng. Vài tháng sau, bảng này là tài sản quý của bộ nhớ dự án. Khi thêm phân hệ Sổ tay AI, bộ kiểm thử của phân hệ có hẳn một nhóm phép kiểm xác nhận phân hệ đã được "nối đủ" vào các chỗ trong hệ thống.
+Cách lập bản đồ cho dự án của đồng chí rất đơn giản: mỗi lần gặp một lỗi dây chuyền, thêm một dòng. Khi thêm phân hệ Sổ tay AI, bộ kiểm thử của phân hệ có hẳn một nhóm phép kiểm xác nhận phân hệ đã được "nối đủ" vào các chỗ trong hệ thống.
 
-Cũng phải nói thật: quy tắc viết ra rồi vẫn có chỗ lọt. Khi đọc lại mã để viết sách, tôi thấy nguyên tắc "AI lỗi thì hoàn lại lượt đã trừ" mới áp ở khung chat Trang chủ. Hai lối gọi AI khác, của Trợ lý AI và Sổ tay AI, khi AI lỗi chưa hoàn lượt. Một quy tắc tốt vẫn cần được nhắc lại và cần phép kiểm để giữ.
+Cũng phải nói thật: quy tắc viết ra rồi vẫn có chỗ lọt. Khi đọc lại mã để viết sách, tôi thấy nguyên tắc "AI lỗi thì hoàn lại lượt đã trừ" mới áp ở khung chat Trang chủ. Hai lối gọi AI khác, của Trợ lý AI và lối tra nhanh tại chỗ của Sổ tay AI, tính đến cuối tháng 10/2026 khi AI lỗi vẫn chưa hoàn lượt. Một quy tắc tốt vẫn cần được nhắc lại và cần phép kiểm để giữ.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 7.5 — Rà soát dây chuyền trước khi đóng việc**
@@ -357,15 +355,15 @@ NGHIỆM THU: bảng kết quả "chỗ liên quan – đã kiểm bằng cách 
 
 ## 7.6. Văn hóa kiểm thử cho người không chuyên
 
-Người không biết lập trình không đọc được mã, cũng như chủ đầu tư không cần biết tính kết cấu. Chủ đầu tư nghiệm thu bằng tiêu chí rõ ràng, biên bản thử tải và tận mắt xem công trình. Kiểm thử phần mềm cũng vậy, gồm bốn tầng.
+Chủ đầu tư không cần biết tính kết cấu; họ nghiệm thu bằng tiêu chí rõ ràng, biên bản thử tải và tận mắt xem công trình. Người không biết lập trình nghiệm thu phần mềm cũng vậy, qua bốn tầng kiểm thử.
 
 ### 7.6.1. Tầng một: bản dựng phải xanh
 
-Quy ước của dự án ghi: trước khi commit, `npm run build` phải xanh. Trong thực tế, mỗi lần còn chạy thêm bước kiểm tra mã tự động (lint) và đòi 0 lỗi. Lên GitHub, dây chuyền kiểm tra tự động chạy lại hai bước đó một lần nữa. Đây là cổng tối thiểu, rẻ, không bao giờ được bỏ. Nhưng nhớ rằng: bản dựng xanh chỉ chứng minh phần mềm "lắp ráp được", chưa chứng minh nó "chạy đúng". Lỗi sập phân hệ đầu tháng (mục 7.4) đã đi qua cổng này mà không ai thấy, vì bản dựng không biết rằng ngày đầu tháng danh sách sẽ rỗng.
+Quy ước của dự án ghi: trước khi commit, `npm run build` phải xanh. Trong thực tế, mỗi lần còn chạy thêm bước kiểm tra mã tự động (lint) và đòi 0 lỗi. Lên GitHub, dây chuyền kiểm tra tự động chạy lại hai bước đó một lần nữa. Đây là cổng tối thiểu, rẻ, không bao giờ được bỏ. Nhưng nhớ rằng: bản dựng xanh chỉ chứng minh phần mềm "lắp ráp được", chưa chứng minh nó "chạy đúng". Lỗi sập phân hệ đầu tháng (mục 7.4.2) đã đi qua cổng này mà không ai thấy, vì bản dựng không biết rằng ngày đầu tháng danh sách sẽ rỗng.
 
 ### 7.6.2. Tầng hai: phép kiểm viết bằng ngôn ngữ nghiệp vụ
 
-Thiết kế xuyên suốt của dự án là tách phần "tính toán" khỏi giao diện và khỏi mạng. Công thức chấm điểm, ngưỡng biểu quyết, cách cắt văn bản theo Điều, khoản nằm trong các tệp thuần, kiểm được trong vài giây. Nhờ vậy mỗi đợt việc có một bộ kiểm thử tự động (test) đi kèm:
+Ở các phân hệ làm về sau (Tiêu chí Hội đồng nhân dân, Biểu quyết, Sổ tay AI, mẫu Kiểm điểm, Quản lý cán bộ), phần "tính toán" được tách khỏi giao diện và khỏi mạng thành các tệp thuần, kiểm được trong vài giây. Riêng công thức OKR/KPI của phân hệ làm đầu tiên vẫn nằm chung với giao diện; đó là món nợ kỹ thuật còn phải trả. Mỗi đợt việc như vậy có một bộ kiểm thử tự động (test) đi kèm:
 
 | Bộ kiểm thử | Số phép kiểm | Ví dụ điều được kiểm |
 |---|---|---|
@@ -378,7 +376,7 @@ Thiết kế xuyên suốt của dự án là tách phần "tính toán" khỏi 
 
 Đồng chí không cần đọc mã của phép kiểm, chỉ cần đọc danh sách tên của chúng như đọc tiêu chí nghiệm thu. Thêm một nguyên tắc: mỗi lỗi thật đã gặp phải trở thành một phép kiểm hồi quy (regression test) giữ lại mãi, để lỗi đó không quay về. Các điều cấm cũng thành phép kiểm: không có số điện thoại nào trong mã nguồn; kiến thức của bot không chứa mật khẩu.
 
-Dự án của tôi có một lỗ hổng ở đây: các bộ kiểm thử nằm trong thư mục nháp không đưa lên GitHub, nên máy khác không chạy lại được. Cách đúng là đặt chúng trong thư mục được commit, gắn vào một lệnh chung như `npm test`.
+Dự án của tôi có một lỗ hổng ở đây: năm trong sáu bộ kiểm thử ở bảng trên (các bộ viết bằng JavaScript) nằm trong thư mục nháp, không có trên GitHub, nên máy khác không chạy lại được; riêng bộ kiểm thử bản tin nằm cùng bộ sinh bản tin và có trong kho. Cách đúng là đặt chúng trong thư mục được commit, gắn vào một lệnh chung như `npm test`.
 
 ### 7.6.3. Tầng ba: kiểm chứng trên bản dựng thật
 
@@ -388,7 +386,7 @@ Phép kiểm logic không nhìn thấy giao diện. Với thay đổi lớn, tô
 
 Một phần mềm có phân quyền phải được thử bằng từng vai. Dự án từng có hai lỗi chỉ lộ ra khi đổi vai. Khách và quản trị thấy hai danh sách cán bộ khác nhau; tài khoản không phải Quản trị mở phân hệ Quản lý cán bộ thì gặp trang trắng. Quy ước nay bắt buộc: đổi quyền thì thử cả vai khách lẫn vai quản trị. Nhớ rằng ẩn một nút trên giao diện không phải là bảo mật; quyền thật nằm ở cơ sở dữ liệu (Chương 19).
 
-Với tiếng Việt, luôn cần một nhóm phép kiểm cho các cặp dễ nhầm. "Quốc gia" không được khớp với từ khóa "gia"; "báo" và "bão" không được coi là một. "Phó trưởng ban" phải được xét trước "trưởng ban", vì chuỗi sau nằm trọn trong chuỗi trước. Chữ có dấu phải còn nguyên sau khi lưu, nạp, xuất tệp. Nhiều thói quen lập trình sinh ra cho tiếng Anh, nên AI không tự nghĩ tới những cái bẫy này; người làm văn bản tiếng Việt phải nói ra.
+Với tiếng Việt, luôn cần một nhóm phép kiểm cho các cặp dễ nhầm. "Quốc gia" không được khớp với từ khóa "gia"; "báo" và "bão" không được coi là một. "Phó trưởng ban" phải được xét trước "trưởng ban", vì chuỗi sau nằm trọn trong chuỗi trước. Chữ có dấu phải còn nguyên sau khi lưu, nạp, xuất tệp. AI không tự nghĩ tới những cái bẫy này; người làm văn bản tiếng Việt phải nói ra.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 7.6 — Viết bộ kiểm thử bằng ngôn ngữ nghiệp vụ**
@@ -414,7 +412,9 @@ bắt được lỗi, rồi trả lại như cũ.
 
 Đến một lúc, ngồi bấm "đồng ý" cho từng lệnh commit, từng lệnh đẩy lên trở nên vô nghĩa. Tôi ghi vào tệp quy ước một ủy quyền lâu dài. Sau khi hoàn thành mỗi thay đổi, AI chạy bản dựng; thấy xanh thì đưa vào sổ đúng các tệp liên quan, commit và đẩy lên nhánh chính "ngay, KHÔNG cần hỏi lại". Kèm theo là điều kiện: "chỉ commit thay đổi của việc đang làm; không vơ tệp/thay đổi lạ đang chờ của người dùng".
 
-Nghe có vẻ táo bạo, vì đẩy lên nhánh chính là phần mềm thay đổi sau một hai phút. Tôi chấp nhận được vì ủy quyền đứng trên năm điều kiện. Bản dựng và kiểm thử là cổng bắt buộc. Mỗi lần ghi sổ nhỏ, hoàn tác được. Nhật ký ghi lại mọi việc. Hệ thống là bản demo có nhãn rõ ràng, dùng dữ liệu mô phỏng. Dự án chỉ có một người giao việc. Thiếu một điều, chẳng hạn nhiều người cùng làm hay đã chạy dữ liệu thật, thì nên làm thận trọng hơn: sửa trên nhánh riêng, có người xem xét rồi mới gộp vào nhánh chính.
+Nghe có vẻ táo bạo, vì đẩy lên nhánh chính là phần mềm thay đổi sau một hai phút. Tôi chấp nhận được vì ủy quyền đứng trên năm điều kiện. Bản dựng xanh là cổng bắt buộc, có cả máy kiểm lại trên GitHub; chạy các bộ kiểm thử liên quan là thực hành đi kèm, dù chưa được máy ép buộc (mục 7.6.2). Mỗi lần ghi sổ nhỏ, hoàn tác được. Nhật ký ghi lại mọi việc. Hệ thống là bản demo có nhãn rõ ràng; phần chấm điểm, biểu quyết, tiêu chí dùng dữ liệu mô phỏng, còn số ít dữ liệu thật (như danh bạ điện thoại) chỉ nằm trong cơ sở dữ liệu có phân quyền, không bao giờ nằm trong mã. Dự án chỉ có một người giao việc. Vì đã có một phần dữ liệu thật, danh sách "luôn hỏi người" dưới đây phải giữ nghiêm. Thiếu một điều, chẳng hạn nhiều người cùng làm hay hệ thống đã vận hành chính thức, thì nên làm thận trọng hơn: sửa trên nhánh riêng, có người xem xét rồi mới gộp vào nhánh chính.
+
+Điều này không trái với nguyên tắc con người trong vòng lặp (Human-in-the-Loop, Tập 1, mục 7.5), vốn không chấp nhận AI tự động hoàn toàn trong khu vực công: ủy quyền chỉ áp cho thao tác kỹ thuật trên bản demo; người vẫn giao việc, duyệt phương án và nghiệm thu. Với hệ thống chính thức, mỗi thay đổi phải có người duyệt trước khi triển khai.
 
 Quan trọng hơn ủy quyền là ranh giới của nó. Tôi chia việc thành ba mức:
 
@@ -422,14 +422,14 @@ Quan trọng hơn ủy quyền là ranh giới của nó. Tôi chia việc thàn
 - **AI làm nhưng phải báo rõ:** thêm thư viện mới; đổi cấu trúc dữ liệu kèm nâng cấp bản lưu cũ; sửa nhiều phân hệ một lúc.
 - **Luôn hỏi người:** đổi quyền đọc, ghi; chạy lệnh trên cơ sở dữ liệu thật; xóa dữ liệu; khóa bí mật; cách hiểu văn bản, công thức, ngưỡng xếp loại; đưa dữ liệu thật vào; phát sinh chi phí; viết lại lịch sử; đổi chế độ công khai của kho.
 
-Mức thứ ba không phải lý thuyết. Các đoạn lệnh thay đổi quyền do AI viết vào tệp lược đồ, còn chạy chúng trên dữ liệu thật thì tôi tự làm trong trang quản trị Supabase; nhật ký đánh dấu ⚠️ "CẦN CHẠY" ở những chỗ ấy. Còn lần nào AI "chọn đại" một cách hiểu văn bản mà không hỏi, như khi coi nhiệm vụ làm được 9/10 là "không hoàn thành", thì cán bộ điểm cao bị xếp loại thấp oan.
+Mức thứ ba không phải lý thuyết. Các đoạn lệnh thay đổi quyền do AI viết vào tệp lược đồ, còn chạy chúng trên dữ liệu thật thì tôi tự làm trong trang quản trị Supabase; nhật ký đánh dấu ⚠️ "CẦN CHẠY" ở những chỗ ấy. Còn lần nào AI "chọn đại" một cách hiểu văn bản mà không hỏi, như khi coi nhiệm vụ làm được 9/10 là "không hoàn thành", thì phần mềm ép xếp loại thấp sai cho cả người có điểm cao (lỗi phát hiện khi chạy thử trên dữ liệu thử nghiệm và đã được sửa bằng cách xét theo từng nhiệm vụ).
 
-Cuối cùng, quy ước chỉ viết bằng lời thì có ngày bị trượt, như chuyện thư mục OneDrive (mục 7.3) hay tệp thử lọt vào kho (mục 7.4). Quy ước quan trọng nên được biến thành cơ chế: `.gitignore` chặn thư mục nháp; dây chuyền kiểm tra tự động báo đỏ ngay khi bản dựng hỏng; phép kiểm chặn số điện thoại trong mã. Máy giữ kỷ luật bền hơn trí nhớ của người, và của cả AI.
+Cuối cùng, quy ước chỉ viết bằng lời thì có ngày bị trượt, như chuyện thư mục OneDrive (mục 7.3.1) hay tệp thử lọt vào kho (mục 7.4.4). Quy ước quan trọng nên được biến thành cơ chế: `.gitignore` chặn thư mục nháp; dây chuyền kiểm tra tự động báo đỏ ngay khi bản dựng hỏng; phép kiểm chặn số điện thoại trong mã; các bộ kiểm thử được gắn vào dây chuyền tự động. Máy giữ kỷ luật bền hơn trí nhớ của người, và của cả AI.
 
 ::: {.phaply}
 **Căn cứ pháp lý**
 
-Luật Trí tuệ nhân tạo số 134/2025/QH15 được Quốc hội thông qua ngày 10/12/2025, có hiệu lực từ 01/3/2026. Khoản 2 Điều 4 ghi: "Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người". Điều này cũng yêu cầu duy trì sự kiểm soát và khả năng can thiệp của con người đối với quyết định, hành vi của hệ thống AI. Ủy quyền cho tác tử tự commit, tự triển khai không chuyển trách nhiệm sang AI; vì thế ủy quyền phải có giới hạn, có nhật ký và thu hồi được.
+Luật Trí tuệ nhân tạo số 134/2025/QH15 được Quốc hội thông qua ngày 10/12/2025, có hiệu lực từ 01/3/2026. Khoản 2 Điều 4 ghi: "Trí tuệ nhân tạo phục vụ con người, không thay thế thẩm quyền và trách nhiệm của con người". Điều này cũng yêu cầu duy trì sự kiểm soát và khả năng can thiệp của con người đối với quyết định, hành vi của hệ thống AI. Ủy quyền cho tác tử tự commit, tự triển khai không chuyển trách nhiệm sang AI. Theo tinh thần đó, tôi cho rằng ủy quyền cho AI nên có giới hạn, có nhật ký và thu hồi được. Đồng chí nên tra nguyên văn Luật trên Cơ sở dữ liệu quốc gia về văn bản pháp luật trước khi áp dụng.
 :::
 
 ::: {.lanhdao}
@@ -448,7 +448,8 @@ Luật Trí tuệ nhân tạo số 134/2025/QH15 được Quốc hội thông qu
 VIỆC: Thêm vào .claude/rules/conventions.md mục "ỦY QUYỀN CHO AI"
 gồm ba danh sách theo đúng ba mức tôi liệt kê dưới đây:
 (1) TỰ LÀM KHÔNG HỎI: [chạy dựng, kiểm thử; xanh thì commit ĐÚNG
-tệp của việc đang làm, đẩy lên tên nhánh; cập nhật nhật ký].
+tệp của việc đang làm, đẩy lên nhánh [tên nhánh]; cập nhật nhật
+ký].
 (2) LÀM NHƯNG PHẢI BÁO: [thêm thư viện; đổi cấu trúc dữ liệu].
 (3) LUÔN HỎI TRƯỚC: [đổi quyền; lệnh trên dữ liệu thật; xóa dữ
 liệu; khóa bí mật, .env; cách hiểu văn bản; chi phí].

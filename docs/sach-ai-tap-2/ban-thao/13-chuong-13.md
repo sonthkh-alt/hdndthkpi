@@ -16,7 +16,7 @@ Các chương 9 đến 12 nói về những phân hệ mà AI chỉ đứng ở 
 
 Hệ thống thử nghiệm của Văn phòng (hdndthkpi.vercel.app) có hai công cụ như vậy. Phân hệ "Trợ lý AI nghiệp vụ dân cử" (đường dẫn `#/troly`) dành cho cán bộ, công chức đang làm việc: soạn văn bản, soát lỗi, dựng báo cáo thẩm tra. "Người hướng dẫn" là khung chat nhỏ ở góc Trang chủ, dành cho bất kỳ ai ghé vào mà chưa biết bắt đầu từ đâu.
 
-Hai công cụ chung ba câu hỏi. AI được thấy dữ liệu nào? Mỗi lượt gọi AI tốn tiền thì trần đặt ở đâu? Làm sao để câu trả lời trơn tru không bị hiểu nhầm là kết luận chính thức? Theo thứ tự các mục trong nhật ký dự án, cả hai được dựng sau sự cố dữ liệu ngày 13/8/2026 và trước đợt làm bản tin pháp luật đầu tháng 9/2026.
+Hai công cụ chung ba câu hỏi. AI được thấy dữ liệu nào? Mỗi lượt gọi AI tốn tiền thì trần đặt ở đâu? Làm sao để câu trả lời trơn tru không bị hiểu nhầm là kết luận chính thức? Theo thứ tự các mục trong nhật ký dự án, cả hai được dựng sau sự cố dữ liệu ngày 13/8/2026 và trước đợt làm bản tin pháp luật vào tháng 9/2026.
 
 ## 13.1. Tám tác vụ của Trợ lý AI nghiệp vụ dân cử
 
@@ -52,7 +52,7 @@ Văn phòng nào cũng có mẫu công văn, mẫu tờ trình để cán bộ k
 
 Trợ lý kỳ họp có sáu tác vụ dựng sẵn: so sánh số liệu tìm mâu thuẫn, đề xuất câu hỏi chất vấn, kiểm tra tuân thủ nghị quyết HĐND, phân tích điểm nghẽn ngân sách, tóm tắt rủi ro chính sách, tự đặt câu hỏi. Chương 16 đặt các tác vụ này vào quy trình chuẩn bị kỳ họp.
 
-Ba điều chung cho cả tám tab. Kết quả luôn hiện trước trong một khung sửa được, sửa xong mới tải Word. Dưới kết quả luôn có dòng nhắc: nội dung do AI sinh ra chỉ để tham khảo, phải rà soát, đối chiếu văn bản gốc trước khi sử dụng chính thức. Việc đọc tệp tải lên (PDF, DOCX, TXT, tối đa 3 MB) chạy ở máy chủ bằng thư viện, không gọi AI nên không tính lượt; tệp PDF bản chụp (scan) không trích được chữ và giao diện báo rõ.
+Ba điều chung cho cả tám tab. Kết quả luôn hiện trước trong một khung sửa được, sửa xong mới tải Word. Dưới kết quả luôn có dòng nhắc: nội dung do AI sinh ra chỉ để tham khảo, phải rà soát, đối chiếu văn bản gốc trước khi sử dụng chính thức. Đây đúng là Mô hình 1 "AI đề xuất, con người duyệt" trong ba mô hình con người trong vòng lặp (Human-in-the-Loop) của Tập 1 (mục 7.5). Việc đọc tệp tải lên (PDF, DOCX, TXT, tối đa 3 MB) chạy ở máy chủ bằng thư viện, không gọi AI nên không tính lượt; tệp PDF bản chụp (scan) không trích được chữ và giao diện báo rõ.
 
 ### 13.1.3. Ba tác vụ nhìn cận cảnh
 
@@ -92,7 +92,7 @@ Hai tab lưu chung một dòng dữ liệu, thiết kế khác hẳn các phân 
 - Bấm "Tổng hợp từ tệp" là toàn bộ chữ trong tệp, tới 20.000 ký tự, được gửi cho nhà cung cấp AI; họ tên, địa chỉ, số điện thoại của cử tri trong tệp cũng đi theo.
 - "Phân tích xu hướng" không gửi cột tên cử tri, nhưng tên viết trong ô nội dung vẫn đi.
 - Chỉ đưa vào văn bản Cấp 1 Công khai hoặc đã ẩn danh theo cách của Tập 1 (mục 7.2). Kiến nghị còn tên người dân, đơn thư khiếu nại, tố cáo là dữ liệu Cấp 3 Hạn chế tiếp cận, không đưa danh tính lên dịch vụ AI công cộng; tài liệu Cấp 4 Bí mật nhà nước không đưa vào công cụ AI nào trên Internet. Khi không chắc chắn, chọn cấp cao hơn.
-- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 (hiệu lực 01/01/2026) chia dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực 01/3/2026), tại Điều 5, nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên thiết bị đang kết nối Internet, mạng viễn thông, mạng máy tính (trừ mạng LAN độc lập và trường hợp theo pháp luật về cơ yếu); khoản 10 của điều này cấm sử dụng hệ thống AI để xâm phạm bí mật nhà nước.
+- Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15 và Nghị định 356/2025/NĐ-CP hướng dẫn thi hành (cùng hiệu lực 01/01/2026, thay cho nghị định năm 2023 về bảo vệ dữ liệu cá nhân mà Tập 1 viện dẫn) chia dữ liệu cá nhân thành dữ liệu cơ bản và dữ liệu nhạy cảm. Luật Bảo vệ bí mật nhà nước số 117/2025/QH15 (hiệu lực 01/3/2026), tại Điều 5, nghiêm cấm soạn thảo, lưu giữ tài liệu bí mật nhà nước trên thiết bị đang kết nối Internet, mạng viễn thông, mạng máy tính (trừ mạng LAN độc lập và trường hợp theo pháp luật về cơ yếu); khoản 10 của điều này cấm sử dụng hệ thống AI để xâm phạm bí mật nhà nước.
 :::
 
 Tab Hỏi đáp là khung trò chuyện tự do, gửi kèm tối đa 10 lượt hội thoại gần nhất, mỗi lượt cắt còn 6.000 ký tự; lời nhắc hệ thống của tab này được phân tích ở mục 13.5.
@@ -103,7 +103,7 @@ Tab Hỏi đáp là khung trò chuyện tự do, gửi kèm tối đa 10 lượt
 
 Trước phân hệ này, tôi đã có một ứng dụng trợ lý nghiệp vụ riêng tại địa chỉ hdndthanhhoa.streamlit.app, viết bằng Python trên Streamlit, một bộ công cụ dựng nhanh trang web từ tập lệnh Python. Ứng dụng có 8 trang, lưu dữ liệu bằng SQLite hoặc Postgres, đăng nhập bằng tài khoản Google, có kho tìm kiếm theo nghĩa (kho vector) và hệ tín dụng (credits) để giới hạn lượt dùng.
 
-Hai ứng dụng song song nghĩa là hai địa chỉ, hai tài khoản, hai kiểu xuất Word, hai nơi phải sửa khi quy định đổi. Lịch công tác, Giám sát số, Một dữ liệu được gắn bằng liên kết (Chương 12). Ứng dụng này thì tôi chọn chuyển hẳn sang React, vì nó cần chung đăng nhập, chung bộ nối AI với bot chat và chung bộ xuất Word với các phân hệ khác.
+Hai ứng dụng song song nghĩa là hai địa chỉ, hai tài khoản, hai kiểu xuất Word, hai nơi phải sửa khi quy định đổi. Lịch công tác, Giám sát số, Một dữ liệu được gắn bằng liên kết (Chương 12). Ứng dụng này thì tôi chọn chuyển hẳn sang React (thư viện dựng giao diện web mà hệ thống đang dùng), vì nó cần chung đăng nhập, chung bộ nối AI với bot chat và chung bộ xuất Word với các phân hệ khác.
 
 Chuyển một ứng dụng giống chuyển trụ sở. Không ai bê nguyên mọi thứ sang chỗ mới; phải kiểm kê cái mang theo, cái thanh lý, cái thay mới, và lập biên bản để sau này ai hỏi "cái tủ cũ đâu" thì có câu trả lời.
 
@@ -128,9 +128,9 @@ Cùng mục nhật ký có đoạn "khác bản gốc — nói rõ": không có 
 | Xuất Word | Thư viện Python | Thư viện JavaScript, giữ bố cục | Thay |
 | Kiến nghị cử tri | Bảng riêng | Một dòng dữ liệu, chỉ người đăng nhập đọc | Thay |
 
-Bản cũ có một "thủ thư" lập thẻ mục lục theo nghĩa cho từng đoạn tài liệu, hỏi gì thì rút đúng mấy đoạn gần nghĩa nhất; Tập 1 gọi đó là truy hồi tăng cường (RAG). Bản mới không có thủ thư: chọn tài liệu nào thì mang nguyên tập đó vào, cắt ở 30.000 ký tự cho Trợ lý kỳ họp, phần bị cắt được đánh dấu ngay trong câu lệnh gửi AI. Đổi lại, không phải dựng và nuôi một kho vector. Về sau, Sổ tay AI (Chương 15) có cơ chế tìm đoạn liên quan đơn giản chạy ngay trong trình duyệt.
+Bản cũ có một "thủ thư" lập thẻ mục lục theo nghĩa cho từng đoạn tài liệu, hỏi gì thì rút đúng mấy đoạn gần nghĩa nhất; Tập 1 (mục 5.6) gọi kỹ thuật này là RAG, tạo sinh có truy xuất hỗ trợ. Bản mới không có thủ thư: chọn tài liệu nào thì mang nguyên tập đó vào, cắt ở 30.000 ký tự cho Trợ lý kỳ họp, phần bị cắt được đánh dấu ngay trong câu lệnh gửi AI. Đổi lại, không phải dựng và nuôi một kho vector. Về sau, Sổ tay AI (Chương 15) có cơ chế tìm đoạn liên quan đơn giản chạy ngay trong trình duyệt.
 
-Tệp .docx thực chất là một "phong bì nén" (định dạng ZIP) chứa các tờ chữ có cấu trúc (XML). Tác tử AI viết một hàm nhỏ mở phong bì bằng công cụ giải nén có sẵn của Node, khỏi thêm thư viện mới. Bớt một thư viện là bớt một thứ phải cập nhật, phải lo về an toàn.
+Tệp .docx thực chất là một "phong bì nén" (định dạng ZIP) chứa các tờ chữ có cấu trúc (XML). Tác tử AI viết một hàm nhỏ mở phong bì bằng công cụ giải nén có sẵn của Node.js (môi trường chạy JavaScript ở máy chủ), khỏi thêm thư viện mới. Bớt một thư viện là bớt một thứ phải cập nhật, phải lo về an toàn.
 
 ### 13.2.3. Ba nguyên tắc khi chuyển cùng AI
 
@@ -187,7 +187,7 @@ Lần đầu, bộ kiểm thử của phân hệ có 57 phép kiểm: câu lện
 
 Gọi dịch vụ AI giống gọi điện đường dài: tính tiền theo lượng dùng. Đơn vị tính gọi là token, tạm hiểu là mẩu chữ; câu lệnh, tài liệu gửi kèm và câu trả lời đều được đếm. Tài liệu cài đặt bot của dự án ước mỗi câu hỏi tốn vài nghìn đến vài chục nghìn token, tùy lượng số liệu nạp kèm. Một lượt thẩm tra mang hàng chục nghìn ký tự thì nặng hơn nhiều.
 
-Khi mới chuyển sang, phân hệ đóng cửa với người chưa đăng nhập: máy chủ hỏi lại hệ thống đăng nhập xem thẻ của trình duyệt còn hiệu lực không, khách bị từ chối. An toàn, nhưng đại biểu, cán bộ xã muốn xem thử thì chịu. Đợt sau, tôi đổi sang "phát số": khách 1 lượt mỗi ngày, người đăng nhập 5 lượt, đổi được bằng biến môi trường.
+Khi mới chuyển sang, phân hệ đóng cửa với người chưa đăng nhập: máy chủ hỏi lại hệ thống đăng nhập xem thẻ của trình duyệt còn hiệu lực không, khách bị từ chối. An toàn, nhưng đại biểu, cán bộ xã muốn xem thử thì chịu. Đợt sau, tôi đổi sang "phát số": khách 1 lượt mỗi ngày, người đăng nhập 5 lượt, đổi được bằng biến môi trường (ô cấu hình đặt trên máy chủ, sửa con số mà không phải sửa mã).
 
 | Lối gọi AI | Người dùng | Hạn mức mỗi ngày | Bộ đếm |
 |---|---|---|---|
@@ -260,7 +260,7 @@ Cách đơn giản có giá của nó. Câu "duyệt lịch tuần sau" từng b
 
 ### 13.4.2. Tầng hai: AI với ba lượt mỗi ngày
 
-Câu hỏi cần AI đi tới một điểm nối riêng ở máy chủ, theo khuôn của mục 13.3: câu rỗng thì từ chối, quá 500 ký tự thì cắt; chưa có khóa AI thì báo ngay, không trừ lượt; trừ lượt trước, gọi AI sau, lỗi thì hoàn lượt. Hạn mức 3 lượt mỗi ngày, tính như khách (bảng ở mục 13.3.1). Trình duyệt gửi kèm 6 lượt hội thoại gần nhất, mỗi lượt cắt còn 600 ký tự; câu trả lời tối đa 120 từ, mang nhãn "Trả lời bằng AI". Không hỏi được máy chủ còn bao nhiêu lượt thì khung chat coi như hết lượt và chỉ dùng kịch bản; hết lượt thật thì nó hướng dẫn ba bước đăng ký kênh Zalo, Telegram (Chương 14).
+Câu hỏi cần AI đi tới một điểm nối (API, ví như một cửa giao dịch riêng) ở máy chủ, theo khuôn của mục 13.3: câu rỗng thì từ chối, quá 500 ký tự thì cắt; chưa có khóa AI thì báo ngay, không trừ lượt; trừ lượt trước, gọi AI sau, lỗi thì hoàn lượt. Hạn mức 3 lượt mỗi ngày, tính như khách (bảng ở mục 13.3.1). Trình duyệt gửi kèm 6 lượt hội thoại gần nhất, mỗi lượt cắt còn 600 ký tự; câu trả lời tối đa 120 từ, mang nhãn "Trả lời bằng AI". Không hỏi được máy chủ còn bao nhiêu lượt thì khung chat coi như hết lượt và chỉ dùng kịch bản; hết lượt thật thì nó hướng dẫn ba bước đăng ký kênh Zalo, Telegram (Chương 14).
 
 ### 13.4.3. Mười lần sửa một khung chat nhỏ
 

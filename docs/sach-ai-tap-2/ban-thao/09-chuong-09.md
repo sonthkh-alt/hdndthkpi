@@ -39,12 +39,12 @@ Phần mềm phải "số hóa đúng" ba lớp văn bản: nghị định của
 
 - Nghị định số 335/2025/NĐ-CP ngày 21/12/2025 của Chính phủ quy định về đánh giá, xếp loại chất lượng đối với cơ quan hành chính nhà nước và công chức, có hiệu lực từ 01/01/2026. Thang điểm 100 gồm tiêu chí chung tối đa 30 điểm và tiêu chí kết quả thực hiện nhiệm vụ tối đa 70 điểm. Khoản 2 Điều 14 quy định kết quả thực hiện nhiệm vụ đo bằng tỷ lệ % về số lượng (a), chất lượng (b) và tiến độ (c) của sản phẩm, công việc đã quy đổi. Công chức không giữ chức vụ lãnh đạo tính (a+b+c)/3; công chức lãnh đạo, quản lý có thêm d, đ, e và tính (a+b+c+d+đ+e)/6. Mỗi lần sai sót lớn trừ 25% điểm chất lượng, mỗi lần chậm trừ 25% điểm tiến độ của chính sản phẩm đó, trừ trường hợp có nguyên nhân khách quan được xác nhận. Điều 20 quy định ngưỡng: Hoàn thành xuất sắc từ 90 điểm; Hoàn thành tốt từ 70 đến dưới 90; Hoàn thành từ 50 đến dưới 70.
 - Quy định số 1053-QĐ/TU ngày 05/6/2026 của Ban Thường vụ Tỉnh ủy Thanh Hóa về đánh giá, xếp loại chất lượng cán bộ, công chức, viên chức, lao động hợp đồng gắn với đo lường, đánh giá kết quả, hiệu quả công việc trong hệ thống chính trị tỉnh Thanh Hóa. Khoản 4 Điều 3 nêu: "Thực hiện ứng dụng khoa học, công nghệ, chuyển đổi số, đo lường bằng chỉ số đánh giá hiệu quả công việc (OKR/KPI) để đánh giá mức độ hoàn thành nhiệm vụ...". Khoản 7 Điều 3: tỷ lệ "Hoàn thành xuất sắc" không quá 20% số "Hoàn thành tốt". Điều 8 quy định điều kiện của từng mức; Điều 10 quy định đánh giá theo tháng, hoàn thành trước ngày 28, tháng 12 trước ngày 15/12.
-- Hướng dẫn số 02-HD/BTCTW ngày 22/5/2026 của Ban Tổ chức Trung ương, điểm 1.2: "khuyến khích ứng dụng công nghệ số, quản trị trên dữ liệu theo thời gian thực để theo dõi, kiểm đếm, chấm điểm, đánh giá, xếp loại cán bộ".
+- Hướng dẫn số 02-HD/BTCTW ngày 22/5/2026 của Ban Tổ chức Trung ương về một số nội dung đánh giá định kỳ hằng quý đối với cán bộ lãnh đạo, quản lý các cấp trong hệ thống chính trị, điểm 1.2: "khuyến khích ứng dụng công nghệ số, quản trị trên dữ liệu theo thời gian thực để theo dõi, kiểm đếm, chấm điểm, đánh giá, xếp loại cán bộ".
 
 Đối chiếu đến ngày 26/10/2026. Trước khi áp dụng, đồng chí nên tra nguyên văn trên Cơ sở dữ liệu quốc gia về văn bản pháp luật hoặc Công báo.
 :::
 
-Ngoài ba văn bản trên, chúng tôi còn dùng Sổ tay hướng dẫn của Bộ Nội vụ năm 2026 về đánh giá kết quả thực hiện nhiệm vụ của công chức, cùng dự thảo quyết định của Thường trực HĐND tỉnh ban hành danh mục công việc của Văn phòng. Tất cả được đặt ngay trong kho mã nguồn (repository) để tác tử AI đọc trực tiếp. Bản nào là PDF scan, máy không trích được chữ, tôi dán văn bản dạng chữ vào phiên làm việc để AI đối chiếu.
+Ngoài ba văn bản trên, tôi còn dùng Sổ tay hướng dẫn xây dựng bộ tiêu chí và triển khai đánh giá kết quả thực hiện nhiệm vụ của công chức do Bộ Nội vụ gửi kèm Công văn 1087/BNV-CCVC ngày 05/02/2026 (sổ tay chỉ để tham khảo), cùng dự thảo quyết định của Văn phòng ban hành danh mục sản phẩm, công việc. Tất cả được đặt ngay trong kho mã nguồn (repository) để tác tử AI đọc trực tiếp. Bản nào là PDF scan, máy không trích được chữ, tôi dán văn bản dạng chữ vào phiên làm việc để AI đối chiếu.
 
 Một chi tiết nhỏ nhưng đáng kể. Khi rà lại tài liệu để viết chương này, tôi thấy bản Đặc tả soạn tháng 7/2026 vẫn dẫn Nghị định 13/2023/NĐ-CP về bảo vệ dữ liệu cá nhân. Nghị định này đã hết hiệu lực từ 01/01/2026, được thay bằng Nghị định 356/2025/NĐ-CP hướng dẫn Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15. Căn cứ của tài liệu kỹ thuật cũng "hết hạn" như căn cứ của tờ trình, phải rà lại theo thời điểm sử dụng.
 
@@ -172,7 +172,7 @@ Phần mềm còn có điểm thưởng vượt định mức: cộng 0,1 điể
 | Hoàn thành | Từ 50 đến dưới 70 điểm; nhiệm vụ chậm không quá 20% | Vượt 20% thì nhắc, không tự hạ mức |
 | Không hoàn thành | Dưới 50 điểm; hoặc trên 50% nhiệm vụ không hoàn thành; hoặc bị kỷ luật từ khiển trách trở lên; với lãnh đạo, đơn vị hoàn thành dưới 70% nhiệm vụ | Tự xếp; với lãnh đạo, tạm lượng hóa là trên 30% nhiệm vụ không hoàn thành |
 
-Cột cuối cho thấy một nguyên tắc: điều gì đo được từ dữ liệu thì máy kiểm; điều gì cần nhận định thì máy nhắc, người quyết. Phần mềm không thể biết một người đã khắc phục hết hạn chế kỳ trước hay chưa. Cách "tạm lượng hóa" với lãnh đạo cũng chỉ là một cách diễn giải, phải được cấp có thẩm quyền xác nhận.
+Cột cuối cho thấy một nguyên tắc: điều gì đo được từ dữ liệu thì máy kiểm; điều gì cần nhận định thì máy nhắc, người quyết. Đây chính là Mô hình 1 "AI đề xuất, con người duyệt" trong nguyên tắc con người trong vòng lặp (Human-in-the-Loop) mà Tập 1 đã nêu ở mục 7.5, áp vào một phần mềm tính toán. Phần mềm không thể biết một người đã khắc phục hết hạn chế kỳ trước hay chưa. Cách "tạm lượng hóa" với lãnh đạo cũng chỉ là một cách diễn giải, phải được cấp có thẩm quyền xác nhận.
 
 Chính ở điều kiện xếp loại, tác tử AI từng hiểu sai. Bản đầu coi "không hoàn thành" là "chưa đạt đủ 100% số lượng", nên một cán bộ điểm cao, chỉ có một việc làm được 9 trên 10, bị ép xuống "Không hoàn thành nhiệm vụ". Bản sửa xét theo từng nhiệm vụ: dưới 50% mới là không hoàn thành; từ 50% đến dưới 100% là chưa đạt đủ số lượng, và giao diện tách riêng hai nhóm. Ô "bị kỷ luật" cũng phải chốt: AI hỏi lại, tôi quyết định ô này chỉ ép xếp loại "Không hoàn thành nhiệm vụ", không trừ vào tổng điểm; ô "Điểm trừ" là cơ chế riêng.
 
@@ -198,7 +198,7 @@ Phiếu Word gồm: thông tin cán bộ; bảng Nhóm I hai cột; bảng Nhóm
 
 ### 9.2.6. Tôi đã giao việc cho AI như thế nào
 
-Với phân hệ này, tôi giữ bốn thói quen. Một, đưa văn bản gốc vào kho mã, dặn AI đối chiếu chứ không dựng theo trí nhớ. Hai, mỗi lần một việc, kèm tiêu chí nghiệm thu bằng con số. Ba, chỗ câu chữ hiểu được nhiều cách thì bắt AI liệt kê cách hiểu và hệ quả, tôi chốt rồi mới viết mã. Bốn, ghi lựa chọn đã chốt vào nhật ký thay đổi để phiên sau không "quên". Hai câu lệnh dưới đây được tái dựng theo đúng tinh thần đã làm.
+Với phân hệ này, tôi giữ bốn thói quen. Một, đưa văn bản gốc vào kho mã, dặn AI đối chiếu chứ không dựng theo trí nhớ. Hai, mỗi lần một việc, kèm tiêu chí nghiệm thu bằng con số. Ba, chỗ câu chữ hiểu được nhiều cách thì bắt AI liệt kê cách hiểu và hệ quả, tôi chốt rồi mới viết mã. Bốn, ghi lựa chọn đã chốt vào nhật ký thay đổi để phiên sau không "quên". Hai câu lệnh dưới đây được tái dựng theo đúng tinh thần đã làm. Câu lệnh 9.1 viết theo khung VAI-BỐI-VIỆC-DẠNG-RÀNG (Tập 1, mục 3.2); phần "Nghiệm thu" ở cuối là phần Tập 2 bổ sung khi giao việc cho tác tử, trình bày kỹ ở Chương 6. "Bản dựng (build) xanh" nghĩa là chương trình đóng gói thành công, không báo lỗi (Chương 7, mục 7.6).
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 9.1 — Chuyển cách chấm Nhóm II sang ba tiêu chí khách quan**
@@ -212,6 +212,8 @@ Việc: Đổi sang chấm 3 tiêu chí cho từng nhiệm vụ:
  - Chất lượng chọn 3 mức: 100 / 75 / 50;
  - Tiến độ chọn 3 mức: 100 / 80 / 50.
  Kết quả = trung bình 3 tiêu chí; máy tự suy ra mức độ theo bảng [dán bảng].
+Dạng: giao diện tiếng Việt có dấu; mỗi nhiệm vụ hiện một dòng
+ "Kết quả = ... → mức độ"; phiếu Word thêm cột Chất lượng, Tiến độ.
 Ràng buộc:
  - Giữ hai cột Tự đánh giá / Cấp duyệt; Cấp duyệt kế thừa Tự đánh giá.
  - Dữ liệu cũ (số lần sai sót, số lần trễ) phải tự quy đổi, không mất.
@@ -331,7 +333,7 @@ Bài học: lỗi theo lịch chỉ lộ khi sang kỳ mới; và lối thoát c
 
 Khi so tài khoản khách với tài khoản quản trị, tôi thấy hai danh sách cán bộ khác nhau. Nguyên nhân: chính sách bảo mật theo dòng (Row Level Security) của cơ sở dữ liệu chặn khách đọc dữ liệu các kỳ, nên phần mềm "tự dựng" danh sách mẫu ngay trên máy khách. Hệ thống có hai nguồn sự thật, như cơ quan treo hai bảng tin: ngoài cổng dán bản nháp, trong phòng họp dán bản chính thức.
 
-Cách sửa là mở quyền đọc, không mở quyền ghi, dữ liệu các kỳ cho mọi người. Từ đó có nguyên tắc "dữ liệu mẫu = dữ liệu chính thống": mọi vai đọc cùng một nguồn, chỉ khác ở quyền ghi. Tệp lược đồ cơ sở dữ liệu để sẵn câu lệnh gỡ quyền đọc công khai khi chuyển sang dùng thật. Phân quyền nên khác nhau ở chỗ được làm gì, không phải ở chỗ được thấy sự thật nào.
+Cách sửa là mở quyền đọc, không mở quyền ghi, dữ liệu các kỳ cho mọi người. Từ đó có nguyên tắc "dữ liệu mẫu = dữ liệu chính thống": mọi vai đọc cùng một nguồn, chỉ khác ở quyền ghi. Tệp lược đồ cơ sở dữ liệu để sẵn câu lệnh gỡ quyền đọc công khai khi chuyển sang dùng thật. Cách phân quyền đọc, ghi ở tầng cơ sở dữ liệu được giải thích kỹ ở Chương 19, mục 19.2. Phân quyền nên khác nhau ở chỗ được làm gì, không phải ở chỗ được thấy sự thật nào.
 
 ### 9.5.3. Vừa đăng nhập, dữ liệu chính thức đã bị ghi đè
 
@@ -343,7 +345,7 @@ Bản sửa có ba lớp: chỉ nạp dữ liệu sau khi xác định xong phi�
 
 Ngày 13/8/2026, danh sách cán bộ của các phân hệ được gộp về một mối là hồ sơ Mẫu 2C của phân hệ Quản lý cán bộ (Chương 12). Sau khi gộp, phân hệ OKR/KPI chỉ còn 27 người thay vì 28, một hồ sơ mang sai đơn vị. Cơ quan có hai đồng chí trùng cả họ, chữ đệm và tên, ở hai đơn vị khác nhau. Chương trình ghép hồ sơ lần lượt theo email, theo "họ tên + đơn vị", cuối cùng theo "chỉ họ tên". Bước cuối gom hai người làm một, như điểm danh chỉ gọi tên: một người đứng lên "có mặt" thay cho cả hai.
 
-Bản sửa bỏ hẳn bước "chỉ họ tên" và thêm phép kiểm riêng cho ca trùng tên. Cùng ngày, việc tách kho dữ liệu theo phân hệ làm bot chat mất hẳn phân hệ Kiểm điểm. Hai hệ quả dây chuyền ấy sinh ra quy tắc "rà soát chức năng liên quan" ở Chương 7.
+Bản sửa bỏ hẳn bước "chỉ họ tên" và thêm phép kiểm riêng cho ca trùng tên. Cùng ngày, việc tách kho dữ liệu theo phân hệ làm bot chat mất hẳn phân hệ Kiểm điểm. Hai hệ quả dây chuyền ấy sinh ra quy tắc "rà soát chức năng liên quan" (Chương 7, mục 7.5).
 
 ### 9.5.5. Những câu hỏi lẽ ra phải hỏi sớm hơn
 
@@ -384,10 +386,13 @@ Phạm vi nên hẹp: một phòng, một tháng. Nhóm I nhập tổng điểm 
 ::: {.canhbao}
 **Cảnh báo: dữ liệu đánh giá là thông tin về con người cụ thể**
 
-Bảng điểm gắn với họ tên thuộc vùng VÀNG; kèm nhận xét, kỷ luật thì thành vùng ĐỎ. Khi nhờ AI viết công thức hay dựng trang, chỉ dùng dữ liệu giả ("Cán bộ A, Cán bộ B"). Dữ liệu thật nhập trên máy cơ quan, lưu ở thư mục có phân quyền, không tải lên dịch vụ AI công cộng hay kho mã công khai. Theo tinh thần Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, dữ liệu chỉ được xử lý đúng mục đích, trong phạm vi cần thiết.
+Theo phân loại dữ liệu 4 cấp của Tập 1 (mục 7.1–7.2), bảng điểm gắn với họ tên là dữ liệu cá nhân, thuộc Cấp 3 — Hạn chế tiếp cận; kèm nhận xét, thông tin kỷ luật thì càng phải giữ chặt hơn. Dữ liệu Cấp 3 chỉ được đưa vào AI có máy chủ đặt trong nước hoặc AI do cơ quan tự triển khai; khi không chắc chắn, chọn cấp cao hơn. Vì vậy, khi nhờ AI trò chuyện viết công thức hay dựng trang, chỉ dùng dữ liệu giả ("Cán bộ A, Cán bộ B"). Dữ liệu thật nhập trên máy cơ quan, lưu ở thư mục có phân quyền, không tải lên dịch vụ AI công cộng hay kho mã công khai. Theo tinh thần Luật Bảo vệ dữ liệu cá nhân số 91/2025/QH15, dữ liệu chỉ được xử lý đúng mục đích, trong phạm vi cần thiết.
 :::
 
 ### 9.6.2. Cách A: bảng tính có công thức do AI viết (Bậc 1)
+
+Hai cách dưới đây ứng với Bậc 1 và Bậc 2 của thang 5 bậc kiến tạo (Chương 2, mục 2.3).
+
 
 Bảng tính gồm ba trang. DanhMuc ghi mã, tên, điểm quy đổi. NhiemVu, mỗi dòng một nhiệm vụ: người thực hiện, mã danh mục, tầm quan trọng, số giao, số hoàn thành, chất lượng, tiến độ (hai ô cuối là danh sách chọn). TongHop, mỗi người một dòng: KPI, Nhóm II, Nhóm I, tổng điểm, mức theo ngưỡng, lý do cần người duyệt xem. Công thức cốt lõi chỉ có ba dòng:
 

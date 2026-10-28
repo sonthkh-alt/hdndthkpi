@@ -26,7 +26,7 @@ Tập 1, cuốn *Trí tuệ nhân tạo trong công tác tham mưu* (hoàn thi�
 
 **Thứ hai, quy trình 5 bước soạn thảo (mục 4.1).** Bước 1 (xác định mục đích, đối tượng, yêu cầu pháp lý) và Bước 5 (rà soát, hoàn thiện) là việc của con người trọn vẹn. Khi làm phần mềm cũng vậy: người chốt nghiệp vụ, thẩm quyền trước khi giao việc, và người nghiệm thu, chạy thử thật sau khi AI làm xong.
 
-**Thứ ba, "AI tìm dấu hiệu — con người kết luận pháp lý" (Chương 5).** AI gắn cờ chỗ mâu thuẫn, chỗ nghi sai căn cứ; người có chuyên môn kết luận. Mục 1.3 của Tập 1 cũng nhắc rằng AI không tự kiểm tra chính xác được số liệu, không biết văn bản vừa ban hành. Khi AI viết phần mềm, điều ấy vẫn đúng: tác tử viết mã rất nhanh, nhưng không biết biểu mẫu nào cơ quan đang thật sự dùng, quy định nào vừa sửa.
+**Thứ ba, "AI tìm dấu hiệu — con người kết luận pháp lý" (Tập 1, Chương 5).** AI gắn cờ chỗ mâu thuẫn, chỗ nghi sai căn cứ; người có chuyên môn kết luận. Mục 1.3 của Tập 1 cũng nhắc rằng AI không tự kiểm tra chính xác được số liệu, không biết văn bản vừa ban hành. Khi AI viết phần mềm, điều ấy vẫn đúng: tác tử viết mã rất nhanh, nhưng không biết biểu mẫu nào cơ quan đang thật sự dùng, quy định nào vừa sửa.
 
 **Thứ tư, phân loại dữ liệu 4 cấp (mục 7.1–7.2).** Cấp 1 — Công khai: dùng được mọi AI. Cấp 2 — Nội bộ: chỉ dùng AI có cam kết doanh nghiệp, sau khi ẩn danh thông tin cá nhân. Cấp 3 — Hạn chế tiếp cận, gồm cả dữ liệu cá nhân: chỉ dùng AI có máy chủ đặt tại Việt Nam hoặc AI tự triển khai nội bộ. Cấp 4 — Bí mật nhà nước: tuyệt đối không dùng AI nước ngoài; theo Luật Bảo vệ bí mật nhà nước số 117/2025/QH15, tài liệu mật còn không được soạn thảo, lưu giữ trên thiết bị đang kết nối Internet. Khi không chắc chắn, chọn cấp cao hơn. Khi tự làm ứng dụng, phân loại này trở thành thiết kế quyền xem: Cấp 1 khách xem được; Cấp 2 phải đăng nhập; Cấp 3, như hồ sơ cán bộ, danh bạ, chỉ Quản trị đọc, không nằm trong mã nguồn, không nạp vào ngữ cảnh gửi cho AI; Cấp 4 không bao giờ được đưa vào.
 
@@ -43,12 +43,13 @@ Có một việc Tập 1 chưa bàn đến: làm ra phần mềm. Ở mục 5.6,
 - Luật Bảo vệ bí mật nhà nước số 29/2018/QH14 được thay bằng Luật số 117/2025/QH15 (hiệu lực từ 01/3/2026).
 - Luật An ninh mạng 2018 và Luật An toàn thông tin mạng 2015 được thay bằng Luật An ninh mạng số 116/2025/QH15 (hiệu lực từ 01/7/2026).
 - Quyết định 127/QĐ-TTg được thay bằng Quyết định 1671/QĐ-TTg ngày 28/8/2026 về chiến lược quốc gia về trí tuệ nhân tạo.
+- Luật Tiếp cận thông tin số 104/2016/QH13 hết hiệu lực từ 01/9/2026, thay bằng Luật Tiếp cận thông tin số 01/2026/QH16.
 - Đã có Luật Trí tuệ nhân tạo số 134/2025/QH15, hiệu lực từ 01/3/2026.
 
 Chương 3 phân tích kỹ các văn bản này.
 :::
 
-Ngày 7/5/2026, Thường trực Hội đồng nhân dân (HĐND) tỉnh tổ chức hội nghị tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng (theo báo Đại biểu Nhân dân). Sau những đợt như vậy, câu hỏi tự nhiên là: đã biết hỏi AI rồi, bước tiếp theo là gì? Tập 2 là một câu trả lời.
+Ngày 7/5/2026, Thường trực Hội đồng nhân dân (HĐND) tỉnh tổ chức hội nghị tập huấn sử dụng trí tuệ nhân tạo cho cán bộ, công chức Văn phòng (theo báo Đại biểu Nhân dân). Sau những đợt như vậy, câu hỏi tự nhiên là: đã biết hỏi AI, bước tiếp theo là gì? Tập 2 là một câu trả lời.
 
 ::: {.ghinho}
 **Ghi nhớ**
@@ -83,7 +84,7 @@ Ví dụ: một công chức được giao 10 văn bản, 1 văn bản có sai s
 Đối chiếu đến ngày 26/10/2026. Trước khi áp dụng, đồng chí nên tra nguyên văn trên Công báo hoặc Cơ sở dữ liệu quốc gia về văn bản pháp luật.
 :::
 
-Chủ trương đã rõ. Trong sách, OKR (mục tiêu và kết quả then chốt) dùng để định hướng, còn KPI (chỉ số đánh giá hiệu quả công việc) dùng để đo kết quả; Chương 9 sẽ giải thích vì sao không trộn hai thứ này khi chấm điểm. Câu hỏi còn lại là làm thế nào cho đúng.
+Chủ trương đã rõ. Trong sách, OKR (mục tiêu và kết quả then chốt) dùng để định hướng, KPI (chỉ số đánh giá hiệu quả công việc) dùng để đo kết quả; Chương 9 giải thích vì sao không trộn hai thứ này khi chấm điểm.
 
 ### 1.2.2. Làm bằng giấy và bảng tính rời thì vướng ở đâu
 
@@ -98,7 +99,7 @@ Trước khi có phần mềm, việc đánh giá hằng tháng ở cơ quan ch�
 | Lặp lại 12 kỳ mỗi năm | Sao chép tệp, mẫu lệch dần | Kỳ mới tự chuyển danh sách, giữ nguyên mẫu |
 | So sánh, tra cứu | Lục tìm tệp cũ, bản nào là bản cuối? | Lưu theo kỳ, có biểu đồ xu hướng |
 
-Hãy hình dung quy mô. Phân hệ đánh giá của Văn phòng hiện phục vụ 28 người: 25 cán bộ, công chức, người lao động của bốn phòng và 3 lãnh đạo Văn phòng. Mỗi người khoảng 10 nhiệm vụ thì mỗi tháng có gần 300 dòng, dòng nào cũng có số lượng, chất lượng, tiến độ, hệ số.
+Về quy mô: phân hệ đánh giá của Văn phòng hiện phục vụ 28 người, gồm 25 cán bộ, công chức, người lao động của bốn phòng và 3 lãnh đạo Văn phòng. Mỗi người khoảng 10 nhiệm vụ thì mỗi tháng có gần 300 dòng, dòng nào cũng có số lượng, chất lượng, tiến độ, hệ số.
 
 Nút thắt thứ hai dễ gây hậu quả nhất, vì nó tạo ra những kết quả "nhìn thì đúng mà thực ra sai".
 
@@ -117,14 +118,14 @@ Trọng số bằng hệ số quy đổi của sản phẩm nhân với hệ s�
 
 Con số vượt 90. Nhưng theo cách phân hệ áp điều kiện, người này chỉ được xếp Hoàn thành tốt, vì chỉ nhiệm vụ đầu đạt mức Hoàn thành tốt trở lên (hai nhiệm vụ kia ở mức Cơ bản hoàn thành) và không có nhiệm vụ nào vượt mức. Đối chiếu nguyên văn Điều 8 Quy định 1053-QĐ/TU thì ca này còn chặt hơn: mức Hoàn thành tốt đòi 100% nhiệm vụ đúng hạn, mà nhiệm vụ thứ hai bị chậm; mức Hoàn thành đòi hoàn thành 100% nhiệm vụ, mà nhiệm vụ thứ ba mới đạt 2/3 số lượng. Đây đúng là loại chỗ phải để cấp có thẩm quyền chốt cách hiểu, phần mềm không tự quyết.
 
-Trên bảng tính rời, rất dễ có người thấy "90,8" và ghi luôn "xuất sắc". Một công cụ tốt phải tự soi điều kiện và giải thích được lý do bằng lời.
+Trên bảng tính rời, rất dễ có người thấy "90,8" và ghi luôn "xuất sắc". Công cụ tốt phải tự soi điều kiện và giải thích lý do bằng lời.
 :::
 
-Bài toán này đáng được số hóa không phải vì phần mềm "hiện đại" hơn giấy, mà vì quy định đã đủ chi tiết để máy tính đúng, trong khi con người dễ tính sai khi phải lặp lại hàng trăm lần.
+Bài toán này đáng số hóa không phải vì phần mềm "hiện đại" hơn giấy, mà vì quy định đủ chi tiết để máy tính đúng, còn con người dễ sai khi lặp lại hàng trăm lần.
 
 ## 1.3. Từ bảng tính mô phỏng đến ứng dụng web đầu tiên
 
-Theo lý thuyết, con đường gồm ba chặng: lập bảng tính mô phỏng để chốt cách tính, viết đặc tả để chốt yêu cầu, rồi mới làm phần mềm. Thực tế không gọn như vậy. Báo cáo mô tả sáng kiến tôi viết cuối tháng 6/2026 đã mô tả một ứng dụng chạy được với ba bộ tiêu chí; bản Đặc tả yêu cầu phần mềm, kèm bảng tính mô phỏng, đề tháng 7/2026. Hai tài liệu này cùng các dự thảo danh mục sản phẩm, công việc trở thành căn cứ để dựng bản vận hành hiện nay. Dưới đây tôi trình bày theo thứ tự tôi khuyên đồng chí nên làm.
+Theo lý thuyết, con đường gồm ba chặng: lập bảng tính mô phỏng để chốt cách tính, viết đặc tả để chốt yêu cầu, rồi mới làm phần mềm. Thực tế không gọn như vậy. Báo cáo mô tả sáng kiến tôi viết cuối tháng 6/2026 đã mô tả một ứng dụng chạy được với ba bộ tiêu chí; bản Đặc tả yêu cầu phần mềm, kèm bảng tính mô phỏng, đề tháng 7/2026. Hai tài liệu này cùng các quyết định danh mục sản phẩm, công việc trở thành căn cứ dựng bản vận hành hiện nay. Dưới đây tôi trình bày theo thứ tự nên làm.
 
 ### 1.3.1. Bảng tính mô phỏng: viết công thức ra để thấy chỗ hổng
 
@@ -157,7 +158,7 @@ RÀNG BUỘC: Chỉ dựa vào văn bản tôi gửi. Không có căn cứ thì 
 ```
 :::
 
-Câu lệnh 1.1 chỉ dùng với văn bản đã công khai (Cấp 1). Dự thảo nội bộ thuộc ít nhất Cấp 2; có dữ liệu cá nhân hoặc thông tin hạn chế tiếp cận thì là Cấp 3, chỉ được dùng loại AI tương ứng (Tập 1, mục 7.2). Mục 5 của câu lệnh là quan trọng nhất: AI hay "chọn đại" một cách hiểu, nên phải buộc nó bày ra các cách hiểu để người có thẩm quyền chọn.
+Câu lệnh 1.1 chỉ dùng với văn bản đã công khai (Cấp 1). Dự thảo nội bộ thuộc ít nhất Cấp 2; có dữ liệu cá nhân hoặc thông tin hạn chế tiếp cận thì là Cấp 3, chỉ được dùng loại AI tương ứng (Tập 1, mục 7.2); khi không chắc chắn, chọn cấp cao hơn. Mục 5 của câu lệnh quan trọng nhất: AI hay "chọn đại" một cách hiểu, nên phải buộc nó bày ra các cách hiểu để người có thẩm quyền chọn.
 
 ::: {.lenhmau}
 **Câu lệnh mẫu 1.2 — Thiết kế bảng tính mô phỏng kèm ca kiểm thử**
@@ -183,7 +184,7 @@ quy định chưa rõ thì hỏi lại tôi, không tự giả định.
 
 ### 1.3.2. Bản đặc tả: viết ra mình cần gì, bằng tiếng Việt
 
-Bản Đặc tả yêu cầu phần mềm của dự án được viết như một văn bản gửi đơn vị phát triển phần mềm, gồm bảy chương, từ người dùng và phân quyền đến thuật toán tính điểm, lộ trình và nghiệm thu. Có những yêu cầu rất "đời": một thao tác phản hồi không quá 3 giây; một cá nhân tự chấm trong kỳ không quá 10 phút; chịu được tải cao điểm vào các ngày 24 đến 28 hằng tháng.
+Bản Đặc tả yêu cầu phần mềm của dự án viết như một văn bản gửi đơn vị phát triển phần mềm, gồm bảy chương, từ người dùng, phân quyền đến thuật toán tính điểm, lộ trình và nghiệm thu. Có những yêu cầu rất "đời": thao tác thông thường phản hồi không quá 03 giây; một cá nhân tự chấm trong kỳ không quá 10 phút; chịu tải cao điểm các ngày 24 đến 28 hằng tháng.
 
 Điều giá trị nhất là một nguyên tắc thiết kế gói trong một câu: mọi khác biệt giữa ba nhóm đối tượng chỉ được xử lý tại ba điểm, gồm phần danh mục được phép chọn, mẫu phiếu tiêu chí chung và công thức tính KPI. Câu ấy giúp người làm phần mềm, dù là doanh nghiệp hay tác tử AI, khỏi rải ngoại lệ khắp nơi. Chương 8 sẽ hướng dẫn cách viết đặc tả cùng AI.
 
@@ -234,7 +235,7 @@ Tôi không vẽ sẵn từ đầu một hệ thống 13 phân hệ. Mỗi phân
 
 Ngoài 13 thẻ trên còn ba thành phần khác: khung chat "Người hướng dẫn" ở Trang chủ (kịch bản soạn sẵn không tốn chi phí, cộng ba lượt hỏi AI mỗi ngày); bot Telegram và Zalo đọc số liệu thật của nhiều phân hệ; bản tin pháp luật hằng ngày lấy tin từ nguồn RSS chính thống, vẽ thành ảnh bằng chương trình, không gọi AI. Riêng Sổ tay AI dùng Gemini Notebook (trước đây là NotebookLM, địa chỉ hiện nay là `notebook.google.com`) làm nơi hỏi đáp chính; Google đổi tên sản phẩm ngày 16/7/2026, giao diện phân hệ hiện vẫn ghi tên cũ.
 
-Nhật ký của dự án không phải mục nào cũng ghi ngày. Bảng dưới đây xếp theo thứ tự trước sau, suy ra từ thứ tự các mục trong nhật ký, và chỉ ghi ngày ở những mốc có căn cứ.
+Nhật ký dự án không phải mục nào cũng ghi ngày, nên bảng dưới đây xếp theo thứ tự các mục trong nhật ký và chỉ ghi ngày ở mốc có căn cứ.
 
 | Thời điểm | Mốc chính |
 |---|---|
@@ -260,19 +261,19 @@ Lực kéo giữa các phân hệ cũng kéo theo lỗi. Ngày 13/8/2026, việc
 
 Con đường quen thuộc là: viết yêu cầu, tìm đơn vị phát triển, ký hợp đồng, chờ, nghiệm thu, rồi gửi yêu cầu sửa và lại chờ. Bản đặc tả của dự án cũng dự kiến như thế: thí điểm 03 tháng tại một số cơ quan, hoàn thiện, rồi triển khai diện rộng theo chỉ đạo của Ban Thường vụ Tỉnh ủy. Con đường đó vẫn cần cho một hệ thống chính thức toàn tỉnh.
 
-Điều mới là trước khi đặt hàng, người làm nghiệp vụ có thể tự dựng một bản chạy được, dùng thử trên dữ liệu mẫu, thấy chỗ sai và sửa ngay. Chẳng hạn, cách chấm kết quả nhiệm vụ đã đổi từ chọn một "mức độ hoàn thành" theo cảm nhận sang ba tiêu chí khách quan số lượng, chất lượng, tiến độ, rồi để phần mềm tự suy ra mức độ. Thay đổi ấy được thử ngay, không phải chờ một vòng hợp đồng mới.
+Điều mới là trước khi đặt hàng, người làm nghiệp vụ có thể tự dựng một bản chạy được, dùng thử trên dữ liệu mẫu, thấy chỗ sai và sửa ngay. Chẳng hạn, cách chấm kết quả nhiệm vụ đã đổi từ chọn một "mức độ hoàn thành" theo cảm nhận sang ba tiêu chí số lượng, chất lượng, tiến độ để phần mềm tự suy ra mức độ, và được thử ngay, không chờ một vòng hợp đồng mới.
 
 Còn chữ "đo" thì phải nói cho thật. Dự án chưa đo được phần mềm tiết kiệm bao nhiêu phần trăm thời gian, nên tôi không viết con số nào như vậy. Thứ được đo là độ đúng: hàng trăm phép kiểm thử tự động, thời gian từng khâu khi bot trả lời, tệp Word xuất ra được đọc lại để đối chiếu. Chỉ tiêu giảm ít nhất 30% thời gian tra cứu của Sổ tay AI hiện vẫn là chỉ tiêu, chưa phải kết quả.
 
 ### 1.5.2. Người hiểu nghiệp vụ là người làm ra công cụ tốt nhất
 
-Phân hệ Kiểm điểm ban đầu được dựng theo câu chữ của Hướng dẫn 03-HD/TU. Sau đó, tôi đưa chính bản tự đánh giá Quý III và kế hoạch Quý IV năm 2026 của mình vào đối chiếu (các tệp này được chặn khỏi kho mã công khai) và thấy phần mềm lệch biểu mẫu giấy ở bốn chỗ lớn. Quy trình thật có hai bước (đầu kỳ lập kế hoạch, cuối kỳ tự đánh giá trên kế hoạch đó), phần mềm chỉ có một. Điểm tối đa từng trục do cá nhân đề xuất, trình tập thể lãnh đạo duyệt và thay đổi theo quý, phần mềm lại đóng cứng. Nhóm tiêu chí chung chỉ đánh dấu "Đảm bảo" hoặc "Không đảm bảo", phần mềm lại cho nhập điểm lẻ. Mỗi nhiệm vụ phải đủ năm cột của biểu mẫu. Thêm nữa, đây là văn bản của Đảng nên tiêu đề phải là của tổ chức Đảng, trong khi phần mềm in tên cơ quan hành chính.
+Phân hệ Kiểm điểm ban đầu được dựng theo câu chữ của Hướng dẫn 03-HD/TU. Ngày 28/9/2026, tôi đưa chính bản tự đánh giá Quý III và kế hoạch Quý IV năm 2026 của mình vào đối chiếu (các tệp này được chặn khỏi kho mã công khai) và thấy phần mềm lệch biểu mẫu giấy ở bốn chỗ lớn. Quy trình thật có hai bước (đầu kỳ lập kế hoạch, cuối kỳ tự đánh giá trên kế hoạch đó), phần mềm chỉ có một. Điểm tối đa từng trục do cá nhân đề xuất, trình tập thể lãnh đạo duyệt và đổi theo quý, phần mềm lại đóng cứng. Nhóm tiêu chí chung chỉ đánh dấu "Đảm bảo" hoặc "Không đảm bảo", phần mềm lại cho nhập điểm lẻ. Mỗi nhiệm vụ phải đủ năm cột của biểu mẫu. Ngoài ra, đây là văn bản của Đảng nên tiêu đề phải là của tổ chức Đảng, trong khi phần mềm in tên cơ quan hành chính.
 
-Không tác tử AI nào tự biết những điều này. AI viết mã rất nhanh; còn tri thức về biểu mẫu nào đang dùng thật, câu chữ nào là của Đảng, của Nhà nước thì do người cán bộ mang vào.
+Không tác tử AI nào tự biết những điều này. Tri thức về biểu mẫu nào đang dùng thật, câu chữ nào là của Đảng, của Nhà nước do người cán bộ mang vào.
 
 ### 1.5.3. Và cả những lần sập
 
-Câu chuyện này không chỉ toàn thành công. Hệ thống đã sập, đã trả lời sai, đã lặng lẽ không chạy.
+Hệ thống đã sập, đã trả lời sai, đã lặng lẽ không chạy.
 
 ::: {.cauchuyen}
 **Câu chuyện thực tế: phân hệ "chết" vào ngày đầu tháng**
@@ -282,7 +283,7 @@ Từ ngày 01/9/2026, mở phân hệ Đánh giá OKR/KPI, Kiểm điểm hay Qu
 Bản vá được ghi nhận ngày 28/9/2026: thêm điều kiện "có thì lấy, không thì để trống", và cho kỳ mới tự chuyển danh sách cán bộ từ kỳ trước. Trước đó, chỉ Quản trị mới bấm được nút sao chép danh sách. Bài học: lỗi theo lịch không lộ ra lúc thử, chỉ lộ ra khi sang kỳ mới.
 :::
 
-Những lần khác cũng được ghi lại trong nhật ký. Bot Zalo từng trả lời hai lần một câu hỏi vì Zalo tự gửi lại tin khi chờ lâu, làm hạn mức câu hỏi trong ngày cạn nhanh hơn. Bản tin pháp luật không ra sáng 10/9/2026 vì một điều kiện chạy tự động phản tác dụng. Một tác vụ được coi là "chạy hằng ngày" nhưng chưa từng đẩy được ảnh nào lên kho mã. Phần lớn sự cố đã thành một quy tắc hoặc một phép kiểm; vẫn còn chỗ bài học chưa được áp đồng đều, Chương 7 và Chương 20 sẽ kể.
+Nhật ký còn ghi những lần khác. Bot Zalo từng trả lời hai lần một câu hỏi vì Zalo tự gửi lại tin khi chờ lâu, làm cạn nhanh hạn mức câu hỏi trong ngày. Bản tin pháp luật không ra sáng 10/9/2026 vì một điều kiện chạy tự động phản tác dụng. Một tác vụ được coi là "chạy hằng ngày" nhưng chưa từng đẩy được ảnh nào lên kho mã. Phần lớn sự cố đã thành một quy tắc hoặc một phép kiểm; vẫn còn chỗ bài học chưa được áp đồng đều, Chương 7 và Chương 20 sẽ kể.
 
 ::: {.canhbao}
 **Cảnh báo**
