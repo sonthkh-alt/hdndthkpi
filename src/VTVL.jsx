@@ -74,6 +74,27 @@ function goiYCot(b, col) {
   return dong.join('\n');
 }
 
+// ─── Độ rộng cột của bảng nhập liệu ─────────────────────────────────────────
+//  Bảng dùng `table-layout: fixed` + độ rộng CỐ ĐỊNH theo kiểu cột. Không đặt độ rộng
+//  thì cột nào có chữ dài (vd ô mã kèm tên công việc) phình chiếm cả bề ngang, đẩy các
+//  cột khác khuất sang phải, còn cột hẹp thì chữ xuống dòng làm mỗi dòng cao vài trăm
+//  điểm ảnh. Chữ dài được cắt bằng "…" và hiện đủ khi rê chuột / mở biểu mẫu dòng.
+const RONG_STT = 52;
+const RONG_THAO_TAC = 112;
+function rongCot(c) {
+  if (c.tt) return 210;
+  if (c.ref) return 200;
+  if (c.refTinh) return 140;
+  if (c.kieu === 'ma') return 150;
+  if (c.kieu === 'ds') return 190;
+  if (c.kieu === 'nam') return 104;
+  if (c.kieu === 'so') return 112;
+  if (c.kieu === 'ngay') return 150;
+  if (c.dai) return 280;
+  if (c.kieu === 'tinh') return c.ten.length > 22 ? 180 : 124;
+  return 190;
+}
+
 // ─── Ô nhập trong bảng (không điều khiển — chỉ ghi khi rời ô / Enter) ─────────
 function ONhap({ col, v, onGhi, khoa = false, lop = '', dlId }) {
   const ghi = (raw) => { const { v: moi } = chuyenGiaTri(col, raw); if (moi !== v && !(rong(moi) && rong(v))) onGhi(moi); };
@@ -119,12 +140,15 @@ function OChonMa({ col, v, onGhi, luaChon, onMoMa, lop = '' }) {
     return n ? luaChon.filter((x) => chuanTen(`${x.ma} ${x.chinh} ${x.phu}`).includes(n)) : luaChon;
   }, [q, luaChon]);
 
-  const moHop = () => {
+  const tinhViTri = () => {
     const r = neo.current.getBoundingClientRect();
     const rong_ = Math.max(r.width, 380);
     const duoi = window.innerHeight - r.bottom;
     const lenTren = duoi < 300 && r.top > duoi;
-    setViTri({ left: Math.max(8, Math.min(r.left, window.innerWidth - rong_ - 8)), width: rong_, ...(lenTren ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) });
+    return { left: Math.max(8, Math.min(r.left, window.innerWidth - rong_ - 8)), width: rong_, ...(lenTren ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) };
+  };
+  const moHop = () => {
+    setViTri(tinhViTri());
     setQ('');
     setHl(Math.max(0, luaChon.findIndex((x) => kk(x.ma) === kk(v))));
     setMo(true);
@@ -137,7 +161,17 @@ function OChonMa({ col, v, onGhi, luaChon, onMoMa, lop = '' }) {
   useEffect(() => {
     if (!mo) return undefined;
     const ngoai = (e) => { if (!hop.current?.contains(e.target) && !neo.current?.contains(e.target)) setMo(false); };
-    const cuon = (e) => { if (!hop.current?.contains(e.target)) setMo(false); };
+    // Cuộn trang hoặc khung cuộn của bảng: hộp BÁM THEO ô; chỉ đóng khi ô đã ra khỏi
+    // khung nhìn (đóng ngay khi có bất kỳ thao tác cuộn nào thì người dùng lăn chuột
+    // nhẹ trong bảng là hộp biến mất).
+    const cuon = (e) => {
+      if (hop.current?.contains(e.target) || !neo.current) return;
+      const r = neo.current.getBoundingClientRect();
+      const khung = neo.current.closest('.overflow-auto')?.getBoundingClientRect();
+      const ngoaiKhung = khung && (r.bottom < khung.top || r.top > khung.bottom || r.right < khung.left || r.left > khung.right);
+      if (ngoaiKhung || r.bottom < 0 || r.top > window.innerHeight) setMo(false);
+      else setViTri(tinhViTri());
+    };
     const dong = () => setMo(false);
     document.addEventListener('mousedown', ngoai);
     window.addEventListener('scroll', cuon, true);
@@ -162,7 +196,7 @@ function OChonMa({ col, v, onGhi, luaChon, onMoMa, lop = '' }) {
         title={hienTai ? `${hienTai.ma} — ${hienTai.chinh}${hienTai.phu ? ` (${hienTai.phu})` : ''}` : rong(v) ? `Bấm để chọn mã có ở biểu ${dich.ma}` : `Mã "${v}" chưa có ở biểu ${dich.ma}`}
         aria-haspopup="listbox" aria-expanded={mo}
         className={`w-full flex items-center gap-1.5 text-left px-2 py-1.5 text-[12.5px] rounded outline-none focus:ring-2 focus:ring-sky-400 hover:bg-sky-50 cursor-pointer ${lop}`}>
-        <span className={`truncate ${rong(v) ? 'text-slate-300 italic' : 'font-medium text-slate-800'}`}>{rong(v) ? `chọn mã ${dich.ma}…` : v}</span>
+        <span className={`shrink-0 max-w-[70%] truncate ${rong(v) ? 'text-slate-300 italic' : 'font-medium text-slate-800'}`}>{rong(v) ? `chọn mã ${dich.ma}…` : v}</span>
         {hienTai?.chinh && <span className="flex-1 min-w-0 truncate text-[10.5px] text-slate-400">{hienTai.chinh}</span>}
         {!hienTai?.chinh && <span className="flex-1" />}
         <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
@@ -278,6 +312,7 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
     <datalist key={c.k} id={`dl-${b.id}-${c.k}`}>{dsCua(c).map((x) => <option key={x} value={x} />)}</datalist>
   ));
   const h = HD[b.id];
+  const tongRong = RONG_STT + b.cot.reduce((s, c) => s + rongCot(c), 0) + (b.tuTinh ? 0 : RONG_THAO_TAC);
 
   return (
     <div className="bg-white rounded-2xl border border-slate-200 shadow-sm min-w-0">
@@ -317,21 +352,30 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
         </div>
       </div>
       {datalists}
-      <div className="overflow-x-auto">
-        <table className="text-[12.5px] border-collapse min-w-full">
-          <thead className="sticky top-0 z-10">
-            <tr className="bg-slate-50 text-slate-600">
-              <th className="sticky left-0 z-20 bg-slate-50 border-b border-r border-slate-200 px-2 py-2 w-12 text-center">#</th>
-              {b.cot.map((c) => (
+      {/* Khung cuộn RIÊNG của bảng (cả ngang lẫn dọc) để dòng tiêu đề và hai cột đầu luôn
+          đứng yên như "cố định ô" của Excel. */}
+      <div className="overflow-auto max-h-[calc(100vh-15rem)] min-h-[260px] border-t border-slate-100">
+        <table className="text-[12.5px] border-separate border-spacing-0 table-fixed" style={{ width: tongRong }}>
+          <colgroup>
+            <col style={{ width: RONG_STT }} />
+            {b.cot.map((c) => <col key={c.k} style={{ width: rongCot(c) }} />)}
+            {!tuTinh && <col style={{ width: RONG_THAO_TAC }} />}
+          </colgroup>
+          <thead>
+            <tr className="text-slate-600">
+              <th className="sticky top-0 left-0 z-30 bg-slate-100 border-b border-r border-slate-200 px-2 h-14 text-center">#</th>
+              {b.cot.map((c, j) => (
                 <th key={c.k} title={goiYCot(b, c)}
-                  className={`border-b border-r border-slate-200 px-2 py-2 text-left align-bottom font-semibold cursor-help ${c.kieu === 'tinh' ? 'bg-slate-100' : ''}`}
-                  style={{ minWidth: c.dai ? 220 : c.tt ? 190 : c.kieu === 'so' || c.kieu === 'nam' ? 96 : 140 }}>
-                  <span className="text-[10px] text-slate-400 font-mono mr-1">{c.k}</span>
-                  {c.kieu === 'tinh' && <Sigma className="w-3 h-3 inline -mt-0.5 mr-0.5 text-slate-400" />}
-                  <span className="leading-tight">{c.ten}</span>
+                  className={`sticky top-0 ${j === 0 ? 'z-30 shadow-[2px_0_0_0_#cbd5e1]' : 'z-20'} border-b border-r border-slate-200 px-2 h-14 text-left align-middle font-semibold cursor-help ${c.kieu === 'tinh' ? 'bg-slate-100' : 'bg-slate-50'}`}
+                  style={j === 0 ? { left: RONG_STT } : undefined}>
+                  <span className="flex items-start gap-1 min-w-0">
+                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 shrink-0">{c.k}</span>
+                    {c.kieu === 'tinh' && <Sigma className="w-3 h-3 mt-0.5 shrink-0 text-slate-400" />}
+                    <span className="leading-tight line-clamp-2 break-words">{c.ten}</span>
+                  </span>
                 </th>
               ))}
-              {!tuTinh && <th className="border-b border-slate-200 px-2 py-2 w-24 text-center">Thao tác</th>}
+              {!tuTinh && <th className="sticky top-0 z-20 bg-slate-50 border-b border-slate-200 px-2 h-14 text-center">Thao tác</th>}
             </tr>
           </thead>
           <tbody>
@@ -345,42 +389,45 @@ function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan,
               const coLoi = vd.some((x) => x.muc === 'loi');
               const coCanh = vd.some((x) => x.muc === 'canh');
               return (
-                <tr key={d.row._id} id={`vt-${d.row._id}`}
-                  className={`group ${nhay === d.row._id ? 'bg-yellow-100' : 'hover:bg-sky-50/40'}`}>
-                  <td className={`sticky left-0 z-[5] bg-white border-b border-r border-slate-200 text-center text-[11px] text-slate-400 border-l-4 ${coLoi ? 'border-l-rose-500' : coCanh ? 'border-l-amber-400' : 'border-l-transparent'}`}>
+                <tr key={d.row._id} id={`vt-${d.row._id}`} className={`group ${nhay === d.row._id ? 'bg-yellow-100' : ''}`}>
+                  <td className={`sticky left-0 z-10 ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-white group-hover:bg-sky-50'} border-b border-r border-slate-200 h-9 text-center text-[11px] text-slate-400 border-l-4 ${coLoi ? 'border-l-rose-500' : coCanh ? 'border-l-amber-400' : 'border-l-transparent'}`}>
                     {tuTinh ? d.i + 1 : <button onClick={() => onMoForm(d.row._id)} title="Mở biểu mẫu của dòng này" className="hover:text-sky-700 font-semibold">{d.i + 1}</button>}
                   </td>
-                  {b.cot.map((c) => {
+                  {b.cot.map((c, j) => {
                     const v = giaTriO(b, d.row, d.t, c);
+                    // Cột đầu tiên (mã) đứng yên khi cuộn ngang — cần nền đặc để không lộ chữ cột khác bên dưới.
+                    const dinh = j === 0 ? { cls: 'sticky z-10 shadow-[2px_0_0_0_#cbd5e1]', st: { left: RONG_STT } } : { cls: '', st: undefined };
+                    const chuDai = typeof v === 'string' ? v : giaTriHienThi(v);
                     const o = vd.filter((x) => x.cot === c.k);
                     const loiO = o.find((x) => x.muc === 'loi');
                     const canhO = o.find((x) => x.muc === 'canh');
                     const tip = o.map((x) => `${MUC_TEN[x.muc]}: ${x.chu}`).join('\n');
                     if (c.kieu === 'tinh') {
                       return (
-                        <td key={c.k} title={tip || undefined} className={`border-b border-r border-slate-200 bg-slate-50 px-2 py-1.5 ${laSo(v) ? 'text-right tabular-nums' : ''}`}>
+                        <td key={c.k} title={tip || (rong(v) ? undefined : String(chuDai))} style={dinh.st}
+                          className={`${dinh.cls} border-b border-r border-slate-200 ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-slate-50'} px-2 h-9 overflow-hidden whitespace-nowrap ${laSo(v) ? 'text-right tabular-nums' : ''}`}>
                           {c.tt && !rong(v)
-                            ? <span className={`inline-block text-[10.5px] font-bold px-1.5 py-0.5 rounded border leading-tight ${mauTrangThai(b.id, v)}`}>{v}</span>
-                            : c.refTinh ? <LienKetMa ma={v} refId={c.refTinh} luaChon={luaChon[c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} />
-                              : <span className="text-slate-600">{giaTriHienThi(v)}</span>}
+                            ? <span className={`inline-block max-w-full truncate align-middle text-[10.5px] font-bold px-1.5 py-0.5 rounded border leading-tight ${mauTrangThai(b.id, v)}`}>{v}</span>
+                            : c.refTinh ? <span className="block truncate"><LienKetMa ma={v} refId={c.refTinh} luaChon={luaChon[c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
+                              : <span className="block truncate text-slate-600">{giaTriHienThi(v)}</span>}
                         </td>
                       );
                     }
                     return (
-                      <td key={c.k} title={tip || undefined}
-                        className={`border-b border-r border-slate-200 p-0 ${loiO ? 'bg-rose-50 ring-1 ring-inset ring-rose-300' : canhO ? 'bg-amber-50' : ''}`}>
+                      <td key={c.k} title={tip || (docOnly && !rong(v) ? String(chuDai) : undefined)} style={dinh.st}
+                        className={`${dinh.cls} border-b border-r border-slate-200 p-0 h-9 overflow-hidden ${loiO ? 'bg-rose-50 ring-1 ring-inset ring-rose-300' : canhO ? 'bg-amber-50' : nhay === d.row._id ? 'bg-yellow-100' : 'bg-white group-hover:bg-sky-50'}`}>
                         {c.ref
                           ? (docOnly
-                            ? <span className="block px-2 py-1.5"><LienKetMa ma={v} refId={c.ref} luaChon={luaChon[c.ref]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
+                            ? <span className="block truncate px-2 py-1.5"><LienKetMa ma={v} refId={c.ref} luaChon={luaChon[c.ref]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
                             : <OChonMa col={c} v={v} luaChon={luaChon[c.ref]} onGhi={(nv) => onSua(d.row._id, c.k, nv)} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} />)
                           : docOnly
-                            ? <span className="block px-2 py-1.5 whitespace-pre-wrap">{giaTriHienThi(v)}</span>
+                            ? <span className="block truncate px-2 py-1.5">{giaTriHienThi(v)}</span>
                             : <ONhap col={c} v={v} onGhi={(nv) => onSua(d.row._id, c.k, nv)} dlId={c.goiY ? `dl-${b.id}-${c.k}` : undefined} />}
                       </td>
                     );
                   })}
                   {!tuTinh && (
-                    <td className="border-b border-slate-200 px-1 text-center whitespace-nowrap">
+                    <td className={`border-b border-slate-200 px-1 h-9 text-center whitespace-nowrap ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-white'}`}>
                       <button onClick={() => onMoForm(d.row._id)} title="Mở biểu mẫu (có hướng dẫn từng cột)" className="p-1.5 rounded hover:bg-sky-100 text-slate-500 hover:text-sky-700"><PanelRightOpen className="w-4 h-4" /></button>
                       {!docOnly && <button onClick={() => onNhanBan(d.row._id)} title="Nhân bản dòng" className="p-1.5 rounded hover:bg-slate-100 text-slate-500"><Copy className="w-4 h-4" /></button>}
                       {!docOnly && <button onClick={() => onXoa(d.row._id)} title="Xóa dòng" className="p-1.5 rounded hover:bg-rose-100 text-slate-500 hover:text-rose-700"><Trash2 className="w-4 h-4" /></button>}
