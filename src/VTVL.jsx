@@ -27,7 +27,7 @@ import {
   KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong, DS, luaChonMa, timDongTheoMa,
 } from './lib/vtvl';
 import { HD } from './lib/vtvlHuongDan';
-import { lapBaoCao, chiSoBienChe } from './lib/vtvlBaoCao';
+import { lapBaoCao, chiSoBienChe, DBQH_TINH } from './lib/vtvlBaoCao';
 import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
 import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
 import {
@@ -869,8 +869,8 @@ function huongBC(n) {
   return { Ic: Equal, chu: 'bằng', lop: 'bg-emerald-50 text-emerald-800 border-emerald-200', so: 'text-emerald-700' };
 }
 
-function BienCheNhanLuc({ doc, kq, onMoBieu }) {
-  const bc = useMemo(() => chiSoBienChe(doc, kq), [doc, kq]);
+function BienCheNhanLuc({ doc, kq, dbqhMacDinh, onMoBieu }) {
+  const bc = useMemo(() => chiSoBienChe(doc, kq, { dbqhMacDinh }), [doc, kq, dbqhMacDinh]);
   const h = huongBC(bc.chenhBC);
   const nd = bc.namDau;
   const hDn = nd && nd.coSo ? huongBC(nd.tong) : null;
@@ -896,7 +896,7 @@ function BienCheNhanLuc({ doc, kq, onMoBieu }) {
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <The nhan="Biên chế được giao" onClick={() => onMoBieu('NGNL')}
           phu={bc.giaoBC === null ? 'Chưa nhập — điền cột D "Biên chế giao" ở biểu NGUON_NHAN_LUC'
-            : `${giaoLoai.map((x) => `${x.loai} ${fmtSo(x.giao)}`).join(' · ')} · nguồn ${bc.nguonGiao === 'D2' ? `D2 năm ${bc.namGiao}` : 'NGUON_NHAN_LUC'}${bc.chuaXN ? ` · ${bc.chuaXN} dòng chưa xác nhận` : ''}`}>
+            : `${giaoLoai.map((x) => `${x.dbqh ? 'ĐBQH chuyên trách' : x.loai} ${fmtSo(x.giao)}`).join(' · ')} · nguồn ${bc.nguonGiao === 'D2' ? `D2 năm ${bc.namGiao}` : 'NGUON_NHAN_LUC'}${bc.chuaXN ? ` · ${bc.chuaXN} dòng chưa xác nhận` : ''}`}>
           <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{bc.giaoBC === null ? '—' : fmtSo(bc.giaoBC)}</p>
         </The>
 
@@ -908,7 +908,7 @@ function BienCheNhanLuc({ doc, kq, onMoBieu }) {
         <The nhan="Nhu cầu so với biên chế giao"
           tieuDiem={h ? (bc.chenhBC > 0 ? 'border-amber-300' : bc.chenhBC < 0 ? 'border-sky-300' : 'border-emerald-300') : ''}
           phu={bc.chenhBC === null ? 'Cần có biên chế được giao để so sánh'
-            : `THAM KHẢO, chưa phải đề nghị${bc.duCanCu ? '' : ' · chưa đủ căn cứ toàn bộ VTVL'}`}>
+            : `THAM KHẢO, chưa phải đề nghị${bc.dbqh ? ` · so với ${fmtSo(bc.giaoVTVL ?? 0)} biên chế có VTVL (không gồm ${fmtSo(bc.dbqh.so)} ĐBQH chuyên trách)` : ''}${bc.duCanCu ? '' : ' · chưa đủ căn cứ toàn bộ VTVL'}`}>
           {h ? (
             <div className="flex items-center gap-2 mt-1 flex-wrap">
               <p className={`text-3xl font-extrabold tabular-nums ${h.so}`}>{coDau(bc.chenhBC)}</p>
@@ -946,11 +946,11 @@ function BienCheNhanLuc({ doc, kq, onMoBieu }) {
                 const hx = huongBC(x.chenh);
                 return (
                   <tr key={x.loai} className="border-t border-slate-100">
-                    <td className="px-3 py-2 font-semibold text-slate-700">{x.loai}{!x.bienChe && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(ngoài biên chế)</span>}</td>
+                    <td className="px-3 py-2 font-semibold text-slate-700">{x.loai}{!x.bienChe && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(ngoài biên chế)</span>}{x.dbqh && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(không kê khai VTVL)</span>}</td>
                     <td className="px-3 py-2 tabular-nums">{x.giao === null ? (x.bienChe ? '—' : 'không áp dụng') : fmtSo(x.giao)}</td>
                     <td className="px-3 py-2 tabular-nums">{x.coMat === null ? '—' : fmtSo(x.coMat)}</td>
-                    <td className={`px-3 py-2 tabular-nums ${x.coMat !== null && x.d1 !== x.coMat ? 'text-amber-700 font-semibold' : ''}`}>{fmtSo(x.d1)}</td>
-                    <td className="px-3 py-2 tabular-nums">{fmtSo(x.can)}{x.canTatCa !== x.can ? <span className="text-[11px] text-slate-400"> (cả VTVL chưa đủ căn cứ: {fmtSo(x.canTatCa)})</span> : null}</td>
+                    <td className={`px-3 py-2 tabular-nums ${!x.dbqh && x.coMat !== null && x.d1 !== x.coMat ? 'text-amber-700 font-semibold' : ''}`}>{x.dbqh ? <span className="text-slate-400">không áp dụng</span> : fmtSo(x.d1)}</td>
+                    <td className="px-3 py-2 tabular-nums">{x.dbqh ? <span className="text-slate-400">không áp dụng</span> : fmtSo(x.can)}{x.canTatCa !== x.can ? <span className="text-[11px] text-slate-400"> (cả VTVL chưa đủ căn cứ: {fmtSo(x.canTatCa)})</span> : null}</td>
                     <td className="px-3 py-2">{hx ? <span className={`inline-flex items-center gap-1 font-bold ${hx.so}`}><hx.Ic className="w-3.5 h-3.5" />{coDau(x.chenh)}</span> : <span className="text-slate-400">—</span>}</td>
                   </tr>
                 );
@@ -972,6 +972,12 @@ function BienCheNhanLuc({ doc, kq, onMoBieu }) {
           <span>Nhu cầu tính được chênh <b>{coDau(bc.chenhBC)}</b> so với biên chế giao, còn đơn vị đề nghị điều chỉnh <b>{coDau(nd.tong)}</b> — khác nhau là bình thường nếu đơn vị đã tính các giải pháp tự sắp xếp (điều chuyển, kiêm nhiệm, dùng chung nhân lực); nên ghi rõ ở cột H "Nguồn/giải trình" của D2.</span>
         </p>
       )}
+      {bc.dbqh && (
+        <p className="text-[12px] text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 flex gap-2">
+          <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
+          <span>Biên chế được giao <b>{fmtSo(bc.giaoBC)}</b> gồm cả <b>{fmtSo(bc.dbqh.so)}</b> đại biểu Quốc hội chuyên trách{bc.dbqh.nguon === 'mac-dinh' ? <> (theo {bc.dbqh.canCu}; muốn ghi chính thức thì thêm một dòng ở NGUON_NHAN_LUC với cơ quan <i>"Đoàn ĐBQH tỉnh Thanh Hóa"</i>)</> : ' (dòng "Đoàn ĐBQH…" ở NGUON_NHAN_LUC)'}. Đại biểu Quốc hội chuyên trách không kê khai vị trí việc làm (lương do Văn phòng Quốc hội chi trả) nên phần so với nhu cầu chỉ dùng <b>{fmtSo(bc.giaoVTVL ?? 0)}</b> biên chế có VTVL kê khai.</span>
+        </p>
+      )}
       <p className="text-[11.5px] text-slate-500 px-1">
         Theo bộ biểu: nhu cầu nhân lực <b>không tự động làm tăng tổng biên chế</b>. Số chính thức là cột G "Đề nghị điều chỉnh" của D2 — ghi sau khi đã tính các giải pháp tự sắp xếp và phải được thẩm định. Người quy đổi PP2 không phải biên chế.
       </p>
@@ -980,7 +986,7 @@ function BienCheNhanLuc({ doc, kq, onMoBieu }) {
 }
 
 // ─── Tab Tổng quan ──────────────────────────────────────────────────────────
-function TongQuan({ doc, kq, vanDe, docOnly, onSuaChung, onMoBieu, onTab, onXuat, onTaiMau, onSaoLuu }) {
+function TongQuan({ doc, kq, vanDe, docOnly, dbqhMacDinh, onSuaChung, onMoBieu, onTab, onXuat, onTaiMau, onSaoLuu }) {
   const t = kq.tienDo;
   const th = kq.tongHop;
   const the = [
@@ -1002,7 +1008,7 @@ function TongQuan({ doc, kq, vanDe, docOnly, onSuaChung, onMoBieu, onTab, onXuat
         ))}
       </div>
 
-      <BienCheNhanLuc doc={doc} kq={kq} onMoBieu={onMoBieu} />
+      <BienCheNhanLuc doc={doc} kq={kq} dbqhMacDinh={dbqhMacDinh} onMoBieu={onMoBieu} />
 
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
@@ -1236,8 +1242,8 @@ function BangBC({ dau, dong, tong, canPhai = [] }) {
   );
 }
 
-function BaoCaoTab({ doc, onTab }) {
-  const bc = useMemo(() => lapBaoCao(doc), [doc]);
+function BaoCaoTab({ doc, dbqhMacDinh, onTab }) {
+  const bc = useMemo(() => lapBaoCao(doc, { dbqhMacDinh }), [doc, dbqhMacDinh]);
   const [dangXuat, setDangXuat] = useState(false);
   const tt = bc.thongTin;
   const kl = bc.khoiLuong;
@@ -1816,7 +1822,7 @@ export default function VTVL({ onHome }) {
         )}
 
         {tab === 'tongquan' && (
-          <TongQuan doc={doc} kq={kq} vanDe={vanDe} docOnly={docOnly}
+          <TongQuan doc={doc} kq={kq} vanDe={vanDe} docOnly={docOnly} dbqhMacDinh={laTinhDV ? DBQH_TINH : null}
             onSuaChung={(k, v) => { if (!docOnly && doc[k] !== v) datDoc({ ...doc, [k]: v }); }}
             onMoBieu={(id) => { setBieuId(id); setTab('nhap'); }} onTab={setTab}
             onXuat={() => import('./lib/vtvlXuat').then((m) => m.xuatDuLieu(doc, kq))} onTaiMau={taiMau}
@@ -1854,7 +1860,7 @@ export default function VTVL({ onHome }) {
 
         {tab === 'tep' && <NhapTep trangThai={nhapTep} setTrangThai={setNhapTep} doc={doc} coQuyenGhi={coQuyenGhi} onApDung={apDung} onTaiMau={taiMau} />}
         {tab === 'kiemtra' && <KiemTraTab doc={doc} kq={kq} vanDe={vanDe} onDiToi={diToiO} />}
-        {tab === 'baocao' && <BaoCaoTab doc={doc} onTab={setTab} />}
+        {tab === 'baocao' && <BaoCaoTab doc={doc} dbqhMacDinh={laTinhDV ? DBQH_TINH : null} onTab={setTab} />}
         {tab === 'huongdan' && <HuongDanTab />}
 
         <p className="text-center text-[11px] text-slate-400 pt-4">Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu. Không nhập họ tên, số định danh cá nhân vào bộ biểu (D1 dùng mã nguồn lực).</p>
