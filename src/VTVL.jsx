@@ -18,7 +18,7 @@ import { createPortal } from 'react-dom';
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2, TrendingUp, TrendingDown, Equal, Scale,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
@@ -27,7 +27,7 @@ import {
   KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong, DS, luaChonMa, timDongTheoMa,
 } from './lib/vtvl';
 import { HD } from './lib/vtvlHuongDan';
-import { lapBaoCao } from './lib/vtvlBaoCao';
+import { lapBaoCao, chiSoBienChe } from './lib/vtvlBaoCao';
 import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
 import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
 import {
@@ -808,6 +808,130 @@ function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau 
   );
 }
 
+// ─── Khối "Biên chế và nhân lực" ở Tổng quan ────────────────────────────────
+//  Số liệu từ `chiSoBienChe` (vtvlBaoCao.js). Hai con số về tăng/giảm được tách bạch:
+//   • "Nhu cầu so với biên chế giao" — phần mềm TỰ TÍNH, chỉ để THAM KHẢO;
+//   • "Đề nghị điều chỉnh (D2)"      — số ĐƠN VỊ GHI sau khi đã tự sắp xếp, phải thẩm định.
+//  Bộ biểu dặn "nhu cầu nhân lực không tự động làm tăng tổng biên chế", nên phần mềm
+//  không bao giờ tự viết "cần tăng/giảm biên chế".
+const coDau = (n) => (n > 0 ? `+${fmtSo(n)}` : fmtSo(n));
+function huongBC(n) {
+  if (n === null || n === undefined) return null;
+  if (n > 0) return { Ic: TrendingUp, chu: 'cao hơn', lop: 'bg-amber-50 text-amber-800 border-amber-200', so: 'text-amber-700' };
+  if (n < 0) return { Ic: TrendingDown, chu: 'thấp hơn', lop: 'bg-sky-50 text-sky-800 border-sky-200', so: 'text-sky-700' };
+  return { Ic: Equal, chu: 'bằng', lop: 'bg-emerald-50 text-emerald-800 border-emerald-200', so: 'text-emerald-700' };
+}
+
+function BienCheNhanLuc({ doc, kq, onMoBieu }) {
+  const bc = useMemo(() => chiSoBienChe(doc, kq), [doc, kq]);
+  const h = huongBC(bc.chenhBC);
+  const nd = bc.namDau;
+  const hDn = nd && nd.coSo ? huongBC(nd.tong) : null;
+  const giaoLoai = bc.theoLoai.filter((x) => x.bienChe && x.giao !== null);
+  const coGi = bc.giaoBC !== null || bc.canBC || bc.ngoaiBC || nd;
+  if (!coGi && !bc.theoLoai.length) return null;
+
+  const The = ({ nhan, children, phu, onClick, tieuDiem }) => (
+    <button type="button" onClick={onClick} disabled={!onClick}
+      className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition ${tieuDiem || 'border-slate-200'} ${onClick ? 'hover:border-sky-300 hover:shadow-md cursor-pointer' : 'cursor-default'}`}>
+      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{nhan}</p>
+      {children}
+      <p className="text-[12px] text-slate-500 mt-1 leading-snug">{phu}</p>
+    </button>
+  );
+
+  return (
+    <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3 sm:p-4 space-y-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap px-1">
+        <h3 className="font-extrabold text-slate-800 flex items-center gap-2"><Scale className="w-4 h-4 text-sky-700" /> Biên chế và nhân lực</h3>
+        <span className="text-[11.5px] text-slate-500">so cùng loại nhân lực · hợp đồng lao động không thuộc biên chế</span>
+      </div>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <The nhan="Biên chế được giao" onClick={() => onMoBieu('NGNL')}
+          phu={bc.giaoBC === null ? 'Chưa nhập — điền cột D "Biên chế giao" ở biểu NGUON_NHAN_LUC'
+            : `${giaoLoai.map((x) => `${x.loai} ${fmtSo(x.giao)}`).join(' · ')} · nguồn ${bc.nguonGiao === 'D2' ? `D2 năm ${bc.namGiao}` : 'NGUON_NHAN_LUC'}${bc.chuaXN ? ` · ${bc.chuaXN} dòng chưa xác nhận` : ''}`}>
+          <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{bc.giaoBC === null ? '—' : fmtSo(bc.giaoBC)}</p>
+        </The>
+
+        <The nhan="Nhu cầu người cần bố trí" onClick={() => onMoBieu('C3')}
+          phu={`cán bộ, công chức, viên chức · ${bc.soVTDat}/${bc.soVT} VTVL đủ căn cứ${bc.ngoaiBC ? ` · ngoài ra ${fmtSo(bc.ngoaiBC)} người hợp đồng (ngoài biên chế)` : ''}`}>
+          <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{fmtSo(bc.canBC)}</p>
+        </The>
+
+        <The nhan="Nhu cầu so với biên chế giao"
+          tieuDiem={h ? (bc.chenhBC > 0 ? 'border-amber-300' : bc.chenhBC < 0 ? 'border-sky-300' : 'border-emerald-300') : ''}
+          phu={bc.chenhBC === null ? 'Cần có biên chế được giao để so sánh'
+            : `THAM KHẢO, chưa phải đề nghị${bc.duCanCu ? '' : ' · chưa đủ căn cứ toàn bộ VTVL'}`}>
+          {h ? (
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className={`text-3xl font-extrabold tabular-nums ${h.so}`}>{coDau(bc.chenhBC)}</p>
+              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg border ${h.lop}`}>
+                <h.Ic className="w-3.5 h-3.5" /> nhu cầu {h.chu} biên chế giao
+              </span>
+            </div>
+          ) : <p className="text-3xl font-extrabold text-slate-300 mt-1">—</p>}
+        </The>
+
+        <The nhan={`Đề nghị điều chỉnh (D2${nd ? ` · ${nd.nam}` : ''})`} onClick={() => onMoBieu('D2')}
+          tieuDiem={hDn ? 'border-violet-300' : ''}
+          phu={!nd ? 'Chưa lập phương án ở biểu D2'
+            : !nd.coSo ? `Cột G "Đề nghị điều chỉnh" còn trống · ${nd.soDong} dòng`
+              : `số đơn vị ghi · ${nd.daXong}/${nd.soDong} dòng đã thẩm định${bc.deNghiGiongNhau ? ' · như nhau 2027–2031' : ''}`}>
+          {hDn ? (
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <p className="text-3xl font-extrabold tabular-nums text-violet-700">{coDau(nd.tong)}</p>
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg border bg-violet-50 text-violet-800 border-violet-200">
+                <hDn.Ic className="w-3.5 h-3.5" /> {nd.tong > 0 ? 'đề nghị tăng' : nd.tong < 0 ? 'đề nghị giảm' : 'giữ nguyên'}
+              </span>
+            </div>
+          ) : <p className="text-3xl font-extrabold text-slate-300 mt-1">—</p>}
+        </The>
+      </div>
+
+      {bc.theoLoai.length > 0 && (
+        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
+          <table className="w-full text-[12.5px]">
+            <thead className="bg-slate-50 text-slate-600 text-left">
+              <tr>{['Loại nhân lực', 'Biên chế giao', 'Số có mặt', 'Đã xác nhận ở D1', 'Người cần bố trí (C3)', 'Nhu cầu so với biên chế giao'].map((x) => <th key={x} className="px-3 py-2 font-semibold">{x}</th>)}</tr>
+            </thead>
+            <tbody>
+              {bc.theoLoai.map((x) => {
+                const hx = huongBC(x.chenh);
+                return (
+                  <tr key={x.loai} className="border-t border-slate-100">
+                    <td className="px-3 py-2 font-semibold text-slate-700">{x.loai}{!x.bienChe && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(ngoài biên chế)</span>}</td>
+                    <td className="px-3 py-2 tabular-nums">{x.giao === null ? (x.bienChe ? '—' : 'không áp dụng') : fmtSo(x.giao)}</td>
+                    <td className="px-3 py-2 tabular-nums">{x.coMat === null ? '—' : fmtSo(x.coMat)}</td>
+                    <td className={`px-3 py-2 tabular-nums ${x.coMat !== null && x.d1 !== x.coMat ? 'text-amber-700 font-semibold' : ''}`}>{fmtSo(x.d1)}</td>
+                    <td className="px-3 py-2 tabular-nums">{fmtSo(x.can)}{x.canTatCa !== x.can ? <span className="text-[11px] text-slate-400"> (cả VTVL chưa đủ căn cứ: {fmtSo(x.canTatCa)})</span> : null}</td>
+                    <td className="px-3 py-2">{hx ? <span className={`inline-flex items-center gap-1 font-bold ${hx.so}`}><hx.Ic className="w-3.5 h-3.5" />{coDau(x.chenh)}</span> : <span className="text-slate-400">—</span>}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {bc.lechNhanLuc !== 0 && (
+        <p className="text-[12.5px] text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex gap-2">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+          <span>D1 có <b>{bc.d1Tong}</b> người đã xác nhận, còn NGUON_NHAN_LUC ghi <b>{bc.coMatTong}</b> người có mặt (lệch {coDau(bc.lechNhanLuc)}). Cần đối chiếu: người kiêm nhiệm chỉ được tính một lần, mỗi người một mã nguồn lực.</span>
+        </p>
+      )}
+      {bc.chenhBC !== null && nd?.coSo > 0 && bc.chenhBC !== nd.tong && (
+        <p className="text-[12.5px] text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 flex gap-2">
+          <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
+          <span>Nhu cầu tính được chênh <b>{coDau(bc.chenhBC)}</b> so với biên chế giao, còn đơn vị đề nghị điều chỉnh <b>{coDau(nd.tong)}</b> — khác nhau là bình thường nếu đơn vị đã tính các giải pháp tự sắp xếp (điều chuyển, kiêm nhiệm, dùng chung nhân lực); nên ghi rõ ở cột H "Nguồn/giải trình" của D2.</span>
+        </p>
+      )}
+      <p className="text-[11.5px] text-slate-500 px-1">
+        Theo bộ biểu: nhu cầu nhân lực <b>không tự động làm tăng tổng biên chế</b>. Số chính thức là cột G "Đề nghị điều chỉnh" của D2 — ghi sau khi đã tính các giải pháp tự sắp xếp và phải được thẩm định. Người quy đổi PP2 không phải biên chế.
+      </p>
+    </section>
+  );
+}
+
 // ─── Tab Tổng quan ──────────────────────────────────────────────────────────
 function TongQuan({ doc, kq, vanDe, docOnly, onSuaChung, onMoBieu, onTab, onXuat, onTaiMau, onSaoLuu }) {
   const t = kq.tienDo;
@@ -830,6 +954,8 @@ function TongQuan({ doc, kq, vanDe, docOnly, onSuaChung, onMoBieu, onTab, onXuat
           </div>
         ))}
       </div>
+
+      <BienCheNhanLuc doc={doc} kq={kq} onMoBieu={onMoBieu} />
 
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5">

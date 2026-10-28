@@ -19,7 +19,7 @@
 //   - kiểm tra tự động không thay thế thẩm định.
 // ============================================================================
 import {
-  BIEU_THEO_ID, NAM_TU, NAM_DEN, tinhToan, kiemTraDuLieu, laSo, rong, kk, cotKhoa, chuanHoaVTVL, QUY_GIO_PP2,
+  DS, BIEU_THEO_ID, NAM_TU, NAM_DEN, tinhToan, kiemTraDuLieu, laSo, rong, kk, cotKhoa, chuanHoaVTVL, QUY_GIO_PP2,
 } from './vtvl.js';
 
 export const NGUON_BO_BIEU = 'Bộ biểu xác định vị trí việc làm — bản sửa đề nghị v2 của nhóm tư vấn UEB (23/10/2026), chưa phải bản Ban ban hành';
@@ -42,6 +42,126 @@ function lyDoNhieuNhat(ds) {
   const m = new Map();
   for (const x of ds) m.set(x, (m.get(x) || 0) + 1);
   return [...m].sort((a, b) => b[1] - a[1]).slice(0, 3).map(([ly, n]) => `${ly} (${n})`);
+}
+
+
+// ─── CHỈ SỐ BIÊN CHẾ ─────────────────────────────────────────────────────────
+//  Ghép đúng các trường bộ biểu dành cho biên chế, KHÔNG tự kết luận:
+//   • Biên chế được giao  = NGUON_NHAN_LUC cột D (đầu mối nhập theo quyết định giao),
+//     không có thì lùi về D2 cột E của năm đầu tiên có số (chỉ đúng khi quyết định giao
+//     tới từng VTVL — hướng dẫn D2!E dặn không lặp tổng ở từng dòng).
+//   • Nhu cầu             = C3 cột J (người cần bố trí) của VTVL ĐỦ CĂN CỨ, gom theo loại
+//     nhân lực ở C1. CHỈ so cùng loại: cán bộ ↔ biên chế cán bộ, công chức ↔ biên chế
+//     công chức; HỢP ĐỒNG LAO ĐỘNG không thuộc biên chế nên không vào phép so.
+//   • Đề nghị điều chỉnh  = D2 cột G — số CHÍNH THỨC do đơn vị ghi SAU KHI đã tính các
+//     giải pháp tự sắp xếp, phải qua thẩm định. Phần mềm chỉ cộng lại, không tự đề xuất.
+//   ⚠️ Bộ biểu: "Nhu cầu nhân lực không tự động làm tăng tổng biên chế" — vì vậy phần
+//     chênh lệch nhu cầu ↔ biên chế giao luôn gắn nhãn THAM KHẢO.
+export const LOAI_BIEN_CHE = ['Cán bộ', 'Công chức', 'Viên chức'];
+const NGUON_DA_XN = ['Đã xác nhận', 'Đã kiểm chứng'];
+const loaiChuan = (s) => {
+  const t = String(s ?? '').trim();
+  if (!t) return '(chưa ghi loại nhân lực)';
+  return DS.LOAI_NL.find((x) => x.toLowerCase() === t.toLowerCase()) || t;
+};
+const thuTuLoai = (l) => { const i = DS.LOAI_NL.indexOf(l); return i < 0 ? 99 : i; };
+
+export function chiSoBienChe(docIn, kqIn) {
+  const doc = docIn?.bieu ? docIn : chuanHoaVTVL(docIn);
+  const kq = kqIn || tinhToan(doc);
+  const R = (id) => doc.bieu[id] || [];
+  const c1Loai = new Map();
+  for (const r of R('C1')) if (!rong(r.A) && !c1Loai.has(kk(r.A))) c1Loai.set(kk(r.A), r.C);
+
+  // 1. Biên chế giao + số có mặt (NGUON_NHAN_LUC) — bỏ dòng lặp cùng cơ quan/cấp/loại/kỳ
+  const giao = {}; const coMat = {};
+  let coGiao = false; let chuaXN = 0;
+  const daThay = new Set();
+  for (const r of R('NGNL')) {
+    if (rong(r.A) && rong(r.C)) continue;
+    const khoa = [kk(r.A), kk(r.B), kk(r.C), kk(r.I)].join('\u0001');
+    if (daThay.has(khoa)) continue;
+    daThay.add(khoa);
+    const l = loaiChuan(r.C);
+    if (laSo(r.D)) { giao[l] = (giao[l] || 0) + r.D; coGiao = true; }
+    if (laSo(r.E)) coMat[l] = (coMat[l] || 0) + r.E;
+    if (!NGUON_DA_XN.includes(String(r.J ?? '').trim())) chuaXN++;
+  }
+  let nguonGiao = coGiao ? 'NGUON_NHAN_LUC' : null;
+  let namGiao = null;
+  if (!coGiao) {
+    for (let y = NAM_TU; y <= NAM_DEN && !nguonGiao; y++) {
+      const dong = R('D2').filter((r) => !rong(r.A) && r.B === y && laSo(r.E));
+      if (!dong.length) continue;
+      for (const r of dong) { const l = loaiChuan(c1Loai.get(kk(r.A))); giao[l] = (giao[l] || 0) + r.E; }
+      nguonGiao = 'D2'; namGiao = y;
+    }
+  }
+
+  // 2. Nhu cầu theo loại (C3 cột J)
+  const can = {}; const canTatCa = {};
+  let soVT = 0; let soVTDat = 0;
+  R('C3').forEach((r, i) => {
+    if (rong(r.A)) return;
+    soVT++;
+    const l = loaiChuan(c1Loai.get(kk(r.A)));
+    if (laSo(r.J)) canTatCa[l] = (canTatCa[l] || 0) + r.J;
+    if (kq.tinh.C3[i]?.M === 'ĐẠT') { soVTDat++; if (laSo(r.J)) can[l] = (can[l] || 0) + r.J; }
+  });
+
+  // 3. Nhân lực đã xác nhận ở D1 (mỗi mã nguồn lực = một người)
+  const d1 = {}; const daDem = new Set();
+  R('D1').forEach((r, i) => {
+    if (rong(r.A) || kq.tinh.D1[i]?.J !== 'Đạt' || daDem.has(kk(r.A))) return;
+    daDem.add(kk(r.A));
+    const l = loaiChuan(rong(r.C) ? c1Loai.get(kk(r.B)) : r.C);
+    d1[l] = (d1[l] || 0) + 1;
+  });
+
+  const tatCaLoai = [...new Set([...Object.keys(giao), ...Object.keys(coMat), ...Object.keys(can), ...Object.keys(canTatCa), ...Object.keys(d1)])]
+    .sort((a, b) => thuTuLoai(a) - thuTuLoai(b));
+  const theoLoai = tatCaLoai.map((l) => {
+    const bc = LOAI_BIEN_CHE.includes(l);
+    const g = laSo(giao[l]) ? giao[l] : null;
+    return {
+      loai: l, bienChe: bc, giao: g, coMat: laSo(coMat[l]) ? coMat[l] : null, d1: d1[l] || 0,
+      can: lam(can[l] || 0, 2), canTatCa: lam(canTatCa[l] || 0, 2),
+      chenh: bc && g !== null ? lam((can[l] || 0) - g, 2) : null,
+    };
+  });
+  const bcDong = theoLoai.filter((x) => x.bienChe);
+  const coSoGiao = bcDong.some((x) => x.giao !== null);
+  const giaoBC = coSoGiao ? bcDong.reduce((s, x) => s + (x.giao || 0), 0) : null;
+  const canBC = lam(bcDong.reduce((s, x) => s + x.can, 0), 2);
+  const ngoaiBC = lam(theoLoai.filter((x) => !x.bienChe).reduce((s, x) => s + x.can, 0), 2);
+
+  // 4. Đề nghị điều chỉnh (D2 cột G) theo năm
+  const deNghi = [];
+  for (let y = NAM_TU; y <= NAM_DEN; y++) {
+    const o = { nam: y, tong: 0, soDong: 0, coSo: 0, daXong: 0, tang: 0, giam: 0 };
+    R('D2').forEach((r, i) => {
+      if (rong(r.A) || r.B !== y) return;
+      o.soDong++;
+      if (laSo(r.G)) { o.coSo++; o.tong += r.G; if (r.G > 0) o.tang += r.G; if (r.G < 0) o.giam += r.G; }
+      if (['ĐÃ THẨM ĐỊNH', 'ĐÃ QUYẾT ĐỊNH'].includes(kq.tinh.D2[i]?.J)) o.daXong++;
+    });
+    o.tong = lam(o.tong, 2);
+    deNghi.push(o);
+  }
+  const coDeNghi = deNghi.filter((o) => o.soDong);
+  const namDau = coDeNghi[0] || null;
+  const giongNhau = coDeNghi.length > 1 && coDeNghi.every((o) => o.tong === coDeNghi[0].tong);
+
+  // 5. Đối chiếu số người: D1 đã xác nhận ↔ số có mặt ở nguồn nhân lực
+  const coMatTong = Object.keys(coMat).length ? Object.values(coMat).reduce((s, v) => s + v, 0) : null;
+  const d1Tong = Object.values(d1).reduce((s, v) => s + v, 0);
+  return {
+    nguonGiao, namGiao, chuaXN, theoLoai, giaoBC, canBC, ngoaiBC,
+    chenhBC: giaoBC === null ? null : lam(canBC - giaoBC, 2),
+    soVT, soVTDat, duCanCu: soVT > 0 && soVTDat === soVT,
+    deNghi, namDau, deNghiGiongNhau: giongNhau,
+    coMatTong, d1Tong, lechNhanLuc: coMatTong !== null && d1Tong ? d1Tong - coMatTong : 0,
+  };
 }
 
 export function lapBaoCao(docIn, { ngay = new Date() } = {}) {
@@ -203,6 +323,15 @@ export function lapBaoCao(docIn, { ngay = new Date() } = {}) {
       nx.push(`Đối chiếu với nguồn lực hiện có đã xác nhận ở D1 (${tong.soNguoiHienCo} người${d1BoQua ? `; ${d1BoQua} bản ghi chưa xác nhận không được tính` : ''}): ${thieu.length} vị trí có số người cần bố trí lớn hơn số người hiện có (cộng ${vn(thieu.reduce((s, x) => s + x.chenhNguoi, 0))} người), ${du.length} vị trí nhỏ hơn (cộng ${vn(du.reduce((s, x) => s + x.chenhNguoi, 0))} người). Số liệu đối chiếu chỉ để tham khảo, phương án chính thức theo biểu D2.`);
     }
   }
+  const bc = chiSoBienChe(doc, kq);
+  if (bc.giaoBC !== null || bc.namDau) {
+    const giao = bc.giaoBC === null ? 'chưa nhập biên chế được giao'
+      : `biên chế được giao ${vn(bc.giaoBC)} (${bc.theoLoai.filter((x) => x.bienChe && x.giao !== null).map((x) => `${x.loai.toLowerCase()} ${vn(x.giao)}`).join(', ')}; nguồn ${bc.nguonGiao === 'D2' ? `D2 năm ${bc.namGiao}` : 'NGUON_NHAN_LUC'})`;
+    const chenh = bc.chenhBC === null ? '' : `; chênh lệch tham khảo giữa nhu cầu và biên chế giao: ${bc.chenhBC > 0 ? '+' : ''}${vn(bc.chenhBC)} người${bc.duCanCu ? '' : ' (chưa đủ căn cứ toàn bộ vị trí)'}`;
+    const dn = bc.namDau ? ` Số đơn vị ghi ở cột "Đề nghị điều chỉnh" (D2) năm ${bc.namDau.nam}: ${bc.namDau.tong > 0 ? '+' : ''}${vn(bc.namDau.tong)} người, ${bc.namDau.daXong}/${bc.namDau.soDong} dòng đã thẩm định hoặc đã được quyết định.` : '';
+    nx.push(`Biên chế: ${giao}; người cần bố trí ở các loại thuộc biên chế (cán bộ, công chức, viên chức) là ${vn(bc.canBC)}${bc.ngoaiBC ? `, ngoài ra ${vn(bc.ngoaiBC)} người là hợp đồng lao động/khác (không thuộc biên chế)` : ''}${chenh}.${dn}`);
+  }
+  if (bc.lechNhanLuc) nx.push(`Số người đã xác nhận ở D1 (${bc.d1Tong}) khác số có mặt ở NGUON_NHAN_LUC (${bc.coMatTong}), lệch ${bc.lechNhanLuc > 0 ? '+' : ''}${bc.lechNhanLuc} — cần đối chiếu.`);
   if (phuongAn.soDong) nx.push(`Phương án bố trí 2027–2031: ${phuongAn.daXong}/${phuongAn.soDong} dòng đã thẩm định hoặc đã được quyết định.`);
   const viDu = Object.values(doc.bieu).flat().filter((r) => Object.entries(r).some(([k, v]) => k !== '_id' && typeof v === 'string' && kk(v).startsWith('VD-'))).length;
   if (viDu) nx.push(`Có ${viDu} dòng dùng mã ví dụ (VD-…) — phải xóa trước khi nộp vì số liệu giả định không được tổng hợp.`);
