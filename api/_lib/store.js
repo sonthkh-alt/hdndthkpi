@@ -48,6 +48,47 @@ export async function putRow(id, data) {
   });
 }
 
+/**
+ * Liệt kê các dòng app_state có id bắt đầu bằng `prefix`.
+ * ⚠️ PostgREST đổi '*' thành '%' của SQL LIKE, mà trong LIKE dấu '_' là KÝ TỰ BẤT KỲ
+ *    — tiền tố kiểu 'vtvl_dv_' vì thế khớp rộng hơn mong đợi. Người gọi phải lọc lại
+ *    bằng chính hàm nhận dạng id của mình (xem api/vtvl.js dùng `laIdDonVi`).
+ */
+export async function listRows(prefix, select = 'id,data,updated_at') {
+  const rows = await rest(`app_state?id=like.${encodeURIComponent(prefix)}*&select=${encodeURIComponent(select)}`);
+  return rows || [];
+}
+
+/**
+ * Ghi một dòng app_state có KHÓA LẠC QUAN: chỉ ghi khi `updated_at` trên máy chủ
+ * còn đúng bằng `tsCu` (mốc lúc người này tải về). Nhờ vậy hai người nhập cùng lúc
+ * thì người lưu sau KHÔNG ghi đè mù lên bản người kia vừa lưu.
+ * @param {string|null} tsCu null = dòng chưa tồn tại (chèn mới).
+ * @returns {Promise<{ok: true, ts: string} | {ok: false, xungDot: true}>}
+ */
+export async function casRow(id, data, tsCu) {
+  const now = new Date().toISOString();
+  const body = JSON.stringify({ data, updated_at: now });
+  if (!tsCu) {
+    // CỐ Ý không dùng 'resolution=merge-duplicates': cần Postgres báo 409 nếu dòng
+    // đã có, nghĩa là người khác vừa tạo trước — đó là xung đột, không phải ghi đè.
+    const r = await fetch(`${baseUrl().replace(/\/+$/, '')}/rest/v1/app_state`, {
+      method: 'POST',
+      headers: { apikey: anyKey(), Authorization: `Bearer ${anyKey()}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+      body: JSON.stringify({ id, data, updated_at: now }),
+    });
+    if (r.ok) return { ok: true, ts: now };
+    if (r.status === 409) return { ok: false, xungDot: true };
+    throw new Error(`Supabase ${r.status}: ${(await r.text()).slice(0, 200)}`);
+  }
+  const rows = await rest(
+    `app_state?id=eq.${encodeURIComponent(id)}&updated_at=eq.${encodeURIComponent(tsCu)}&select=updated_at`,
+    { method: 'PATCH', headers: { Prefer: 'return=representation' }, body },
+  );
+  if (!rows || !rows.length) return { ok: false, xungDot: true };
+  return { ok: true, ts: rows[0].updated_at || now };
+}
+
 // ---------------------------------------------------------------------------
 //  CHỐNG XỬ LÝ LẶP MỘT SỰ KIỆN ("giành chỗ" một lần).
 //  Zalo/Telegram GỬI LẠI cùng một tin khi không nhận được 200 đủ nhanh — mà một lượt

@@ -320,10 +320,23 @@ create policy "sach_data_public_read" on app_state
 --  • Chưa chạy bước này thì khách VẪN xem được qua điểm chỉ đọc GET /api/vtvl
 --    (api/vtvl.js, dùng khóa bí mật trên Vercel); chạy bước này thì trình duyệt
 --    đọc thẳng, nhanh hơn và không phụ thuộc hàm máy chủ.
---  • GHI vẫn phải đăng nhập (chính sách app_state_auth_all ở BƯỚC 2). Phần mềm
---    ghi kèm khóa lạc quan theo updated_at để hai người nhập cùng lúc không ghi
---    đè mất dữ liệu của nhau.
+--  • GHI bộ biểu của CƠ QUAN TỈNH ('vtvl_data') vẫn phải đăng nhập (chính sách
+--    app_state_auth_all ở BƯỚC 2). Phần mềm ghi kèm khóa lạc quan theo updated_at
+--    để hai người nhập cùng lúc không ghi đè mất dữ liệu của nhau.
+--
+--  ⚠️ NHIỀU ĐƠN VỊ: mỗi HĐND xã, phường có bộ biểu riêng ở dòng 'vtvl_dv_<slug>'
+--    (slug dựng từ tên đơn vị). Cán bộ xã KHÔNG có tài khoản trên hệ thống này
+--    nên các dòng đó được GHI qua hàm máy chủ POST /api/vtvl (api/vtvl.js) bằng
+--    khóa bí mật của Vercel, KHÔNG phải ghi thẳng từ trình duyệt. Vì vậy:
+--      – KHÔNG mở quyền ghi (insert/update) cho anon ở đây. Toàn bộ chốt chặn
+--        (tên đơn vị, mã sửa, trần dung lượng, trần số đơn vị, trần số lần lưu
+--        mỗi ngày, khóa lạc quan) nằm trong api/vtvl.js. Mở quyền ghi trực tiếp
+--        là vô hiệu hóa tất cả những chốt đó.
+--      – Dòng 'vtvl_dv_%' có thêm trường maSuaBam = CHUỖI BĂM SHA-256 của mã sửa.
+--        Mã sửa chỉ để các đơn vị không ghi đè lên nhau, không phải mật khẩu bảo
+--        vệ dữ liệu; băm để người xem dữ liệu công khai không đọc được mã.
+--      – Không có đường XÓA cho khách: chỉ Quản trị xóa được dòng trong Supabase.
 -- ---------------------------------------------------------------------
 drop policy if exists "vtvl_data_public_read" on app_state;
 create policy "vtvl_data_public_read" on app_state
-  for select using (id = 'vtvl_data');
+  for select using (id = 'vtvl_data' or id like 'vtvl\_dv\_%');

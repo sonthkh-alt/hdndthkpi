@@ -30,9 +30,17 @@ import { HD } from './lib/vtvlHuongDan';
 import { lapBaoCao } from './lib/vtvlBaoCao';
 import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
 import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
-import { readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB } from './lib/vtvlStore';
+import {
+  readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB,
+  fetchDanhSachDV, luuDonVi, maSuaCua, nhoMaSua, xoaMaSua, docMoiChoDonVi,
+} from './lib/vtvlStore';
+import { kiemTraTen, kiemTraMaSua, slugDonVi, MAX_TEN, TEN_TINH } from './lib/vtvlDonVi';
 
 const MOI_TRANG = 50;
+// Đơn vị được chọn gần nhất trên máy này ('' = bộ biểu của cơ quan tỉnh, bản mặc định).
+const KEY_SLUG = 'hdndkpi_vtvl_slug';
+const slugDaChon = () => { try { return slugDonVi(localStorage.getItem(KEY_SLUG) || ''); } catch { return ''; } };
+const nhoSlug = (s) => { try { localStorage.setItem(KEY_SLUG, s || ''); } catch { /* bỏ qua */ } };
 const inp = 'w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] text-slate-700 outline-none focus:border-sky-500 disabled:bg-slate-50 disabled:text-slate-500';
 const nutChinh = 'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
 const nutPhu = 'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed';
@@ -1165,11 +1173,119 @@ function BaoCaoTab({ doc, onTab }) {
   );
 }
 
+// ─── Chọn / tạo bộ biểu của đơn vị ──────────────────────────────────────────
+//  Mỗi đơn vị một bộ biểu. Bản của cơ quan tỉnh là bản MẶC ĐỊNH khi mở phân hệ;
+//  cán bộ HĐND xã, phường tự tạo bộ biểu của xã mình bằng cách gõ tên đơn vị
+//  (không cần tài khoản). Xem đầu api/vtvl.js để biết vì sao phải có mã sửa.
+function ChonDonVi({ ds, slug, ten, coQuyenGhi, daDangNhap, coMa, dangTao, dangNap, onChon, onTao, onNhapMa, onBoMa }) {
+  const [tenMoi, setTenMoi] = useState('');
+  const [moTao, setMoTao] = useState(false);
+  const [moMa, setMoMa] = useState(false);
+  const [maGo, setMaGo] = useState('');
+  const kt = useMemo(() => (tenMoi.trim() ? kiemTraTen(tenMoi) : null), [tenMoi]);
+  const daCo = kt?.ok && ds.some((x) => x.slug === kt.slug);
+  // Danh sách nạp lại từ máy chủ là việc KHÔNG đồng bộ, nên ngay sau khi tạo một
+  // đơn vị mới thì mục của nó có thể chưa có trong `ds`. Thiếu mục khớp thì ô chọn
+  // hiển thị sai nhãn, vì vậy tự bổ sung mục của đơn vị đang mở.
+  const dsHien = useMemo(() => (slug && !ds.some((x) => x.slug === slug)
+    ? [...ds, { id: `vtvl_dv_${slug}`, slug, tinh: false, ten: ten || slug, nguoi: '', capNhat: '', soDong: 0, soVT: 0 }]
+    : ds), [ds, slug, ten]);
+  const hienTai = dsHien.find((x) => x.slug === slug);
+
+  return (
+    <div className="bg-white rounded-2xl border border-slate-200 p-3 sm:p-4 space-y-3">
+      <div className="flex items-end gap-3 flex-wrap">
+        <div className="flex-1 min-w-[260px]">
+          <label className="block text-[11px] font-semibold text-slate-500 uppercase tracking-wider mb-1">Bộ biểu của đơn vị</label>
+          <select value={slug} onChange={(e) => { if (e.target.value === '+') { setMoTao(true); return; } setMoTao(false); onChon(e.target.value); }} className={inp}>
+            {dsHien.map((x) => (
+              <option key={x.id} value={x.slug}>
+                {x.ten}{x.tinh ? ' — bản mặc định của cơ quan tỉnh' : ''}{x.soVT ? ` · ${x.soVT} VTVL` : x.soDong ? ` · ${x.soDong} dòng` : ' · chưa có dữ liệu'}
+              </option>
+            ))}
+            <option value="+">+ Tạo bộ biểu cho HĐND xã, phường…</option>
+          </select>
+        </div>
+        <div className="text-[12px] text-slate-500 min-w-[200px]">
+          {dangNap
+            ? <span className="inline-flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang tải dữ liệu của đơn vị…</span>
+            : hienTai?.capNhat
+              ? <>Cập nhật <b className="text-slate-700">{new Date(hienTai.capNhat).toLocaleString('vi-VN')}</b>{hienTai.nguoi ? <> · do <b className="text-slate-700">{hienTai.nguoi}</b> nhập</> : null}</>
+              : <>Đơn vị này chưa có dữ liệu được lưu.</>}
+        </div>
+        {!moTao && <button onClick={() => setMoTao(true)} className={nutPhu}><Plus className="w-3.5 h-3.5" /> Tạo bộ biểu đơn vị mới</button>}
+      </div>
+
+      {/* Bản của tỉnh: chỉ người đăng nhập sửa được — nói rõ để khách không tưởng là lỗi. */}
+      {!slug && !coQuyenGhi && (
+        <p className="text-[12.5px] text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
+          Đây là bộ biểu của <b>Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</b> — chỉ cán bộ Văn phòng đã đăng nhập mới sửa được.
+          Nếu bạn là cán bộ HĐND xã, phường, hãy bấm <b>Tạo bộ biểu đơn vị mới</b> để kê khai bộ biểu của xã mình (không cần tài khoản).
+        </p>
+      )}
+
+      {/* Đang xem bộ biểu của một xã nhưng máy này không có mã sửa */}
+      {slug && !coQuyenGhi && (
+        <div className="text-[12.5px] text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 space-y-2">
+          <p>Bạn đang <b>xem</b> bộ biểu của <b>{ten || hienTai?.ten}</b>. Máy này không có <b>mã sửa</b> của đơn vị đó nên không nhập liệu được.</p>
+          {!moMa
+            ? <button onClick={() => setMoMa(true)} className={nutPhu}>Tôi có mã sửa của đơn vị này</button>
+            : (
+              <div className="flex items-end gap-2 flex-wrap">
+                <input value={maGo} onChange={(e) => setMaGo(e.target.value.toUpperCase())} placeholder="VD: 7KQM2PTR" maxLength={12}
+                  className={`${inp} font-mono tracking-widest max-w-[180px]`} />
+                <button onClick={() => { const r = kiemTraMaSua(maGo); if (r.ok) { onNhapMa(r.ma); setMoMa(false); setMaGo(''); } else onNhapMa('', r.loi); }} className={nutPhu}>Dùng mã này</button>
+                <span className="text-[11.5px] text-amber-800">Mã gồm 8 ký tự, hiện ra lúc đơn vị tạo bộ biểu.</span>
+              </div>
+            )}
+        </div>
+      )}
+
+      {/* Đã có mã sửa trên máy này */}
+      {slug && coMa && coQuyenGhi && !daDangNhap && (
+        <p className="text-[12.5px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-2 flex-wrap">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
+          <span className="flex-1">Máy này có mã sửa của <b>{ten || hienTai?.ten}</b> nên bạn nhập liệu được. Nhập xong nhớ bấm <b>Lưu lên hệ thống</b>.</span>
+          <button onClick={onBoMa} className="underline font-semibold">Quên mã trên máy này</button>
+        </p>
+      )}
+
+      {moTao && (
+        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 space-y-2">
+          <p className="text-[13px] font-bold text-sky-900">Tạo bộ biểu cho HĐND xã, phường</p>
+          <p className="text-[12px] text-sky-800">
+            Gõ đầy đủ tên đơn vị — tên này là nhãn của cả bộ biểu nên hãy ghi đúng ngay từ đầu. Ví dụ: <i>HĐND xã Quảng Yên</i>, <i>HĐND phường Hạc Thành</i>.
+          </p>
+          <div className="flex items-end gap-2 flex-wrap">
+            <input value={tenMoi} onChange={(e) => setTenMoi(e.target.value)} maxLength={MAX_TEN}
+              placeholder="HĐND xã …" className={`${inp} flex-1 min-w-[260px]`} />
+            <button disabled={!kt?.ok || daCo || dangTao} onClick={() => { onTao(kt.ten); setMoTao(false); setTenMoi(''); }} className={nutChinh}>
+              {dangTao ? 'Đang tạo…' : 'Tạo và bắt đầu nhập'}
+            </button>
+            <button onClick={() => { setMoTao(false); setTenMoi(''); }} className={nutPhu}>Thôi</button>
+          </div>
+          {kt && !kt.ok && <p className="text-[12px] text-rose-700">{kt.loi}</p>}
+          {daCo && <p className="text-[12px] text-amber-800">Đơn vị này đã có bộ biểu trong hệ thống. Hãy chọn đơn vị đó ở hộp trên — nếu máy này có mã sửa thì nhập tiếp được.</p>}
+          {kt?.ok && !daCo && <p className="text-[12px] text-sky-800">Mã đơn vị sẽ là <code className="font-mono">{kt.slug}</code>. Sau khi tạo, hệ thống cấp một <b>mã sửa</b> — hãy ghi lại.</p>}
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ─── Thành phần chính ───────────────────────────────────────────────────────
 export default function VTVL({ onHome }) {
-  const [doc, setDoc] = useState(() => readVTVL().doc);
-  const [ts, setTs] = useState(() => readVTVL().ts);
-  const [chuaLuu, setChuaLuu] = useState(() => readVTVL().chuaLuu);
+  // Đơn vị đang mở: '' = bộ biểu của cơ quan tỉnh (bản MẶC ĐỊNH khi mở phân hệ).
+  // Nhớ lựa chọn gần nhất để cán bộ xã quay lại không phải chọn lại.
+  const [slug, setSlug] = useState(slugDaChon);
+  const [dsDV, setDsDV] = useState(() => [{ id: 'vtvl_data', slug: '', tinh: true, ten: TEN_TINH, nguoi: '', capNhat: '', soDong: 0, soVT: 0 }]);
+  const [tenDV, setTenDV] = useState('');
+  const [maSua, setMaSua] = useState('');
+  const [maMoi, setMaMoi] = useState('');   // mã sửa vừa cấp cho đơn vị mới tạo
+  const [dangTao, setDangTao] = useState(false);
+  const [doc, setDoc] = useState(() => readVTVL(slugDaChon()).doc);
+  const [ts, setTs] = useState(() => readVTVL(slugDaChon()).ts);
+  const [chuaLuu, setChuaLuu] = useState(() => readVTVL(slugDaChon()).chuaLuu);
   const [daNap, setDaNap] = useState(false);
   const [phien, setPhien] = useState(null);
   const [tab, setTab] = useState('tongquan');
@@ -1185,62 +1301,135 @@ export default function VTVL({ onHome }) {
   const docRef = useRef(doc);
   docRef.current = doc;
 
-  const coQuyenGhi = !!phien && phien.user?.email !== GUEST.email;
+  const daDangNhap = !!phien && phien.user?.email !== GUEST.email;
+  const laTinhDV = !slug;
+  // Ai được nhập liệu:
+  //  • bộ biểu của TỈNH  → chỉ cán bộ Văn phòng đã đăng nhập;
+  //  • bộ biểu của XÃ    → người đã đăng nhập (để Văn phòng gỡ rối cho xã) hoặc
+  //    máy có MÃ SỬA của đơn vị đó. Xem đầu api/vtvl.js để biết vì sao cần mã.
+  const coQuyenGhi = laTinhDV ? daDangNhap : (daDangNhap || !!maSua);
   const docOnly = !coQuyenGhi;
+  // Bản của tỉnh tự lưu như trước. Bản của xã đi qua hàm máy chủ có đếm hạn mức nên
+  // KHÔNG tự lưu theo nhịp 1,5 giây — người dùng bấm "Lưu lên hệ thống" thì mới ghi.
+  const tuLuu = laTinhDV && daDangNhap;
   const bao = useCallback((kieu, chu) => { setThongBao({ kieu, chu }); setTimeout(() => setThongBao(null), 6000); }, []);
+  const napDanhSach = useCallback(() => { fetchDanhSachDV().then(setDsDV); }, []);
 
   useEffect(() => {
-    let alive = true;
     const off = onAuthChange((s) => setPhien(s || null));
-    Promise.all([getSession(), fetchVTVL()]).then(([s, r]) => {
+    napDanhSach();
+    return () => { off && off(); };
+  }, [napDanhSach]);
+
+  // Nạp bộ biểu của đơn vị đang chọn (chạy lại mỗi lần đổi đơn vị).
+  useEffect(() => {
+    let alive = true;
+    setDaNap(false); setBanNhap(null); setLuu({ k: '' });
+    const local = readVTVL(slug);
+    setDoc(local.doc); setTs(local.ts); setChuaLuu(local.chuaLuu);
+    setMaSua(maSuaCua(slug));
+    Promise.all([getSession(), fetchVTVL(slug)]).then(([s, r]) => {
       if (!alive) return;
       setPhien(s || null);
       setDaNap(true);
       if (!r) return; // không đọc được máy chủ → giữ bản cache
-      const ghiDuoc = !!s && s.user?.email !== GUEST.email;
-      const local = readVTVL();
+      if (r.ten) setTenDV(r.ten);
+      const dn = !!s && s.user?.email !== GUEST.email;
+      const ghiDuoc = slug ? (dn || !!maSuaCua(slug)) : dn;
       if (local.chuaLuu && JSON.stringify(local.doc.bieu) !== JSON.stringify(r.doc.bieu)) {
-        // Máy này còn bản nháp chưa lưu: người đăng nhập được hỏi giữ bản nào; KHÁCH luôn
-        // xem bản trên máy chủ (bản nháp vẫn để nguyên trong trình duyệt, không ghi đè).
+        // Máy này còn bản nháp chưa lưu: người ghi được thì được hỏi giữ bản nào;
+        // người CHỈ XEM luôn thấy bản trên máy chủ (bản nháp vẫn để nguyên, không ghi đè).
         if (ghiDuoc) { setBanNhap(r); setTs(r.ts); return; }
         setDoc(r.doc); setTs(r.ts); setChuaLuu(false);
         return;
       }
-      setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(r.doc, r.ts, false);
+      setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false);
     });
-    return () => { alive = false; off && off(); };
-  }, []);
+    return () => { alive = false; };
+  }, [slug]);
 
   const kq = useMemo(() => tinhToan(doc), [doc]);
   const vanDe = useMemo(() => kiemTraDuLieu(doc, kq), [doc, kq]);
   const kb = useMemo(() => kichThuocKB(doc), [doc]);
 
-  // Tự lưu lên máy chủ 1,5 giây sau lần sửa cuối (chỉ khi đã đăng nhập).
+  const email = phien?.user?.email || '';
+
+  /** Ghi bản đang có lên máy chủ. Trả về kết quả để nơi gọi báo cho người dùng. */
+  const ghiLenMayChu = useCallback(async () => {
+    const dangGhi = docRef.current;
+    const r = slug
+      ? await luuDonVi({ ten: tenDV || dangGhi.donVi || slug, slug, doc: dangGhi, tsCu: ts, maSua, nguoi: email || 'khách' })
+      : await saveVTVL(dangGhi, ts, email);
+    if (r.ok) {
+      setTs(r.ts);
+      // Người dùng sửa tiếp trong lúc đang lưu thì vẫn còn thay đổi chưa lưu.
+      if (docRef.current === dangGhi) { setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false); } else cacheVTVL(slug, docRef.current, r.ts, true);
+      setDoc((d) => (d === dangGhi ? r.doc : { ...d, capNhat: r.doc.capNhat, nguoiCapNhat: r.doc.nguoiCapNhat }));
+      setLuu({ k: 'ok', luc: new Date() });
+      napDanhSach();
+    } else if (r.xungDot) setLuu({ k: 'xungdot' });
+    else setLuu({ k: 'loi', chu: r.loi });
+    return r;
+  }, [slug, tenDV, ts, maSua, email, napDanhSach]);
+
+  // Tự lưu 1,5 giây sau lần sửa cuối — CHỈ cho bản của tỉnh (xem `tuLuu`).
   useEffect(() => {
-    if (!chuaLuu || !coQuyenGhi || banNhap || luu.k === 'xungdot' || luu.k === 'dang') return;
-    const h = setTimeout(async () => {
-      setLuu({ k: 'dang' });
-      const dangGhi = docRef.current;
-      const r = await saveVTVL(dangGhi, ts, phien?.user?.email || '');
-      if (r.ok) {
-        setTs(r.ts);
-        // Người dùng sửa tiếp trong lúc đang lưu thì vẫn còn thay đổi chưa lưu.
-        if (docRef.current === dangGhi) { setChuaLuu(false); cacheVTVL(r.doc, r.ts, false); } else cacheVTVL(docRef.current, r.ts, true);
-        setDoc((d) => (d === dangGhi ? r.doc : { ...d, capNhat: r.doc.capNhat, nguoiCapNhat: r.doc.nguoiCapNhat }));
-        setLuu({ k: 'ok', luc: new Date() });
-      } else if (r.xungDot) setLuu({ k: 'xungdot' });
-      else setLuu({ k: 'loi', chu: r.loi });
-    }, 1500);
+    if (!chuaLuu || !tuLuu || banNhap || luu.k === 'xungdot' || luu.k === 'dang') return;
+    const h = setTimeout(() => { setLuu({ k: 'dang' }); ghiLenMayChu(); }, 1500);
     return () => clearTimeout(h);
-  }, [doc, chuaLuu, coQuyenGhi, banNhap, ts, luu.k, phien]);
+  }, [doc, chuaLuu, tuLuu, banNhap, luu.k, ghiLenMayChu]);
+
+  const luuTay = async () => {
+    if (luu.k === 'dang') return;
+    setLuu({ k: 'dang' });
+    const r = await ghiLenMayChu();
+    if (r.ok) bao('ok', `Đã lưu bộ biểu của ${slug ? (tenDV || 'đơn vị') : 'cơ quan tỉnh'} lên hệ thống.`);
+    else if (!r.xungDot) bao('loi', r.loi || 'Chưa lưu được lên hệ thống.');
+  };
 
   const datDoc = (moi) => {
     setDoc(moi); setChuaLuu(true);
-    if (!cacheVTVL(moi, ts, true)) bao('canh', 'Trình duyệt hết chỗ lưu bản nháp (dữ liệu quá lớn) — hãy giữ kết nối để phần mềm lưu lên máy chủ.');
+    if (!cacheVTVL(slug, moi, ts, true)) bao('canh', 'Trình duyệt hết chỗ lưu bản nháp (dữ liệu quá lớn) — hãy lưu lên hệ thống ngay.');
     if (luu.k === 'loi' || luu.k === 'ok') setLuu({ k: '' });
   };
 
-  const email = phien?.user?.email || '';
+  // ── Chọn / tạo đơn vị ────────────────────────────────────────────────────
+  const chonDonVi = (s) => {
+    if (s === slug) return;
+    if (chuaLuu && coQuyenGhi && !window.confirm('Bộ biểu đang mở còn thay đổi CHƯA LƯU lên hệ thống. Vẫn chuyển sang đơn vị khác? (Bản nháp vẫn giữ trên máy này.)')) return;
+    setMaMoi(''); setTenDV(''); nhoSlug(s); setSlug(s);
+    setTab('tongquan'); setFormId(null); setQuayLai(null);
+  };
+
+  const taoDonVi = async (ten) => {
+    const s = slugDonVi(ten);
+    setDangTao(true);
+    // Tạo = ghi ngay một bộ biểu rỗng lên máy chủ, vì chính lượt ghi đó mới cấp MÃ SỬA.
+    const r = await luuDonVi({ ten, slug: s, doc: docMoiChoDonVi(ten), tsCu: null, nguoi: email || 'khách' });
+    setDangTao(false);
+    if (!r.ok) {
+      bao('loi', r.xungDot
+        ? 'Đơn vị này vừa được người khác tạo xong. Hãy chọn đơn vị đó trong hộp chọn ở trên.'
+        : (r.loi || 'Chưa tạo được bộ biểu cho đơn vị.'));
+      napDanhSach();
+      return;
+    }
+    cacheVTVL(s, r.doc, r.ts, false);
+    nhoSlug(s); setTenDV(r.ten); setSlug(s);
+    setMaMoi(r.maSua || '');
+    napDanhSach();
+    bao('ok', `Đã tạo bộ biểu cho ${r.ten}. Hãy ghi lại mã sửa.`);
+  };
+
+  const dungMaSua = (ma, loi) => {
+    if (!ma) { bao('loi', loi || 'Mã sửa không hợp lệ.'); return; }
+    nhoMaSua(slug, ma); setMaSua(ma);
+    bao('ok', 'Đã nhận mã sửa — bạn nhập liệu được cho đơn vị này. Nhập xong nhớ bấm Lưu lên hệ thống.');
+  };
+  const boMaSua = () => {
+    if (!window.confirm('Xóa mã sửa khỏi máy này? Bạn sẽ chỉ còn XEM được bộ biểu của đơn vị này cho tới khi nhập lại mã.')) return;
+    xoaMaSua(slug); setMaSua('');
+  };
   const suaO = (bId, id, k, v) => {
     if (docOnly) return;
     const d = docRef.current;
@@ -1321,13 +1510,13 @@ export default function VTVL({ onHome }) {
   };
   const veLai = () => { if (!quayLai) return; const q = quayLai; setQuayLai(null); if (q.id && q.id.startsWith('b2-')) { setBieuId(q.bieu); setTab('nhap'); } else diToiO(q.bieu, q.id); };
   const taiLaiMayChu = async () => {
-    const r = await fetchVTVL();
+    const r = await fetchVTVL(slug);
     if (!r) { bao('loi', 'Không tải được bản trên máy chủ.'); return; }
-    setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(r.doc, r.ts, false); setLuu({ k: '' }); setBanNhap(null);
+    setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false); setLuu({ k: '' }); setBanNhap(null);
     bao('ok', 'Đã tải bản mới nhất trên máy chủ.');
   };
   const ghiDe = async () => {
-    const r = await fetchVTVL();
+    const r = await fetchVTVL(slug);
     setTs(r?.ts || null); setLuu({ k: '' }); setChuaLuu(true); setBanNhap(null);
   };
   const taiMau = () => import('./lib/vtvlXuat').then((m) => m.xuatMau());
@@ -1359,10 +1548,16 @@ export default function VTVL({ onHome }) {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {huyHieuLuu && <span className={`text-[11px] px-2.5 py-1.5 rounded-lg border ${luu.k === 'loi' ? 'bg-rose-500/30 border-rose-200/40' : chuaLuu ? 'bg-amber-400/20 border-amber-200/30' : 'bg-white/10 border-white/20'}`}>{huyHieuLuu}</span>}
+            {coQuyenGhi && !tuLuu && (
+              <button onClick={luuTay} disabled={luu.k === 'dang' || !chuaLuu}
+                className={`text-[11.5px] font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 ${chuaLuu ? 'bg-amber-300 text-amber-950 hover:bg-amber-200' : 'bg-white/15 border border-white/25 text-white/80'} disabled:cursor-default`}>
+                <Save className="w-3.5 h-3.5" /> {luu.k === 'dang' ? 'Đang lưu…' : chuaLuu ? 'Lưu lên hệ thống' : 'Đã lưu'}
+              </button>
+            )}
             <span className={`text-[11px] px-2.5 py-1.5 rounded-lg border ${coQuyenGhi ? 'bg-emerald-500/20 border-emerald-300/30 text-emerald-50' : 'bg-amber-400/20 border-amber-200/30 text-amber-50'}`}>
-              {coQuyenGhi ? 'Đã đăng nhập · nhập liệu được' : 'Khách · xem và kiểm tra tệp'}
+              {daDangNhap ? 'Đã đăng nhập · nhập liệu được' : coQuyenGhi ? 'Có mã sửa · nhập liệu được' : 'Khách · xem và kiểm tra tệp'}
             </span>
-            {!coQuyenGhi && <a href="#/okr?login=1" className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white text-sky-900 inline-flex items-center gap-1.5"><LogIn className="w-3.5 h-3.5" /> Đăng nhập</a>}
+            {!daDangNhap && <a href="#/okr?login=1" className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white text-sky-900 inline-flex items-center gap-1.5"><LogIn className="w-3.5 h-3.5" /> Đăng nhập</a>}
           </div>
         </div>
         <nav className="max-w-[1500px] mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto">
@@ -1382,6 +1577,25 @@ export default function VTVL({ onHome }) {
             {thongBao.kieu === 'ok' ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}<span>{thongBao.chu}</span>
           </div>
         )}
+        {/* Mã sửa vừa cấp — hiện NỔI BẬT vì mất mã thì chỉ còn xem được. */}
+        {maMoi && (
+          <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 py-3.5 space-y-2">
+            <p className="text-[14px] font-extrabold text-emerald-900 flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> Đã tạo bộ biểu cho {tenDV}</p>
+            <p className="text-[13px] text-emerald-900">Hãy <b>ghi lại mã sửa</b> dưới đây. Máy này đã tự nhớ mã nên bạn nhập tiếp được ngay; nhưng muốn nhập từ <b>máy khác</b> — hoặc máy này bị xóa dữ liệu duyệt web — thì phải gõ lại mã.</p>
+            <div className="flex items-center gap-2 flex-wrap">
+              <code className="font-mono text-2xl font-extrabold tracking-[0.3em] bg-white border-2 border-emerald-300 rounded-xl px-4 py-2 text-emerald-900">{maMoi}</code>
+              <button onClick={() => { navigator.clipboard?.writeText(maMoi); bao('ok', 'Đã sao chép mã sửa.'); }} className={nutPhu}><Copy className="w-3.5 h-3.5" /> Sao chép mã</button>
+              <button onClick={() => setMaMoi('')} className={nutPhu}>Tôi đã ghi lại — ẩn đi</button>
+            </div>
+            <p className="text-[12px] text-emerald-800">Mã này chỉ để các đơn vị không ghi đè lên nhau, <b>không phải mật khẩu bảo vệ dữ liệu</b> — bộ biểu vốn không chứa thông tin cá nhân. Mất mã thì liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh.</p>
+          </div>
+        )}
+
+        {/* Khối chọn đơn vị LUÔN hiện — kể cả lúc đang tải: ẩn đi thì người dùng không
+            còn thấy mình đang ở đơn vị nào và cũng không đổi sang đơn vị khác được. */}
+        <ChonDonVi ds={dsDV} slug={slug} ten={tenDV} coQuyenGhi={coQuyenGhi} daDangNhap={daDangNhap}
+          coMa={!!maSua} dangTao={dangTao} dangNap={!daNap} onChon={chonDonVi} onTao={taoDonVi} onNhapMa={dungMaSua} onBoMa={boMaSua} />
+
         {banNhap && coQuyenGhi && (
           <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900 flex items-center gap-3 flex-wrap">
             <AlertTriangle className="w-4 h-4 shrink-0" />
@@ -1406,8 +1620,8 @@ export default function VTVL({ onHome }) {
             <span className="flex-1">
               {doc.capNhat
                 ? <>Chế độ xem: đang xem dữ liệu <b>{doc.nguoiCapNhat ? `do ${doc.nguoiCapNhat} nhập` : 'đã lưu trên hệ thống'}</b>, cập nhật lúc <b>{new Date(doc.capNhat).toLocaleString('vi-VN')}</b>. </>
-                : <>Chế độ xem: hệ thống chưa có dữ liệu bộ biểu nào được lưu. </>}
-              Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b>; muốn nhập liệu thì đăng nhập.
+                : <>Chế độ xem: đơn vị này chưa có dữ liệu bộ biểu nào được lưu. </>}
+              Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b>. Muốn <b>kê khai bộ biểu của HĐND xã, phường mình</b> thì bấm <b>Tạo bộ biểu đơn vị mới</b> ở trên — không cần tài khoản.
             </span>
           </div>
         )}
