@@ -2,7 +2,8 @@
 //  PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" (#/vtvl) — chuyển bộ biểu Excel thành
 //  ứng dụng nhập liệu có kiểm tra lỗi.
 //
-//  Năm tab: Tổng quan · Nhập liệu · Nhập từ tệp · Kiểm tra lỗi · Hướng dẫn.
+//  Bảy tab: Tổng quan · Nhập liệu · Nhập từ tệp · Kiểm tra lỗi · Báo cáo ·
+//  Nộp lên cổng (tách 1 tệp bộ biểu thành 09 tệp nộp cho cổng BTCTW) · Hướng dẫn.
 //   - Nhập liệu: bảng giống Excel (ô trắng nhập, ô xám tự tính, cột cảnh báo
 //     tô màu) + biểu mẫu từng dòng có hướng dẫn của HD_DIEN_BIEU cho từng cột.
 //   - Nhập từ tệp: đọc chính tệp bộ biểu .xlsx (kể cả tệp 30.000 dòng của Ban),
@@ -18,7 +19,7 @@ import { createPortal } from 'react-dom';
 import {
   Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
   PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2, TrendingUp, TrendingDown, Equal, Scale,
+  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2, TrendingUp, TrendingDown, Equal, Scale, Send,
 } from 'lucide-react';
 import { getSession, onAuthChange, GUEST } from './lib/auth';
 import {
@@ -35,6 +36,10 @@ import {
   fetchDanhSachDV, luuDonVi, maSuaCua, nhoMaSua, xoaMaSua, docMoiChoDonVi,
 } from './lib/vtvlStore';
 import { kiemTraTen, kiemTraMaSua, slugDonVi, MAX_TEN, TEN_TINH } from './lib/vtvlDonVi';
+import {
+  congTheoThuTu, chuanBiNop, tongQuanNop, tenTepCong, CONG_THEO_MA, CONG_TEN_MIEN,
+} from './lib/vtvlCong';
+import { docMauCong, dungTepCong } from './lib/vtvlXuatCong';
 
 const MOI_TRANG = 50;
 // Đơn vị được chọn gần nhất trên máy này ('' = bộ biểu của cơ quan tỉnh, bản mặc định).
@@ -54,6 +59,7 @@ const TABS = [
   { id: 'tep', ten: 'Nhập từ tệp', Ic: Upload },
   { id: 'kiemtra', ten: 'Kiểm tra lỗi', Ic: ShieldAlert },
   { id: 'baocao', ten: 'Báo cáo', Ic: FileText },
+  { id: 'nopcong', ten: 'Nộp lên cổng', Ic: Send },
   { id: 'huongdan', ten: 'Hướng dẫn', Ic: BookOpen },
 ];
 
@@ -1352,6 +1358,256 @@ function BaoCaoTab({ doc, dbqhMacDinh, onTab }) {
   );
 }
 
+// ─── Tab "Nộp lên cổng BTCTW" ───────────────────────────────────────────────
+//  Bộ biểu của Ban là MỘT tệp nhiều trang; cổng btctw.ueb.edu.vn lại nhận theo
+//  PHIẾU — mỗi biểu một phiếu, mỗi phiếu một tệp .xlsx. Tab này tách 1 → 9 tệp.
+//  ⚠️ Bắt buộc dùng MẪU TẢI TỪ CỔNG: mẫu mang theo hai trang ẩn khai phiếu nào,
+//  cột nào, danh sách chọn nào — dựng tệp từ đầu thì cổng từ chối. Chi tiết và
+//  lý do ghi ở đầu src/lib/vtvlCong.js.
+function NopCongTab({ doc, kq, tenDonVi }) {
+  const [mau, setMau] = useState({});          // maBieu → { ten, blob, kq }
+  const [dangNap, setDangNap] = useState(false);
+  const [loiNap, setLoiNap] = useState([]);
+  const [boQuaLoiChan, setBoQuaLoiChan] = useState(true);
+  const [dangTai, setDangTai] = useState('');
+  const [moSoat, setMoSoat] = useState('');
+  const oTep = useRef(null);
+
+  const tongQuan = useMemo(() => tongQuanNop(doc, kq), [doc, kq]);
+
+  // Chuẩn bị dữ liệu nộp cho cả 9 biểu (có mẫu thì ghép mã dòng, chưa có thì xem trước).
+  const nop = useMemo(() => {
+    const out = {};
+    for (const cb of congTheoThuTu()) {
+      const m = mau[cb.maBieu];
+      try {
+        out[cb.maBieu] = chuanBiNop(cb.bieu, doc, {
+          tt: m?.kq?.tt || null, danhMuc: m?.kq?.danhMuc || {}, dongMau: m?.kq?.dongMau || [],
+          boQuaLoiChan, kq,
+        });
+      } catch (e) { out[cb.maBieu] = { loi: e.message }; }
+    }
+    return out;
+  }, [doc, kq, mau, boQuaLoiChan]);
+
+  const napMau = async (files) => {
+    setDangNap(true); setLoiNap([]);
+    const them = {}; const loi = [];
+    for (const f of files) {
+      try {
+        const r = await docMauCong(f);
+        if (!r.ok || !r.cb) { loi.push(`${f.name}: ${(r.loi || ['không đọc được']).join(' ')}`); continue; }
+        them[r.cb.maBieu] = { ten: f.name, blob: f, kq: r };
+      } catch (e) { loi.push(`${f.name}: ${e.message}`); }
+    }
+    setMau((cu) => ({ ...cu, ...them }));
+    setLoiNap(loi);
+    setDangNap(false);
+  };
+
+  const taiMot = async (cb) => {
+    const m = mau[cb.maBieu]; const n = nop[cb.maBieu];
+    if (!m || !n || n.loi) return;
+    setDangTai(cb.maBieu);
+    try {
+      const bytes = await dungTepCong(m.blob, { cb, tt: m.kq.tt, rows: n.rows });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
+      a.download = m.ten || tenTepCong(cb, { tenDonVi });
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch (e) { setLoiNap([`${cb.maBieu}: ${e.message}`]); } finally { setDangTai(''); }
+  };
+
+  const taiTatCa = async () => {
+    for (const cb of congTheoThuTu()) {
+      if (!mau[cb.maBieu] || nop[cb.maBieu]?.loi) continue;
+      // Trình duyệt chặn nếu tải nhiều tệp dồn một nhịp → giãn ra từng tệp.
+      await taiMot(cb);
+      await new Promise((r) => setTimeout(r, 400));
+    }
+  };
+
+  const soMauDaNap = Object.keys(mau).length;
+  const sanSang = congTheoThuTu().filter((cb) => mau[cb.maBieu] && !nop[cb.maBieu]?.loi && nop[cb.maBieu]?.loiSoat === 0);
+  const tongLoiSoat = congTheoThuTu().reduce((s, cb) => s + (mau[cb.maBieu] ? (nop[cb.maBieu]?.loiSoat || 0) : 0), 0);
+
+  return (
+    <div className="space-y-4">
+      <section className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-200 p-5">
+        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Nộp lên cổng của Ban Tổ chức Trung ương</p>
+        <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Chuyển bộ biểu thành 09 tệp nộp theo từng phiếu</h2>
+        <p className="text-[13px] text-slate-600 mt-2 leading-relaxed">
+          Bộ biểu của Ban là <b>một tệp nhiều trang</b>, còn cổng <b>{CONG_TEN_MIEN}</b> nhận <b>theo phiếu</b>: mỗi biểu
+          một phiếu, mỗi phiếu nạp <b>một tệp .xlsx chỉ chứa biểu đó</b>. Tab này tách 1 → 9 tệp, đúng tên trang và
+          đúng thứ tự cột của cổng, rồi soát trước những lỗi mà cổng sẽ chặn.
+        </p>
+        <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3 text-[12.5px] text-amber-900 leading-relaxed">
+          <b className="inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Phải dùng mẫu trống tải từ chính cổng.</b>{' '}
+          Mẫu mang theo hai trang ẩn khai <i>tệp này thuộc phiếu nào, của đơn vị nào, cột nào</i> và các danh sách chọn
+          của hồ sơ — phần mềm <b>không thể tự dựng</b> mấy thứ đó. Phần mềm chỉ <b>điền vào mẫu</b> của cổng và giữ
+          nguyên toàn bộ phần còn lại của tệp.
+        </div>
+        <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className={`${nutPhu} mt-3`}>
+          <ArrowRight className="w-4 h-4" /> Mở cổng kê khai VTVL
+        </a>
+      </section>
+
+      <section className="bg-white rounded-2xl border border-slate-200 p-5">
+        <h3 className="font-extrabold text-slate-800 mb-1">Bước 1 — Nạp các mẫu trống đã tải từ cổng</h3>
+        <p className="text-[12.5px] text-slate-500 mb-3">
+          Vào cổng, mở từng phiếu, bấm <b>Tải mẫu Excel</b> rồi chọn hết 09 tệp vào đây một lượt. Phần mềm tự nhận mỗi
+          tệp là biểu nào qua trang khai báo bên trong, không phụ thuộc tên tệp.
+        </p>
+        <div
+          onDragOver={(e) => e.preventDefault()}
+          onDrop={(e) => { e.preventDefault(); napMau([...e.dataTransfer.files]); }}
+          className="rounded-xl border-2 border-dashed border-sky-300 bg-sky-50/40 p-6 text-center"
+        >
+          <Upload className="w-7 h-7 mx-auto text-sky-600" />
+          <p className="text-[13px] font-semibold text-slate-700 mt-2">Kéo thả 09 tệp mẫu vào đây</p>
+          <input ref={oTep} type="file" accept=".xlsx" multiple className="hidden"
+            onChange={(e) => { napMau([...e.target.files]); e.target.value = ''; }} />
+          <button onClick={() => oTep.current?.click()} disabled={dangNap} className={`${nutChinh} mt-3`}>
+            {dangNap ? 'Đang đọc mẫu…' : 'Chọn tệp mẫu'}
+          </button>
+          <p className="text-[12px] text-slate-500 mt-2">Đã nạp <b>{soMauDaNap}</b>/9 mẫu</p>
+        </div>
+        {loiNap.length > 0 && (
+          <ul className="mt-3 space-y-1 text-[12.5px] text-rose-700">
+            {loiNap.map((t) => <li key={t} className="flex gap-1.5"><CircleAlert className="w-4 h-4 shrink-0 mt-0.5" />{t}</li>)}
+          </ul>
+        )}
+      </section>
+
+      <section className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+          <div>
+            <h3 className="font-extrabold text-slate-800">Bước 2 — Soát rồi tải 09 tệp đã điền</h3>
+            <p className="text-[12.5px] text-slate-500">
+              Nộp theo thứ tự dưới đây: biểu gốc trước, biểu dẫn chiếu sau (Hướng dẫn 07 — C1 trước A2, A2 trước B1).
+            </p>
+          </div>
+          <div className="flex items-center gap-3 flex-wrap">
+            <label className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-slate-600">
+              <input type="checkbox" checked={boQuaLoiChan} onChange={(e) => setBoQuaLoiChan(e.target.checked)} />
+              Bỏ dòng có lỗi chặn
+            </label>
+            <button onClick={taiTatCa} disabled={!sanSang.length || !!dangTai} className={nutChinh}>
+              <Download className="w-4 h-4" /> Tải tất cả ({sanSang.length})
+            </button>
+          </div>
+        </div>
+
+        {tongLoiSoat > 0 && (
+          <p className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800">
+            <b>{tongLoiSoat} chỗ cổng sẽ chặn.</b> Cổng kiểm từng ô và <b>chưa ghi gì cho tới khi hết lỗi</b>, nên sửa
+            xong hãy nộp. Bấm <b>Xem</b> ở dòng tương ứng để biết ô nào.
+          </p>
+        )}
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-[12.5px]">
+            <thead>
+              <tr className="text-left text-slate-500 border-b border-slate-200">
+                <th className="py-2 pr-2 font-semibold">Thứ tự</th>
+                <th className="py-2 pr-2 font-semibold">Biểu</th>
+                <th className="py-2 pr-2 font-semibold text-right">Dòng</th>
+                <th className="py-2 pr-2 font-semibold">Mẫu của cổng</th>
+                <th className="py-2 pr-2 font-semibold">Sẽ nộp</th>
+                <th className="py-2 pr-2 font-semibold">Soát theo cổng</th>
+                <th className="py-2 font-semibold" />
+              </tr>
+            </thead>
+            <tbody>
+              {congTheoThuTu().map((cb, i) => {
+                const m = mau[cb.maBieu]; const n = nop[cb.maBieu] || {};
+                const tq = tongQuan.find((x) => x.cb.maBieu === cb.maBieu) || {};
+                return (
+                  <tr key={cb.maBieu} className="border-b border-slate-100 align-top">
+                    <td className="py-2.5 pr-2 text-slate-400 font-bold">{i + 1}</td>
+                    <td className="py-2.5 pr-2">
+                      <p className="font-bold text-slate-800">{cb.maBieu.replace('VT_', '')} — {cb.sheet}</p>
+                      <p className="text-[11.5px] text-slate-500">{cb.tenBieu}</p>
+                    </td>
+                    <td className="py-2.5 pr-2 text-right font-bold text-slate-700">{tq.dong ?? 0}</td>
+                    <td className="py-2.5 pr-2">
+                      {m ? (
+                        <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><CheckCircle2 className="w-4 h-4" />đã nạp</span>
+                      ) : (
+                        <span className="text-slate-400">chưa nạp</span>
+                      )}
+                      {m && <p className="text-[11px] text-slate-400 truncate max-w-[180px]" title={m.ten}>{m.ten}</p>}
+                    </td>
+                    <td className="py-2.5 pr-2 text-slate-600">
+                      {n.loi ? <span className="text-rose-700">{n.loi}</span> : (
+                        <>
+                          <span className="font-semibold">{n.rows?.length ?? 0} dòng</span>
+                          {m && <span className="text-[11.5px] text-slate-500"> ({n.moi} mới · {n.capNhat} cập nhật{n.giuLai ? ` · ${n.giuLai} giữ lại` : ''})</span>}
+                          {n.boQua?.chan > 0 && <p className="text-[11.5px] text-amber-700">bỏ {n.boQua.chan} dòng lỗi chặn</p>}
+                        </>
+                      )}
+                    </td>
+                    <td className="py-2.5 pr-2">
+                      {!m ? <span className="text-slate-400">—</span> : n.loiSoat ? (
+                        <span className="font-bold text-rose-700">{n.loiSoat} lỗi{n.canhSoat ? ` · ${n.canhSoat} cảnh báo` : ''}</span>
+                      ) : n.canhSoat ? (
+                        <span className="font-bold text-amber-700">{n.canhSoat} cảnh báo</span>
+                      ) : <span className="text-emerald-700 font-semibold">sạch</span>}
+                      {m && (n.soat?.length > 0) && (
+                        <button onClick={() => setMoSoat(moSoat === cb.maBieu ? '' : cb.maBieu)} className="ml-1 text-sky-700 underline font-semibold">
+                          {moSoat === cb.maBieu ? 'Ẩn' : 'Xem'}
+                        </button>
+                      )}
+                    </td>
+                    <td className="py-2.5">
+                      <button onClick={() => taiMot(cb)} disabled={!m || !!n.loi || dangTai === cb.maBieu} className={nutPhu}>
+                        <FileDown className="w-4 h-4" /> {dangTai === cb.maBieu ? 'Đang tạo…' : 'Tải tệp'}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+
+        {moSoat && nop[moSoat]?.soat?.length > 0 && (
+          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
+            <p className="font-bold text-slate-700 text-[13px] mb-2">{CONG_THEO_MA[moSoat]?.tenBieu} — {nop[moSoat].soat.length} chỗ cần xem</p>
+            <ul className="space-y-1 text-[12.5px] max-h-64 overflow-y-auto">
+              {nop[moSoat].soat.slice(0, 200).map((x, i) => (
+                <li key={`${x.dong}-${x.cot}-${i}`} className={x.muc === 'loi' ? 'text-rose-800' : 'text-amber-800'}>
+                  <b>Dòng {x.dong}, cột {x.cot}:</b> {x.chu}
+                </li>
+              ))}
+            </ul>
+            {nop[moSoat].soat.length > 200 && <p className="text-[12px] text-slate-500 mt-1">… còn {nop[moSoat].soat.length - 200} chỗ nữa.</p>}
+          </div>
+        )}
+
+        {congTheoThuTu().some((cb) => nop[cb.maBieu]?.canhBao?.length) && (
+          <ul className="mt-3 space-y-1.5 text-[12.5px] text-slate-600">
+            {congTheoThuTu().flatMap((cb) => (nop[cb.maBieu]?.canhBao || []).map((t) => (
+              <li key={`${cb.maBieu}-${t}`} className="flex gap-1.5">
+                <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-600" /><span><b>{cb.maBieu.replace('VT_', '')}:</b> {t}</span>
+              </li>
+            )))}
+          </ul>
+        )}
+      </section>
+
+      <section className="bg-white rounded-2xl border border-slate-200 p-5 text-[12.5px] text-slate-600 leading-relaxed space-y-2">
+        <h3 className="font-extrabold text-slate-800 text-[14px]">Những điều phần mềm cố ý KHÔNG làm</h3>
+        <p><b>Không ghi vào cột máy tự tính.</b> Mẫu của cổng ghi rõ cột xám là cổng tính lại khi ghi tệp vào hồ sơ; số dán vào đó bị bỏ qua. Phần mềm để trống các cột đó để khi đối chiếu không nhầm số của ai.</p>
+        <p><b>Không tự xóa dòng trên cổng.</b> Dòng cổng đang giữ mà dữ liệu trong phần mềm không còn thì tệp <b>giữ lại nguyên dòng</b>. Muốn bỏ một bản ghi thì mở tệp, xóa cả dòng rồi mới nạp — đúng cách cổng hướng dẫn.</p>
+        <p><b>Không đổi chỗ mã dòng ẩn.</b> Hai cột ẩn cuối là mã dòng của cổng. Phần mềm khớp theo <b>mã khóa của từng biểu</b> rồi mới mang mã dòng theo, nên thứ tự dòng có đảo thì cổng vẫn cập nhật đúng bản ghi.</p>
+        <p><b>Không thay cho việc thẩm định.</b> Tệp nộp chỉ là số liệu đơn vị đã kê khai; cổng vẫn kiểm từng ô và cơ quan có thẩm quyền vẫn thẩm định như quy định.</p>
+      </section>
+    </div>
+  );
+}
+
 // ─── Chọn / tạo bộ biểu của đơn vị ──────────────────────────────────────────
 //  Mỗi đơn vị một bộ biểu. Bản của cơ quan tỉnh là bản MẶC ĐỊNH khi mở phân hệ;
 //  cán bộ HĐND xã, phường tự tạo bộ biểu của xã mình bằng cách gõ tên đơn vị
@@ -1861,6 +2117,7 @@ export default function VTVL({ onHome }) {
         {tab === 'tep' && <NhapTep trangThai={nhapTep} setTrangThai={setNhapTep} doc={doc} coQuyenGhi={coQuyenGhi} onApDung={apDung} onTaiMau={taiMau} />}
         {tab === 'kiemtra' && <KiemTraTab doc={doc} kq={kq} vanDe={vanDe} onDiToi={diToiO} />}
         {tab === 'baocao' && <BaoCaoTab doc={doc} dbqhMacDinh={laTinhDV ? DBQH_TINH : null} onTab={setTab} />}
+        {tab === 'nopcong' && <NopCongTab doc={doc} kq={kq} tenDonVi={doc.donVi || dsDV.find((x) => x.slug === slug)?.ten || TEN_TINH} />}
         {tab === 'huongdan' && <HuongDanTab />}
 
         <p className="text-center text-[11px] text-slate-400 pt-4">Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu. Không nhập họ tên, số định danh cá nhân vào bộ biểu (D1 dùng mã nguồn lực).</p>

@@ -46,7 +46,8 @@ export async function docMucLucZip(blob) {
   while (p + 46 <= cd.length && u32(cd, p) === 0x02014b50) {
     const method = u16(cd, p + 10), comp = u32(cd, p + 20), full = u32(cd, p + 24);
     const n = u16(cd, p + 28), e = u16(cd, p + 30), cm = u16(cd, p + 32), off = u32(cd, p + 42);
-    muc.set(utf8.decode(cd.subarray(p + 46, p + 46 + n)), { method, comp, full, off });
+    const flag = u16(cd, p + 8), crc = u32(cd, p + 16), gio = u16(cd, p + 12), ngay = u16(cd, p + 14);
+    muc.set(utf8.decode(cd.subarray(p + 46, p + 46 + n)), { method, comp, full, off, flag, crc, gio, ngay });
     p += 46 + n + e + cm;
   }
   return muc;
@@ -61,7 +62,25 @@ async function luongMuc(blob, m) {
   if (m.method !== 8) throw new Error(`Kiểu nén ${m.method} chưa hỗ trợ.`);
   return raw.pipeThrough(new DecompressionStream('deflate-raw'));
 }
-async function docChuMuc(blob, m) { return new Response(await luongMuc(blob, m)).text(); }
+export async function docChuMuc(blob, m) { return new Response(await luongMuc(blob, m)).text(); }
+
+/** Bytes NÉN NGUYÊN SI của một mục trong ZIP — để chép sang tệp mới mà không phải nén lại. */
+export async function bytesNenMuc(blob, m) {
+  const h = await bytes(blob, m.off, m.off + 30);
+  if (u32(h, 0) !== 0x04034b50) throw new Error('Tệp ZIP bị hỏng.');
+  const start = m.off + 30 + u16(h, 26) + u16(h, 28);
+  return bytes(blob, start, start + m.comp);
+}
+
+/**
+ * Bỏ TIỀN TỐ KHÔNG GIAN TÊN của thẻ XML: `<x:row>` → `<row>`.
+ * ⚠️ Cần thiết vì không phải tệp .xlsx nào cũng viết thẻ trần: bộ biểu của Ban
+ * (Excel ghi ra) không có tiền tố, còn MẪU TẢI TỪ CỔNG btctw (thư viện .NET ghi
+ * ra) lại dùng `<x:…>` cho mọi thẻ — gặp tệp đó mà không bỏ tiền tố thì bộ đọc
+ * trả về RỖNG, mà rỗng thì không nhận ra được là đang đọc sai.
+ * An toàn: trong XML, giá trị thuộc tính và chữ trong ô không được chứa `<` thô.
+ */
+export const boTienTo = (s) => String(s).replace(/<(\/?)[A-Za-z_][\w.-]*:/g, '<$1');
 
 export function giaiMaXml(s) {
   return String(s)
@@ -96,9 +115,9 @@ export async function docXlsx(blob, { chon = () => true, onTienDo } = {}) {
   const muc = await docMucLucZip(blob);
   const wbM = muc.get('xl/workbook.xml');
   if (!wbM) throw new Error('Không thấy xl/workbook.xml — đây không phải tệp Excel .xlsx.');
-  const wb = await docChuMuc(blob, wbM);
+  const wb = boTienTo(await docChuMuc(blob, wbM));
   const relM = muc.get('xl/_rels/workbook.xml.rels');
-  const rels = relM ? await docChuMuc(blob, relM) : '';
+  const rels = relM ? boTienTo(await docChuMuc(blob, relM)) : '';
   const dich = {};
   for (const m of rels.matchAll(/<Relationship\b([^>]*)\/?>/g)) {
     const a = thuocTinh(m[1]);
@@ -112,7 +131,7 @@ export async function docXlsx(blob, { chon = () => true, onTienDo } = {}) {
   const sstM = muc.get('xl/sharedStrings.xml');
   const sst = [];
   if (sstM) {
-    const xml = await docChuMuc(blob, sstM);
+    const xml = boTienTo(await docChuMuc(blob, sstM));
     for (const m of xml.matchAll(/<si>([\s\S]*?)<\/si>/g)) sst.push(chuTrongT(m[1]));
   }
 
@@ -171,16 +190,26 @@ async function quetTrang(blob, m, sst, tienDo) {
       if (Object.keys(o).length) dong.push({ r: rNum, o });
     }
   };
+  // Tiền tố không gian tên (nếu có) phải biết TRƯỚC khi cắt khúc, vì thẻ đóng là
+  // `</row>` hay `</x:row>` tùy tệp; cắt sai chỗ là mất dòng mà không báo gì.
+  let tienTo = null;
+  let dongThe = '</row>';
   for (;;) {
     const { value, done } = await reader.read();
     if (done) break;
     buf += value;
     daDoc += value.length;
-    const cuoi = buf.lastIndexOf('</row>');
-    if (cuoi >= 0) { xuLy(buf.slice(0, cuoi + 6)); buf = buf.slice(cuoi + 6); }
+    if (tienTo === null) {
+      const m2 = buf.match(/<(?:([A-Za-z_][\w.-]*):)?sheetData\b/);
+      if (m2) { tienTo = m2[1] ? `${m2[1]}:` : ''; dongThe = `</${tienTo}row>`; }
+      else if (buf.length > 262144) { tienTo = ''; }
+      else continue;
+    }
+    const cuoi = buf.lastIndexOf(dongThe);
+    if (cuoi >= 0) { xuLy(boTienTo(buf.slice(0, cuoi + dongThe.length))); buf = buf.slice(cuoi + dongThe.length); }
     if ((++lan & 31) === 0) tienDo?.(Math.min(daDoc, m.full));
   }
-  if (buf) xuLy(buf);
+  if (buf) xuLy(boTienTo(buf));
   tienDo?.(m.full);
   return dong;
 }

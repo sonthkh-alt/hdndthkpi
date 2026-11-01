@@ -29,3 +29,11 @@ docs/Pri/
 # Ban ban hành; repo này CÔNG KHAI và tệp lại quá nặng cho kho mã. Phân hệ #/vtvl đã
 # số hóa cấu trúc + hướng dẫn (src/lib/vtvl.js, vtvlHuongDan.js) nên không cần tệp gốc.
 docs/Bo_bieu_VTVL*.xlsx
+
+# Ảnh chụp / trang lưu từ cổng KÊ KHAI VỊ TRÍ VIỆC LÀM của Ban Tổ chức Trung ương
+# (btctw.ueb.edu.vn) — dùng làm mẫu để dựng "Tổ chức bộ máy" và "Sơ đồ vị trí việc
+# làm". ⚠️ Nội dung cổng đó là dữ liệu kê khai THẬT của đơn vị (họ tên, chức vụ, biên
+# chế) và cổng chỉ vào được bằng tài khoản được cấp; repo này CÔNG KHAI nên TUYỆT ĐỐI
+# không commit. Chỉ CẤU TRÚC (tên trường, nhãn, danh mục chọn, luồng bước) được đưa
+# vào mã nguồn — không đưa một dòng dữ liệu thật nào.
+docs/btctw/
