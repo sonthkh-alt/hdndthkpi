@@ -1383,7 +1383,7 @@ function NopCongTab({ doc, kq, tenDonVi }) {
       try {
         out[cb.maBieu] = chuanBiNop(cb.bieu, doc, {
           tt: m?.kq?.tt || null, danhMuc: m?.kq?.danhMuc || {}, dongMau: m?.kq?.dongMau || [],
-          boQuaLoiChan, kq,
+          dongMauCoDuLieu: m?.kq?.dongMauCoDuLieu || 0, boQuaLoiChan, kq,
         });
       } catch (e) { out[cb.maBieu] = { loi: e.message }; }
     }
@@ -1538,6 +1538,9 @@ function NopCongTab({ doc, kq, tenDonVi }) {
                         <span className="text-slate-400">chưa nạp</span>
                       )}
                       {m && <p className="text-[11px] text-slate-400 truncate max-w-[180px]" title={m.ten}>{m.ten}</p>}
+                      {n.mauChuaCoMa > 0 && (
+                        <p className="text-[11.5px] font-bold text-amber-700">mẫu đã có {n.mauChuaCoMa} dòng (chưa có mã dòng){n.mauChuaCoMa > (n.dong || 0) ? ' — nhiều hơn phần mềm' : ''}</p>
+                      )}
                     </td>
                     <td className="py-2.5 pr-2 text-slate-600">
                       {n.loi ? <span className="text-rose-700">{n.loi}</span> : (
@@ -1602,6 +1605,7 @@ function NopCongTab({ doc, kq, tenDonVi }) {
         <p><b>Không ghi vào cột máy tự tính.</b> Mẫu của cổng ghi rõ cột xám là cổng tính lại khi ghi tệp vào hồ sơ; số dán vào đó bị bỏ qua. Phần mềm để trống các cột đó để khi đối chiếu không nhầm số của ai.</p>
         <p><b>Không tự xóa dòng trên cổng.</b> Dòng cổng đang giữ mà dữ liệu trong phần mềm không còn thì tệp <b>giữ lại nguyên dòng</b>. Muốn bỏ một bản ghi thì mở tệp, xóa cả dòng rồi mới nạp — đúng cách cổng hướng dẫn.</p>
         <p><b>Không đổi chỗ mã dòng ẩn.</b> Hai cột ẩn cuối là mã dòng của cổng. Phần mềm khớp theo <b>mã khóa của từng biểu</b> rồi mới mang mã dòng theo, nên thứ tự dòng có đảo thì cổng vẫn cập nhật đúng bản ghi.</p>
+        <p><b>Không im lặng thay dữ liệu đã điền trong mẫu.</b> Mẫu tải về mà đã điền tay nhưng chưa nạp lên cổng thì chưa có mã dòng, nên phần mềm không nhận ra được từng dòng. Những trường hợp đó bảng trên ghi rõ <i>&laquo;mẫu đã có N dòng&raquo;</i> để anh đối chiếu — tệp dựng ra sẽ thay hết các dòng đó bằng dữ liệu trong phần mềm.</p>
         <p><b>Không thay cho việc thẩm định.</b> Tệp nộp chỉ là số liệu đơn vị đã kê khai; cổng vẫn kiểm từng ô và cơ quan có thẩm quyền vẫn thẩm định như quy định.</p>
       </section>
     </div>

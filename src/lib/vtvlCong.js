@@ -277,12 +277,24 @@ export function soatTheoCong(cb, dongMoi, danhMuc = {}, tt = null) {
 /**
  * Chuẩn bị dữ liệu nộp cho MỘT biểu, từ bộ biểu đang có trong phần mềm.
  *   doc — dữ liệu bộ biểu (đã qua `chuanHoaVTVL`)
- *   mau — { tt, danhMuc, dongMau } đọc từ mẫu tải về (`dongMau` có thể rỗng)
+ *   mau — { tt, danhMuc, dongMau, dongMauCoDuLieu } đọc từ mẫu tải về
  * Trả { cb, rows, dong, moi, capNhat, giuLai, boQua, soat, canhBao }.
  * `rows` là mảng 2 chiều theo ĐÚNG cột của cổng: cột tự tính để `null`, hai cột
  * cuối là mã dòng ẩn.
+ *
+ * ⚠️ `dongMauCoDuLieu` — SỐ DÒNG ĐÃ CÓ TRONG MẪU, kể cả dòng CHƯA có mã dòng.
+ * Phải đếm riêng vì có một tình huống rất dễ mất dữ liệu: cán bộ tải mẫu trống
+ * về, ĐIỀN TAY vào mẫu (hoặc dán từ bộ biểu khác) nhưng CHƯA nạp lên cổng, nên
+ * các dòng đó chưa có mã dòng. `ghepDong` chỉ nhận ra dòng cũ qua MÃ DÒNG, nên
+ * những dòng ấy bị coi như không có và tệp dựng ra sẽ THAY hết bằng dữ liệu
+ * trong phần mềm — mẫu đang có dòng mà phần mềm chưa có thì mất. Vì vậy ở đây
+ * CHỈ CẢNH BÁO kèm con số để người dùng tự đối chiếu, không im lặng thay.
+ * (Phát hiện khi chuyển bộ biểu thật của HĐND xã Yên Trường: 09 mẫu của đơn vị
+ *  đã điền 186 dòng A2 trong khi bản bộ biểu dùng chung chỉ có 153.)
  */
-export function chuanBiNop(bieuId, doc, { tt = null, danhMuc = {}, dongMau = [], boQuaLoiChan = true, kq = null } = {}) {
+export function chuanBiNop(bieuId, doc, {
+  tt = null, danhMuc = {}, dongMau = [], dongMauCoDuLieu = 0, boQuaLoiChan = true, kq = null,
+} = {}) {
   const cb = CONG_THEO_BIEU[bieuId];
   if (!cb) throw new Error(`Biểu "${bieuId}" không nằm trong 09 biểu nộp lên cổng.`);
   const bieu = BIEU_THEO_ID[cb.bieu];
@@ -309,11 +321,21 @@ export function chuanBiNop(bieuId, doc, { tt = null, danhMuc = {}, dongMau = [],
   });
 
   const canhBao = [...g.canhBao];
+  // Dòng mẫu đã điền tay nhưng CHƯA có mã dòng → sẽ bị thay hết. Nói thẳng số liệu.
+  const chuaCoMa = Math.max(0, Number(dongMauCoDuLieu || 0) - dongMau.length);
+  if (chuaCoMa > 0) {
+    canhBao.push(
+      `Mẫu anh nạp ĐÃ CÓ ${chuaCoMa} dòng dữ liệu nhưng chưa có mã dòng của cổng (tức là chưa nạp lên cổng lần nào), `
+      + `trong khi phần mềm có ${nguon.length} dòng. Tệp dựng ra THAY toàn bộ các dòng đó bằng dữ liệu của phần mềm — `
+      + `${chuaCoMa > nguon.length ? `mẫu đang NHIỀU HƠN ${chuaCoMa - nguon.length} dòng nên sẽ mất đúng phần đó. Hãy đối chiếu trước khi nạp lên cổng.` : 'hãy đối chiếu số dòng cho chắc trước khi nạp lên cổng.'}`,
+    );
+  }
   if (boQuaChan) canhBao.push(`${boQuaChan} dòng có lỗi chặn nên không đưa vào tệp nộp (cổng từ chối cả tệp nếu còn lỗi). Sửa ở tab Kiểm tra lỗi rồi dựng lại tệp.`);
   if (!nguon.length) canhBao.push('Biểu này chưa có dòng nào để nộp.');
 
   return {
     cb, tt, rows, dong: nguon.length, moi: g.moi, capNhat: g.capNhat, giuLai: g.giuLai,
+    mauDaCo: Number(dongMauCoDuLieu || 0), mauChuaCoMa: chuaCoMa,
     boQua: { trong: boQuaTrong, chan: boQuaChan }, soat, canhBao,
     loiSoat: soat.filter((x) => x.muc === 'loi').length,
     canhSoat: soat.filter((x) => x.muc === 'canh').length,
