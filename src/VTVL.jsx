@@ -1477,31 +1477,20 @@ function NopCongTab({ doc, kq, tenDonVi }) {
 
   return (
     <div className="space-y-4">
-      <section className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-200 p-5">
-        <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Nộp lên cổng của Ban Tổ chức Trung ương</p>
-        <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Chuyển bộ biểu thành 09 tệp nộp theo từng phiếu</h2>
-        <p className="text-[13px] text-slate-600 mt-2 leading-relaxed">
-          Bộ biểu của Ban là <b>một tệp nhiều trang</b>, còn cổng <b>{CONG_TEN_MIEN}</b> nhận <b>theo phiếu</b>: mỗi biểu
-          một phiếu, mỗi phiếu nạp <b>một tệp .xlsx chỉ chứa biểu đó</b>. Tab này tách 1 → 9 tệp, đúng tên trang và
-          đúng thứ tự cột của cổng, rồi soát trước những lỗi mà cổng sẽ chặn.
-        </p>
-        <div className="mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3 text-[12.5px] text-amber-900 leading-relaxed">
-          <b className="inline-flex items-center gap-1"><AlertTriangle className="w-4 h-4" /> Phải dùng mẫu trống tải từ chính cổng.</b>{' '}
-          Mẫu mang theo hai trang ẩn khai <i>tệp này thuộc phiếu nào, của đơn vị nào, cột nào</i> và các danh sách chọn
-          của hồ sơ — phần mềm <b>không thể tự dựng</b> mấy thứ đó. Phần mềm chỉ <b>điền vào mẫu</b> của cổng và giữ
-          nguyên toàn bộ phần còn lại của tệp.
-        </div>
-        <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className={`${nutPhu} mt-3`}>
-          <ArrowRight className="w-4 h-4" /> Mở cổng kê khai VTVL
-        </a>
-      </section>
-
       <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h3 className="font-extrabold text-slate-800 mb-1">Bước 1 — Chọn bộ biểu nguồn</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">
-          Lấy số liệu từ bộ biểu đang nhập trong phần mềm, hoặc <b>nạp thẳng một tệp bộ biểu đầy đủ</b> vào đây —
-          09 tệp nộp sẽ dựng từ đúng tệp đó.
-        </p>
+        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+          <div>
+            <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Nộp lên cổng {CONG_TEN_MIEN}</p>
+            <h2 className="text-lg font-extrabold text-slate-800 leading-tight">Chuyển bộ biểu thành 09 tệp nộp</h2>
+            <p className="text-[12.5px] text-slate-500">Cổng nhận <b>theo phiếu</b>: mỗi biểu một tệp .xlsx riêng.</p>
+          </div>
+          <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className={nutPhu}>
+            <ArrowRight className="w-4 h-4" /> Mở cổng
+          </a>
+        </div>
+
+        <h3 className="font-extrabold text-slate-800">Bước 1 — Chọn bộ biểu nguồn</h3>
+        <p className="text-[12.5px] text-slate-500 mb-3">09 tệp nộp dựng từ nguồn đang chọn.</p>
         <div className="grid md:grid-cols-2 gap-3">
           <div className={`rounded-xl border-2 p-4 ${boTep ? 'border-slate-200 bg-slate-50' : 'border-sky-400 bg-sky-50/50'}`}>
             <div className="flex items-center justify-between gap-2">
@@ -1530,30 +1519,23 @@ function NopCongTab({ doc, kq, tenDonVi }) {
               <>
                 <p className="font-bold text-slate-800 text-[13.5px] mt-1 truncate" title={dangDocBo.ten}>{dangDocBo.ten}</p>
                 <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden"><div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((dangDocBo.phan || 0) * 100)}%` }} /></div>
-                <p className="text-[12px] text-slate-500 mt-1">Đang đọc {Math.round((dangDocBo.phan || 0) * 100)}% — bộ biểu 30.000 dòng mất vài giây.</p>
+                <p className="text-[12px] text-slate-500 mt-1">Đang đọc {Math.round((dangDocBo.phan || 0) * 100)}%…</p>
               </>
             ) : boTep ? (
               <>
                 <p className="font-bold text-slate-800 text-[13.5px] mt-1 truncate" title={boTep.ten}>{boTep.ten}</p>
-                <p className="text-[12.5px] text-slate-700 mt-1">
-                  <b>{soVTNguon} VTVL · {soDongNguon} dòng</b> ở 09 biểu nộp · nhận ra {boTep.tomTat.length} biểu có dữ liệu · đọc {(boTep.ms / 1000).toFixed(1)} giây
-                </p>
+                <p className="text-[12.5px] text-slate-700 mt-1"><b>{soVTNguon} VTVL · {soDongNguon} dòng</b> ở 09 biểu nộp</p>
                 <p className="text-[12.5px] mt-0.5">
                   {boTep.chan
                     ? <span className="text-rose-700 font-semibold">{boTep.chan} lỗi chặn trong tệp</span>
                     : <span className="text-emerald-700 font-semibold">không có lỗi chặn</span>}
-                  {boTep.canh ? <span className="text-amber-700"> · {boTep.canh} cảnh báo nghiệp vụ</span> : null}
+                  {boTep.canh ? <span className="text-amber-700"> · {boTep.canh} cảnh báo</span> : null}
                 </p>
-                <div className="flex gap-2 flex-wrap mt-3">
-                  <button onClick={() => oBoTep.current?.click()} className={nutPhu}><RefreshCw className="w-4 h-4" /> Chọn tệp khác</button>
-                </div>
+                <button onClick={() => oBoTep.current?.click()} className={`${nutPhu} mt-3`}><RefreshCw className="w-4 h-4" /> Chọn tệp khác</button>
               </>
             ) : (
               <>
-                <p className="text-[12.5px] text-slate-600 mt-1 leading-relaxed">
-                  Kéo thả hoặc chọn tệp bộ biểu <b>.xlsx</b> (một tệp nhiều trang A1…D2). Dùng khi bản đầy đủ của đơn vị
-                  nằm ở tệp Excel chứ chưa nhập vào phần mềm.
-                </p>
+                <p className="text-[12.5px] text-slate-600 mt-1">Kéo thả hoặc chọn tệp bộ biểu <b>.xlsx</b> (một tệp nhiều trang A1…D2).</p>
                 <button onClick={() => oBoTep.current?.click()} className={`${nutChinh} mt-3`}><Upload className="w-4 h-4" /> Chọn tệp bộ biểu</button>
               </>
             )}
@@ -1570,30 +1552,29 @@ function NopCongTab({ doc, kq, tenDonVi }) {
           <p className="mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3 text-[12.5px] text-amber-900">{boTep.canhQuyGio}</p>
         )}
         {boTep && (
-          <p className="mt-3 text-[12.5px] text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-            Tệp này <b>chỉ dùng để dựng 09 tệp nộp</b> — phần mềm không ghi gì vào bộ biểu của đơn vị nào. Muốn số liệu
-            của tệp nằm lại trong phần mềm thì nhập qua tab <b>Nhập từ tệp</b>, sau khi đã chọn đúng đơn vị.
+          <p className="mt-3 text-[12.5px] text-slate-600">
+            Tệp này chỉ dùng để dựng 09 tệp nộp — phần mềm <b>không ghi gì vào bộ biểu của đơn vị nào</b>. Muốn số liệu
+            nằm lại trong phần mềm thì nhập ở tab <b>Nhập từ tệp</b>.
           </p>
         )}
       </section>
 
       <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h3 className="font-extrabold text-slate-800 mb-1">Bước 2 — Nạp các mẫu trống đã tải từ cổng</h3>
+        <h3 className="font-extrabold text-slate-800">Bước 2 — Nạp 09 mẫu trống tải từ cổng</h3>
         <p className="text-[12.5px] text-slate-500 mb-3">
-          Vào cổng, mở từng phiếu, bấm <b>Tải mẫu Excel</b> rồi chọn hết 09 tệp vào đây một lượt. Phần mềm tự nhận mỗi
-          tệp là biểu nào qua trang khai báo bên trong, không phụ thuộc tên tệp.
+          Mẫu phải tải từ <b>chính cổng</b> — mẫu mang hai trang khai báo ẩn mà phần mềm <b>không thể tự dựng</b>.
+          Chọn hết 09 tệp một lượt, phần mềm tự nhận tệp nào là biểu nào.
         </p>
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); napMau([...e.dataTransfer.files]); }}
-          className="rounded-xl border-2 border-dashed border-sky-300 bg-sky-50/40 p-6 text-center"
+          className="rounded-xl border-2 border-dashed border-sky-300 bg-sky-50/40 p-5 text-center"
         >
           <Upload className="w-7 h-7 mx-auto text-sky-600" />
-          <p className="text-[13px] font-semibold text-slate-700 mt-2">Kéo thả 09 tệp mẫu vào đây</p>
           <input ref={oTep} id="vtvl-nop-mau" type="file" accept=".xlsx" multiple className="hidden"
             onChange={(e) => { napMau([...e.target.files]); e.target.value = ''; }} />
-          <button onClick={() => oTep.current?.click()} disabled={dangNap} className={`${nutChinh} mt-3`}>
-            {dangNap ? 'Đang đọc mẫu…' : 'Chọn tệp mẫu'}
+          <button onClick={() => oTep.current?.click()} disabled={dangNap} className={`${nutChinh} mt-2`}>
+            {dangNap ? 'Đang đọc mẫu…' : 'Chọn 09 tệp mẫu'}
           </button>
           <p className="text-[12px] text-slate-500 mt-2">Đã nạp <b>{soMauDaNap}</b>/9 mẫu</p>
         </div>
@@ -1607,10 +1588,8 @@ function NopCongTab({ doc, kq, tenDonVi }) {
       <section className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
           <div>
-            <h3 className="font-extrabold text-slate-800">Bước 3 — Soát rồi tải 09 tệp đã điền</h3>
-            <p className="text-[12.5px] text-slate-500">
-              Nộp theo thứ tự dưới đây: biểu gốc trước, biểu dẫn chiếu sau (Hướng dẫn 07 — C1 trước A2, A2 trước B1).
-            </p>
+            <h3 className="font-extrabold text-slate-800">Bước 3 — Tải 09 tệp đã điền</h3>
+            <p className="text-[12.5px] text-slate-500">Nộp theo thứ tự bảng dưới (Hướng dẫn 07 — C1 trước A2, A2 trước B1).</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">
             <label className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-slate-600">
@@ -1620,19 +1599,12 @@ function NopCongTab({ doc, kq, tenDonVi }) {
             <button onClick={taiTatCa} disabled={!sanSang.length || !!dangTai} className={nutChinh}>
               <Download className="w-4 h-4" /> Tải tất cả ({sanSang.length})
             </button>
-            {/* Chrome chặn "tải nhiều tệp tự động" khi lượt tải không còn gắn với cú bấm —
-                nói trước để người dùng biết bấm Cho phép, kẻo tưởng phần mềm lỗi. */}
-            <p className="text-[11.5px] text-slate-500 basis-full">
-              Tải nhiều tệp một lượt thì trình duyệt có thể hỏi <b>&laquo;cho phép tải nhiều tệp&raquo;</b> — bấm
-              <b> Cho phép</b>, hoặc tải từng tệp bằng nút ở mỗi dòng.
-            </p>
           </div>
         </div>
 
         {tongLoiSoat > 0 && (
           <p className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800">
-            <b>{tongLoiSoat} chỗ cổng sẽ chặn.</b> Cổng kiểm từng ô và <b>chưa ghi gì cho tới khi hết lỗi</b>, nên sửa
-            xong hãy nộp. Bấm <b>Xem</b> ở dòng tương ứng để biết ô nào.
+            <b>{tongLoiSoat} chỗ cổng sẽ chặn.</b> Bấm <b>Xem</b> ở dòng tương ứng để biết ô nào.
           </p>
         )}
 
@@ -1640,11 +1612,9 @@ function NopCongTab({ doc, kq, tenDonVi }) {
           <table className="w-full text-[12.5px]">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-2 font-semibold">Thứ tự</th>
                 <th className="py-2 pr-2 font-semibold">Biểu</th>
-                <th className="py-2 pr-2 font-semibold text-right">Dòng</th>
+                <th className="py-2 pr-2 font-semibold">Dòng sẽ nộp</th>
                 <th className="py-2 pr-2 font-semibold">Mẫu của cổng</th>
-                <th className="py-2 pr-2 font-semibold">Sẽ nộp</th>
                 <th className="py-2 pr-2 font-semibold">Soát theo cổng</th>
                 <th className="py-2 font-semibold" />
               </tr>
@@ -1652,33 +1622,28 @@ function NopCongTab({ doc, kq, tenDonVi }) {
             <tbody>
               {congTheoThuTu().map((cb, i) => {
                 const m = mau[cb.maBieu]; const n = nop[cb.maBieu] || {};
-                const tq = tongQuan.find((x) => x.cb.maBieu === cb.maBieu) || {};
                 return (
                   <tr key={cb.maBieu} className="border-b border-slate-100 align-top">
-                    <td className="py-2.5 pr-2 text-slate-400 font-bold">{i + 1}</td>
                     <td className="py-2.5 pr-2">
-                      <p className="font-bold text-slate-800">{cb.maBieu.replace('VT_', '')} — {cb.sheet}</p>
-                      <p className="text-[11.5px] text-slate-500">{cb.tenBieu}</p>
+                      <p className="font-bold text-slate-800"><span className="text-slate-400">{i + 1}. </span>{cb.maBieu.replace('VT_', '')} — {cb.sheet}</p>
                     </td>
-                    <td className="py-2.5 pr-2 text-right font-bold text-slate-700">{tq.dong ?? 0}</td>
+                    <td className="py-2.5 pr-2 text-slate-600">
+                      {n.loi ? <span className="text-rose-700">{n.loi}</span> : (
+                        <>
+                          <span className="font-bold text-slate-800">{n.rows?.length ?? 0}</span>
+                          {m && <span className="text-[11.5px] text-slate-500"> ({n.moi} mới · {n.capNhat} cập nhật{n.giuLai ? ` · ${n.giuLai} giữ lại` : ''})</span>}
+                          {n.boQua?.chan > 0 && <p className="text-[11.5px] text-amber-700">bỏ {n.boQua.chan} dòng lỗi chặn</p>}
+                        </>
+                      )}
+                    </td>
                     <td className="py-2.5 pr-2">
                       {m ? (
                         <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><CheckCircle2 className="w-4 h-4" />đã nạp</span>
                       ) : (
                         <span className="text-slate-400">chưa nạp</span>
                       )}
-                      {m && <p className="text-[11px] text-slate-400 truncate max-w-[180px]" title={m.ten}>{m.ten}</p>}
                       {n.mauChuaCoMa > 0 && (
                         <p className="text-[11.5px] font-bold text-amber-700">mẫu đã có {n.mauChuaCoMa} dòng (chưa có mã dòng){n.mauChuaCoMa > (n.dong || 0) ? ' — nhiều hơn phần mềm' : ''}</p>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-2 text-slate-600">
-                      {n.loi ? <span className="text-rose-700">{n.loi}</span> : (
-                        <>
-                          <span className="font-semibold">{n.rows?.length ?? 0} dòng</span>
-                          {m && <span className="text-[11.5px] text-slate-500"> ({n.moi} mới · {n.capNhat} cập nhật{n.giuLai ? ` · ${n.giuLai} giữ lại` : ''})</span>}
-                          {n.boQua?.chan > 0 && <p className="text-[11.5px] text-amber-700">bỏ {n.boQua.chan} dòng lỗi chặn</p>}
-                        </>
                       )}
                     </td>
                     <td className="py-2.5 pr-2">
@@ -1728,16 +1693,6 @@ function NopCongTab({ doc, kq, tenDonVi }) {
             )))}
           </ul>
         )}
-      </section>
-
-      <section className="bg-white rounded-2xl border border-slate-200 p-5 text-[12.5px] text-slate-600 leading-relaxed space-y-2">
-        <h3 className="font-extrabold text-slate-800 text-[14px]">Những điều phần mềm cố ý KHÔNG làm</h3>
-        <p><b>Không ghi vào cột máy tự tính.</b> Mẫu của cổng ghi rõ cột xám là cổng tính lại khi ghi tệp vào hồ sơ; số dán vào đó bị bỏ qua. Phần mềm để trống các cột đó để khi đối chiếu không nhầm số của ai.</p>
-        <p><b>Không tự xóa dòng trên cổng.</b> Dòng cổng đang giữ mà dữ liệu trong phần mềm không còn thì tệp <b>giữ lại nguyên dòng</b>. Muốn bỏ một bản ghi thì mở tệp, xóa cả dòng rồi mới nạp — đúng cách cổng hướng dẫn.</p>
-        <p><b>Không đổi chỗ mã dòng ẩn.</b> Hai cột ẩn cuối là mã dòng của cổng. Phần mềm khớp theo <b>mã khóa của từng biểu</b> rồi mới mang mã dòng theo, nên thứ tự dòng có đảo thì cổng vẫn cập nhật đúng bản ghi.</p>
-        <p><b>Không im lặng thay dữ liệu đã điền trong mẫu.</b> Mẫu tải về mà đã điền tay nhưng chưa nạp lên cổng thì chưa có mã dòng, nên phần mềm không nhận ra được từng dòng. Những trường hợp đó bảng trên ghi rõ <i>&laquo;mẫu đã có N dòng&raquo;</i> để anh đối chiếu — tệp dựng ra sẽ thay hết các dòng đó bằng dữ liệu trong phần mềm.</p>
-        <p><b>Không tự ghi tệp bộ biểu nạp ở Bước 1 vào dữ liệu đơn vị.</b> Tệp nạp ở tab này chỉ dùng để dựng 09 tệp nộp rồi bỏ. Bộ biểu của xã nạp đè lên bản của cơ quan tỉnh là mất dữ liệu tỉnh, nên việc nhập vào hệ thống phải làm có chủ ý ở tab <b>Nhập từ tệp</b>.</p>
-        <p><b>Không thay cho việc thẩm định.</b> Tệp nộp chỉ là số liệu đơn vị đã kê khai; cổng vẫn kiểm từng ô và cơ quan có thẩm quyền vẫn thẩm định như quy định.</p>
       </section>
     </div>
   );
