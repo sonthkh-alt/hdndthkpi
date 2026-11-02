@@ -3,7 +3,7 @@
 //  ứng dụng nhập liệu có kiểm tra lỗi.
 //
 //  Bảy tab: Tổng quan · Nhập liệu · Nhập từ tệp · Kiểm tra lỗi · Báo cáo ·
-//  Nộp lên cổng (tách 1 tệp bộ biểu thành 09 tệp nộp cho cổng BTCTW) · Hướng dẫn.
+//  Tách tệp · Nộp cổng (1 tệp bộ biểu → 09 tệp, mỗi tệp một biểu; và điền vào mẫu của cổng BTCTW) · Hướng dẫn.
 //   - Nhập liệu: bảng giống Excel (ô trắng nhập, ô xám tự tính, cột cảnh báo
 //     tô màu) + biểu mẫu từng dòng có hướng dẫn của HD_DIEN_BIEU cho từng cột.
 //   - Nhập từ tệp: đọc chính tệp bộ biểu .xlsx (kể cả tệp 30.000 dòng của Ban),
@@ -59,7 +59,7 @@ const TABS = [
   { id: 'tep', ten: 'Nhập từ tệp', Ic: Upload },
   { id: 'kiemtra', ten: 'Kiểm tra lỗi', Ic: ShieldAlert },
   { id: 'baocao', ten: 'Báo cáo', Ic: FileText },
-  { id: 'nopcong', ten: 'Nộp lên cổng', Ic: Send },
+  { id: 'nopcong', ten: 'Tách tệp · Nộp cổng', Ic: Send },
   { id: 'huongdan', ten: 'Hướng dẫn', Ic: BookOpen },
 ];
 
@@ -1358,7 +1358,7 @@ function BaoCaoTab({ doc, dbqhMacDinh, onTab }) {
   );
 }
 
-// ─── Tab "Nộp lên cổng BTCTW" ───────────────────────────────────────────────
+// ─── Tab "Tách tệp · Nộp cổng" ───────────────────────────────────────────────
 //  Bộ biểu của Ban là MỘT tệp nhiều trang; cổng btctw.ueb.edu.vn lại nhận theo
 //  PHIẾU — mỗi biểu một phiếu, mỗi phiếu một tệp .xlsx. Tab này tách 1 → 9 tệp.
 //  ⚠️ Bắt buộc dùng MẪU TẢI TỪ CỔNG: mẫu mang theo hai trang ẩn khai phiếu nào,
@@ -1379,6 +1379,9 @@ function NopCongTab({ doc, kq, tenDonVi }) {
   const [dangDocBo, setDangDocBo] = useState(null); // { ten, phan }
   const [loiBo, setLoiBo] = useState('');
   const oBoTep = useRef(null);
+  const [dangTach, setDangTach] = useState(null);  // { xong, tong, ten }
+  const [daTach, setDaTach] = useState(null);      // [{ id, ten, dong }]
+  const [loiTach, setLoiTach] = useState('');
 
   const nguonDoc = boTep?.doc || doc;
   const nguonKq = boTep?.kq || kq;
@@ -1426,6 +1429,16 @@ function NopCongTab({ doc, kq, tenDonVi }) {
         ms: Date.now() - t0, canhQuyGio: kqN.canhQuyGio,
       });
     } catch (e) { setLoiBo(e.message); } finally { setDangDocBo(null); }
+  };
+
+  // TÁCH THUẦN: một tệp bộ biểu → 09 tệp, mỗi tệp đúng một biểu. KHÔNG cần mẫu
+  // của cổng, không đụng dữ liệu đơn vị nào. Việc nộp lên cổng là bước riêng ở dưới.
+  const tach = async () => {
+    setLoiTach(''); setDaTach(null); setDangTach({ xong: 0, tong: 9, ten: '' });
+    try {
+      const m = await import('./lib/vtvlXuat');
+      setDaTach(await m.xuatTachBieu(nguonDoc, nguonKq, { onTien: setDangTach }));
+    } catch (e) { setLoiTach(e.message); } finally { setDangTach(null); }
   };
 
   const napMau = async (files) => {
@@ -1477,20 +1490,12 @@ function NopCongTab({ doc, kq, tenDonVi }) {
 
   return (
     <div className="space-y-4">
-      <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
-          <div>
-            <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Nộp lên cổng {CONG_TEN_MIEN}</p>
-            <h2 className="text-lg font-extrabold text-slate-800 leading-tight">Chuyển bộ biểu thành 09 tệp nộp</h2>
-            <p className="text-[12.5px] text-slate-500">Cổng nhận <b>theo phiếu</b>: mỗi biểu một tệp .xlsx riêng.</p>
-          </div>
-          <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className={nutPhu}>
-            <ArrowRight className="w-4 h-4" /> Mở cổng
-          </a>
-        </div>
+      <section className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-200 p-5">
+        <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Tách bộ biểu: 01 tệp → 09 tệp</h2>
+        <p className="text-[13px] text-slate-600 mb-3">Mỗi tệp đúng <b>một biểu</b> (một trang), giữ nguyên tên trang và vị trí cột của bộ biểu.</p>
 
-        <h3 className="font-extrabold text-slate-800">Bước 1 — Chọn bộ biểu nguồn</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">09 tệp nộp dựng từ nguồn đang chọn.</p>
+        <h3 className="font-extrabold text-slate-800">Bước 1 — Chọn tệp bộ biểu</h3>
+        <p className="text-[12.5px] text-slate-500 mb-3">09 tệp tách ra lấy số liệu từ nguồn đang chọn.</p>
         <div className="grid md:grid-cols-2 gap-3">
           <div className={`rounded-xl border-2 p-4 ${boTep ? 'border-slate-200 bg-slate-50' : 'border-sky-400 bg-sky-50/50'}`}>
             <div className="flex items-center justify-between gap-2">
@@ -1553,18 +1558,49 @@ function NopCongTab({ doc, kq, tenDonVi }) {
         )}
         {boTep && (
           <p className="mt-3 text-[12.5px] text-slate-600">
-            Tệp này chỉ dùng để dựng 09 tệp nộp — phần mềm <b>không ghi gì vào bộ biểu của đơn vị nào</b>. Muốn số liệu
+            Tệp này chỉ dùng để tách ra 09 tệp — phần mềm <b>không ghi gì vào bộ biểu của đơn vị nào</b>. Muốn số liệu
             nằm lại trong phần mềm thì nhập ở tab <b>Nhập từ tệp</b>.
           </p>
+        )}
+
+        <h3 className="font-extrabold text-slate-800 mt-5">Bước 2 — Tách thành 09 tệp</h3>
+        <p className="text-[12.5px] text-slate-500 mb-3">Mỗi biểu một tệp .xlsx, tên tệp mang số thứ tự để dễ sắp.</p>
+        <div className="flex items-center gap-3 flex-wrap">
+          <button onClick={tach} disabled={!!dangTach} className={nutChinh}>
+            <Download className="w-4 h-4" /> {dangTach ? `Đang tách ${dangTach.xong}/9…` : 'Tách thành 09 tệp'}
+          </button>
+          <p className="text-[12.5px] text-slate-600">
+            {congTheoThuTu().map((cb, i) => `${i + 1}. ${cb.maBieu.replace('VT_', '')} (${tongQuan.find((x) => x.cb.maBieu === cb.maBieu)?.dong ?? 0})`).join(' · ')}
+          </p>
+        </div>
+        {dangTach && (
+          <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden max-w-sm"><div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((dangTach.xong / dangTach.tong) * 100)}%` }} /></div>
+        )}
+        {loiTach && (
+          <p className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800 flex gap-1.5">
+            <CircleAlert className="w-4 h-4 shrink-0 mt-0.5" /><span>{loiTach}</span>
+          </p>
+        )}
+        {daTach && (
+          <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3">
+            <p className="text-[13px] font-bold text-emerald-900 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Đã tách xong {daTach.length} tệp</p>
+            <ul className="mt-1.5 grid sm:grid-cols-2 gap-x-4 text-[12.5px] text-emerald-900">
+              {daTach.map((x) => <li key={x.id} className="truncate" title={x.ten}>{x.ten} <span className="text-emerald-700">— {x.dong} dòng</span></li>)}
+            </ul>
+            <p className="text-[11.5px] text-emerald-800 mt-1.5">Tệp nằm trong thư mục Tải xuống của trình duyệt. Tải nhiều tệp một lượt thì trình duyệt có thể hỏi <b>cho phép</b> — bấm Cho phép.</p>
+          </div>
         )}
       </section>
 
       <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h3 className="font-extrabold text-slate-800">Bước 2 — Nạp 09 mẫu trống tải từ cổng</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">
-          Mẫu phải tải từ <b>chính cổng</b> — mẫu mang hai trang khai báo ẩn mà phần mềm <b>không thể tự dựng</b>.
-          Chọn hết 09 tệp một lượt, phần mềm tự nhận tệp nào là biểu nào.
+        <h2 className="text-[15px] font-extrabold text-slate-800">Nộp lên cổng {CONG_TEN_MIEN} <span className="text-[12px] font-semibold text-slate-500">(bước riêng, chỉ làm khi nộp)</span></h2>
+        <p className="text-[12.5px] text-slate-600 mb-4">
+          Cổng <b>không nhận</b> 09 tệp vừa tách ở trên: cổng chỉ nhận <b>mẫu tải từ chính cổng</b> (mẫu mang hai trang
+          khai báo ẩn mà phần mềm không thể tự dựng). Dưới đây phần mềm <b>điền số liệu vào mẫu của cổng</b>.
+          <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className="ml-1 text-sky-700 underline font-semibold">Mở cổng ↗</a>
         </p>
+        <h3 className="font-extrabold text-slate-800">Bước 3 — Nạp 09 mẫu trống tải từ cổng</h3>
+        <p className="text-[12.5px] text-slate-500 mb-3">Vào cổng, mở từng phiếu, bấm <b>Tải mẫu Excel</b> rồi chọn hết 09 tệp vào đây một lượt — phần mềm tự nhận tệp nào là biểu nào.</p>
         <div
           onDragOver={(e) => e.preventDefault()}
           onDrop={(e) => { e.preventDefault(); napMau([...e.dataTransfer.files]); }}
@@ -1588,7 +1624,7 @@ function NopCongTab({ doc, kq, tenDonVi }) {
       <section className="bg-white rounded-2xl border border-slate-200 p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
           <div>
-            <h3 className="font-extrabold text-slate-800">Bước 3 — Tải 09 tệp đã điền</h3>
+            <h3 className="font-extrabold text-slate-800">Bước 4 — Tải 09 tệp đã điền</h3>
             <p className="text-[12.5px] text-slate-500">Nộp theo thứ tự bảng dưới (Hướng dẫn 07 — C1 trước A2, A2 trước B1).</p>
           </div>
           <div className="flex items-center gap-3 flex-wrap">

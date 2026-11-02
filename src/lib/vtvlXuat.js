@@ -168,3 +168,56 @@ export function xuatSaoLuu(doc) {
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 2000);
 }
+
+// ─── TÁCH 1 TỆP BỘ BIỂU → NHIỀU TỆP, MỖI TỆP MỘT BIỂU ───────────────────────
+//  Bộ biểu của Ban là MỘT tệp nhiều trang. Nhiều việc cần ngược lại: mỗi biểu
+//  một tệp riêng (gửi từng bộ phận, nạp từng phiếu lên cổng…). Tệp tách ra giữ
+//  đúng tên trang, dòng tiêu đề và vị trí cột như bộ biểu nên "Nhập từ tệp"
+//  đọc lại được. Cột tự tính ghi GIÁ TRỊ đã tính, không ghi công thức.
+//  ⚠️ Đây là tách THUẦN, KHÔNG phải tệp nộp lên cổng: cổng chỉ nhận mẫu tải từ
+//  chính cổng (mẫu mang hai trang khai báo ẩn) — xem `vtvlXuatCong.js`.
+
+/** 09 biểu nộp, xếp theo thứ tự nộp của Hướng dẫn 07 (biểu gốc trước). */
+export const ID_TACH_9 = ['C1', 'A1', 'A2', 'B1', 'B2CT', 'C2', 'C3', 'D1', 'D2'];
+
+/** Sổ chỉ chứa ĐÚNG MỘT biểu. */
+export function dungSoMotBieu(XLSX, bieuId, doc, kq = tinhToan(doc)) {
+  const b = BIEU_THEO_ID[bieuId];
+  if (!b) throw new Error(`Không có biểu "${bieuId}" trong bộ biểu.`);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, sheetBieu(XLSX, b, dongHienThi(doc, kq, b.id)), b.sheet);
+  return wb;
+}
+
+/** Tên tệp của một biểu khi tách: 01_C1_VTVL_<đơn vị>.xlsx (số đầu = thứ tự nộp). */
+export function tenTepMotBieu(bieuId, { thuTu = 0, donVi = '' } = {}) {
+  const b = BIEU_THEO_ID[bieuId];
+  const trang = String(b?.sheet || bieuId).replace(/^\d+\.\s*/, '');   // bỏ "6. " ở đầu tên trang
+  const dv = tenTep(donVi).slice(0, 40).replace(/^_+|_+$/g, '');
+  return `${thuTu ? String(thuTu).padStart(2, '0') + '_' : ''}${tenTep(trang)}${dv ? `_${dv}` : ''}.xlsx`;
+}
+
+/** Danh sách tệp sẽ tách ra (xem trước, không ghi tệp nào). */
+export function keHoachTach(doc, kq = tinhToan(doc), ids = ID_TACH_9) {
+  return ids.map((id, i) => ({
+    id,
+    trang: BIEU_THEO_ID[id]?.sheet || id,
+    ten: tenTepMotBieu(id, { thuTu: i + 1, donVi: doc.donVi }),
+    dong: dongHienThi(doc, kq, id).length,
+  }));
+}
+
+/** Tách thật: ghi từng tệp .xlsx xuống máy. Trả về danh sách tệp đã ghi. */
+export async function xuatTachBieu(doc, kq = tinhToan(doc), { ids = ID_TACH_9, onTien } = {}) {
+  const XLSX = await napXLSX();
+  const ra = [];
+  for (const [i, id] of ids.entries()) {
+    const ten = tenTepMotBieu(id, { thuTu: i + 1, donVi: doc.donVi });
+    XLSX.writeFile(dungSoMotBieu(XLSX, id, doc, kq), ten);
+    ra.push({ id, ten, dong: dongHienThi(doc, kq, id).length });
+    onTien?.({ xong: i + 1, tong: ids.length, ten });
+    // Trình duyệt chặn nếu tải nhiều tệp dồn một nhịp → giãn ra từng tệp.
+    await new Promise((r) => setTimeout(r, 350));
+  }
+  return ra;
+}
