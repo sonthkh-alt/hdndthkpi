@@ -1,1703 +1,375 @@
 // ============================================================================
-//  PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" (#/vtvl) — chuyển bộ biểu Excel thành
-//  ứng dụng nhập liệu có kiểm tra lỗi.
+//  PHÂN HỆ BỘ BIỂU VỊ TRÍ VIỆC LÀM — #/vtvl
 //
-//  Bảy tab: Tổng quan · Nhập liệu · Nhập từ tệp · Kiểm tra lỗi · Báo cáo ·
-//  Tách tệp · Nộp cổng (1 tệp bộ biểu → 09 tệp, mỗi tệp một biểu; và điền vào mẫu của cổng BTCTW) · Hướng dẫn.
-//   - Nhập liệu: bảng giống Excel (ô trắng nhập, ô xám tự tính, cột cảnh báo
-//     tô màu) + biểu mẫu từng dòng có hướng dẫn của HD_DIEN_BIEU cho từng cột.
-//   - Nhập từ tệp: đọc chính tệp bộ biểu .xlsx (kể cả tệp 30.000 dòng của Ban),
-//     CSV hoặc nội dung dán từ Excel → xem trước, báo lỗi đến từng ô, xuất báo
-//     cáo lỗi, rồi mới áp dụng.
-//  Mọi công thức ở src/lib/vtvl.js; đọc tệp ở src/lib/vtvlNhap.js.
+//  Đường đi của người dùng, đúng ba việc:
+//    1. NHẬP TỆP bộ biểu .xlsx của đơn vị (hoặc xem thử bằng bộ số mẫu)
+//    2. ĐI TỪNG BƯỚC NHẬP SỐ — sản lượng → tác động → nhu cầu → nhân lực
+//       hiện có → dự báo → phương án; mỗi bước xong bấm "Tiếp"
+//    3. XUẤT TỆP: ghi số mới ngược vào chính tệp đã nhập
 //
-//  Quyền: khách XEM dữ liệu và dùng "kiểm tra tệp" (không ghi gì); nhập liệu và
-//  áp dụng tệp phải đăng nhập. Sửa một dòng ĐÃ XÁC NHẬN thì tự ghi biểu S (nhật ký).
+//  ⚠️ DỮ LIỆU CHỈ NẰM TRONG BỘ NHỚ. Không gọi máy chủ, không ghi localStorage:
+//  tắt thẻ hoặc tải lại trang là mất, muốn giữ thì phải XUẤT TỆP. Có chặn
+//  "rời trang khi còn thay đổi chưa xuất" để không mất oan.
+//
+//  ⚠️ A1 (nhiệm vụ), A2 (công việc), C1 (vị trí việc làm) và DANH MỤC SẢN PHẨM
+//  là CỐ ĐỊNH, lấy từ tệp. Riêng danh mục sản phẩm CHỈ QUẢN TRỊ sửa được.
 // ============================================================================
-import { useState, useEffect, useMemo, useRef, useCallback, createElement } from 'react';
-import { createPortal } from 'react-dom';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import {
-  Home, FileSpreadsheet, LayoutDashboard, Table2, Upload, ShieldAlert, BookOpen, Plus, Trash2, Copy,
-  PanelRightOpen, X, ChevronLeft, ChevronRight, Search, Download, Save, CheckCircle2, AlertTriangle,
-  Info, ClipboardPaste, RefreshCw, FileDown, ArrowRight, LogIn, Sigma, CircleAlert, Wand2, Undo2, ChevronDown, Check, Link2, CornerUpLeft, FileText, Printer, Building2, TrendingUp, TrendingDown, Equal, Scale, Send,
+  FileSpreadsheet, Upload, Download, ArrowRight, ArrowLeft, Check, CircleAlert, Home,
+  AlertTriangle, Info, RefreshCw, Table2, Lock, FlaskConical, ChevronRight, Save, Undo2, Search,
 } from 'lucide-react';
-import { getSession, onAuthChange, GUEST } from './lib/auth';
-import {
-  BIEU, BIEU_THEO_ID, NHOM_BIEU, cotNhap, cotKhoa, dsCua, newDong, tinhToan, kiemTraDuLieu, dongHienThi,
-  giaTriO, chuyenGiaTri, laSo, rong, kk, dongDaXacNhan, dongNhatKy, TT_DAT, TT_THONG_TIN, TAM_BUOC, SAU_NHOM,
-  KHAC_EXCEL, viDuKiemThu, QUY_GIO_PP2, chuanHoaVTVL, soDong, DS, luaChonMa, timDongTheoMa,
-} from './lib/vtvl';
-import { HD } from './lib/vtvlHuongDan';
-import { lapBaoCao, chiSoBienChe, DBQH_TINH } from './lib/vtvlBaoCao';
-import { docTep, phanTichTep, chuanBiNhap, docBangChu, bieuTheoTenTrang, chuanTen, CHE_DO, MUC_TEN } from './lib/vtvlNhap';
-import { deXuatSua, apDungSua } from './lib/vtvlSuaLoi';
-import {
-  readVTVL, cacheVTVL, fetchVTVL, saveVTVL, kichThuocKB, CANH_BAO_KB,
-  fetchDanhSachDV, luuDonVi, maSuaCua, nhoMaSua, xoaMaSua, docMoiChoDonVi,
-} from './lib/vtvlStore';
-import { kiemTraTen, kiemTraMaSua, slugDonVi, MAX_TEN, TEN_TINH } from './lib/vtvlDonVi';
-import {
-  congTheoThuTu, chuanBiNop, tongQuanNop, tenTepCong, CONG_THEO_MA, CONG_TEN_MIEN,
-} from './lib/vtvlCong';
-import { docMauCong, dungTepCong } from './lib/vtvlXuatCong';
+import { BIEU_THEO_ID, cotNhap, QUY_GIO_PP2, DS } from './lib/vtvl/moHinh.js';
+import { tinhToan, coDuLieu } from './lib/vtvl/tinh.js';
+import { napTep } from './lib/vtvl/doc.js';
+import { ghiLaiTep, xuatTepMoi, xuatSaoLuu, taiVe, tenTepXuat } from './lib/vtvl/ghi.js';
+import { boSoMau, TEN_DON_VI_MAU } from './lib/vtvl/mau.js';
+import { BUOC, BUOC_NHAP, nhomDong, nhanDong, tienDoBuoc, tienDoChung, laDat } from './lib/vtvl/buoc.js';
+import { getSession, onAuthChange } from './lib/auth.js';
 
-const MOI_TRANG = 50;
-// Đơn vị được chọn gần nhất trên máy này ('' = bộ biểu của cơ quan tỉnh, bản mặc định).
-const KEY_SLUG = 'hdndkpi_vtvl_slug';
-const slugDaChon = () => { try { return slugDonVi(localStorage.getItem(KEY_SLUG) || ''); } catch { return ''; } };
-const nhoSlug = (s) => { try { localStorage.setItem(KEY_SLUG, s || ''); } catch { /* bỏ qua */ } };
-const inp = 'w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] text-slate-700 outline-none focus:border-sky-500 disabled:bg-slate-50 disabled:text-slate-500';
 const nutChinh = 'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-sky-700 hover:bg-sky-800 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
-const nutPhu = 'inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-50 disabled:cursor-not-allowed';
-const fmtSo = (v) => (laSo(v) ? v.toLocaleString('vi-VN', { maximumFractionDigits: 4 }) : v);
-const renderIcon = (bieuTuong) => createElement(bieuTuong, { className: 'w-4 h-4' });
-const giaTriHienThi = (v) => (rong(v) ? '' : fmtSo(v));
+const nutPhu = 'inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-50';
+const theRong = 'bg-white rounded-2xl border border-slate-200 p-5';
 
-const TABS = [
-  { id: 'tongquan', ten: 'Tổng quan', Ic: LayoutDashboard },
-  { id: 'nhap', ten: 'Nhập liệu', Ic: Table2 },
-  { id: 'tep', ten: 'Nhập từ tệp', Ic: Upload },
-  { id: 'kiemtra', ten: 'Kiểm tra lỗi', Ic: ShieldAlert },
-  { id: 'baocao', ten: 'Báo cáo', Ic: FileText },
-  { id: 'nopcong', ten: 'Tách tệp · Nộp cổng', Ic: Send },
-  { id: 'huongdan', ten: 'Hướng dẫn', Ic: BookOpen },
-];
+const soVN = (v, le = 1) => (typeof v === 'number' && Number.isFinite(v)
+  ? v.toLocaleString('vi-VN', { maximumFractionDigits: le }) : '—');
+// Người quy đổi là MỘT TỶ LỆ (giờ ròng ÷ quỹ giờ), luôn hiện 2 chữ số thập phân:
+// 4,9985 mà hiện thành "5" thì dễ đọc thành "5 người" — đây là mức tham khảo,
+// không phải số biên chế.
+const soNguoiQD = (v) => (typeof v === 'number' && Number.isFinite(v)
+  ? v.toLocaleString('vi-VN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—');
+const rong = (v) => v === '' || v === null || v === undefined;
 
-function mauTrangThai(bieuId, v) {
-  if (rong(v)) return '';
-  if ((TT_DAT[bieuId] || []).includes(v)) return 'bg-emerald-50 text-emerald-700 border-emerald-200';
-  if ((TT_THONG_TIN[bieuId] || []).includes(v)) return 'bg-sky-50 text-sky-700 border-sky-200';
-  return 'bg-amber-50 text-amber-800 border-amber-200';
+/** Đọc số người dùng gõ: nhận cả "1.200" và "1,5" theo cách viết Việt Nam. */
+function docSo(s) {
+  const t = String(s).trim();
+  if (t === '') return '';
+  const n = Number(t.replace(/\s/g, '').replace(/\.(?=\d{3}(\D|$))/g, '').replace(',', '.'));
+  return Number.isFinite(n) ? n : s;
 }
 
-function goiYCot(b, col) {
-  const h = HD[b.id]?.cot?.[col.k];
-  const loai = col.kieu === 'tinh' ? 'Tự động — không nhập' : col.kieu === 'ds' ? 'Chọn trong danh sách' : col.ref ? `Chọn mã có ở biểu ${BIEU_THEO_ID[col.ref].ma}` : 'Nhập';
-  const dong = [`${col.k} · ${col.ten} — ${loai}`];
-  if (h?.noiDung) dong.push(`Điền: ${h.noiDung}`);
-  if (h?.cachGhi) dong.push(`Cách ghi: ${h.cachGhi}`);
-  if (h?.luuY) dong.push(`Lưu ý: ${h.luuY}`);
-  return dong.join('\n');
-}
-
-// ─── Độ rộng cột của bảng nhập liệu ─────────────────────────────────────────
-//  Bảng dùng `table-layout: fixed` + độ rộng CỐ ĐỊNH theo kiểu cột. Không đặt độ rộng
-//  thì cột nào có chữ dài (vd ô mã kèm tên công việc) phình chiếm cả bề ngang, đẩy các
-//  cột khác khuất sang phải, còn cột hẹp thì chữ xuống dòng làm mỗi dòng cao vài trăm
-//  điểm ảnh. Chữ dài được cắt bằng "…" và hiện đủ khi rê chuột / mở biểu mẫu dòng.
-const RONG_STT = 52;
-const RONG_THAO_TAC = 112;
-function rongCot(c) {
-  if (c.tt) return 210;
-  if (c.ref) return 200;
-  if (c.refTinh) return 140;
-  if (c.kieu === 'ma') return 150;
-  if (c.kieu === 'ds') return 190;
-  if (c.kieu === 'nam') return 104;
-  if (c.kieu === 'so') return 112;
-  if (c.kieu === 'ngay') return 150;
-  if (c.dai) return 280;
-  if (c.kieu === 'tinh') return c.ten.length > 22 ? 180 : 124;
-  return 190;
-}
-
-// ─── Ô nhập trong bảng (không điều khiển — chỉ ghi khi rời ô / Enter) ─────────
-function ONhap({ col, v, onGhi, khoa = false, lop = '', dlId }) {
-  const ghi = (raw) => { const { v: moi } = chuyenGiaTri(col, raw); if (moi !== v && !(rong(moi) && rong(v))) onGhi(moi); };
-  const base = `w-full bg-transparent px-2 py-1.5 text-[12.5px] outline-none focus:bg-white focus:ring-2 focus:ring-sky-400 rounded ${lop}`;
-  const enter = (e) => { if (e.key === 'Enter') e.currentTarget.blur(); if (e.key === 'Escape') { e.currentTarget.value = giaTriHienThi(v); e.currentTarget.blur(); } };
-  if (col.kieu === 'ds' || col.kieu === 'nam') {
-    const list = col.kieu === 'nam' ? DS.NAM : dsCua(col);
-    return (
-      <select disabled={khoa} value={rong(v) ? '' : String(v)} onChange={(e) => ghi(e.target.value)} className={`${base} cursor-pointer`}>
-        <option value="">—</option>
-        {!rong(v) && !list.includes(v) && <option value={String(v)}>{String(v)} (không hợp lệ)</option>}
-        {list.map((x) => <option key={x} value={String(x)}>{x}</option>)}
-      </select>
-    );
-  }
-  if (col.kieu === 'ngay' && (rong(v) || /^\d{4}-\d{2}-\d{2}$/.test(v))) {
-    return <input type="date" disabled={khoa} defaultValue={v || ''} key={String(v)} onBlur={(e) => ghi(e.target.value)} className={base} />;
-  }
-  const so = col.kieu === 'so';
+// ─── Ô nhập một con số, có hiện giá trị gốc để đối chiếu ────────────────────
+function ONhapSo({ giaTri, goc, onDoi, chinh, donVi, khoa, id }) {
+  const [chu, setChu] = useState(rong(giaTri) ? '' : String(giaTri));
+  const dangGo = useRef(false);
+  useEffect(() => { if (!dangGo.current) setChu(rong(giaTri) ? '' : String(giaTri)); }, [giaTri]);
+  const doi = !rong(goc) && String(goc) !== String(giaTri) && !(rong(goc) && rong(giaTri));
   return (
-    <input disabled={khoa} defaultValue={giaTriHienThi(v)} key={String(v)} list={dlId}
-      inputMode={so ? 'decimal' : undefined} onBlur={(e) => ghi(e.target.value)} onKeyDown={enter}
-      className={`${base} ${so ? 'text-right tabular-nums' : ''}`} />
-  );
-}
-
-// ─── Ô CHỌN MÃ LIÊN KẾT (A2!C → C1, B1!A → A2, …) ────────────────────────────
-// Bấm vào ô (hoặc Enter / mũi tên xuống) → mở danh sách mã của biểu nguồn kèm
-// tên; gõ để lọc (không dấu cũng được), chọn bằng chuột hoặc ↑ ↓ Enter. Hộp chọn
-// dựng bằng portal + vị trí cố định để không bị khung cuộn ngang của bảng cắt mất.
-const GIOI_HAN_HIEN = 300;
-function OChonMa({ col, v, onGhi, luaChon, onMoMa, lop = '' }) {
-  const [mo, setMo] = useState(false);
-  const [q, setQ] = useState('');
-  const [hl, setHl] = useState(0);
-  const [viTri, setViTri] = useState(null);
-  const neo = useRef(null);
-  const hop = useRef(null);
-  const dich = BIEU_THEO_ID[col.ref];
-  const hienTai = rong(v) ? null : luaChon.find((x) => kk(x.ma) === kk(v)) || null;
-  const loc = useMemo(() => {
-    const n = chuanTen(q);
-    return n ? luaChon.filter((x) => chuanTen(`${x.ma} ${x.chinh} ${x.phu}`).includes(n)) : luaChon;
-  }, [q, luaChon]);
-
-  const tinhViTri = () => {
-    const r = neo.current.getBoundingClientRect();
-    const rong_ = Math.max(r.width, 380);
-    const duoi = window.innerHeight - r.bottom;
-    const lenTren = duoi < 300 && r.top > duoi;
-    return { left: Math.max(8, Math.min(r.left, window.innerWidth - rong_ - 8)), width: rong_, ...(lenTren ? { bottom: window.innerHeight - r.top + 4 } : { top: r.bottom + 4 }) };
-  };
-  const moHop = () => {
-    setViTri(tinhViTri());
-    setQ('');
-    setHl(Math.max(0, luaChon.findIndex((x) => kk(x.ma) === kk(v))));
-    setMo(true);
-  };
-  const chon = (ma) => {
-    setMo(false);
-    if (ma !== v && !(rong(ma) && rong(v))) onGhi(ma);
-    neo.current?.focus();
-  };
-  useEffect(() => {
-    if (!mo) return undefined;
-    const ngoai = (e) => { if (!hop.current?.contains(e.target) && !neo.current?.contains(e.target)) setMo(false); };
-    // Cuộn trang hoặc khung cuộn của bảng: hộp BÁM THEO ô; chỉ đóng khi ô đã ra khỏi
-    // khung nhìn (đóng ngay khi có bất kỳ thao tác cuộn nào thì người dùng lăn chuột
-    // nhẹ trong bảng là hộp biến mất).
-    const cuon = (e) => {
-      if (hop.current?.contains(e.target) || !neo.current) return;
-      const r = neo.current.getBoundingClientRect();
-      const khung = neo.current.closest('.overflow-auto')?.getBoundingClientRect();
-      const ngoaiKhung = khung && (r.bottom < khung.top || r.top > khung.bottom || r.right < khung.left || r.left > khung.right);
-      if (ngoaiKhung || r.bottom < 0 || r.top > window.innerHeight) setMo(false);
-      else setViTri(tinhViTri());
-    };
-    const dong = () => setMo(false);
-    document.addEventListener('mousedown', ngoai);
-    window.addEventListener('scroll', cuon, true);
-    window.addEventListener('resize', dong);
-    return () => { document.removeEventListener('mousedown', ngoai); window.removeEventListener('scroll', cuon, true); window.removeEventListener('resize', dong); };
-  }, [mo]);
-  useEffect(() => { if (mo) hop.current?.querySelector(`[data-i="${hl}"]`)?.scrollIntoView({ block: 'nearest' }); }, [hl, mo]);
-
-  const phim = (e) => {
-    if (e.key === 'ArrowDown') { e.preventDefault(); setHl((h) => Math.min(Math.min(loc.length, GIOI_HAN_HIEN) - 1, h + 1)); }
-    else if (e.key === 'ArrowUp') { e.preventDefault(); setHl((h) => Math.max(0, h - 1)); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (loc[hl]) chon(loc[hl].ma); else if (q.trim()) chon(chuyenGiaTri(col, q).v); }
-    else if (e.key === 'Escape') { e.preventDefault(); setMo(false); neo.current?.focus(); }
-    else if (e.key === 'Tab') setMo(false);
-  };
-  const goTay = q.trim() && !luaChon.some((x) => kk(x.ma) === kk(q));
-
-  return (
-    <>
-      <button type="button" ref={neo} onClick={() => (mo ? setMo(false) : moHop())}
-        onKeyDown={(e) => { if (['ArrowDown', 'Enter', 'F2'].includes(e.key)) { e.preventDefault(); moHop(); } }}
-        title={hienTai ? `${hienTai.ma} — ${hienTai.chinh}${hienTai.phu ? ` (${hienTai.phu})` : ''}` : rong(v) ? `Bấm để chọn mã có ở biểu ${dich.ma}` : `Mã "${v}" chưa có ở biểu ${dich.ma}`}
-        aria-haspopup="listbox" aria-expanded={mo}
-        className={`w-full flex items-center gap-1.5 text-left px-2 py-1.5 text-[12.5px] rounded outline-none focus:ring-2 focus:ring-sky-400 hover:bg-sky-50 cursor-pointer ${lop}`}>
-        <span className={`shrink-0 max-w-[70%] truncate ${rong(v) ? 'text-slate-300 italic' : 'font-medium text-slate-800'}`}>{rong(v) ? `chọn mã ${dich.ma}…` : v}</span>
-        {hienTai?.chinh && <span className="flex-1 min-w-0 truncate text-[10.5px] text-slate-400">{hienTai.chinh}</span>}
-        {!hienTai?.chinh && <span className="flex-1" />}
-        <ChevronDown className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-      </button>
-      {mo && viTri && createPortal(
-        <div ref={hop} role="dialog" style={{ position: 'fixed', ...viTri }}
-          className="z-[70] bg-white rounded-xl border border-slate-200 shadow-2xl flex flex-col max-h-[380px] text-[12.5px]"
-         >
-          <div className="px-3 pt-2.5 pb-2 border-b border-slate-100">
-            <p className="text-[10.5px] font-bold uppercase tracking-wider text-sky-700">Chọn {col.ten} — mã có ở {dich.ma} ({dich.ten})</p>
-            <div className="relative mt-1.5">
-              <Search className="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" />
-              <input autoFocus value={q} onChange={(e) => { setQ(e.target.value); setHl(0); }} onKeyDown={phim}
-                placeholder="Tìm theo mã hoặc tên (gõ không dấu cũng được)…" className={`${inp} pl-7 py-1.5`} />
-            </div>
-          </div>
-          <div role="listbox" className="flex-1 overflow-y-auto py-1">
-            {luaChon.length === 0 && (
-              <p className="px-3 py-4 text-slate-500">Biểu <b>{dich.ma}</b> chưa có mã nào. Nhập {dich.ma} trước rồi quay lại chọn (hoặc gõ mã rồi Enter — sẽ báo lỗi liên kết tới khi {dich.ma} có mã đó).</p>
-            )}
-            {luaChon.length > 0 && loc.length === 0 && <p className="px-3 py-4 text-slate-500">Không có mã nào khớp "{q}".</p>}
-            {loc.slice(0, GIOI_HAN_HIEN).map((x, i) => {
-              const dangChon = !rong(v) && kk(x.ma) === kk(v);
-              return (
-                <button key={x.ma} type="button" role="option" aria-selected={dangChon} data-i={i}
-                  onMouseEnter={() => setHl(i)} onMouseDown={(e) => e.preventDefault()} onClick={() => chon(x.ma)}
-                  className={`w-full text-left px-3 py-1.5 flex items-start gap-2.5 ${i === hl ? 'bg-sky-50' : ''}`}>
-                  <span className="font-mono font-bold text-sky-800 shrink-0 min-w-[64px]">{x.ma}</span>
-                  <span className="flex-1 min-w-0">
-                    <span className="block truncate text-slate-700">{x.chinh || <i className="text-slate-400">chưa có tên</i>}</span>
-                    {x.phu && <span className="block truncate text-[11px] text-slate-400">{x.phu}</span>}
-                  </span>
-                  {dangChon && <Check className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />}
-                </button>
-              );
-            })}
-            {loc.length > GIOI_HAN_HIEN && <p className="px-3 py-2 text-[11px] text-slate-400">… còn {loc.length - GIOI_HAN_HIEN} mã — gõ để lọc thêm.</p>}
-          </div>
-          <div className="px-3 py-2 border-t border-slate-100 flex items-center gap-2 flex-wrap text-[11.5px]">
-            {goTay && <button type="button" onClick={() => chon(chuyenGiaTri(col, q).v)} className="font-semibold text-amber-700 hover:underline">Dùng mã "{q.trim()}" (chưa có ở {dich.ma})</button>}
-            {!rong(v) && <button type="button" onClick={() => chon('')} className="font-semibold text-slate-500 hover:text-rose-700">Xóa giá trị</button>}
-            {onMoMa && (
-              <button type="button" onClick={() => { setMo(false); onMoMa(col.ref, hienTai ? hienTai.ma : null); }} className="ml-auto inline-flex items-center gap-1 font-semibold text-sky-700 hover:underline">
-                <Link2 className="w-3.5 h-3.5" />{hienTai ? `Mở dòng ${hienTai.ma} ở ${dich.ma}` : `Mở biểu ${dich.ma}`}
-              </button>
-            )}
-            <span className="w-full text-[10.5px] text-slate-400">{loc.length}/{luaChon.length} mã · ↑ ↓ để chọn, Enter để ghi, Esc để đóng</span>
-          </div>
-        </div>,
-        document.body,
-      )}
-    </>
-  );
-}
-
-/** Mã hiển thị thành liên kết sang dòng nguồn (cột mã tự tính, chế độ chỉ xem). */
-function LienKetMa({ ma, refId, luaChon, onMoMa }) {
-  if (rong(ma)) return null;
-  const x = luaChon?.find((o) => kk(o.ma) === kk(ma));
-  if (!x || !onMoMa) return <span className="text-slate-600">{ma}</span>;
-  return (
-    <button type="button" onClick={() => onMoMa(refId, x.ma)} title={`${x.ma} — ${x.chinh || ''} · mở dòng này ở biểu ${BIEU_THEO_ID[refId].ma}`}
-      className="inline-flex items-center gap-1 text-sky-700 hover:text-sky-900 hover:underline font-medium text-left">
-      <Link2 className="w-3 h-3 shrink-0" />{ma}
-    </button>
-  );
-}
-
-/** Danh sách lựa chọn cho mọi cột liên kết của một biểu. */
-const useLuaChon = (doc, b) => useMemo(() => {
-  const ids = new Set(b.cot.map((c) => c.ref || c.refTinh).filter(Boolean));
-  return Object.fromEntries([...ids].map((id) => [id, luaChonMa(doc, id)]));
-}, [doc, b]);
-
-// ─── Bảng nhập liệu của một biểu ────────────────────────────────────────────
-function BangBieu({ b, doc, kq, vanDe, docOnly, onSua, onThem, onXoa, onNhanBan, onXoaHet, onMoForm, onDan, diToi, onMoMa, quayLai, onQuayLai }) {
-  const [tim, setTim] = useState('');
-  const [loc, setLoc] = useState('tat');
-  const [trang, setTrang] = useState(0);
-  const [nhay, setNhay] = useState(null);
-  const tatCa = useMemo(() => dongHienThi(doc, kq, b.id), [doc, kq, b.id]);
-  const loc2 = useMemo(() => {
-    const q = kk(tim);
-    return tatCa.map((d, i) => ({ ...d, i })).filter((d) => {
-      const vd = vanDe.theoDong.get(d.row._id) || [];
-      if (loc === 'loi' && !vd.some((x) => x.muc === 'loi')) return false;
-      if (loc === 'canh' && !vd.some((x) => x.muc === 'canh')) return false;
-      if (!q) return true;
-      return b.cot.some((c) => kk(giaTriO(b, d.row, d.t, c)).includes(q));
-    });
-  }, [tatCa, tim, loc, vanDe, b]);
-  const soTrang = Math.max(1, Math.ceil(loc2.length / MOI_TRANG));
-  const tr = Math.min(trang, soTrang - 1);
-  const hien = loc2.slice(tr * MOI_TRANG, tr * MOI_TRANG + MOI_TRANG);
-  const tuTinh = !!b.tuTinh;
-
-  useEffect(() => { setTrang(0); }, [b.id]);
-  useEffect(() => {
-    if (!diToi || diToi.bieu !== b.id) return;
-    setTim(''); setLoc('tat');
-    const i = tatCa.findIndex((d) => d.row._id === diToi.id);
-    if (i < 0) return;
-    setTrang(Math.floor(i / MOI_TRANG));
-    setNhay(diToi.id);
-    setTimeout(() => document.getElementById(`vt-${diToi.id}`)?.scrollIntoView({ block: 'center', behavior: 'smooth' }), 60);
-    const h = setTimeout(() => setNhay(null), 2600);
-    return () => clearTimeout(h);
-  }, [diToi]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const luaChon = useLuaChon(doc, b);
-  // Ô liên kết dùng hộp chọn mã riêng; datalist chỉ còn cho cột có GỢI Ý (không bắt buộc).
-  const datalists = b.cot.filter((c) => c.goiY).map((c) => (
-    <datalist key={c.k} id={`dl-${b.id}-${c.k}`}>{dsCua(c).map((x) => <option key={x} value={x} />)}</datalist>
-  ));
-  const h = HD[b.id];
-  const tongRong = RONG_STT + b.cot.reduce((s, c) => s + rongCot(c), 0) + (b.tuTinh ? 0 : RONG_THAO_TAC);
-
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm min-w-0">
-      <div className="p-4 border-b border-slate-100">
-        <div className="flex items-start justify-between gap-3 flex-wrap">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">{b.sheet}{b.dauMoi ? ' · đầu mối tổng hợp nhập' : ''}</p>
-            <h3 className="text-lg font-extrabold text-slate-800">{b.ma} — {b.ten}</h3>
-            <p className="text-[12.5px] text-slate-500 mt-0.5 max-w-3xl">{b.moTa || h?.moTa}</p>
-          </div>
-          {!tuTinh && !docOnly && (
-            <div className="flex gap-2 flex-wrap">
-              <button onClick={onThem} className={nutChinh}><Plus className="w-4 h-4" /> Thêm dòng</button>
-              <button onClick={onDan} className={nutPhu}><ClipboardPaste className="w-4 h-4" /> Dán từ Excel</button>
-              {tatCa.length > 0 && <button onClick={onXoaHet} className={`${nutPhu} text-rose-700`}><Trash2 className="w-4 h-4" /> Xóa toàn bộ</button>}
-            </div>
-          )}
-        </div>
-        {quayLai && (
-          <button onClick={onQuayLai} className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 border border-sky-200 text-sky-800 hover:bg-sky-100">
-            <CornerUpLeft className="w-3.5 h-3.5" /> Quay lại {BIEU_THEO_ID[quayLai.bieu].ma}{quayLai.ma ? ` — dòng ${quayLai.ma}` : ''}
-          </button>
-        )}
-        <div className="mt-3 flex items-center gap-2 flex-wrap">
-          <div className="relative">
-            <Search className="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" />
-            <input value={tim} onChange={(e) => { setTim(e.target.value); setTrang(0); }} placeholder="Tìm trong biểu…" className={`${inp} pl-8 w-56`} />
-          </div>
-          {[['tat', `Tất cả (${tatCa.length})`], ['loi', 'Dòng có lỗi'], ['canh', 'Dòng có cảnh báo']].map(([k, t]) => (
-            <button key={k} onClick={() => { setLoc(k); setTrang(0); }}
-              className={`text-xs font-semibold px-3 py-2 rounded-lg border ${loc === k ? 'bg-sky-700 text-white border-sky-700' : 'bg-white text-slate-600 border-slate-200 hover:border-sky-300'}`}>{t}</button>
-          ))}
-          <span className="text-[11px] text-slate-400 ml-auto inline-flex items-center gap-3">
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded border border-slate-300 bg-white" /> nhập/chọn</span>
-            <span className="inline-flex items-center gap-1"><span className="w-3 h-3 rounded bg-slate-100 border border-slate-200" /> tự tính</span>
-          </span>
-        </div>
+    <div className="flex flex-col items-end">
+      <div className="flex items-center gap-1.5">
+        <input
+          id={id}
+          type="text" inputMode="decimal" disabled={khoa}
+          value={chu}
+          onFocus={() => { dangGo.current = true; }}
+          onBlur={() => { dangGo.current = false; }}
+          onChange={(e) => { setChu(e.target.value); onDoi(docSo(e.target.value)); }}
+          className={`${chinh ? 'w-28 text-[15px] font-bold' : 'w-24 text-[13px]'} text-right px-2 py-1.5 rounded-lg border-2 tabular-nums
+            ${khoa ? 'bg-slate-100 border-slate-200 text-slate-500'
+            : doi ? 'border-emerald-400 bg-emerald-50 text-emerald-900'
+              : chinh ? 'border-sky-300 focus:border-sky-600 focus:ring-2 focus:ring-sky-100' : 'border-slate-200 focus:border-sky-500'} outline-none`}
+        />
+        {donVi && <span className="text-[11px] text-slate-400 w-10">{donVi}</span>}
       </div>
-      {datalists}
-      {/* Khung cuộn RIÊNG của bảng (cả ngang lẫn dọc) để dòng tiêu đề và hai cột đầu luôn
-          đứng yên như "cố định ô" của Excel. */}
-      <div className="overflow-auto max-h-[calc(100vh-15rem)] min-h-[260px] border-t border-slate-100">
-        <table className="text-[12.5px] border-separate border-spacing-0 table-fixed" style={{ width: tongRong }}>
-          <colgroup>
-            <col style={{ width: RONG_STT }} />
-            {b.cot.map((c) => <col key={c.k} style={{ width: rongCot(c) }} />)}
-            {!tuTinh && <col style={{ width: RONG_THAO_TAC }} />}
-          </colgroup>
-          <thead>
-            <tr className="text-slate-600">
-              <th className="sticky top-0 left-0 z-30 bg-slate-100 border-b border-r border-slate-200 px-2 h-14 text-center">#</th>
-              {b.cot.map((c, j) => (
-                <th key={c.k} title={goiYCot(b, c)}
-                  className={`sticky top-0 ${j === 0 ? 'z-30 shadow-[2px_0_0_0_#cbd5e1]' : 'z-20'} border-b border-r border-slate-200 px-2 h-14 text-left align-middle font-semibold cursor-help ${c.kieu === 'tinh' ? 'bg-slate-100' : 'bg-slate-50'}`}
-                  style={j === 0 ? { left: RONG_STT } : undefined}>
-                  <span className="flex items-start gap-1 min-w-0">
-                    <span className="text-[10px] text-slate-400 font-mono mt-0.5 shrink-0">{c.k}</span>
-                    {c.kieu === 'tinh' && <Sigma className="w-3 h-3 mt-0.5 shrink-0 text-slate-400" />}
-                    <span className="leading-tight line-clamp-2 break-words">{c.ten}</span>
-                  </span>
-                </th>
-              ))}
-              {!tuTinh && <th className="sticky top-0 z-20 bg-slate-50 border-b border-slate-200 px-2 h-14 text-center">Thao tác</th>}
-            </tr>
-          </thead>
-          <tbody>
-            {hien.length === 0 && (
-              <tr><td colSpan={b.cot.length + 2} className="px-4 py-10 text-center text-slate-400">
-                {tatCa.length === 0 ? (tuTinh ? 'Chưa có dữ liệu nguồn để tổng hợp.' : 'Biểu chưa có dòng nào. Bấm "Thêm dòng", "Dán từ Excel" hoặc dùng tab "Nhập từ tệp".') : 'Không có dòng nào khớp bộ lọc.'}
-              </td></tr>
-            )}
-            {hien.map((d) => {
-              const vd = vanDe.theoDong.get(d.row._id) || [];
-              const coLoi = vd.some((x) => x.muc === 'loi');
-              const coCanh = vd.some((x) => x.muc === 'canh');
-              return (
-                <tr key={d.row._id} id={`vt-${d.row._id}`} className={`group ${nhay === d.row._id ? 'bg-yellow-100' : ''}`}>
-                  <td className={`sticky left-0 z-10 ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-white group-hover:bg-sky-50'} border-b border-r border-slate-200 h-9 text-center text-[11px] text-slate-400 border-l-4 ${coLoi ? 'border-l-rose-500' : coCanh ? 'border-l-amber-400' : 'border-l-transparent'}`}>
-                    {tuTinh ? d.i + 1 : <button onClick={() => onMoForm(d.row._id)} title="Mở biểu mẫu của dòng này" className="hover:text-sky-700 font-semibold">{d.i + 1}</button>}
-                  </td>
-                  {b.cot.map((c, j) => {
-                    const v = giaTriO(b, d.row, d.t, c);
-                    // Cột đầu tiên (mã) đứng yên khi cuộn ngang — cần nền đặc để không lộ chữ cột khác bên dưới.
-                    const dinh = j === 0 ? { cls: 'sticky z-10 shadow-[2px_0_0_0_#cbd5e1]', st: { left: RONG_STT } } : { cls: '', st: undefined };
-                    const chuDai = typeof v === 'string' ? v : giaTriHienThi(v);
-                    const o = vd.filter((x) => x.cot === c.k);
-                    const loiO = o.find((x) => x.muc === 'loi');
-                    const canhO = o.find((x) => x.muc === 'canh');
-                    const tip = o.map((x) => `${MUC_TEN[x.muc]}: ${x.chu}`).join('\n');
-                    if (c.kieu === 'tinh') {
-                      return (
-                        <td key={c.k} title={tip || (rong(v) ? undefined : String(chuDai))} style={dinh.st}
-                          className={`${dinh.cls} border-b border-r border-slate-200 ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-slate-50'} px-2 h-9 overflow-hidden whitespace-nowrap ${laSo(v) ? 'text-right tabular-nums' : ''}`}>
-                          {c.tt && !rong(v)
-                            ? <span className={`inline-block max-w-full truncate align-middle text-[10.5px] font-bold px-1.5 py-0.5 rounded border leading-tight ${mauTrangThai(b.id, v)}`}>{v}</span>
-                            : c.refTinh ? <span className="block truncate"><LienKetMa ma={v} refId={c.refTinh} luaChon={luaChon[c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
-                              : <span className="block truncate text-slate-600">{giaTriHienThi(v)}</span>}
-                        </td>
-                      );
-                    }
-                    return (
-                      <td key={c.k} title={tip || (docOnly && !rong(v) ? String(chuDai) : undefined)} style={dinh.st}
-                        className={`${dinh.cls} border-b border-r border-slate-200 p-0 h-9 overflow-hidden ${loiO ? 'bg-rose-50 ring-1 ring-inset ring-rose-300' : canhO ? 'bg-amber-50' : nhay === d.row._id ? 'bg-yellow-100' : 'bg-white group-hover:bg-sky-50'}`}>
-                        {c.ref
-                          ? (docOnly
-                            ? <span className="block truncate px-2 py-1.5"><LienKetMa ma={v} refId={c.ref} luaChon={luaChon[c.ref]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} /></span>
-                            : <OChonMa col={c} v={v} luaChon={luaChon[c.ref]} onGhi={(nv) => onSua(d.row._id, c.k, nv)} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id: d.row._id }))} />)
-                          : docOnly
-                            ? <span className="block truncate px-2 py-1.5">{giaTriHienThi(v)}</span>
-                            : <ONhap col={c} v={v} onGhi={(nv) => onSua(d.row._id, c.k, nv)} dlId={c.goiY ? `dl-${b.id}-${c.k}` : undefined} />}
-                      </td>
-                    );
-                  })}
-                  {!tuTinh && (
-                    <td className={`border-b border-slate-200 px-1 h-9 text-center whitespace-nowrap ${nhay === d.row._id ? 'bg-yellow-100' : 'bg-white'}`}>
-                      <button onClick={() => onMoForm(d.row._id)} title="Mở biểu mẫu (có hướng dẫn từng cột)" className="p-1.5 rounded hover:bg-sky-100 text-slate-500 hover:text-sky-700"><PanelRightOpen className="w-4 h-4" /></button>
-                      {!docOnly && <button onClick={() => onNhanBan(d.row._id)} title="Nhân bản dòng" className="p-1.5 rounded hover:bg-slate-100 text-slate-500"><Copy className="w-4 h-4" /></button>}
-                      {!docOnly && <button onClick={() => onXoa(d.row._id)} title="Xóa dòng" className="p-1.5 rounded hover:bg-rose-100 text-slate-500 hover:text-rose-700"><Trash2 className="w-4 h-4" /></button>}
-                    </td>
-                  )}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-      {soTrang > 1 && (
-        <div className="flex items-center justify-between gap-3 px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
-          <span>Dòng {tr * MOI_TRANG + 1}–{Math.min(loc2.length, (tr + 1) * MOI_TRANG)} / {loc2.length}</span>
-          <div className="flex items-center gap-1">
-            <button disabled={tr === 0} onClick={() => setTrang(tr - 1)} className={nutPhu}><ChevronLeft className="w-4 h-4" /></button>
-            <span className="px-2">Trang {tr + 1}/{soTrang}</span>
-            <button disabled={tr >= soTrang - 1} onClick={() => setTrang(tr + 1)} className={nutPhu}><ChevronRight className="w-4 h-4" /></button>
-          </div>
-        </div>
-      )}
+      {doi && <span className="text-[10.5px] text-slate-500 mt-0.5">gốc: {rong(goc) ? '(trống)' : soVN(Number(goc), 2)}</span>}
     </div>
   );
 }
 
-// ─── Biểu mẫu một dòng (ngăn trượt bên phải) ────────────────────────────────
-function FormDong({ b, doc, kq, vanDe, id, docOnly, onSua, onDong, onDi, onXoa, onNhanBan, onMoMa }) {
-  const luaChon = useLuaChon(doc, b);
-  const ds = dongHienThi(doc, kq, b.id);
-  const i = ds.findIndex((d) => d.row._id === id);
-  if (i < 0) return null;
-  const d = ds[i];
-  const vd = vanDe.theoDong.get(id) || [];
+// ─── Thanh các bước ─────────────────────────────────────────────────────────
+function ThanhBuoc({ buoc, doc, kq, onChon }) {
+  const td = doc && kq ? Object.fromEntries(BUOC_NHAP.map((b) => [b.id, tienDoBuoc(doc, kq, b)])) : {};
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-slate-900/30" onClick={onDong}>
-      <aside onClick={(e) => e.stopPropagation()} className="w-full max-w-[620px] h-full bg-white shadow-2xl flex flex-col">
-        <div className="px-5 py-4 border-b border-slate-200 flex items-center justify-between gap-3 bg-slate-50">
-          <div className="min-w-0">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">{b.sheet}</p>
-            <h3 className="font-extrabold text-slate-800">Dòng {i + 1}/{ds.length}{cotKhoa(b) && !rong(d.row[cotKhoa(b).k]) ? ` · ${d.row[cotKhoa(b).k]}` : ''}</h3>
-          </div>
-          <div className="flex items-center gap-1">
-            <button disabled={i === 0} onClick={() => onDi(ds[i - 1].row._id)} className={nutPhu} title="Dòng trước"><ChevronLeft className="w-4 h-4" /></button>
-            <button disabled={i >= ds.length - 1} onClick={() => onDi(ds[i + 1].row._id)} className={nutPhu} title="Dòng sau"><ChevronRight className="w-4 h-4" /></button>
-            <button onClick={onDong} className={nutPhu} title="Đóng"><X className="w-4 h-4" /></button>
-          </div>
-        </div>
-        {vd.filter((x) => !x.cot).map((x, k) => <p key={k} className="mx-5 mt-3 text-xs text-slate-500">{x.chu}</p>)}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-4">
-          {b.cot.map((c) => {
-            const v = giaTriO(b, d.row, d.t, c);
-            const h = HD[b.id]?.cot?.[c.k];
-            const o = vd.filter((x) => x.cot === c.k);
-            return (
-              <div key={c.k} className={`rounded-xl border p-3 ${c.kieu === 'tinh' ? 'bg-slate-50 border-slate-200' : o.some((x) => x.muc === 'loi') ? 'border-rose-300 bg-rose-50/40' : 'border-slate-200'}`}>
-                <div className="flex items-center justify-between gap-2 mb-1.5">
-                  <label className="text-[13px] font-bold text-slate-700"><span className="font-mono text-slate-400 mr-1.5">{c.k}</span>{c.ten}</label>
-                  <span className="text-[10px] font-semibold uppercase tracking-wide text-slate-400 shrink-0">
-                    {c.kieu === 'tinh' ? 'Tự động' : c.kieu === 'ds' || c.kieu === 'nam' ? 'Chọn' : c.ref ? `Chọn mã ở ${BIEU_THEO_ID[c.ref].ma}` : c.kieu === 'so' ? 'Số' : c.kieu === 'nam' ? 'Năm' : c.kieu === 'ngay' ? 'Ngày' : 'Nhập'}
-                  </span>
-                </div>
-                {c.ref || c.refTinh
-                  ? (docOnly || c.kieu === 'tinh'
-                    ? <p className="text-[13px]">{rong(v) ? <span className="text-slate-400">—</span> : <LienKetMa ma={v} refId={c.ref || c.refTinh} luaChon={luaChon[c.ref || c.refTinh]} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id }))} />}</p>
-                    : <div className="border border-slate-200 rounded-lg"><OChonMa col={c} v={v} luaChon={luaChon[c.ref]} lop="py-2" onGhi={(m) => onSua(id, c.k, m)} onMoMa={onMoMa && ((r, m) => onMoMa(r, m, { bieu: b.id, id }))} /></div>)
-                  : c.kieu === 'tinh'
-                  ? <p className={`text-[13px] ${c.tt ? '' : 'text-slate-700'}`}>{c.tt && !rong(v) ? <span className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border ${mauTrangThai(b.id, v)}`}>{v}</span> : (giaTriHienThi(v) || <span className="text-slate-400">—</span>)}</p>
-                  : docOnly ? <p className="text-[13px] text-slate-700 whitespace-pre-wrap">{giaTriHienThi(v) || <span className="text-slate-400">—</span>}</p>
-                    : c.dai && c.kieu === 'chu'
-                      ? <textarea defaultValue={v} key={`${id}-${String(v)}`} rows={3} onBlur={(e) => { const { v: m } = chuyenGiaTri(c, e.target.value); if (m !== v) onSua(id, c.k, m); }} className={inp} />
-                      : <div className="border border-slate-200 rounded-lg"><ONhap col={c} v={v} onGhi={(m) => onSua(id, c.k, m)} dlId={c.goiY ? `dl-${b.id}-${c.k}` : undefined} lop="py-2" /></div>}
-                {o.map((x, k) => (
-                  <p key={k} className={`mt-1.5 text-[12px] flex gap-1.5 ${x.muc === 'loi' ? 'text-rose-700' : x.muc === 'canh' ? 'text-amber-700' : 'text-sky-700'}`}>
-                    {x.muc === 'loi' ? <CircleAlert className="w-3.5 h-3.5 mt-0.5 shrink-0" /> : <AlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />}{x.chu}
-                  </p>
-                ))}
-                {h && (h.noiDung || h.cachGhi || h.luuY) && (
-                  <div className="mt-2 text-[11.5px] text-slate-500 space-y-0.5 leading-relaxed">
-                    {h.noiDung && <p><b className="text-slate-600">Điền:</b> {h.noiDung}</p>}
-                    {h.cachGhi && <p><b className="text-slate-600">Cách ghi:</b> {h.cachGhi}</p>}
-                    {h.luuY && <p><b className="text-slate-600">Lưu ý:</b> {h.luuY}</p>}
-                  </div>
-                )}
-              </div>
-            );
-          })}
-        </div>
-        {!docOnly && (
-          <div className="px-5 py-3 border-t border-slate-200 flex justify-between gap-2">
-            <button onClick={() => onNhanBan(id)} className={nutPhu}><Copy className="w-4 h-4" /> Nhân bản dòng</button>
-            <button onClick={() => onXoa(id)} className={`${nutPhu} text-rose-700`}><Trash2 className="w-4 h-4" /> Xóa dòng</button>
-          </div>
-        )}
-      </aside>
-    </div>
-  );
-}
-
-// ─── Hộp "Dán từ Excel" ─────────────────────────────────────────────────────
-function HopDan({ b, onDong, onXong }) {
-  const [chu, setChu] = useState('');
-  const [viTri, setViTri] = useState('cot');
-  const nhap = cotNhap(b);
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 p-4" onClick={onDong}>
-      <div onClick={(e) => e.stopPropagation()} className="w-full max-w-3xl bg-white rounded-2xl shadow-2xl p-5">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <h3 className="font-extrabold text-slate-800">Dán từ Excel vào {b.ma} — {b.ten}</h3>
-            <p className="text-[12.5px] text-slate-500 mt-1">Chọn vùng ô trong Excel → Ctrl+C → dán vào ô dưới (Ctrl+V). Có thể dán kèm dòng tiêu đề: phần mềm tự ghép cột theo tên. Dữ liệu sẽ được KIỂM TRA và xem trước rồi mới ghi.</p>
-          </div>
-          <button onClick={onDong} className={nutPhu}><X className="w-4 h-4" /></button>
-        </div>
-        <textarea autoFocus value={chu} onChange={(e) => setChu(e.target.value)} rows={10} placeholder="Dán dữ liệu vào đây…" className={`${inp} mt-3 font-mono text-[12px]`} />
-        <div className="mt-3 grid sm:grid-cols-2 gap-2 text-[12.5px]">
-          <label className={`border rounded-xl p-3 cursor-pointer ${viTri === 'cot' ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
-            <input type="radio" className="mr-2" checked={viTri === 'cot'} onChange={() => setViTri('cot')} />
-            <b>Đủ các cột như bộ biểu</b> (A, B, C… kể cả cột tự tính) — khi chép nguyên dòng từ tệp Excel của Ban.
-          </label>
-          <label className={`border rounded-xl p-3 cursor-pointer ${viTri === 'nhap' ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
-            <input type="radio" className="mr-2" checked={viTri === 'nhap'} onChange={() => setViTri('nhap')} />
-            <b>Chỉ các cột nhập</b>, theo thứ tự: {nhap.map((c) => c.k).join(', ')}.
-          </label>
-        </div>
-        <div className="mt-4 flex justify-end gap-2">
-          <button onClick={onDong} className={nutPhu}>Hủy</button>
-          <button disabled={!chu.trim()} onClick={() => onXong(chu, viTri)} className={nutChinh}>Kiểm tra & xem trước <ArrowRight className="w-4 h-4" /></button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Khối "Tự động sửa lỗi" trong màn kết quả kiểm tra tệp ──────────────────
-function KhoiSuaTuDong({ deXuat, daSua, conLoi, onSua, onHoanTac, onTai }) {
-  const [mo, setMo] = useState(false);
-  const [bo, setBo] = useState(() => new Set());
-  if (!deXuat.length && !daSua.length) return null;
-  const chon = deXuat.filter((x) => !bo.has(x.id));
-  const doiChon = (id) => setBo((s) => { const n = new Set(s); if (n.has(id)) n.delete(id); else n.add(id); return n; });
-  return (
-    <div className="bg-violet-50 border border-violet-200 rounded-2xl p-4 space-y-3">
-      <div className="flex items-start gap-3 flex-wrap">
-        <Wand2 className="w-5 h-5 text-violet-700 shrink-0 mt-0.5" />
-        <div className="flex-1 min-w-[240px] text-[13px] text-violet-950">
-          <p className="font-bold">Tự động sửa lỗi</p>
-          {daSua.length > 0 && <p>Đã tự sửa <b>{daSua.length}</b> chỗ. {conLoi ? <>Còn <b className="text-rose-700">{conLoi}</b> lỗi cần người kiểm tra (phần mềm không đoán dữ liệu).</> : <b className="text-emerald-700">Không còn lỗi nào.</b>}</p>}
-          {deXuat.length > 0 && <p>Phát hiện <b>{deXuat.length}</b> chỗ sửa được chắc chắn: gõ thiếu dấu hoặc sai chính tả giá trị chọn, số kèm đơn vị, năm/ngày viết kiểu khác, mã lệch dấu cách, ô lỗi #N/A, dòng lặp y hệt.</p>}
-          <p className="text-[11.5px] text-violet-800/80 mt-0.5">Không tự sửa: thiếu mã, số âm, trùng mã khác nội dung, giá trị lạ, cảnh báo nghiệp vụ (thiếu nguồn, chưa kiểm chứng…) — những chỗ đó cần căn cứ thật.</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          {deXuat.length > 0 && <button onClick={() => setMo(!mo)} className={nutPhu}>{mo ? 'Ẩn danh sách' : `Xem ${deXuat.length} chỗ sẽ sửa`}</button>}
-          {deXuat.length > 0 && <button disabled={!chon.length} onClick={() => { onSua(new Set(chon.map((x) => x.id))); setMo(false); setBo(new Set()); }} className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-violet-700 hover:bg-violet-800 text-white text-sm font-semibold disabled:opacity-50"><Wand2 className="w-4 h-4" /> Sửa tự động ({chon.length})</button>}
-          {daSua.length > 0 && <button onClick={onTai} className={nutPhu}><Download className="w-4 h-4" /> Tải tệp đã sửa (.xlsx)</button>}
-          {daSua.length > 0 && <button onClick={onHoanTac} className={nutPhu}><Undo2 className="w-4 h-4" /> Hoàn tác</button>}
-        </div>
-      </div>
-      {mo && (
-        <div className="bg-white rounded-xl border border-violet-200 overflow-x-auto max-h-[420px] overflow-y-auto">
-          <table className="w-full text-[12.5px]">
-            <thead className="bg-violet-50 text-violet-900 text-left sticky top-0">
-              <tr>
-                <th className="px-3 py-2"><input type="checkbox" checked={bo.size === 0} onChange={(e) => setBo(e.target.checked ? new Set() : new Set(deXuat.map((x) => x.id)))} /></th>
-                {['Trang', 'Ô', 'Cột', 'Giá trị cũ', 'Giá trị mới', 'Lý do'].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}
-              </tr>
-            </thead>
-            <tbody>
-              {deXuat.map((x) => (
-                <tr key={x.id} className={`border-t border-violet-100 align-top ${bo.has(x.id) ? 'opacity-50' : ''}`}>
-                  <td className="px-3 py-2"><input type="checkbox" checked={!bo.has(x.id)} onChange={() => doiChon(x.id)} /></td>
-                  <td className="px-3 py-2 font-mono text-[11px] whitespace-nowrap">{x.trang}</td>
-                  <td className="px-3 py-2 font-mono">{x.loai === 'xoaDong' ? `dòng ${x.dongTep}` : `${x.cot}${x.dongTep}`}</td>
-                  <td className="px-3 py-2">{x.tenCot}</td>
-                  <td className="px-3 py-2 text-rose-700 line-through decoration-rose-300">{String(x.cu ?? '')}</td>
-                  <td className="px-3 py-2 text-emerald-700 font-semibold">{x.loai === 'xoaDong' ? '(xóa dòng lặp)' : x.moi === '' ? '(để trống)' : giaTriHienThi(x.moi)}</td>
-                  <td className="px-3 py-2 text-slate-600 min-w-[220px]">{x.lyDo}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ─── Tab "Nhập từ tệp" ──────────────────────────────────────────────────────
-function NhapTep({ trangThai, setTrangThai, doc, coQuyenGhi, onApDung, onTaiMau }) {
-  const inpRef = useRef(null);
-  const [keo, setKeo] = useState(false);
-  const [locMuc, setLocMuc] = useState('loi');
-  const [locBieu, setLocBieu] = useState('');
-  const [trang, setTrang] = useState(0);
-  const { ten, dangDoc, phan, loi, phanTich, khongDoc, cheDo = 'thay', boQuaLoi = true } = trangThai;
-
-  const ketQua = useMemo(() => (phanTich ? chuanBiNhap(phanTich, doc, { cheDo, boQuaLoi }) : null), [phanTich, doc, cheDo, boQuaLoi]);
-  const deXuat = useMemo(() => (phanTich ? deXuatSua(phanTich, doc, { cheDo }) : []), [phanTich, doc, cheDo]);
-  const daSua = phanTich?.daSua || [];
-  const suaTuDong = (chon) => setTrangThai((s) => ({ ...s, phanTich: apDungSua(s.phanTich, deXuat, chon), phanTichGoc: s.phanTichGoc || s.phanTich }));
-  const hoanTac = () => setTrangThai((s) => ({ ...s, phanTich: s.phanTichGoc || s.phanTich, phanTichGoc: null }));
-  const taiTepDaSua = () => import('./lib/vtvlXuat').then((m) => m.xuatTepDaSua(phanTich, ten));
-
-  const chon = async (file) => {
-    if (!file) return;
-    setTrangThai({ ten: file.name, dangDoc: true, phan: 0, cheDo, boQuaLoi });
-    try {
-      const r = await docTep(file, { onTienDo: ({ phan: p }) => setTrangThai((s) => ({ ...s, phan: p })) });
-      const pt = phanTichTep(r.nguon, r.loai === 'csv' ? { chiBieu: trangThai.chiBieu || null } : {});
-      if (r.loai === 'csv' && !trangThai.chiBieu && !Object.keys(pt.bieu).length) {
-        throw new Error('Không nhận ra tệp CSV thuộc biểu nào. Chọn "Biểu đích của tệp CSV" ở dưới rồi chọn lại tệp.');
-      }
-      setTrangThai((s) => ({ ...s, dangDoc: false, phanTich: pt, khongDoc: r.khongDoc, loai: r.loai }));
-      setTrang(0); setLocBieu('');
-    } catch (e) {
-      setTrangThai((s) => ({ ...s, dangDoc: false, loi: e.message || String(e) }));
-    }
-  };
-
-  const dsVD = (ketQua?.vanDe || []).filter((v) => (locMuc === 'tat' || v.muc === locMuc) && (!locBieu || v.bieu === locBieu));
-  const soTrang = Math.max(1, Math.ceil(dsVD.length / 100));
-  const tr = Math.min(trang, soTrang - 1);
-  const demMuc = (m) => (ketQua?.vanDe || []).filter((v) => v.muc === m).length;
-
-  if (!phanTich && !dangDoc) {
-    return (
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 space-y-4">
-          <div onDragOver={(e) => { e.preventDefault(); setKeo(true); }} onDragLeave={() => setKeo(false)}
-            onDrop={(e) => { e.preventDefault(); setKeo(false); chon(e.dataTransfer.files?.[0]); }}
-            className={`rounded-2xl border-2 border-dashed p-10 text-center transition-colors ${keo ? 'border-sky-500 bg-sky-50' : 'border-slate-300 bg-white'}`}>
-            <FileSpreadsheet className="w-12 h-12 mx-auto text-sky-600" />
-            <p className="mt-3 font-bold text-slate-800">Kéo thả tệp vào đây hoặc</p>
-            <button onClick={() => inpRef.current?.click()} className={`${nutChinh} mt-3`}><Upload className="w-4 h-4" /> Chọn tệp</button>
-            <input ref={inpRef} type="file" accept=".xlsx,.xlsm,.csv,.tsv,.txt,.json" className="hidden" onChange={(e) => { chon(e.target.files?.[0]); e.target.value = ''; }} />
-            <p className="mt-3 text-[12.5px] text-slate-500">Nhận <b>.xlsx</b> (chính tệp bộ biểu của Ban, kể cả bản 30.000 dòng; hoặc biểu mẫu tải từ phân hệ) · <b>.csv</b> (một biểu) · <b>.json</b> (bản sao lưu).</p>
-            {loi && <p className="mt-3 text-[13px] text-rose-700 bg-rose-50 border border-rose-200 rounded-xl px-3 py-2 inline-block">{loi}</p>}
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-4">
-            <p className="text-sm font-bold text-slate-700 mb-2">Cách ghi dữ liệu của tệp</p>
-            <div className="grid sm:grid-cols-3 gap-2">
-              {CHE_DO.map((m) => (
-                <label key={m.id} className={`border rounded-xl p-3 cursor-pointer text-[12.5px] ${cheDo === m.id ? 'border-sky-500 bg-sky-50' : 'border-slate-200'}`}>
-                  <input type="radio" className="mr-1.5" checked={cheDo === m.id} onChange={() => setTrangThai((s) => ({ ...s, cheDo: m.id }))} />
-                  <b>{m.ten}</b><span className="block text-slate-500 mt-1">{m.mo}</span>
-                </label>
-              ))}
-            </div>
-            <label className="mt-3 flex items-center gap-2 text-[12.5px] text-slate-600">
-              <span className="font-semibold">Biểu đích của tệp CSV:</span>
-              <select value={trangThai.chiBieu || ''} onChange={(e) => setTrangThai((s) => ({ ...s, chiBieu: e.target.value }))} className="border border-slate-200 rounded-lg px-2 py-1.5 text-[12.5px]">
-                <option value="">Tự nhận theo dòng tiêu đề</option>
-                {BIEU.filter((x) => !x.tuTinh).map((x) => <option key={x.id} value={x.id}>{x.ma} — {x.ten}</option>)}
-              </select>
-              <span className="text-slate-400">(tệp .xlsx tự nhận theo tên trang)</span>
-            </label>
-            <label className="mt-3 flex items-start gap-2 text-[12.5px] text-slate-600">
-              <input type="checkbox" className="mt-0.5" checked={boQuaLoi} onChange={(e) => setTrangThai((s) => ({ ...s, boQuaLoi: e.target.checked }))} />
-              <span><b>Bỏ qua dòng có lỗi chặn</b> (sai kiểu số, sai danh sách chọn, thiếu mã, trùng mã). Dòng chỉ thiếu mã liên kết vẫn được nhập để bổ sung sau. Có thể đổi lựa chọn này ngay ở bước xem trước.</span>
-            </label>
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="bg-sky-50 border border-sky-200 rounded-2xl p-4 text-[12.5px] text-sky-900 space-y-2">
-            <p className="font-bold flex items-center gap-1.5"><ShieldAlert className="w-4 h-4" /> Phần mềm kiểm tra gì khi nhập?</p>
-            <ul className="list-disc pl-5 space-y-1">
-              <li>Nhận biểu theo <b>tên trang</b> (vd "3. B1_KhoiLuong") hoặc theo dòng tiêu đề; ghép cột theo <b>tên cột</b>.</li>
-              <li><b>Kiểu dữ liệu</b>: số, năm 2027–2031, ngày; đọc được cả "1.904" và "1,5" kiểu Việt Nam.</li>
-              <li><b>Danh sách chọn</b> của DM_THAM_SO (tự sửa hoa/thường, khoảng trắng).</li>
-              <li><b>Mã liên kết</b> giữa các biểu (A2→A1, C1 · B1→A2, DM · C3, D1, D2→C1…) và <b>trùng mã</b>.</li>
-              <li>Toàn bộ <b>cột cảnh báo</b> của bộ biểu (B1!R, B2_CT!P, C1!K, C3!M, D1!J, D2!J…) tính lại đúng công thức.</li>
-              <li>Ô chứa lỗi Excel (#N/A, #VALUE!…), mã ví dụ VD-.</li>
-            </ul>
-            <p>Cột tự tính trong tệp được bỏ qua — phần mềm tự tính lại.</p>
-            <p className="font-bold flex items-center gap-1.5 pt-1"><Wand2 className="w-4 h-4" /> Tự động sửa lỗi</p>
-            <p>Lỗi sửa được chắc chắn (thiếu dấu, sai chính tả giá trị chọn, số kèm đơn vị, ngày viết khác, mã lệch dấu cách, #N/A, dòng lặp) được sửa bằng một nút bấm, xem trước từng ô; tải về được <b>tệp đã sửa</b> — kể cả khi chưa đăng nhập.</p>
-          </div>
-          <button onClick={onTaiMau} className={`${nutPhu} w-full py-3`}><FileDown className="w-4 h-4" /> Tải biểu mẫu nhập liệu (Excel, có hướng dẫn từng cột)</button>
-          {!coQuyenGhi && <p className="text-[12px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">Bạn đang xem với tư cách khách: vẫn kiểm tra tệp, tự động sửa lỗi, tải tệp đã sửa và xuất báo cáo lỗi được, nhưng muốn <b>áp dụng</b> vào dữ liệu thì phải đăng nhập.</p>}
-        </div>
-      </div>
-    );
-  }
-
-  if (dangDoc) {
-    return (
-      <div className="bg-white rounded-2xl border border-slate-200 p-8 text-center">
-        <RefreshCw className="w-8 h-8 mx-auto text-sky-600 animate-spin" />
-        <p className="mt-3 font-bold text-slate-700">Đang đọc {ten}…</p>
-        <div className="mt-4 h-2 rounded-full bg-slate-100 overflow-hidden max-w-md mx-auto"><div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((phan || 0) * 100)}%` }} /></div>
-        <p className="mt-2 text-xs text-slate-400">{Math.round((phan || 0) * 100)}% — tệp bộ biểu 30.000 dòng mất vài giây.</p>
-      </div>
-    );
-  }
-
-  const nhanDien = Object.keys(phanTich.bieu).length;
-  return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 flex items-start justify-between gap-3 flex-wrap">
-        <div>
-          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Kết quả kiểm tra tệp</p>
-          <h3 className="text-lg font-extrabold text-slate-800 break-all">{ten}</h3>
-          <p className="text-[12.5px] text-slate-500">Nhận ra {nhanDien} biểu có dữ liệu{phanTich.trong?.length ? ` · ${phanTich.trong.length} trang trống (giữ nguyên dữ liệu đang có)` : ''}{phanTich.boQua?.length ? ` · ${phanTich.boQua.length} trang không phải biểu nhập` : ''}.</p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <button onClick={() => setTrangThai({ cheDo, boQuaLoi, chiBieu: trangThai.chiBieu })} className={nutPhu}><Upload className="w-4 h-4" /> Chọn tệp khác</button>
-          {daSua.length > 0 && <button onClick={taiTepDaSua} className={nutPhu}><Download className="w-4 h-4" /> Tải tệp đã sửa</button>}
-          {ketQua?.vanDe.length > 0 && <button onClick={() => import('./lib/vtvlXuat').then((m) => m.xuatBaoCaoLoi(ketQua.vanDe, ten))} className={nutPhu}><Download className="w-4 h-4" /> Xuất báo cáo lỗi (Excel)</button>}
-          <button disabled={!coQuyenGhi || !ketQua?.coTheApDung} onClick={() => onApDung(ketQua, ten, cheDo, daSua.length)} className={nutChinh} title={coQuyenGhi ? '' : 'Đăng nhập để áp dụng'}>
-            <Save className="w-4 h-4" /> Áp dụng {ketQua?.tongNhap || 0} dòng
-          </button>
-        </div>
-      </div>
-
-      {nhanDien === 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-[13px] text-amber-900">
-          Tệp không có dòng dữ liệu nào ở các biểu nhập liệu. {phanTich.trong?.length ? 'Các trang của bộ biểu đều còn trống.' : 'Kiểm tra lại tên trang (vd "1. A1_NhiemVu") và dòng tiêu đề cột.'}
-        </div>
-      )}
-      {ketQua && nhanDien > 0 && (
-        <KhoiSuaTuDong deXuat={deXuat} daSua={daSua} conLoi={ketQua.vanDe.filter((v) => v.muc === 'loi').length}
-          onSua={suaTuDong} onHoanTac={hoanTac} onTai={taiTepDaSua} />
-      )}
-      {ketQua?.canhQuyGio && <div className="bg-amber-50 border border-amber-200 rounded-2xl p-3 text-[12.5px] text-amber-900 flex gap-2"><AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />{ketQua.canhQuyGio}</div>}
-
-      {ketQua && nhanDien > 0 && (
-        <>
-          <div className="bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center gap-4 text-[12.5px]">
-            <span className="font-bold text-slate-700">Cách ghi:</span>
-            {CHE_DO.map((m) => (
-              <label key={m.id} className="inline-flex items-center gap-1.5 cursor-pointer" title={m.mo}>
-                <input type="radio" checked={cheDo === m.id} onChange={() => setTrangThai((s) => ({ ...s, cheDo: m.id }))} />{m.ten}
-              </label>
-            ))}
-            <label className="inline-flex items-center gap-1.5 cursor-pointer ml-auto">
-              <input type="checkbox" checked={boQuaLoi} onChange={(e) => setTrangThai((s) => ({ ...s, boQuaLoi: e.target.checked }))} />Bỏ qua dòng có lỗi chặn
-            </label>
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200 overflow-x-auto">
-            <table className="w-full text-[12.5px]">
-              <thead className="bg-slate-50 text-slate-600 text-left">
-                <tr>{['Trang trong tệp', 'Biểu', 'Dòng đọc', 'Thêm', 'Cập nhật', 'Bỏ qua (lỗi)', 'Đã có (bỏ qua)', 'Lỗi', 'Cảnh báo', 'Ghi chú'].map((h) => <th key={h} className="px-3 py-2 font-semibold border-b border-slate-200">{h}</th>)}</tr>
-              </thead>
-              <tbody>
-                {ketQua.tomTat.map((t) => (
-                  <tr key={t.id} className="border-b border-slate-100 align-top">
-                    <td className="px-3 py-2 font-mono text-[11.5px]">{t.trang}</td>
-                    <td className="px-3 py-2 font-semibold">{t.ma} — {t.ten}</td>
-                    <td className="px-3 py-2 text-right">{t.doc}</td>
-                    <td className="px-3 py-2 text-right text-emerald-700 font-semibold">{t.them}</td>
-                    <td className="px-3 py-2 text-right text-sky-700">{t.capNhat}</td>
-                    <td className="px-3 py-2 text-right text-rose-700">{t.boQua || ''}</td>
-                    <td className="px-3 py-2 text-right text-slate-500">{t.daCo || ''}</td>
-                    <td className="px-3 py-2 text-right"><button onClick={() => { setLocBieu(t.id); setLocMuc('loi'); setTrang(0); }} className="text-rose-700 font-bold hover:underline">{t.loi || ''}</button></td>
-                    <td className="px-3 py-2 text-right"><button onClick={() => { setLocBieu(t.id); setLocMuc('canh'); setTrang(0); }} className="text-amber-700 font-bold hover:underline">{t.canh || ''}</button></td>
-                    <td className="px-3 py-2 text-[11.5px] text-slate-500">{t.ghiChu.join(' ')}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-            {(phanTich.boQua?.length > 0 || khongDoc?.length > 0) && (
-              <details className="px-4 py-3 text-[12px] text-slate-500 border-t border-slate-100">
-                <summary className="cursor-pointer font-semibold">Các trang không nhập ({(phanTich.boQua?.length || 0) + (khongDoc?.length || 0)})</summary>
-                <ul className="mt-2 list-disc pl-5 space-y-0.5">
-                  {phanTich.boQua.map((x) => <li key={x.trang}><b>{x.trang}</b>: {x.lyDo}</li>)}
-                  {(khongDoc || []).map((x) => <li key={x}><b>{x}</b>: {bieuTheoTenTrang(x)?.boQua || 'không phải biểu nhập liệu'}</li>)}
-                </ul>
-              </details>
-            )}
-          </div>
-
-          <div className="bg-white rounded-2xl border border-slate-200">
-            <div className="p-4 flex items-center gap-2 flex-wrap border-b border-slate-100">
-              <p className="font-bold text-slate-700 mr-2">Chi tiết theo ô</p>
-              {[['loi', `Lỗi (${demMuc('loi')})`, 'rose'], ['canh', `Cảnh báo (${demMuc('canh')})`, 'amber'], ['tt', `Thông tin (${demMuc('tt')})`, 'sky'], ['tat', 'Tất cả', 'slate']].map(([k, t]) => (
-                <button key={k} onClick={() => { setLocMuc(k); setTrang(0); }}
-                  className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${locMuc === k ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'}`}>{t}</button>
-              ))}
-              <select value={locBieu} onChange={(e) => { setLocBieu(e.target.value); setTrang(0); }} className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 ml-auto">
-                <option value="">Mọi biểu</option>
-                {ketQua.tomTat.map((t) => <option key={t.id} value={t.id}>{t.ma} — {t.ten}</option>)}
-              </select>
-            </div>
-            {dsVD.length === 0
-              ? <p className="px-4 py-8 text-center text-sm text-emerald-700 flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Không có mục nào ở mức này.</p>
-              : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-[12.5px]">
-                    <thead className="bg-slate-50 text-slate-600 text-left">
-                      <tr>{['Trang', 'Dòng', 'Ô', 'Cột', 'Giá trị', 'Mức', 'Nội dung', 'Cách xử lý'].map((h) => <th key={h} className="px-3 py-2 font-semibold border-b border-slate-200">{h}</th>)}</tr>
-                    </thead>
-                    <tbody>
-                      {dsVD.slice(tr * 100, tr * 100 + 100).map((v, i) => (
-                        <tr key={i} className={`border-b border-slate-100 align-top ${v.boQua ? 'opacity-70' : ''}`}>
-                          <td className="px-3 py-2 font-mono text-[11px] whitespace-nowrap">{v.trang}</td>
-                          <td className="px-3 py-2 text-right">{v.dongTep ?? <span className="text-slate-400" title="Dữ liệu đang có trên hệ thống">có sẵn #{v.dongHienCo}</span>}</td>
-                          <td className="px-3 py-2 font-mono">{v.cot && v.dongTep ? `${v.cot}${v.dongTep}` : v.cot}</td>
-                          <td className="px-3 py-2">{v.tenCot}</td>
-                          <td className="px-3 py-2 max-w-[160px] truncate" title={String(v.giaTri ?? '')}>{giaTriHienThi(v.giaTri)}</td>
-                          <td className="px-3 py-2 whitespace-nowrap">
-                            <span className={`text-[10.5px] font-bold px-1.5 py-0.5 rounded border ${v.muc === 'loi' ? 'bg-rose-50 text-rose-700 border-rose-200' : v.muc === 'canh' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-sky-50 text-sky-700 border-sky-200'}`}>
-                              {v.muc === 'loi' ? (v.chan ? 'Lỗi chặn' : 'Lỗi liên kết') : MUC_TEN[v.muc]}
-                            </span>
-                            {v.boQua && <span className="block text-[10px] text-rose-600 mt-0.5">đã bỏ qua dòng</span>}
-                          </td>
-                          <td className="px-3 py-2 min-w-[260px]">{v.chu}</td>
-                          <td className="px-3 py-2 min-w-[260px] text-[11.5px] text-slate-500">{v.cachXuLy}</td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
-            {soTrang > 1 && (
-              <div className="flex items-center justify-end gap-1 px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
-                <button disabled={tr === 0} onClick={() => setTrang(tr - 1)} className={nutPhu}><ChevronLeft className="w-4 h-4" /></button>
-                <span className="px-2">Trang {tr + 1}/{soTrang} · {dsVD.length} mục</span>
-                <button disabled={tr >= soTrang - 1} onClick={() => setTrang(tr + 1)} className={nutPhu}><ChevronRight className="w-4 h-4" /></button>
-              </div>
-            )}
-          </div>
-        </>
-      )}
-    </div>
-  );
-}
-
-// ─── Khối "Biên chế và nhân lực" ở Tổng quan ────────────────────────────────
-//  Số liệu từ `chiSoBienChe` (vtvlBaoCao.js). Hai con số về tăng/giảm được tách bạch:
-//   • "Nhu cầu so với biên chế giao" — phần mềm TỰ TÍNH, chỉ để THAM KHẢO;
-//   • "Đề nghị điều chỉnh (D2)"      — số ĐƠN VỊ GHI sau khi đã tự sắp xếp, phải thẩm định.
-//  Bộ biểu dặn "nhu cầu nhân lực không tự động làm tăng tổng biên chế", nên phần mềm
-//  không bao giờ tự viết "cần tăng/giảm biên chế".
-const coDau = (n) => (n > 0 ? `+${fmtSo(n)}` : fmtSo(n));
-function huongBC(n) {
-  if (n === null || n === undefined) return null;
-  if (n > 0) return { Ic: TrendingUp, chu: 'cao hơn', lop: 'bg-amber-50 text-amber-800 border-amber-200', so: 'text-amber-700' };
-  if (n < 0) return { Ic: TrendingDown, chu: 'thấp hơn', lop: 'bg-sky-50 text-sky-800 border-sky-200', so: 'text-sky-700' };
-  return { Ic: Equal, chu: 'bằng', lop: 'bg-emerald-50 text-emerald-800 border-emerald-200', so: 'text-emerald-700' };
-}
-
-function BienCheNhanLuc({ doc, kq, dbqhMacDinh, onMoBieu }) {
-  const bc = useMemo(() => chiSoBienChe(doc, kq, { dbqhMacDinh }), [doc, kq, dbqhMacDinh]);
-  const h = huongBC(bc.chenhBC);
-  const nd = bc.namDau;
-  const hDn = nd && nd.coSo ? huongBC(nd.tong) : null;
-  const giaoLoai = bc.theoLoai.filter((x) => x.bienChe && x.giao !== null);
-  const coGi = bc.giaoBC !== null || bc.canBC || bc.ngoaiBC || nd;
-  if (!coGi && !bc.theoLoai.length) return null;
-
-  const The = ({ nhan, children, phu, onClick, tieuDiem }) => (
-    <button type="button" onClick={onClick} disabled={!onClick}
-      className={`text-left bg-white rounded-2xl border p-4 shadow-sm transition ${tieuDiem || 'border-slate-200'} ${onClick ? 'hover:border-sky-300 hover:shadow-md cursor-pointer' : 'cursor-default'}`}>
-      <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{nhan}</p>
-      {children}
-      <p className="text-[12px] text-slate-500 mt-1 leading-snug">{phu}</p>
-    </button>
-  );
-
-  return (
-    <section className="rounded-2xl border border-slate-200 bg-slate-50/60 p-3 sm:p-4 space-y-3">
-      <div className="flex items-center justify-between gap-2 flex-wrap px-1">
-        <h3 className="font-extrabold text-slate-800 flex items-center gap-2"><Scale className="w-4 h-4 text-sky-700" /> Biên chế và nhân lực</h3>
-        <span className="text-[11.5px] text-slate-500">so cùng loại nhân lực · hợp đồng lao động không thuộc biên chế</span>
-      </div>
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        <The nhan="Biên chế được giao" onClick={() => onMoBieu('NGNL')}
-          phu={bc.giaoBC === null ? 'Chưa nhập — điền cột D "Biên chế giao" ở biểu NGUON_NHAN_LUC'
-            : `${giaoLoai.map((x) => `${x.dbqh ? 'ĐBQH chuyên trách' : x.loai} ${fmtSo(x.giao)}`).join(' · ')} · nguồn ${bc.nguonGiao === 'D2' ? `D2 năm ${bc.namGiao}` : 'NGUON_NHAN_LUC'}${bc.chuaXN ? ` · ${bc.chuaXN} dòng chưa xác nhận` : ''}`}>
-          <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{bc.giaoBC === null ? '—' : fmtSo(bc.giaoBC)}</p>
-        </The>
-
-        <The nhan="Nhu cầu người cần bố trí" onClick={() => onMoBieu('C3')}
-          phu={`cán bộ, công chức, viên chức · ${bc.soVTDat}/${bc.soVT} VTVL đủ căn cứ${bc.ngoaiBC ? ` · ngoài ra ${fmtSo(bc.ngoaiBC)} người hợp đồng (ngoài biên chế)` : ''}`}>
-          <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{fmtSo(bc.canBC)}</p>
-        </The>
-
-        <The nhan="Nhu cầu so với biên chế giao"
-          tieuDiem={h ? (bc.chenhBC > 0 ? 'border-amber-300' : bc.chenhBC < 0 ? 'border-sky-300' : 'border-emerald-300') : ''}
-          phu={bc.chenhBC === null ? 'Cần có biên chế được giao để so sánh'
-            : `THAM KHẢO, chưa phải đề nghị${bc.dbqh ? ` · so với ${fmtSo(bc.giaoVTVL ?? 0)} biên chế có VTVL (không gồm ${fmtSo(bc.dbqh.so)} ĐBQH chuyên trách)` : ''}${bc.duCanCu ? '' : ' · chưa đủ căn cứ toàn bộ VTVL'}`}>
-          {h ? (
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <p className={`text-3xl font-extrabold tabular-nums ${h.so}`}>{coDau(bc.chenhBC)}</p>
-              <span className={`inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg border ${h.lop}`}>
-                <h.Ic className="w-3.5 h-3.5" /> nhu cầu {h.chu} biên chế giao
+    <div className="flex items-stretch gap-1 overflow-x-auto pb-1">
+      {BUOC.map((b, i) => {
+        const dang = b.id === buoc;
+        const t = td[b.id];
+        const xong = t && t.chuaDat === 0 && t.tong > 0;
+        const mo = b.id === 'nguon' || !!doc;
+        return (
+          <button
+            key={b.id} onClick={() => mo && onChon(b.id)} disabled={!mo}
+            className={`shrink-0 text-left px-3 py-2 rounded-xl border-2 transition-colors min-w-[9.5rem]
+              ${dang ? 'border-sky-600 bg-sky-50' : mo ? 'border-slate-200 bg-white hover:border-sky-300' : 'border-slate-100 bg-slate-50 opacity-60'}`}
+          >
+            <div className="flex items-center gap-1.5">
+              <span className={`w-5 h-5 rounded-full grid place-items-center text-[11px] font-bold
+                ${xong ? 'bg-emerald-600 text-white' : dang ? 'bg-sky-700 text-white' : 'bg-slate-200 text-slate-600'}`}>
+                {xong ? <Check className="w-3 h-3" /> : i + 1}
               </span>
+              <span className={`text-[12.5px] font-bold ${dang ? 'text-sky-800' : 'text-slate-700'}`}>{b.nhan || b.ten}</span>
             </div>
-          ) : <p className="text-3xl font-extrabold text-slate-300 mt-1">—</p>}
-        </The>
-
-        <The nhan={`Đề nghị điều chỉnh (D2${nd ? ` · ${nd.nam}` : ''})`} onClick={() => onMoBieu('D2')}
-          tieuDiem={hDn ? 'border-violet-300' : ''}
-          phu={!nd ? 'Chưa lập phương án ở biểu D2'
-            : !nd.coSo ? `Cột G "Đề nghị điều chỉnh" còn trống · ${nd.soDong} dòng`
-              : `số đơn vị ghi · ${nd.daXong}/${nd.soDong} dòng đã thẩm định${bc.deNghiGiongNhau ? ' · như nhau 2027–2031' : ''}`}>
-          {hDn ? (
-            <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <p className="text-3xl font-extrabold tabular-nums text-violet-700">{coDau(nd.tong)}</p>
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-1 rounded-lg border bg-violet-50 text-violet-800 border-violet-200">
-                <hDn.Ic className="w-3.5 h-3.5" /> {nd.tong > 0 ? 'đề nghị tăng' : nd.tong < 0 ? 'đề nghị giảm' : 'giữ nguyên'}
-              </span>
-            </div>
-          ) : <p className="text-3xl font-extrabold text-slate-300 mt-1">—</p>}
-        </The>
-      </div>
-
-      {bc.theoLoai.length > 0 && (
-        <div className="bg-white rounded-xl border border-slate-200 overflow-x-auto">
-          <table className="w-full text-[12.5px]">
-            <thead className="bg-slate-50 text-slate-600 text-left">
-              <tr>{['Loại nhân lực', 'Biên chế giao', 'Số có mặt', 'Đã xác nhận ở D1', 'Người cần bố trí (C3)', 'Nhu cầu so với biên chế giao'].map((x) => <th key={x} className="px-3 py-2 font-semibold">{x}</th>)}</tr>
-            </thead>
-            <tbody>
-              {bc.theoLoai.map((x) => {
-                const hx = huongBC(x.chenh);
-                return (
-                  <tr key={x.loai} className="border-t border-slate-100">
-                    <td className="px-3 py-2 font-semibold text-slate-700">{x.loai}{!x.bienChe && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(ngoài biên chế)</span>}{x.dbqh && <span className="ml-1.5 text-[10.5px] font-normal text-slate-400">(không kê khai VTVL)</span>}</td>
-                    <td className="px-3 py-2 tabular-nums">{x.giao === null ? (x.bienChe ? '—' : 'không áp dụng') : fmtSo(x.giao)}</td>
-                    <td className="px-3 py-2 tabular-nums">{x.coMat === null ? '—' : fmtSo(x.coMat)}</td>
-                    <td className={`px-3 py-2 tabular-nums ${!x.dbqh && x.coMat !== null && x.d1 !== x.coMat ? 'text-amber-700 font-semibold' : ''}`}>{x.dbqh ? <span className="text-slate-400">không áp dụng</span> : fmtSo(x.d1)}</td>
-                    <td className="px-3 py-2 tabular-nums">{x.dbqh ? <span className="text-slate-400">không áp dụng</span> : fmtSo(x.can)}{x.canTatCa !== x.can ? <span className="text-[11px] text-slate-400"> (cả VTVL chưa đủ căn cứ: {fmtSo(x.canTatCa)})</span> : null}</td>
-                    <td className="px-3 py-2">{hx ? <span className={`inline-flex items-center gap-1 font-bold ${hx.so}`}><hx.Ic className="w-3.5 h-3.5" />{coDau(x.chenh)}</span> : <span className="text-slate-400">—</span>}</td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      )}
-
-      {bc.lechNhanLuc !== 0 && (
-        <p className="text-[12.5px] text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex gap-2">
-          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>D1 có <b>{bc.d1Tong}</b> người đã xác nhận, còn NGUON_NHAN_LUC ghi <b>{bc.coMatTong}</b> người có mặt (lệch {coDau(bc.lechNhanLuc)}). Cần đối chiếu: người kiêm nhiệm chỉ được tính một lần, mỗi người một mã nguồn lực.</span>
-        </p>
-      )}
-      {bc.chenhBC !== null && nd?.coSo > 0 && bc.chenhBC !== nd.tong && (
-        <p className="text-[12.5px] text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 flex gap-2">
-          <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
-          <span>Nhu cầu tính được chênh <b>{coDau(bc.chenhBC)}</b> so với biên chế giao, còn đơn vị đề nghị điều chỉnh <b>{coDau(nd.tong)}</b> — khác nhau là bình thường nếu đơn vị đã tính các giải pháp tự sắp xếp (điều chuyển, kiêm nhiệm, dùng chung nhân lực); nên ghi rõ ở cột H "Nguồn/giải trình" của D2.</span>
-        </p>
-      )}
-      {bc.dbqh && (
-        <p className="text-[12px] text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 flex gap-2">
-          <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-700" />
-          <span>Biên chế được giao <b>{fmtSo(bc.giaoBC)}</b> gồm cả <b>{fmtSo(bc.dbqh.so)}</b> đại biểu Quốc hội chuyên trách{bc.dbqh.nguon === 'mac-dinh' ? <> (theo {bc.dbqh.canCu}; muốn ghi chính thức thì thêm một dòng ở NGUON_NHAN_LUC với cơ quan <i>"Đoàn ĐBQH tỉnh Thanh Hóa"</i>)</> : ' (dòng "Đoàn ĐBQH…" ở NGUON_NHAN_LUC)'}. Đại biểu Quốc hội chuyên trách không kê khai vị trí việc làm (lương do Văn phòng Quốc hội chi trả) nên phần so với nhu cầu chỉ dùng <b>{fmtSo(bc.giaoVTVL ?? 0)}</b> biên chế có VTVL kê khai.</span>
-        </p>
-      )}
-      <p className="text-[11.5px] text-slate-500 px-1">
-        Theo bộ biểu: nhu cầu nhân lực <b>không tự động làm tăng tổng biên chế</b>. Số chính thức là cột G "Đề nghị điều chỉnh" của D2 — ghi sau khi đã tính các giải pháp tự sắp xếp và phải được thẩm định. Người quy đổi PP2 không phải biên chế.
-      </p>
-    </section>
-  );
-}
-
-// ─── Tab Tổng quan ──────────────────────────────────────────────────────────
-function TongQuan({ doc, kq, vanDe, docOnly, dbqhMacDinh, onSuaChung, onMoBieu, onTab, onXuat, onTaiMau, onSaoLuu }) {
-  const t = kq.tienDo;
-  const th = kq.tongHop;
-  const the = [
-    { nhan: 'Nhiệm vụ (A1)', so: t.soNV, phu: `${soDong(doc, 'A2')} công việc ở A2` },
-    { nhan: 'Vị trí việc làm (C1)', so: t.soVT, phu: `${t.soVTDu} VTVL đủ căn cứ${t.tyLe === null ? '' : ` · ${Math.round(t.tyLe * 100)}%`}` },
-    { nhan: 'Giờ ròng cần thiết', so: fmtSo(Math.round((th.gioB1 + th.gioTacDong) * 10) / 10), phu: `B1 ${fmtSo(Math.round(th.gioB1))} giờ · tác động B2 ${fmtSo(Math.round(th.gioTacDong))} giờ` },
-    { nhan: 'Người quy đổi PP2', so: fmtSo(Math.round(th.nguoiQuyDoi * 100) / 100), phu: `tham khảo, không phải biên chế · quỹ giờ ${fmtSo(th.quyGio)}` },
-  ];
-  const tong = (m) => Object.values(vanDe.demBieu).reduce((s, d) => s + (d[m] || 0), 0);
-  return (
-    <div className="space-y-5">
-      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-        {the.map((x) => (
-          <div key={x.nhan} className="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm">
-            <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400">{x.nhan}</p>
-            <p className="text-3xl font-extrabold text-slate-800 mt-1 tabular-nums">{x.so}</p>
-            <p className="text-[12px] text-slate-500 mt-1">{x.phu}</p>
-          </div>
-        ))}
-      </div>
-
-      <BienCheNhanLuc doc={doc} kq={kq} dbqhMacDinh={dbqhMacDinh} onMoBieu={onMoBieu} />
-
-      <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 bg-white rounded-2xl border border-slate-200 p-5">
-          <div className="flex items-center justify-between gap-2 mb-3">
-            <h3 className="font-extrabold text-slate-800">Trình tự 8 bước kê khai</h3>
-            <span className="text-[12px] text-slate-500">{tong('loi')} lỗi · {tong('canh')} cảnh báo</span>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-2">
-            {TAM_BUOC.map((s) => {
-              const ids = s.bieu === 'C1' ? ['C1', 'C2'] : s.bieu === 'D1' ? ['D1', 'DU', 'D2'] : s.bieu === 'K' ? [] : [s.bieu];
-              return (
-                <button key={s.buoc} onClick={() => (ids.length ? onMoBieu(ids[0]) : onTab('kiemtra'))}
-                  className="text-left border border-slate-200 hover:border-sky-300 hover:bg-sky-50/40 rounded-xl p-3 transition-colors">
-                  <div className="flex items-start gap-2.5">
-                    <span className="shrink-0 w-7 h-7 rounded-full bg-sky-700 text-white text-xs font-bold flex items-center justify-center">{s.buoc}</span>
-                    <div className="min-w-0">
-                      <p className="text-[13px] font-bold text-slate-700">{ids.length ? ids.map((id) => BIEU_THEO_ID[id].ma).join(' · ') : 'K · T · S — kiểm tra'}</p>
-                      <p className="text-[12px] text-slate-500 leading-snug">{s.lam}</p>
-                      <div className="mt-1.5 flex gap-1.5 flex-wrap">
-                        {ids.map((id) => {
-                          const d = vanDe.demBieu[id] || {};
-                          return (
-                            <span key={id} className="text-[10.5px] px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">
-                              {BIEU_THEO_ID[id].ma}: {soDong(doc, id)} dòng{d.loi ? <b className="text-rose-600"> · {d.loi} lỗi</b> : ''}{d.canh ? <span className="text-amber-700"> · {d.canh} c.báo</span> : ''}
-                            </span>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        <div className="space-y-4">
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-3">
-            <h3 className="font-extrabold text-slate-800">Thông tin chung (biểu T)</h3>
-            <div>
-              <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Cơ quan, đơn vị kê khai</label>
-              <input disabled={docOnly} defaultValue={doc.donVi} key={`dv-${doc.donVi}`} onBlur={(e) => onSuaChung('donVi', e.target.value.trim())} className={inp} placeholder="Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa" />
-            </div>
-            <div>
-              <label className="text-[11px] font-semibold text-slate-500 mb-1 block">Kỳ số liệu</label>
-              <input disabled={docOnly} defaultValue={doc.ky} key={`ky-${doc.ky}`} onBlur={(e) => onSuaChung('ky', e.target.value.trim())} className={inp} placeholder="vd: Năm 2026" />
-            </div>
-            {doc.capNhat && <p className="text-[12px] text-slate-500">Lưu lần cuối: <b className="text-slate-700">{new Date(doc.capNhat).toLocaleString('vi-VN')}</b>{doc.nguoiCapNhat ? <> bởi <b className="text-slate-700">{doc.nguoiCapNhat}</b></> : ''}.</p>}
-            <p className="text-[12px] text-slate-500">Tiến độ: <b className="text-slate-700">{t.trangThai}</b>. Quỹ giờ PP2 chế độ phổ biến <b>{fmtSo(th.quyGio)}</b> giờ/người/năm (do cơ quan chủ trì quy định).</p>
-          </div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-5 space-y-2">
-            <h3 className="font-extrabold text-slate-800 mb-1">Tệp</h3>
-            <button onClick={() => onTab('tep')} className={`${nutChinh} w-full`}><Upload className="w-4 h-4" /> Nhập từ tệp Excel</button>
-            <button onClick={onTaiMau} className={`${nutPhu} w-full`}><FileDown className="w-4 h-4" /> Tải biểu mẫu nhập liệu</button>
-            <button onClick={onXuat} className={`${nutPhu} w-full`}><Download className="w-4 h-4" /> Xuất toàn bộ dữ liệu (Excel)</button>
-            <button onClick={onSaoLuu} className={`${nutPhu} w-full`}><Save className="w-4 h-4" /> Sao lưu (JSON)</button>
-          </div>
-        </div>
-      </div>
-
-      <KiemTraNhanh kq={kq} onTab={onTab} />
+            {t && <p className="text-[10.5px] text-slate-500 mt-0.5 ml-6.5">{t.dat}/{t.tong} dòng đạt</p>}
+          </button>
+        );
+      })}
     </div>
   );
 }
 
-function KiemTraNhanh({ kq, onTab }) {
-  return (
-    <div className="bg-white rounded-2xl border border-slate-200">
-      <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-        <h3 className="font-extrabold text-slate-800">Kiểm tra nhanh (biểu K)</h3>
-        {onTab && <button onClick={() => onTab('kiemtra')} className="text-xs font-semibold text-sky-700 hover:underline">Xem chi tiết từng ô →</button>}
-      </div>
-      <div className="overflow-x-auto">
-        <table className="w-full text-[12.5px]">
-          <thead className="bg-slate-50 text-slate-600 text-left"><tr>{['Chỉ tiêu kiểm tra', 'Kết quả', 'Yêu cầu xử lý', 'Lưu ý'].map((h) => <th key={h} className="px-4 py-2 font-semibold">{h}</th>)}</tr></thead>
-          <tbody>
-            {kq.kiemTra.map((x, i) => (
-              <tr key={i} className="border-t border-slate-100">
-                <td className="px-4 py-2 text-slate-700">{x.chiTieu}</td>
-                <td className="px-4 py-2"><span className={`font-bold px-2 py-0.5 rounded ${x.kq ? 'bg-amber-100 text-amber-800' : 'bg-emerald-100 text-emerald-700'}`}>{x.kq}</span></td>
-                <td className="px-4 py-2 text-slate-500">{x.xuLy}</td>
-                <td className="px-4 py-2 text-slate-500">{x.luuY}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p className="px-5 py-3 text-[11.5px] text-slate-400 border-t border-slate-100">Số 0 khi chưa nhập dữ liệu không có nghĩa là đạt. Kiểm tra tự động không thay thế thẩm định; người đứng đầu xác nhận kết quả.</p>
-    </div>
-  );
-}
-
-// ─── Tab Kiểm tra lỗi ───────────────────────────────────────────────────────
-function KiemTraTab({ doc, kq, vanDe, onDiToi }) {
-  const [muc, setMuc] = useState('loi');
-  const [bieu, setBieu] = useState('');
-  const [trang, setTrang] = useState(0);
-  const ds = vanDe.ds.filter((v) => (muc === 'tat' ? v.muc !== 'tt' : v.muc === muc) && (!bieu || v.bieu === bieu));
-  const soTrang = Math.max(1, Math.ceil(ds.length / 100));
-  const tr = Math.min(trang, soTrang - 1);
-  const dem = (m) => vanDe.ds.filter((v) => v.muc === m).length;
-  return (
-    <div className="space-y-5">
-      <KiemTraNhanh kq={kq} />
-      <div className="bg-white rounded-2xl border border-slate-200">
-        <div className="p-4 flex items-center gap-2 flex-wrap border-b border-slate-100">
-          <p className="font-bold text-slate-700 mr-2">Lỗi và cảnh báo theo từng ô</p>
-          {[['loi', `Lỗi (${dem('loi')})`], ['canh', `Cảnh báo (${dem('canh')})`], ['tat', 'Cả hai']].map(([k, t]) => (
-            <button key={k} onClick={() => { setMuc(k); setTrang(0); }} className={`text-xs font-semibold px-3 py-1.5 rounded-lg border ${muc === k ? 'bg-slate-800 text-white border-slate-800' : 'bg-white text-slate-600 border-slate-200'}`}>{t}</button>
-          ))}
-          <select value={bieu} onChange={(e) => { setBieu(e.target.value); setTrang(0); }} className="text-xs border border-slate-200 rounded-lg px-2 py-1.5">
-            <option value="">Mọi biểu</option>
-            {BIEU.filter((b) => !b.tuTinh).map((b) => <option key={b.id} value={b.id}>{b.ma} — {b.ten}</option>)}
-          </select>
-          {ds.length > 0 && <button onClick={() => import('./lib/vtvlXuat').then((m) => m.xuatVanDe(ds, doc))} className={`${nutPhu} ml-auto`}><Download className="w-4 h-4" /> Xuất Excel</button>}
-        </div>
-        {ds.length === 0
-          ? <p className="px-4 py-10 text-center text-sm text-emerald-700 flex items-center justify-center gap-2"><CheckCircle2 className="w-4 h-4" /> Không có mục nào.</p>
-          : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-[12.5px]">
-                <thead className="bg-slate-50 text-slate-600 text-left"><tr>{['Biểu', 'Dòng', 'Mã của dòng', 'Cột', 'Mức', 'Nội dung', ''].map((h) => <th key={h} className="px-3 py-2 font-semibold">{h}</th>)}</tr></thead>
-                <tbody>
-                  {ds.slice(tr * 100, tr * 100 + 100).map((v, i) => {
-                    const b = BIEU_THEO_ID[v.bieu];
-                    const r = (doc.bieu[v.bieu] || []).find((x) => x._id === v.id) || {};
-                    const k = cotKhoa(b);
-                    return (
-                      <tr key={i} className="border-t border-slate-100 align-top">
-                        <td className="px-3 py-2 font-semibold whitespace-nowrap">{b.ma}</td>
-                        <td className="px-3 py-2 text-right">{v.dong}</td>
-                        <td className="px-3 py-2 font-mono text-[11.5px]">{k ? r[k.k] : ''}</td>
-                        <td className="px-3 py-2">{v.cot ? `${v.cot} · ${b.cot.find((c) => c.k === v.cot)?.ten}` : ''}</td>
-                        <td className="px-3 py-2"><span className={`text-[10.5px] font-bold px-1.5 py-0.5 rounded border ${v.muc === 'loi' ? 'bg-rose-50 text-rose-700 border-rose-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>{MUC_TEN[v.muc]}</span></td>
-                        <td className="px-3 py-2 min-w-[280px]">{v.chu}</td>
-                        <td className="px-3 py-2"><button onClick={() => onDiToi(v.bieu, v.id)} className="text-xs font-semibold text-sky-700 hover:underline whitespace-nowrap">Đến ô →</button></td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          )}
-        {soTrang > 1 && (
-          <div className="flex items-center justify-end gap-1 px-4 py-3 border-t border-slate-100 text-xs text-slate-500">
-            <button disabled={tr === 0} onClick={() => setTrang(tr - 1)} className={nutPhu}><ChevronLeft className="w-4 h-4" /></button>
-            <span className="px-2">Trang {tr + 1}/{soTrang}</span>
-            <button disabled={tr >= soTrang - 1} onClick={() => setTrang(tr + 1)} className={nutPhu}><ChevronRight className="w-4 h-4" /></button>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ─── Tab Hướng dẫn ──────────────────────────────────────────────────────────
-function HuongDanTab() {
-  const vd = useMemo(() => { const d = viDuKiemThu(); return { d, kq: tinhToan(d) }; }, []);
-  const b1 = vd.kq.tinh.B1[0], b2 = vd.kq.B2[0], c3 = vd.kq.tinh.C3[0];
-  const Khoi = ({ tieuDe, children }) => <section className="bg-white rounded-2xl border border-slate-200 p-5"><h3 className="font-extrabold text-slate-800 mb-3">{tieuDe}</h3>{children}</section>;
-  return (
-    <div className="space-y-5 text-[13px] text-slate-700">
-      <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 text-[12.5px] text-amber-900">
-        Phân hệ dựng theo <b>bản sửa đề nghị v2 của nhóm tư vấn UEB (23/10/2026)</b> trên nền tệp "03. Bo bieu VTVL 19-10-2026" của Ban — <b>chưa phải bản Ban ban hành</b>. Khi có bản chính thức cần rà lại danh sách chọn, công thức và hướng dẫn từng cột.
-      </div>
-      <Khoi tieuDe="Trình tự 8 bước (trang THAO_TAC_NHANH)">
-        <div className="overflow-x-auto"><table className="w-full text-[12.5px]">
-          <thead className="bg-slate-50 text-left text-slate-600"><tr>{['Bước', 'Biểu', 'Cơ sở cần làm', 'Không làm / điều kiện được tính'].map((h) => <th key={h} className="px-3 py-2">{h}</th>)}</tr></thead>
-          <tbody>{TAM_BUOC.map((s) => <tr key={s.buoc} className="border-t border-slate-100 align-top"><td className="px-3 py-2 font-bold">{s.buoc}</td><td className="px-3 py-2">{BIEU_THEO_ID[s.bieu]?.ma || 'K, T, S'}</td><td className="px-3 py-2">{s.lam}</td><td className="px-3 py-2 text-slate-500">{s.khong}</td></tr>)}</tbody>
-        </table></div>
-      </Khoi>
-      <div className="grid lg:grid-cols-2 gap-5">
-        <Khoi tieuDe="Quy ước và nguyên tắc">
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li><b>Ô trắng</b> = nhập hoặc chọn; <b>ô xám</b> (biểu tượng Σ) = công thức tự tính, không nhập tay. Rê chuột lên tên cột để xem hướng dẫn của HD_DIEN_BIEU; bấm số thứ tự dòng để mở biểu mẫu đầy đủ.</li>
-            <li><b>Ô mã liên kết</b> (Mã nhiệm vụ, Mã VTVL, Mã công việc, Mã SP…): bấm vào ô để <b>chọn từ danh sách mã đã có</b> ở biểu nguồn, kèm tên — gõ để lọc, ↑ ↓ Enter để chọn. Mã hiện màu xanh có biểu tượng liên kết là bấm được để mở đúng dòng nguồn; nút <b>Quay lại</b> đưa về dòng đang nhập.</li>
-            <li><b>Quỹ giờ PP2</b> chế độ phổ biến: (261 − 11 − 12) × 8 = <b>{fmtSo(QUY_GIO_PP2)}</b> giờ/người/năm. Chế độ đặc thù dùng giờ riêng có căn cứ và đã kiểm chứng ở C1 (cột F, H, I). Không cộng 10–15% cố định, không trừ tiếp phép/lễ ở mẫu số.</li>
-            <li><b>Người quy đổi PP2</b> giữ số thập phân — không tự làm tròn thành biên chế; khác "người cần bố trí" và khác "biên chế được giao".</li>
-            <li>Chỉ tính theo nhiệm vụ, sản phẩm, năng lực và thời gian — <b>không dùng ngạch, bậc, lương</b>.</li>
-            <li>Chỉ dòng B1 có R = ĐẠT mới vào C3; chỉ dòng B2_CT có P = ĐẠT mới được cộng/trừ giờ.</li>
-            <li>Mã <b>VD-…</b> chỉ để minh họa — không dùng làm số liệu tổng hợp.</li>
-            <li>Sửa một dòng <b>đã xác nhận</b> (cột cảnh báo đã ĐẠT, hoặc trạng thái "Đã kiểm chứng/Đã xác nhận…") thì phần mềm tự ghi biểu S — Nhật ký thay đổi (người sửa, giá trị cũ/mới, ngày); cột "Nguồn" ở S cần bổ sung căn cứ.</li>
-          </ul>
-        </Khoi>
-        <Khoi tieuDe="Khung 06 nhóm sản phẩm (tham khảo)">
-          <table className="w-full text-[12.5px]"><tbody>{SAU_NHOM.map(([n, t]) => <tr key={n} className="border-t border-slate-100"><td className="px-2 py-1.5 font-bold w-10">{n}</td><td className="px-2 py-1.5">{t}</td></tr>)}</tbody></table>
-          <p className="mt-2 text-[12px] text-slate-500">Phân nhóm theo công việc, không theo ngạch/bậc. Chỉ dùng phút chuẩn khi DM_SAN_PHAM cột G = "Đã xác nhận"; chưa xác nhận thì dùng thời gian thực đo có chứng cứ hoặc PP1/PP3.</p>
-        </Khoi>
-      </div>
-      <Khoi tieuDe="Ví dụ kiểm thử công thức (trang KT_GIA_DINH) — tính trực tiếp bằng phần mềm">
-        <div className="grid sm:grid-cols-3 gap-3 text-[12.5px]">
-          <div className="rounded-xl bg-slate-50 p-3"><p className="text-slate-500">Giờ gốc (B1)</p><p className="font-bold">6.000 SP × 30 phút ÷ 60 = <span className="text-sky-700">{fmtSo(b1.G)}</span> giờ</p></div>
-          <div className="rounded-xl bg-slate-50 p-3"><p className="text-slate-500">Tác động ròng (B2)</p><p className="font-bold">{fmtSo(b2.E)} − {fmtSo(b2.C)} − {fmtSo(b2.D)} = <span className="text-sky-700">{fmtSo(b2.F)}</span> giờ</p></div>
-          <div className="rounded-xl bg-slate-50 p-3"><p className="text-slate-500">Người quy đổi PP2 (C3)</p><p className="font-bold">{fmtSo(c3.E)} ÷ {fmtSo(c3.F)} = <span className="text-sky-700">{fmtSo(Math.round(c3.G * 10000) / 10000)}</span></p></div>
-        </div>
-        <p className="mt-2 text-[12px] text-slate-500">Khớp kỳ vọng của bộ biểu (3.000 → 2.600 → 2.600/1.904). Số liệu giả định, không dùng làm báo cáo.</p>
-      </Khoi>
-      <Khoi tieuDe="Những chỗ bộ biểu Excel chưa thống nhất — phần mềm đã chọn cách hiểu">
-        <div className="space-y-3">
-          {KHAC_EXCEL.map((x) => (
-            <div key={x.cho} className="border border-slate-200 rounded-xl p-3">
-              <p className="font-bold text-slate-800">{x.cho}</p>
-              <p className="text-[12.5px] mt-1"><b className="text-slate-500">Tệp Excel:</b> {x.excel}</p>
-              <p className="text-[12.5px] mt-0.5"><b className="text-sky-700">Phần mềm:</b> {x.phanMem}</p>
-            </div>
-          ))}
-        </div>
-      </Khoi>
-    </div>
-  );
-}
-
-// ─── Tab Báo cáo kết quả kê khai ────────────────────────────────────────────
-const mauBuoc = (t) => (t === 'Hoàn thành' ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  : t === 'Còn tồn tại' ? 'bg-amber-50 text-amber-800 border-amber-200' : 'bg-slate-50 text-slate-500 border-slate-200');
-const soBC = (v, k = 4) => (v === null || v === undefined || v === '' ? '—' : typeof v === 'number' ? v.toLocaleString('vi-VN', { maximumFractionDigits: k }) : v);
-
-function BangBC({ dau, dong, tong, canPhai = [] }) {
-  return (
-    <div className="overflow-x-auto">
-      <table className="w-full text-[12.5px] border-collapse">
-        <thead><tr className="bg-slate-100 text-slate-700">{dau.map((h) => <th key={h} className="border border-slate-200 px-2.5 py-2 text-left font-semibold align-bottom">{h}</th>)}</tr></thead>
-        <tbody>
-          {dong.length === 0 && <tr><td colSpan={dau.length} className="border border-slate-200 px-3 py-4 text-center text-slate-400 italic">(chưa có dữ liệu)</td></tr>}
-          {dong.map((r, i) => (
-            <tr key={i} className="align-top">{r.map((v, j) => <td key={j} className={`border border-slate-200 px-2.5 py-1.5 ${canPhai.includes(j) || typeof v === 'number' ? 'text-right tabular-nums' : ''}`}>{typeof v === 'object' && v !== null && !Array.isArray(v) && v.$$typeof ? v : soBC(v)}</td>)}</tr>
-          ))}
-          {tong && <tr className="bg-slate-50 font-bold">{tong.map((v, j) => <td key={j} className={`border border-slate-200 px-2.5 py-1.5 ${typeof v === 'number' ? 'text-right tabular-nums' : ''}`}>{v === '' ? '' : soBC(v)}</td>)}</tr>}
-        </tbody>
-      </table>
-    </div>
-  );
-}
-
-function BaoCaoTab({ doc, dbqhMacDinh, onTab }) {
-  const bc = useMemo(() => lapBaoCao(doc, { dbqhMacDinh }), [doc, dbqhMacDinh]);
-  const [dangXuat, setDangXuat] = useState(false);
-  const tt = bc.thongTin;
-  const kl = bc.khoiLuong;
-  const taiWord = async () => {
-    setDangXuat(true);
-    try { const m = await import('./lib/exporters'); await m.exportBaoCaoVTVL(bc); } finally { setDangXuat(false); }
-  };
-  const Muc = ({ so, ten, children }) => (
-    <section className="bg-white rounded-2xl border border-slate-200 p-5 print:border-0 print:p-0 print:rounded-none break-inside-avoid-page">
-      <h3 className="font-extrabold text-slate-800 mb-3">{so}. {ten}</h3>{children}
-    </section>
-  );
-  return (
-    <div className="space-y-4">
-      <div className="bg-white rounded-2xl border border-slate-200 p-5 flex items-start justify-between gap-4 flex-wrap print:border-0 print:p-0">
-        <div className="min-w-0">
-          <p className="text-[11px] font-bold uppercase tracking-wider text-sky-700">Báo cáo kết quả kê khai</p>
-          <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Kết quả kê khai bộ biểu xác định vị trí việc làm và nhu cầu nhân lực</h2>
-          <p className="text-[12.5px] text-slate-500 mt-1">{tt.donVi || '(chưa ghi cơ quan, đơn vị — điền ở tab Tổng quan)'} · kỳ {tt.ky || '(chưa ghi)'} · lập ngày {tt.ngayLap}</p>
-          <p className={`mt-2 inline-flex items-center gap-1.5 text-[13px] font-bold px-3 py-1.5 rounded-lg border ${bc.hoanThien ? 'bg-emerald-50 text-emerald-800 border-emerald-200' : 'bg-rose-50 text-rose-800 border-rose-200'}`}>
-            {bc.hoanThien ? <CheckCircle2 className="w-4 h-4" /> : <AlertTriangle className="w-4 h-4" />}{bc.trangThai}
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap print:hidden">
-          <button onClick={taiWord} disabled={dangXuat} className={nutChinh}><FileDown className="w-4 h-4" /> {dangXuat ? 'Đang tạo…' : 'Tải báo cáo Word (.docx)'}</button>
-          <button onClick={() => window.print()} className={nutPhu}><Printer className="w-4 h-4" /> In / lưu PDF</button>
-          <button onClick={() => import('./lib/vtvlXuat').then((m) => m.xuatDuLieu(doc, tinhToan(doc)))} className={nutPhu}><Download className="w-4 h-4" /> Số liệu chi tiết (Excel)</button>
-        </div>
-      </div>
-      {!bc.hoanThien && (
-        <p className="text-[12.5px] text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-4 py-2.5 print:hidden">
-          Báo cáo vẫn lập được khi chưa hoàn thiện (tệp Word ghi rõ <b>"DỰ THẢO — CHƯA HOÀN THIỆN"</b>). Xử lý các tồn tại ở mục VII hoặc tab <button onClick={() => onTab('kiemtra')} className="font-bold underline">Kiểm tra lỗi</button> rồi lập lại.
-        </p>
-      )}
-
-      <Muc so="I" ten="Thông tin chung">
-        <ul className="text-[13px] text-slate-700 space-y-1">
-          <li><b>Cơ quan, đơn vị:</b> {tt.donVi || '(chưa ghi)'} · <b>Kỳ số liệu:</b> {tt.ky || '(chưa ghi)'}</li>
-          <li><b>Căn cứ:</b> {tt.nguon}.</li>
-          <li><b>Quỹ giờ quy đổi PP2</b> (chế độ phổ biến): {soBC(tt.quyGio)} giờ/người/năm = (261 − 11 − 12) × 8.</li>
-        </ul>
-      </Muc>
-
-      <Muc so="II" ten="Tình trạng kê khai theo 8 bước">
-        <BangBC dau={['Bước', 'Nội dung', 'Biểu', 'Số dòng', 'Đạt', 'Chưa đạt', 'Lỗi', 'Cảnh báo', 'Tình trạng']}
-          dong={bc.buoc.map((b) => [b.buoc, b.ten, b.bieu, b.soDong, b.dat, b.chuaDat, b.loi, b.canh,
-            <span key="t" className={`inline-block text-[11px] font-bold px-2 py-0.5 rounded border ${mauBuoc(b.trangThai)}`}>{b.trangThai}</span>])} />
-      </Muc>
-
-      <Muc so="III" ten="Khối lượng công việc và tác động (B1, B2)">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-[12.5px]">
-          {[['Giờ B1 được tính', kl.gioB1, `${kl.dongB1Dat}/${kl.soDongB1} dòng B1 đạt`],
-            ['Giảm do số hóa, cải tiến', kl.gioGiamSoHoa, 'giờ/năm'],
-            ['Giảm do thuê DV, tự chủ, XHH', kl.gioGiamKhac, 'giờ/năm'],
-            ['Công việc mới phát sinh', kl.gioMoi, `${kl.dongB2CTDat}/${kl.soDongB2CT} dòng B2_CT đạt`],
-            ['Tác động ròng B2', kl.gioTacDong, 'âm = giảm giờ'],
-            ['Giờ ròng cần thiết', kl.gioRong, 'B1 + tác động B2'],
-            ['Nhiệm vụ / công việc', `${kl.soNV} / ${kl.soCV}`, 'A1 / A2'],
-            ['Người quy đổi PP2', bc.tong.nguoiQD, 'tham khảo — không phải biên chế']].map(([n, v, phu]) => (
-            <div key={n} className="rounded-xl bg-slate-50 border border-slate-200 p-3">
-              <p className="text-slate-500">{n}</p><p className="text-xl font-extrabold text-slate-800 tabular-nums">{soBC(v)}</p><p className="text-[11px] text-slate-400">{phu}</p>
-            </div>
-          ))}
-        </div>
-      </Muc>
-
-      <Muc so="IV" ten="Nhu cầu nhân lực từng vị trí việc làm (C1, C3)">
-        <BangBC dau={['Mã VTVL', 'Tên VTVL', 'Loại nhân lực', 'Phương pháp', 'Giờ B1', 'Tác động B2', 'Giờ ròng', 'Quỹ giờ', 'Người quy đổi PP2', 'Người PP1', 'Người PP3', 'Người cần bố trí', 'Kết quả kiểm tra']}
-          dong={bc.vtvl.map((x) => [x.ma, x.ten, x.loaiNL, x.pp, x.gioB1, x.gioTD, x.gioRong, x.quyGio, x.nguoiQD, x.nguoiPP1, x.nguoiPP3, x.nguoiCan,
-            <span key="m" className={`inline-block text-[10.5px] font-bold px-1.5 py-0.5 rounded border ${x.dat ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-800 border-amber-200'}`}>{x.canhBao}</span>])}
-          tong={['', 'Cộng', '', '', '', '', '', '', bc.tong.nguoiQD, '', '', bc.tong.nguoiCan, '']} />
-        <div className="mt-3">
-          <p className="text-[12.5px] font-bold text-slate-700 mb-1.5">Tổng hợp theo loại nhân lực</p>
-          <BangBC dau={['Loại nhân lực', 'Số VTVL', 'Người quy đổi PP2', 'Người cần bố trí', 'Số người hiện có (D1 đã xác nhận)']}
-            dong={bc.theoLoai.map((o) => [o.loai, o.soVT, o.nguoiQD, o.nguoiCan, o.soNguoi])}
-            tong={['Cộng', bc.tong.soVT, bc.tong.nguoiQD, bc.tong.nguoiCan, bc.tong.soNguoiHienCo]} />
-        </div>
-      </Muc>
-
-      <Muc so="V" ten="Đối chiếu với nguồn lực hiện có (D1) — tham khảo">
-        <p className="text-[12px] text-slate-500 mb-2">Chỉ so sánh cùng đơn vị tính; nguồn lực hiện có chỉ tính bản ghi D1 đã xác nhận{bc.tong.d1BoQua ? ` (${bc.tong.d1BoQua} bản ghi chưa xác nhận không được tính)` : ''}. Chênh lệch dương = cần thêm, âm = nhiều hơn nhu cầu.</p>
-        <BangBC dau={['Mã VTVL', 'Tên VTVL', 'Người cần bố trí (C3)', 'Số người hiện có (D1)', 'Chênh lệch (người)', 'Người quy đổi PP2', 'Quy đổi hiện có', 'Chênh lệch (quy đổi)']}
-          dong={bc.vtvl.map((x) => [x.ma, x.ten, x.nguoiCan, x.hienCo.soNguoi, x.chenhNguoi, x.nguoiQD, x.hienCo.quyDoi, x.chenhQD])} />
-      </Muc>
-
-      <Muc so="VI" ten="Phương án bố trí giai đoạn 2027–2031 (D2)">
-        <BangBC dau={['Năm', 'Số dòng', 'Người cần bố trí', 'Người có thể bố trí', 'Biên chế được giao', 'Đề nghị điều chỉnh', 'Đã thẩm định/quyết định']}
-          dong={bc.phuongAn.nam.map((y) => { const t = bc.phuongAn.tongNam[y]; return [String(y), t.soDong, t.C, t.D, t.E, t.G, `${t.daXong}/${t.soDong}`]; })} />
-      </Muc>
-
-      <Muc so="VII" ten="Nhận xét và tồn tại">
-        <ul className="list-disc pl-5 space-y-1.5 text-[13px] text-slate-700">{bc.nhanXet.map((t) => <li key={t}>{t}</li>)}</ul>
-        {bc.tonTai.length > 0 && (
-          <div className="mt-3">
-            <p className="text-[12.5px] font-bold text-slate-700 mb-1.5">Tồn tại cần xử lý ({bc.tongLoi} lỗi · {bc.tongCanh} cảnh báo){bc.tonTai.length > 50 ? ' — 50 mục đầu' : ''}</p>
-            <BangBC dau={['Biểu', 'Dòng', 'Mã của dòng', 'Cột', 'Mức', 'Nội dung']}
-              dong={bc.tonTai.slice(0, 50).map((x) => [x.bieu, x.dong, x.maDong, x.cot, x.muc === 'loi' ? 'Lỗi' : 'Cảnh báo', x.chu])} />
-          </div>
-        )}
-        <div className="mt-4 rounded-xl bg-slate-50 border border-slate-200 p-3">
-          <p className="text-[12px] font-bold text-slate-600 mb-1">Lưu ý khi sử dụng kết quả</p>
-          <ul className="list-disc pl-5 space-y-0.5 text-[12px] text-slate-500 italic">{bc.luuY.map((t) => <li key={t}>{t}</li>)}</ul>
-        </div>
-      </Muc>
-    </div>
-  );
-}
-
-// ─── Tab "Tách tệp · Nộp cổng" ───────────────────────────────────────────────
-//  Bộ biểu của Ban là MỘT tệp nhiều trang; cổng btctw.ueb.edu.vn lại nhận theo
-//  PHIẾU — mỗi biểu một phiếu, mỗi phiếu một tệp .xlsx. Tab này tách 1 → 9 tệp.
-//  ⚠️ Bắt buộc dùng MẪU TẢI TỪ CỔNG: mẫu mang theo hai trang ẩn khai phiếu nào,
-//  cột nào, danh sách chọn nào — dựng tệp từ đầu thì cổng từ chối. Chi tiết và
-//  lý do ghi ở đầu src/lib/vtvlCong.js.
-function NopCongTab({ doc, kq, tenDonVi }) {
-  const [mau, setMau] = useState({});          // maBieu → { ten, blob, kq }
-  const [dangNap, setDangNap] = useState(false);
-  const [loiNap, setLoiNap] = useState([]);
-  const [boQuaLoiChan, setBoQuaLoiChan] = useState(true);
-  const [dangTai, setDangTai] = useState('');
-  const [moSoat, setMoSoat] = useState('');
+// ─── Bước 1: chọn nguồn dữ liệu ─────────────────────────────────────────────
+function BuocNguon({ onNap, onMau, dangDoc, loi, doc }) {
   const oTep = useRef(null);
-  // NGUỒN DỮ LIỆU: bộ biểu đang nhập trong phần mềm, HOẶC một tệp bộ biểu nạp
-  // thẳng vào tab này. Tệp nạp ở đây CHỈ dùng để dựng 09 tệp nộp, KHÔNG ghi vào
-  // dữ liệu của đơn vị nào — nạp bộ biểu của xã vào bản của tỉnh là mất dữ liệu tỉnh.
-  const [boTep, setBoTep] = useState(null);         // { ten, doc, kq, tomTat, chan, canh, ms, canhQuyGio }
-  const [dangDocBo, setDangDocBo] = useState(null); // { ten, phan }
-  const [loiBo, setLoiBo] = useState('');
-  const oBoTep = useRef(null);
-  const [dangTach, setDangTach] = useState(null);  // { xong, tong, ten }
-  const [daTach, setDaTach] = useState(null);      // [{ id, ten, dong }]
-  const [loiTach, setLoiTach] = useState('');
-
-  const nguonDoc = boTep?.doc || doc;
-  const nguonKq = boTep?.kq || kq;
-  const tenNguonDV = boTep ? (boTep.doc.donVi || boTep.ten) : tenDonVi;
-
-  const tongQuan = useMemo(() => tongQuanNop(nguonDoc, nguonKq), [nguonDoc, nguonKq]);
-
-  // Chuẩn bị dữ liệu nộp cho cả 9 biểu (có mẫu thì ghép mã dòng, chưa có thì xem trước).
-  const nop = useMemo(() => {
-    const out = {};
-    for (const cb of congTheoThuTu()) {
-      const m = mau[cb.maBieu];
-      try {
-        out[cb.maBieu] = chuanBiNop(cb.bieu, nguonDoc, {
-          tt: m?.kq?.tt || null, danhMuc: m?.kq?.danhMuc || {}, dongMau: m?.kq?.dongMau || [],
-          dongMauCoDuLieu: m?.kq?.dongMauCoDuLieu || 0, boQuaLoiChan, kq: nguonKq,
-        });
-      } catch (e) { out[cb.maBieu] = { loi: e.message }; }
-    }
-    return out;
-  }, [nguonDoc, nguonKq, mau, boQuaLoiChan]);
-
-  // Đọc một tệp bộ biểu đầy đủ (1 tệp nhiều trang) → dựng bản dữ liệu RIÊNG cho tab này.
-  const napBoBieu = async (file) => {
-    if (!file) return;
-    const duoi = (file.name.split('.').pop() || '').toLowerCase();
-    if (!['xlsx', 'xlsm', 'json'].includes(duoi)) {
-      setLoiBo(`Cần tệp bộ biểu .xlsx (hoặc bản sao lưu .json), không phải ".${duoi}". Một tệp CSV chỉ chứa được một biểu — dùng tab "Nhập từ tệp" cho trường hợp đó.`);
-      return;
-    }
-    setLoiBo(''); setDangDocBo({ ten: file.name, phan: 0 });
-    const t0 = Date.now();
-    try {
-      const r = await docTep(file, { onTienDo: ({ phan: p }) => setDangDocBo((s) => (s ? { ...s, phan: p } : s)) });
-      const pt = phanTichTep(r.nguon);
-      if (!Object.keys(pt.bieu).length) {
-        throw new Error('Tệp không có dòng dữ liệu nào ở các biểu A1…D2. Hãy chọn đúng tệp BỘ BIỂU (một tệp nhiều trang), không phải mẫu phiếu tải từ cổng.');
-      }
-      const kqN = chuanBiNhap(pt, chuanHoaVTVL({}), { cheDo: 'thay', boQuaLoi: false });
-      const d = chuanHoaVTVL(kqN.docMoi);
-      const ds = kqN.kiemTraSau?.ds || [];
-      setBoTep({
-        ten: file.name, doc: d, kq: kqN.tinhSau || tinhToan(d), tomTat: kqN.tomTat,
-        chan: ds.filter((x) => x.chan).length, canh: ds.filter((x) => x.muc === 'canh').length,
-        ms: Date.now() - t0, canhQuyGio: kqN.canhQuyGio,
-      });
-    } catch (e) { setLoiBo(e.message); } finally { setDangDocBo(null); }
-  };
-
-  // TÁCH THUẦN: một tệp bộ biểu → 09 tệp, mỗi tệp đúng một biểu. KHÔNG cần mẫu
-  // của cổng, không đụng dữ liệu đơn vị nào. Việc nộp lên cổng là bước riêng ở dưới.
-  const tach = async () => {
-    setLoiTach(''); setDaTach(null); setDangTach({ xong: 0, tong: 9, ten: '' });
-    try {
-      const m = await import('./lib/vtvlXuat');
-      setDaTach(await m.xuatTachBieu(nguonDoc, nguonKq, { onTien: setDangTach }));
-    } catch (e) { setLoiTach(e.message); } finally { setDangTach(null); }
-  };
-
-  const napMau = async (files) => {
-    setDangNap(true); setLoiNap([]);
-    const them = {}; const loi = [];
-    for (const f of files) {
-      try {
-        const r = await docMauCong(f);
-        if (!r.ok || !r.cb) { loi.push(`${f.name}: ${(r.loi || ['không đọc được']).join(' ')}`); continue; }
-        them[r.cb.maBieu] = { ten: f.name, blob: f, kq: r };
-      } catch (e) { loi.push(`${f.name}: ${e.message}`); }
-    }
-    setMau((cu) => ({ ...cu, ...them }));
-    setLoiNap(loi);
-    setDangNap(false);
-  };
-
-  const taiMot = async (cb) => {
-    const m = mau[cb.maBieu]; const n = nop[cb.maBieu];
-    if (!m || !n || n.loi) return;
-    setDangTai(cb.maBieu);
-    try {
-      const bytes = await dungTepCong(m.blob, { cb, tt: m.kq.tt, rows: n.rows });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }));
-      a.download = m.ten || tenTepCong(cb, { tenDonVi: tenNguonDV });
-      document.body.appendChild(a); a.click(); a.remove();
-      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
-    } catch (e) { setLoiNap([`${cb.maBieu}: ${e.message}`]); } finally { setDangTai(''); }
-  };
-
-  const taiTatCa = async () => {
-    for (const cb of congTheoThuTu()) {
-      if (!mau[cb.maBieu] || nop[cb.maBieu]?.loi) continue;
-      // Trình duyệt chặn nếu tải nhiều tệp dồn một nhịp → giãn ra từng tệp.
-      await taiMot(cb);
-      await new Promise((r) => setTimeout(r, 400));
-    }
-  };
-
-  const soMauDaNap = Object.keys(mau).length;
-  // Số dòng của CẢ HAI nguồn để hai thẻ ở Bước 1 đếm cùng một cách (bỏ dòng trống).
-  const tongQuanApp = useMemo(() => (boTep ? tongQuanNop(doc, kq) : tongQuan), [boTep, doc, kq, tongQuan]);
-  const demDong = (tq) => tq.reduce((t, x) => t + (x.dong || 0), 0);
-  const soDongNguon = demDong(tongQuan);
-  const soVTNguon = (nguonDoc.bieu?.C1 || []).length;
-  const sanSang = congTheoThuTu().filter((cb) => mau[cb.maBieu] && !nop[cb.maBieu]?.loi && nop[cb.maBieu]?.loiSoat === 0);
-  const tongLoiSoat = congTheoThuTu().reduce((s, cb) => s + (mau[cb.maBieu] ? (nop[cb.maBieu]?.loiSoat || 0) : 0), 0);
-
   return (
     <div className="space-y-4">
       <section className="bg-gradient-to-br from-sky-50 to-white rounded-2xl border-2 border-sky-200 p-5">
-        <h2 className="text-xl font-extrabold text-slate-800 leading-tight">Tách bộ biểu: 01 tệp → 09 tệp</h2>
-        <p className="text-[13px] text-slate-600 mb-3">Mỗi tệp đúng <b>một biểu</b> (một trang), giữ nguyên tên trang và vị trí cột của bộ biểu.</p>
-
-        <h3 className="font-extrabold text-slate-800">Bước 1 — Chọn tệp bộ biểu</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">09 tệp tách ra lấy số liệu từ nguồn đang chọn.</p>
-        <div className="grid md:grid-cols-2 gap-3">
-          <div className={`rounded-xl border-2 p-4 ${boTep ? 'border-slate-200 bg-slate-50' : 'border-sky-400 bg-sky-50/50'}`}>
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Dữ liệu trong phần mềm</p>
-              {!boTep && <span className="inline-flex items-center gap-1 text-[12px] font-bold text-sky-700"><Check className="w-4 h-4" /> đang dùng</span>}
-            </div>
-            <p className="font-bold text-slate-800 text-[13.5px] mt-1 leading-snug">{tenDonVi}</p>
-            <p className="text-[12.5px] text-slate-600 mt-1">{(doc.bieu?.C1 || []).length} VTVL · {demDong(tongQuanApp)} dòng</p>
-            {boTep && (
-              <button onClick={() => { setBoTep(null); setLoiBo(''); }} className={`${nutPhu} mt-3`}>
-                <Undo2 className="w-4 h-4" /> Dùng lại dữ liệu này
-              </button>
-            )}
-          </div>
-
-          <div
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={(e) => { e.preventDefault(); napBoBieu(e.dataTransfer.files?.[0]); }}
-            className={`rounded-xl border-2 p-4 ${boTep ? 'border-emerald-400 bg-emerald-50/60' : 'border-dashed border-slate-300 bg-slate-50/60'}`}
-          >
-            <div className="flex items-center justify-between gap-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Một tệp bộ biểu nạp vào đây</p>
-              {boTep && <span className="inline-flex items-center gap-1 text-[12px] font-bold text-emerald-700"><Check className="w-4 h-4" /> đang dùng</span>}
-            </div>
-            {dangDocBo ? (
-              <>
-                <p className="font-bold text-slate-800 text-[13.5px] mt-1 truncate" title={dangDocBo.ten}>{dangDocBo.ten}</p>
-                <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden"><div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((dangDocBo.phan || 0) * 100)}%` }} /></div>
-                <p className="text-[12px] text-slate-500 mt-1">Đang đọc {Math.round((dangDocBo.phan || 0) * 100)}%…</p>
-              </>
-            ) : boTep ? (
-              <>
-                <p className="font-bold text-slate-800 text-[13.5px] mt-1 truncate" title={boTep.ten}>{boTep.ten}</p>
-                <p className="text-[12.5px] text-slate-700 mt-1"><b>{soVTNguon} VTVL · {soDongNguon} dòng</b> ở 09 biểu nộp</p>
-                <p className="text-[12.5px] mt-0.5">
-                  {boTep.chan
-                    ? <span className="text-rose-700 font-semibold">{boTep.chan} lỗi chặn trong tệp</span>
-                    : <span className="text-emerald-700 font-semibold">không có lỗi chặn</span>}
-                  {boTep.canh ? <span className="text-amber-700"> · {boTep.canh} cảnh báo</span> : null}
-                </p>
-                <button onClick={() => oBoTep.current?.click()} className={`${nutPhu} mt-3`}><RefreshCw className="w-4 h-4" /> Chọn tệp khác</button>
-              </>
-            ) : (
-              <>
-                <p className="text-[12.5px] text-slate-600 mt-1">Kéo thả hoặc chọn tệp bộ biểu <b>.xlsx</b> (một tệp nhiều trang A1…D2).</p>
-                <button onClick={() => oBoTep.current?.click()} className={`${nutChinh} mt-3`}><Upload className="w-4 h-4" /> Chọn tệp bộ biểu</button>
-              </>
-            )}
-            <input ref={oBoTep} id="vtvl-nop-bo-bieu" type="file" accept=".xlsx,.xlsm,.json" className="hidden"
-              onChange={(e) => { napBoBieu(e.target.files?.[0]); e.target.value = ''; }} />
-          </div>
-        </div>
-        {loiBo && (
-          <p className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800 flex gap-1.5">
-            <CircleAlert className="w-4 h-4 shrink-0 mt-0.5" /><span>{loiBo}</span>
-          </p>
-        )}
-        {boTep?.canhQuyGio && (
-          <p className="mt-3 rounded-xl bg-amber-50 border border-amber-200 p-3 text-[12.5px] text-amber-900">{boTep.canhQuyGio}</p>
-        )}
-        {boTep && (
-          <p className="mt-3 text-[12.5px] text-slate-600">
-            Tệp này chỉ dùng để tách ra 09 tệp — phần mềm <b>không ghi gì vào bộ biểu của đơn vị nào</b>. Muốn số liệu
-            nằm lại trong phần mềm thì nhập ở tab <b>Nhập từ tệp</b>.
-          </p>
-        )}
-
-        <h3 className="font-extrabold text-slate-800 mt-5">Bước 2 — Tách thành 09 tệp</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">Mỗi biểu một tệp .xlsx, tên tệp mang số thứ tự để dễ sắp.</p>
-        <div className="flex items-center gap-3 flex-wrap">
-          <button onClick={tach} disabled={!!dangTach} className={nutChinh}>
-            <Download className="w-4 h-4" /> {dangTach ? `Đang tách ${dangTach.xong}/9…` : 'Tách thành 09 tệp'}
-          </button>
-          <p className="text-[12.5px] text-slate-600">
-            {congTheoThuTu().map((cb, i) => `${i + 1}. ${cb.maBieu.replace('VT_', '')} (${tongQuan.find((x) => x.cb.maBieu === cb.maBieu)?.dong ?? 0})`).join(' · ')}
-          </p>
-        </div>
-        {dangTach && (
-          <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden max-w-sm"><div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((dangTach.xong / dangTach.tong) * 100)}%` }} /></div>
-        )}
-        {loiTach && (
-          <p className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800 flex gap-1.5">
-            <CircleAlert className="w-4 h-4 shrink-0 mt-0.5" /><span>{loiTach}</span>
-          </p>
-        )}
-        {daTach && (
-          <div className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3">
-            <p className="text-[13px] font-bold text-emerald-900 flex items-center gap-1.5"><CheckCircle2 className="w-4 h-4" /> Đã tách xong {daTach.length} tệp</p>
-            <ul className="mt-1.5 grid sm:grid-cols-2 gap-x-4 text-[12.5px] text-emerald-900">
-              {daTach.map((x) => <li key={x.id} className="truncate" title={x.ten}>{x.ten} <span className="text-emerald-700">— {x.dong} dòng</span></li>)}
-            </ul>
-            <p className="text-[11.5px] text-emerald-800 mt-1.5">Tệp nằm trong thư mục Tải xuống của trình duyệt. Tải nhiều tệp một lượt thì trình duyệt có thể hỏi <b>cho phép</b> — bấm Cho phép.</p>
-          </div>
-        )}
-      </section>
-
-      <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <h2 className="text-[15px] font-extrabold text-slate-800">Nộp lên cổng {CONG_TEN_MIEN} <span className="text-[12px] font-semibold text-slate-500">(bước riêng, chỉ làm khi nộp)</span></h2>
-        <p className="text-[12.5px] text-slate-600 mb-4">
-          Cổng <b>không nhận</b> 09 tệp vừa tách ở trên: cổng chỉ nhận <b>mẫu tải từ chính cổng</b> (mẫu mang hai trang
-          khai báo ẩn mà phần mềm không thể tự dựng). Dưới đây phần mềm <b>điền số liệu vào mẫu của cổng</b>.
-          <a href={`https://${CONG_TEN_MIEN}/`} target="_blank" rel="noopener noreferrer" className="ml-1 text-sky-700 underline font-semibold">Mở cổng ↗</a>
+        <h2 className="text-xl font-extrabold text-slate-800">Nhập tệp bộ biểu của đơn vị</h2>
+        <p className="text-[13px] text-slate-600 mt-1">
+          Chọn tệp <b>.xlsx</b> bộ biểu vị trí việc làm (bản đầy đủ của Ban Tổ chức Trung ương). Nhập xong, anh/chị
+          đi lần lượt các bước để <b>sửa các con số</b>, rồi xuất lại thành tệp mới.
         </p>
-        <h3 className="font-extrabold text-slate-800">Bước 3 — Nạp 09 mẫu trống tải từ cổng</h3>
-        <p className="text-[12.5px] text-slate-500 mb-3">Vào cổng, mở từng phiếu, bấm <b>Tải mẫu Excel</b> rồi chọn hết 09 tệp vào đây một lượt — phần mềm tự nhận tệp nào là biểu nào.</p>
+
         <div
           onDragOver={(e) => e.preventDefault()}
-          onDrop={(e) => { e.preventDefault(); napMau([...e.dataTransfer.files]); }}
-          className="rounded-xl border-2 border-dashed border-sky-300 bg-sky-50/40 p-5 text-center"
+          onDrop={(e) => { e.preventDefault(); onNap(e.dataTransfer.files?.[0]); }}
+          className="mt-4 rounded-xl border-2 border-dashed border-sky-300 bg-sky-50/40 p-6 text-center"
         >
-          <Upload className="w-7 h-7 mx-auto text-sky-600" />
-          <input ref={oTep} id="vtvl-nop-mau" type="file" accept=".xlsx" multiple className="hidden"
-            onChange={(e) => { napMau([...e.target.files]); e.target.value = ''; }} />
-          <button onClick={() => oTep.current?.click()} disabled={dangNap} className={`${nutChinh} mt-2`}>
-            {dangNap ? 'Đang đọc mẫu…' : 'Chọn 09 tệp mẫu'}
-          </button>
-          <p className="text-[12px] text-slate-500 mt-2">Đã nạp <b>{soMauDaNap}</b>/9 mẫu</p>
-        </div>
-        {loiNap.length > 0 && (
-          <ul className="mt-3 space-y-1 text-[12.5px] text-rose-700">
-            {loiNap.map((t) => <li key={t} className="flex gap-1.5"><CircleAlert className="w-4 h-4 shrink-0 mt-0.5" />{t}</li>)}
-          </ul>
-        )}
-      </section>
-
-      <section className="bg-white rounded-2xl border border-slate-200 p-5">
-        <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
-          <div>
-            <h3 className="font-extrabold text-slate-800">Bước 4 — Tải 09 tệp đã điền</h3>
-            <p className="text-[12.5px] text-slate-500">Nộp theo thứ tự bảng dưới (Hướng dẫn 07 — C1 trước A2, A2 trước B1).</p>
-          </div>
-          <div className="flex items-center gap-3 flex-wrap">
-            <label className="inline-flex items-center gap-2 text-[12.5px] font-semibold text-slate-600">
-              <input type="checkbox" checked={boQuaLoiChan} onChange={(e) => setBoQuaLoiChan(e.target.checked)} />
-              Bỏ dòng có lỗi chặn
-            </label>
-            <button onClick={taiTatCa} disabled={!sanSang.length || !!dangTai} className={nutChinh}>
-              <Download className="w-4 h-4" /> Tải tất cả ({sanSang.length})
-            </button>
-          </div>
+          {dangDoc ? (
+            <>
+              <RefreshCw className="w-7 h-7 mx-auto text-sky-600 animate-spin" />
+              <p className="text-[13px] font-semibold text-slate-700 mt-2">Đang đọc {dangDoc.trang || 'tệp'}…</p>
+              <div className="mt-2 h-2 max-w-sm mx-auto rounded-full bg-slate-200 overflow-hidden">
+                <div className="h-full bg-sky-600 transition-all" style={{ width: `${Math.round((dangDoc.phan || 0) * 100)}%` }} />
+              </div>
+            </>
+          ) : (
+            <>
+              <Upload className="w-7 h-7 mx-auto text-sky-600" />
+              <p className="text-[13px] font-semibold text-slate-700 mt-2">Kéo tệp vào đây, hoặc</p>
+              <input ref={oTep} id="vtvl-chon-tep" type="file" accept=".xlsx,.xlsm,.json" className="hidden"
+                onChange={(e) => { onNap(e.target.files?.[0]); e.target.value = ''; }} />
+              <button onClick={() => oTep.current?.click()} className={`${nutChinh} mt-2`}>
+                <FileSpreadsheet className="w-4 h-4" /> Chọn tệp bộ biểu
+              </button>
+            </>
+          )}
         </div>
 
-        {tongLoiSoat > 0 && (
-          <p className="mb-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800">
-            <b>{tongLoiSoat} chỗ cổng sẽ chặn.</b> Bấm <b>Xem</b> ở dòng tương ứng để biết ô nào.
+        {loi && (
+          <p className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800 flex gap-1.5">
+            <CircleAlert className="w-4 h-4 shrink-0 mt-0.5" /><span>{loi}</span>
           </p>
         )}
 
-        <div className="overflow-x-auto">
+        <p className="mt-3 text-[12.5px] text-slate-600 bg-white border border-slate-200 rounded-xl px-3 py-2 flex gap-1.5">
+          <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+          <span><b>Dữ liệu chỉ nằm trong bộ nhớ của trình duyệt.</b> Phần mềm không gửi tệp đi đâu và không lưu lại —
+            tải lại trang là mất. Sửa xong hãy <b>xuất tệp</b> ở bước cuối.</span>
+        </p>
+      </section>
+
+      <section className={theRong}>
+        <h3 className="font-extrabold text-slate-800 flex items-center gap-2"><FlaskConical className="w-4 h-4 text-violet-600" /> Chưa có tệp? Xem thử bằng bộ số mẫu</h3>
+        <p className="text-[12.5px] text-slate-500 mt-1 mb-3">
+          Bộ số mẫu là <b>dữ liệu giả</b> của &laquo;{TEN_DON_VI_MAU}&raquo; (04 vị trí việc làm · 18 công việc) để xem
+          các bước chạy thế nào. Không phải số liệu của đơn vị nào.
+        </p>
+        <button onClick={onMau} className={nutPhu}><FlaskConical className="w-4 h-4" /> Mở bộ số mẫu</button>
+      </section>
+
+      {doc && (
+        <section className="bg-emerald-50 rounded-2xl border-2 border-emerald-200 p-5">
+          <p className="text-[13px] font-bold text-emerald-900 flex items-center gap-1.5">
+            <Check className="w-4 h-4" /> Đang làm việc với: {doc.donVi || doc.tenTep || '(không rõ đơn vị)'}
+            {doc.laMau && <span className="px-2 py-0.5 rounded-full bg-violet-100 text-violet-800 text-[11px]">BỘ SỐ MẪU</span>}
+          </p>
+          <p className="text-[12.5px] text-emerald-800 mt-1">
+            {coDuLieu(doc, 'C1').length} vị trí việc làm · {coDuLieu(doc, 'A2').length} công việc · {coDuLieu(doc, 'B1').length} dòng khối lượng
+            {doc.ky ? ` · kỳ ${doc.ky}` : ''}
+          </p>
+        </section>
+      )}
+    </div>
+  );
+}
+
+// ─── Bảng nhập số của một bước ──────────────────────────────────────────────
+function BangNhapSo({ doc, docGoc, kq, buoc, onSuaO }) {
+  const b = BIEU_THEO_ID[buoc.bieu];
+  const [chiChuaDat, setChiChuaDat] = useState(false);
+  const [tim, setTim] = useState('');
+  const [iNhom, setINhom] = useState(0);
+  const nhom = useMemo(() => nhomDong(doc, kq, buoc), [doc, kq, buoc]);
+  useEffect(() => { setINhom(0); }, [buoc.id]);
+  const n = nhom[Math.min(iNhom, nhom.length - 1)];
+  if (!n) {
+    return <p className="text-[13px] text-slate-500">Bộ biểu không có dòng nào ở biểu {b?.ten}.</p>;
+  }
+  const cotNhapCua = cotNhap(buoc.bieu).filter((c) => buoc.nhap.includes(c.k));
+  const cotHien = (b?.cot || []).filter((c) => buoc.hien?.includes(c.k));
+  const ten = (k) => (b?.cot || []).find((c) => c.k === k)?.ten || k;
+
+  const loc = n.dong.filter((x) => {
+    if (chiChuaDat && laDat(buoc, x.kq[buoc.canhBao])) return false;
+    if (!tim.trim()) return true;
+    const nh = nhanDong(doc, buoc, x.dong, x.kq);
+    return `${nh.ma} ${nh.ten} ${nh.phu}`.toLowerCase().includes(tim.trim().toLowerCase());
+  });
+
+  return (
+    <div className="space-y-3">
+      {nhom.length > 1 && (
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Vị trí việc làm</span>
+          {nhom.map((x, i) => (
+            <button key={x.khoa} onClick={() => setINhom(i)}
+              className={`px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border-2 transition-colors
+                ${i === iNhom ? 'border-sky-600 bg-sky-50 text-sky-800' : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300'}`}>
+              {x.khoa}
+              <span className={`ml-1.5 ${x.soChuaDat ? 'text-amber-700' : 'text-emerald-700'}`}>
+                {x.soChuaDat ? `· ${x.soChuaDat} chưa đạt` : '· đủ'}
+              </span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <div className="flex items-end justify-between gap-3 flex-wrap">
+        <div>
+          <p className="text-[15px] font-extrabold text-slate-800">{n.ten}</p>
+          {n.moTa && <p className="text-[12px] text-slate-500">{n.moTa}</p>}
+        </div>
+        <div className="flex items-center gap-2 flex-wrap">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+            <input value={tim} onChange={(e) => setTim(e.target.value)} placeholder="Tìm theo tên, mã…"
+              className="pl-8 pr-2 py-1.5 text-[12.5px] rounded-lg border border-slate-200 focus:border-sky-500 outline-none w-48" />
+          </div>
+          <label className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-600">
+            <input type="checkbox" checked={chiChuaDat} onChange={(e) => setChiChuaDat(e.target.checked)} />
+            Chỉ dòng chưa đạt
+          </label>
+        </div>
+      </div>
+
+      <div className="overflow-x-auto -mx-1 px-1">
+        <table className="w-full text-[12.5px]">
+          <thead>
+            <tr className="text-left text-slate-500 border-b border-slate-200">
+              <th className="py-2 pr-2 font-semibold">Dòng</th>
+              {cotNhapCua.map((c) => <th key={c.k} className="py-2 px-2 font-semibold text-right whitespace-nowrap">{c.ten}</th>)}
+              {cotHien.map((c) => <th key={c.k} className="py-2 px-2 font-semibold text-right whitespace-nowrap bg-slate-50">{c.ten}</th>)}
+              <th className="py-2 pl-2 font-semibold">Kiểm tra</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loc.map((x) => {
+              const nh = nhanDong(doc, buoc, x.dong, x.kq);
+              const cb = x.kq[buoc.canhBao];
+              const dat = laDat(buoc, cb);
+              const gocDong = (docGoc?.bieu?.[buoc.bieu] || []).find((g) => g._dongTep === x.dong._dongTep)
+                || (docGoc?.bieu?.[buoc.bieu] || [])[x.i];
+              return (
+                <tr key={x.dong._id} className="border-b border-slate-100 align-top">
+                  <td className="py-2.5 pr-2 max-w-[22rem]">
+                    <p className="font-semibold text-slate-800 leading-snug">{nh.ten || nh.ma}</p>
+                    <p className="text-[11px] text-slate-400">
+                      {nh.ma}{nh.phu ? ` · ${nh.phu}` : ''}{nh.dvt ? ` · ĐVT: ${nh.dvt}` : ''}
+                    </p>
+                  </td>
+                  {cotNhapCua.map((c) => (
+                    <td key={c.k} className="py-2 px-2 text-right">
+                      <ONhapSo
+                        id={`o-${buoc.bieu}-${x.i}-${c.k}`}
+                        giaTri={x.dong[c.k]} goc={gocDong?.[c.k]}
+                        chinh={c.k === buoc.nhapChinh}
+                        onDoi={(v) => onSuaO(buoc.bieu, x.i, c.k, v)}
+                      />
+                    </td>
+                  ))}
+                  {cotHien.map((c) => (
+                    <td key={c.k} className="py-2 px-2 text-right tabular-nums bg-slate-50 text-slate-700 font-semibold">
+                      {rong(x.kq[c.k]) ? <span className="text-slate-300">—</span> : soVN(x.kq[c.k], 2)}
+                    </td>
+                  ))}
+                  <td className="py-2 pl-2">
+                    {dat
+                      ? <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><Check className="w-3.5 h-3.5" />{cb}</span>
+                      : <span className="text-amber-800 font-semibold">{cb || '—'}</span>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      {loc.length === 0 && <p className="text-[12.5px] text-slate-500">Không có dòng nào khớp.</p>}
+
+      {/* Giải thích chỗ dễ hiểu sai nhất của biểu B1 */}
+      {buoc.bieu === 'B1' && (
+        <p className="text-[12px] text-slate-600 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 flex gap-1.5">
+          <Info className="w-4 h-4 shrink-0 mt-0.5 text-amber-700" />
+          <span>
+            Cột <b>{ten('P')}</b> là con số thật sự dùng để tính. Dòng nào đã có <b>định mức trong danh mục sản phẩm</b>
+            {' '}và được xác nhận thì phần mềm lấy theo định mức đó, nên <b>sửa &laquo;{ten('D')}&raquo; sẽ KHÔNG làm đổi kết quả</b>
+            {' '}— muốn đổi thì phải sửa định mức ở danh mục sản phẩm (chỉ quản trị). Con số của đơn vị cần điền là <b>{ten('C')}</b>.
+          </span>
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ─── Khối kết quả đang chạy, hiện ở mọi bước ────────────────────────────────
+function KhoiKetQua({ doc, kq }) {
+  const t = kq.tongHop;
+  const o = (nhan, giaTri, phu) => (
+    <div className="bg-white rounded-xl border border-slate-200 px-3 py-2">
+      <p className="text-[10.5px] font-bold uppercase tracking-wider text-slate-500">{nhan}</p>
+      <p className="text-[17px] font-extrabold text-slate-800 tabular-nums leading-tight">{giaTri}</p>
+      {phu && <p className="text-[11px] text-slate-500">{phu}</p>}
+    </div>
+  );
+  return (
+    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2">
+      {o('Giờ B1 (dòng đạt)', soVN(t.gioB1), `${t.b1Dat}/${t.soDongB1} dòng đạt`)}
+      {o('Giờ ròng sau tác động', soVN(t.gioRong), `giảm ${soVN(t.giamSoHoa + t.giamThue)} · việc mới ${soVN(t.vietMoi)}`)}
+      {o('Người quy đổi PP2', soNguoiQD(t.nguoiQD), `tham khảo · quỹ giờ ${soVN(QUY_GIO_PP2, 0)} giờ/người/năm`)}
+      {o('Người cần bố trí (C3)', soVN(t.nguoiCan, 0), `${coDuLieu(doc, 'C1').length} vị trí việc làm`)}
+    </div>
+  );
+}
+
+// ─── Bước cuối: kết quả và xuất tệp ─────────────────────────────────────────
+function BuocXong({ doc, kq, tepGoc, soODoi, onXuat, dangXuat, ketQuaXuat, loiXuat }) {
+  const td = tienDoChung(doc, kq);
+  const conSot = td.filter((x) => x.chuaDat > 0);
+  return (
+    <div className="space-y-4">
+      <section className={theRong}>
+        <h3 className="font-extrabold text-slate-800 mb-3">Kết quả sau khi nhập số</h3>
+        <KhoiKetQua doc={doc} kq={kq} />
+        <div className="overflow-x-auto mt-4">
           <table className="w-full text-[12.5px]">
             <thead>
               <tr className="text-left text-slate-500 border-b border-slate-200">
-                <th className="py-2 pr-2 font-semibold">Biểu</th>
-                <th className="py-2 pr-2 font-semibold">Dòng sẽ nộp</th>
-                <th className="py-2 pr-2 font-semibold">Mẫu của cổng</th>
-                <th className="py-2 pr-2 font-semibold">Soát theo cổng</th>
-                <th className="py-2 font-semibold" />
+                <th className="py-2 pr-2 font-semibold">Vị trí việc làm</th>
+                <th className="py-2 px-2 font-semibold text-right">Giờ B1</th>
+                <th className="py-2 px-2 font-semibold text-right">Tác động B2</th>
+                <th className="py-2 px-2 font-semibold text-right">Giờ ròng</th>
+                <th className="py-2 px-2 font-semibold text-right">Người quy đổi</th>
+                <th className="py-2 px-2 font-semibold text-right">Người cần bố trí</th>
+                <th className="py-2 pl-2 font-semibold">Kiểm tra</th>
               </tr>
             </thead>
             <tbody>
-              {congTheoThuTu().map((cb, i) => {
-                const m = mau[cb.maBieu]; const n = nop[cb.maBieu] || {};
+              {(doc.bieu.C3 || []).map((r, i) => {
+                const c = kq.C3[i] || {};
+                const vt = (doc.bieu.C1 || []).find((x) => String(x.A).toLowerCase() === String(r.A).toLowerCase());
                 return (
-                  <tr key={cb.maBieu} className="border-b border-slate-100 align-top">
-                    <td className="py-2.5 pr-2">
-                      <p className="font-bold text-slate-800"><span className="text-slate-400">{i + 1}. </span>{cb.maBieu.replace('VT_', '')} — {cb.sheet}</p>
+                  <tr key={r._id} className="border-b border-slate-100">
+                    <td className="py-2 pr-2">
+                      <p className="font-semibold text-slate-800">{vt?.B || r.A}</p>
+                      <p className="text-[11px] text-slate-400">{r.A} · {r.B || 'chưa chọn phương pháp'}</p>
                     </td>
-                    <td className="py-2.5 pr-2 text-slate-600">
-                      {n.loi ? <span className="text-rose-700">{n.loi}</span> : (
-                        <>
-                          <span className="font-bold text-slate-800">{n.rows?.length ?? 0}</span>
-                          {m && <span className="text-[11.5px] text-slate-500"> ({n.moi} mới · {n.capNhat} cập nhật{n.giuLai ? ` · ${n.giuLai} giữ lại` : ''})</span>}
-                          {n.boQua?.chan > 0 && <p className="text-[11.5px] text-amber-700">bỏ {n.boQua.chan} dòng lỗi chặn</p>}
-                        </>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-2">
-                      {m ? (
-                        <span className="inline-flex items-center gap-1 text-emerald-700 font-semibold"><CheckCircle2 className="w-4 h-4" />đã nạp</span>
-                      ) : (
-                        <span className="text-slate-400">chưa nạp</span>
-                      )}
-                      {n.mauChuaCoMa > 0 && (
-                        <p className="text-[11.5px] font-bold text-amber-700">mẫu đã có {n.mauChuaCoMa} dòng (chưa có mã dòng){n.mauChuaCoMa > (n.dong || 0) ? ' — nhiều hơn phần mềm' : ''}</p>
-                      )}
-                    </td>
-                    <td className="py-2.5 pr-2">
-                      {!m ? <span className="text-slate-400">—</span> : n.loiSoat ? (
-                        <span className="font-bold text-rose-700">{n.loiSoat} lỗi{n.canhSoat ? ` · ${n.canhSoat} cảnh báo` : ''}</span>
-                      ) : n.canhSoat ? (
-                        <span className="font-bold text-amber-700">{n.canhSoat} cảnh báo</span>
-                      ) : <span className="text-emerald-700 font-semibold">sạch</span>}
-                      {m && (n.soat?.length > 0) && (
-                        <button onClick={() => setMoSoat(moSoat === cb.maBieu ? '' : cb.maBieu)} className="ml-1 text-sky-700 underline font-semibold">
-                          {moSoat === cb.maBieu ? 'Ẩn' : 'Xem'}
-                        </button>
-                      )}
-                    </td>
-                    <td className="py-2.5">
-                      <button onClick={() => taiMot(cb)} disabled={!m || !!n.loi || dangTai === cb.maBieu} className={nutPhu}>
-                        <FileDown className="w-4 h-4" /> {dangTai === cb.maBieu ? 'Đang tạo…' : 'Tải tệp'}
-                      </button>
+                    <td className="py-2 px-2 text-right tabular-nums">{soVN(c.C)}</td>
+                    <td className="py-2 px-2 text-right tabular-nums">{soVN(c.D)}</td>
+                    <td className="py-2 px-2 text-right tabular-nums font-semibold">{soVN(c.E)}</td>
+                    <td className="py-2 px-2 text-right tabular-nums font-semibold">{soNguoiQD(c.G)}</td>
+                    <td className="py-2 px-2 text-right tabular-nums font-bold">{rong(r.J) ? '—' : r.J}</td>
+                    <td className="py-2 pl-2">
+                      {c.M === 'ĐẠT' ? <span className="text-emerald-700 font-semibold">ĐẠT</span>
+                        : <span className="text-amber-800 font-semibold">{c.M}</span>}
                     </td>
                   </tr>
                 );
@@ -1705,555 +377,357 @@ function NopCongTab({ doc, kq, tenDonVi }) {
             </tbody>
           </table>
         </div>
+      </section>
 
-        {moSoat && nop[moSoat]?.soat?.length > 0 && (
-          <div className="mt-3 rounded-xl border border-slate-200 bg-slate-50 p-3">
-            <p className="font-bold text-slate-700 text-[13px] mb-2">{CONG_THEO_MA[moSoat]?.tenBieu} — {nop[moSoat].soat.length} chỗ cần xem</p>
-            <ul className="space-y-1 text-[12.5px] max-h-64 overflow-y-auto">
-              {nop[moSoat].soat.slice(0, 200).map((x, i) => (
-                <li key={`${x.dong}-${x.cot}-${i}`} className={x.muc === 'loi' ? 'text-rose-800' : 'text-amber-800'}>
-                  <b>Dòng {x.dong}, cột {x.cot}:</b> {x.chu}
-                </li>
-              ))}
-            </ul>
-            {nop[moSoat].soat.length > 200 && <p className="text-[12px] text-slate-500 mt-1">… còn {nop[moSoat].soat.length - 200} chỗ nữa.</p>}
-          </div>
-        )}
-
-        {congTheoThuTu().some((cb) => nop[cb.maBieu]?.canhBao?.length) && (
-          <ul className="mt-3 space-y-1.5 text-[12.5px] text-slate-600">
-            {congTheoThuTu().flatMap((cb) => (nop[cb.maBieu]?.canhBao || []).map((t) => (
-              <li key={`${cb.maBieu}-${t}`} className="flex gap-1.5">
-                <Info className="w-4 h-4 shrink-0 mt-0.5 text-sky-600" /><span><b>{cb.maBieu.replace('VT_', '')}:</b> {t}</span>
-              </li>
-            )))}
+      {conSot.length > 0 && (
+        <section className="bg-amber-50 rounded-2xl border border-amber-200 p-4">
+          <p className="text-[13px] font-bold text-amber-900 flex items-center gap-1.5">
+            <AlertTriangle className="w-4 h-4" /> Còn dòng chưa đạt — vẫn xuất tệp được, nhưng nên soát lại
+          </p>
+          <ul className="mt-1.5 text-[12.5px] text-amber-900 space-y-0.5">
+            {conSot.map((x) => <li key={x.buoc.id}>· <b>{x.buoc.ten}</b>: {x.chuaDat}/{x.tong} dòng chưa đạt{x.trong ? `, ${x.trong} dòng chưa điền số` : ''}</li>)}
           </ul>
+        </section>
+      )}
+
+      <section className={theRong}>
+        <h3 className="font-extrabold text-slate-800">Xuất tệp</h3>
+        <p className="text-[12.5px] text-slate-500 mt-1 mb-3">
+          {tepGoc
+            ? <>Phần mềm ghi <b>{soODoi} ô đã đổi</b> ngược vào chính tệp đã nhập và giữ nguyên toàn bộ phần còn lại của sổ
+              (các trang, công thức, danh sách chọn, định dạng). Mở tệp bằng Excel là các cột tự tính được tính lại.</>
+            : <>Đang dùng bộ số mẫu nên không có tệp gốc để ghi vào. Phần mềm xuất một tệp <b>.xlsx gọn</b> theo đúng tên
+              trang và thứ tự cột của bộ biểu — <b>không phải</b> bộ biểu gốc của Ban.</>}
+        </p>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button onClick={onXuat} disabled={dangXuat} className={nutChinh}>
+            <Download className="w-4 h-4" /> {dangXuat ? 'Đang dựng tệp…' : tepGoc ? 'Xuất tệp bộ biểu (.xlsx)' : 'Xuất tệp gọn (.xlsx)'}
+          </button>
+          <button onClick={() => xuatSaoLuu(doc)} className={nutPhu}><Save className="w-4 h-4" /> Lưu bản sao lưu (.json)</button>
+        </div>
+        {ketQuaXuat && (
+          <p className="mt-3 rounded-xl bg-emerald-50 border border-emerald-200 p-3 text-[12.5px] text-emerald-900 flex gap-1.5">
+            <Check className="w-4 h-4 shrink-0 mt-0.5" /><span>{ketQuaXuat}</span>
+          </p>
+        )}
+        {loiXuat && (
+          <p className="mt-3 rounded-xl bg-rose-50 border border-rose-200 p-3 text-[12.5px] text-rose-800 flex gap-1.5">
+            <CircleAlert className="w-4 h-4 shrink-0 mt-0.5" /><span>{loiXuat}</span>
+          </p>
         )}
       </section>
     </div>
   );
 }
 
-// ─── Chọn / tạo bộ biểu của đơn vị ──────────────────────────────────────────
-//  Mỗi đơn vị một bộ biểu. Bản của cơ quan tỉnh là bản MẶC ĐỊNH khi mở phân hệ;
-//  cán bộ HĐND xã, phường tự tạo bộ biểu của xã mình bằng cách gõ tên đơn vị
-//  (không cần tài khoản). Xem đầu api/vtvl.js để biết vì sao phải có mã sửa.
-function ChonDonVi({ ds, slug, ten, coQuyenGhi, daDangNhap, coMa, dangTao, dangNap, onChon, onTao, onNhapMa, onBoMa }) {
-  const [tenMoi, setTenMoi] = useState('');
-  const [moTao, setMoTao] = useState(false);
-  const [moMa, setMoMa] = useState(false);
-  const [maGo, setMaGo] = useState('');
-  const kt = useMemo(() => (tenMoi.trim() ? kiemTraTen(tenMoi) : null), [tenMoi]);
-  const daCo = kt?.ok && ds.some((x) => x.slug === kt.slug);
-  // Danh sách nạp lại từ máy chủ là việc KHÔNG đồng bộ, nên ngay sau khi tạo một
-  // đơn vị mới thì mục của nó có thể chưa có trong `ds`. Thiếu mục khớp thì ô chọn
-  // hiển thị sai nhãn, vì vậy tự bổ sung mục của đơn vị đang mở.
-  const dsHien = useMemo(() => (slug && !ds.some((x) => x.slug === slug)
-    ? [...ds, { id: `vtvl_dv_${slug}`, slug, tinh: false, ten: ten || slug, nguoi: '', capNhat: '', soDong: 0, soVT: 0 }]
-    : ds), [ds, slug, ten]);
-  const hienTai = dsHien.find((x) => x.slug === slug);
-
+// ─── Danh mục sản phẩm — CHỈ QUẢN TRỊ sửa ───────────────────────────────────
+function DanhMucSanPham({ doc, docGoc, admin, onSuaO }) {
+  const [tim, setTim] = useState('');
+  const ds = (doc.bieu.DM || []);
+  const loc = ds.map((r, i) => ({ r, i })).filter(({ r }) => !tim.trim()
+    || `${r.A} ${r.B} ${r.J}`.toLowerCase().includes(tim.trim().toLowerCase()));
   return (
-    <div className="relative overflow-hidden rounded-2xl border-2 border-sky-300 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-3 pl-5 sm:p-4 sm:pl-6 space-y-3 shadow-md shadow-sky-100">
-      {/* Vạch nhấn bên trái — khối này quyết định đang nhập cho đơn vị nào nên phải nổi nhất trang. */}
-      <span aria-hidden className="absolute inset-y-0 left-0 w-1.5 bg-gradient-to-b from-sky-500 to-indigo-600" />
-      <div className="flex items-end gap-3 flex-wrap">
-        <div className="flex-1 min-w-[260px]">
-          <label htmlFor="vtvl-chon-don-vi" className="flex items-center gap-1.5 text-[11.5px] font-extrabold text-sky-800 uppercase tracking-wider mb-1.5">
-            <Building2 className="w-4 h-4" /> Bộ biểu của đơn vị
-          </label>
-          <div className="relative">
-            <select id="vtvl-chon-don-vi" value={slug} onChange={(e) => { if (e.target.value === '+') { setMoTao(true); return; } setMoTao(false); onChon(e.target.value); }}
-              className="w-full appearance-none cursor-pointer rounded-xl border-2 border-sky-400 bg-white pl-3.5 pr-14 py-2.5 text-[15px] font-bold text-slate-800 shadow-sm outline-none transition hover:border-sky-500 focus:border-sky-600 focus:ring-4 focus:ring-sky-200">
-              {dsHien.map((x) => (
-                <option key={x.id} value={x.slug}>
-                  {x.ten}{x.tinh ? ' — bản mặc định của cơ quan tỉnh' : ''}{x.soVT ? ` · ${x.soVT} VTVL` : x.soDong ? ` · ${x.soDong} dòng` : ' · chưa có dữ liệu'}
-                </option>
-              ))}
-              <option value="+">+ Tạo bộ biểu cho HĐND xã, phường…</option>
-            </select>
-            {/* Mũi tên mặc định của trình duyệt quá nhỏ, dễ bị bỏ qua — thay bằng nút vuông nổi màu. */}
-            <span aria-hidden className="pointer-events-none absolute inset-y-1.5 right-1.5 w-10 rounded-lg bg-sky-600 text-white flex items-center justify-center shadow">
-              <ChevronDown className="w-5 h-5" />
-            </span>
-          </div>
-        </div>
-        <div className="text-[12px] text-slate-600 min-w-[200px] rounded-lg bg-white/80 border border-sky-200 px-3 py-2">
-          {dangNap
-            ? <span className="inline-flex items-center gap-1.5"><RefreshCw className="w-3.5 h-3.5 animate-spin" /> Đang tải dữ liệu của đơn vị…</span>
-            : hienTai?.capNhat
-              ? <>Cập nhật <b className="text-slate-800">{new Date(hienTai.capNhat).toLocaleString('vi-VN')}</b>{hienTai.nguoi ? <> · do <b className="text-slate-800">{hienTai.nguoi}</b> nhập</> : null}</>
-              : <>Đơn vị này chưa có dữ liệu được lưu.</>}
-        </div>
-        {!moTao && (
-          <button onClick={() => setMoTao(true)}
-            className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-sm font-bold shadow-md shadow-emerald-200 ring-2 ring-white transition">
-            <Plus className="w-4 h-4" /> Tạo bộ biểu đơn vị mới
-          </button>
-        )}
+    <div className="space-y-3">
+      <section className={admin ? 'bg-emerald-50 rounded-2xl border border-emerald-200 p-4' : 'bg-slate-50 rounded-2xl border border-slate-200 p-4'}>
+        <p className="text-[13px] font-bold text-slate-800 flex items-center gap-1.5">
+          {admin ? <><Check className="w-4 h-4 text-emerald-700" /> Anh/chị đã đăng nhập — sửa được định mức phút trong danh mục</>
+            : <><Lock className="w-4 h-4 text-slate-500" /> Chỉ quản trị (đã đăng nhập) được sửa danh mục sản phẩm</>}
+        </p>
+        <p className="text-[12.5px] text-slate-600 mt-1">
+          Định mức <b>phút/sản phẩm</b> ở đây là mức dùng chung, do cơ quan chủ trì thống nhất. Đổi một dòng ở đây là
+          đổi cách tính của <b>mọi công việc</b> dùng mã sản phẩm đó.
+        </p>
+      </section>
+
+      <div className="relative max-w-sm">
+        <Search className="w-3.5 h-3.5 absolute left-2.5 top-2.5 text-slate-400" />
+        <input value={tim} onChange={(e) => setTim(e.target.value)} placeholder="Tìm mã hoặc tên sản phẩm…"
+          className="w-full pl-8 pr-2 py-1.5 text-[12.5px] rounded-lg border border-slate-200 focus:border-sky-500 outline-none" />
       </div>
+      <p className="text-[12px] text-slate-500">{loc.length}/{ds.length} dòng</p>
 
-      {/* Bản của tỉnh: chỉ người đăng nhập sửa được — nói rõ để khách không tưởng là lỗi. */}
-      {!slug && !coQuyenGhi && (
-        <p className="text-[12.5px] text-slate-600 bg-slate-50 border border-slate-200 rounded-xl px-3 py-2">
-          Đây là bộ biểu của <b>Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</b> — chỉ cán bộ Văn phòng đã đăng nhập mới sửa được.
-          Nếu bạn là cán bộ HĐND xã, phường, hãy bấm <b>Tạo bộ biểu đơn vị mới</b> để kê khai bộ biểu của xã mình (không cần tài khoản).
-        </p>
-      )}
-
-      {/* Đang xem bộ biểu của một xã nhưng máy này không có mã sửa */}
-      {slug && !coQuyenGhi && (
-        <div className="text-[12.5px] text-amber-900 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2 space-y-2">
-          <p>Bạn đang <b>xem</b> bộ biểu của <b>{ten || hienTai?.ten}</b>. Máy này không có <b>mã sửa</b> của đơn vị đó nên không nhập liệu được.</p>
-          {!moMa
-            ? <button onClick={() => setMoMa(true)} className={nutPhu}>Tôi có mã sửa của đơn vị này</button>
-            : (
-              <div className="flex items-end gap-2 flex-wrap">
-                <input value={maGo} onChange={(e) => setMaGo(e.target.value.toUpperCase())} placeholder="VD: 7KQM2PTR" maxLength={12}
-                  className={`${inp} font-mono tracking-widest max-w-[180px]`} />
-                <button onClick={() => { const r = kiemTraMaSua(maGo); if (r.ok) { onNhapMa(r.ma); setMoMa(false); setMaGo(''); } else onNhapMa('', r.loi); }} className={nutPhu}>Dùng mã này</button>
-                <span className="text-[11.5px] text-amber-800">Mã gồm 8 ký tự, hiện ra lúc đơn vị tạo bộ biểu.</span>
-              </div>
-            )}
-        </div>
-      )}
-
-      {/* Đã có mã sửa trên máy này */}
-      {slug && coMa && coQuyenGhi && !daDangNhap && (
-        <p className="text-[12.5px] text-emerald-800 bg-emerald-50 border border-emerald-200 rounded-xl px-3 py-2 flex items-center gap-2 flex-wrap">
-          <CheckCircle2 className="w-4 h-4 shrink-0" />
-          <span className="flex-1">Máy này có mã sửa của <b>{ten || hienTai?.ten}</b> nên bạn nhập liệu được. Nhập xong nhớ bấm <b>Lưu lên hệ thống</b>.</span>
-          <button onClick={onBoMa} className="underline font-semibold">Quên mã trên máy này</button>
-        </p>
-      )}
-
-      {moTao && (
-        <div className="rounded-xl border border-sky-200 bg-sky-50 p-3 space-y-2">
-          <p className="text-[13px] font-bold text-sky-900">Tạo bộ biểu cho HĐND xã, phường</p>
-          <p className="text-[12px] text-sky-800">
-            Gõ đầy đủ tên đơn vị — tên này là nhãn của cả bộ biểu nên hãy ghi đúng ngay từ đầu. Ví dụ: <i>HĐND xã Quảng Yên</i>, <i>HĐND phường Hạc Thành</i>.
-          </p>
-          <div className="flex items-end gap-2 flex-wrap">
-            <input value={tenMoi} onChange={(e) => setTenMoi(e.target.value)} maxLength={MAX_TEN}
-              placeholder="HĐND xã …" className={`${inp} flex-1 min-w-[260px]`} />
-            <button disabled={!kt?.ok || daCo || dangTao} onClick={() => { onTao(kt.ten); setMoTao(false); setTenMoi(''); }} className={nutChinh}>
-              {dangTao ? 'Đang tạo…' : 'Tạo và bắt đầu nhập'}
-            </button>
-            <button onClick={() => { setMoTao(false); setTenMoi(''); }} className={nutPhu}>Thôi</button>
-          </div>
-          {kt && !kt.ok && <p className="text-[12px] text-rose-700">{kt.loi}</p>}
-          {daCo && <p className="text-[12px] text-amber-800">Đơn vị này đã có bộ biểu trong hệ thống. Hãy chọn đơn vị đó ở hộp trên — nếu máy này có mã sửa thì nhập tiếp được.</p>}
-          {kt?.ok && !daCo && <p className="text-[12px] text-sky-800">Mã đơn vị sẽ là <code className="font-mono">{kt.slug}</code>. Sau khi tạo, hệ thống cấp một <b>mã sửa</b> — hãy ghi lại.</p>}
-        </div>
-      )}
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12.5px]">
+          <thead>
+            <tr className="text-left text-slate-500 border-b border-slate-200">
+              <th className="py-2 pr-2 font-semibold">Mã sản phẩm</th>
+              <th className="py-2 px-2 font-semibold">Tên/loại sản phẩm</th>
+              <th className="py-2 px-2 font-semibold">Nhóm</th>
+              <th className="py-2 px-2 font-semibold text-right">Phút/SP chuẩn</th>
+              <th className="py-2 pl-2 font-semibold">Trạng thái</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loc.slice(0, 300).map(({ r, i }) => (
+              <tr key={r._id} className="border-b border-slate-100 align-top">
+                <td className="py-2 pr-2 font-mono text-[11.5px] text-slate-700 whitespace-nowrap">{r.A}</td>
+                <td className="py-2 px-2 max-w-[28rem]"><p className="text-slate-700 leading-snug line-clamp-2">{r.B}</p></td>
+                <td className="py-2 px-2 text-slate-500">{r.D}</td>
+                <td className="py-2 px-2 text-right">
+                  <ONhapSo id={`dm-${i}-E`} giaTri={r.E} goc={(docGoc?.bieu?.DM || [])[i]?.E} chinh
+                    khoa={!admin} donVi="phút" onDoi={(v) => onSuaO('DM', i, 'E', v)} />
+                </td>
+                <td className="py-2 pl-2 text-slate-500">{r.G}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {loc.length > 300 && <p className="text-[12px] text-slate-500">… còn {loc.length - 300} dòng nữa, hãy dùng ô tìm kiếm.</p>}
     </div>
   );
 }
 
-// ─── Thành phần chính ───────────────────────────────────────────────────────
+// ─── Xem các biểu cố định (chỉ đọc) ────────────────────────────────────────
+function XemCoDinh({ doc, id }) {
+  const b = BIEU_THEO_ID[id];
+  const ds = coDuLieu(doc, id);
+  return (
+    <div className="space-y-2">
+      <p className="text-[12.5px] text-slate-500">{b.moTa} — <b>{ds.length} dòng</b>, chỉ xem.</p>
+      <div className="overflow-x-auto">
+        <table className="w-full text-[12px]">
+          <thead>
+            <tr className="text-left text-slate-500 border-b border-slate-200">
+              {b.cot.slice(0, 6).map((c) => <th key={c.k} className="py-2 px-2 font-semibold whitespace-nowrap">{c.ten}</th>)}
+            </tr>
+          </thead>
+          <tbody>
+            {ds.slice(0, 200).map((r) => (
+              <tr key={r._id} className="border-b border-slate-100 align-top">
+                {b.cot.slice(0, 6).map((c) => (
+                  <td key={c.k} className="py-1.5 px-2 max-w-[20rem]">
+                    <p className={`${c.kieu === 'ma' ? 'font-mono text-[11px] whitespace-nowrap' : 'line-clamp-2'} text-slate-700`}>{String(r[c.k] ?? '')}</p>
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      {ds.length > 200 && <p className="text-[12px] text-slate-500">… còn {ds.length - 200} dòng nữa.</p>}
+    </div>
+  );
+}
+
+// ============================================================================
+//  THÀNH PHẦN CHÍNH
+// ============================================================================
 export default function VTVL({ onHome }) {
-  // Đơn vị đang mở: '' = bộ biểu của cơ quan tỉnh (bản MẶC ĐỊNH khi mở phân hệ).
-  // Nhớ lựa chọn gần nhất để cán bộ xã quay lại không phải chọn lại.
-  const [slug, setSlug] = useState(slugDaChon);
-  const [dsDV, setDsDV] = useState(() => [{ id: 'vtvl_data', slug: '', tinh: true, ten: TEN_TINH, nguoi: '', capNhat: '', soDong: 0, soVT: 0 }]);
-  const [tenDV, setTenDV] = useState('');
-  const [maSua, setMaSua] = useState('');
-  const [maMoi, setMaMoi] = useState('');   // mã sửa vừa cấp cho đơn vị mới tạo
-  const [dangTao, setDangTao] = useState(false);
-  const [doc, setDoc] = useState(() => readVTVL(slugDaChon()).doc);
-  const [ts, setTs] = useState(() => readVTVL(slugDaChon()).ts);
-  const [chuaLuu, setChuaLuu] = useState(() => readVTVL(slugDaChon()).chuaLuu);
-  const [daNap, setDaNap] = useState(false);
-  const [phien, setPhien] = useState(null);
-  const [tab, setTab] = useState('tongquan');
-  const [bieuId, setBieuId] = useState('A1');
-  const [formId, setFormId] = useState(null);
-  const [dan, setDan] = useState(false);
-  const [diToi, setDiToi] = useState(null);
-  const [quayLai, setQuayLai] = useState(null); // chỗ xuất phát khi đi theo liên kết mã
-  const [nhapTep, setNhapTep] = useState({ cheDo: 'thay', boQuaLoi: true });
-  const [luu, setLuu] = useState({ k: '' }); // '', 'dang', 'ok', 'loi', 'xungdot'
-  const [banNhap, setBanNhap] = useState(null); // bản máy chủ khi máy này còn bản nháp chưa lưu
-  const [thongBao, setThongBao] = useState(null);
-  const docRef = useRef(doc);
-  docRef.current = doc;
-
-  const daDangNhap = !!phien && phien.user?.email !== GUEST.email;
-  const laTinhDV = !slug;
-  // Ai được nhập liệu:
-  //  • bộ biểu của TỈNH  → chỉ cán bộ Văn phòng đã đăng nhập;
-  //  • bộ biểu của XÃ    → người đã đăng nhập (để Văn phòng gỡ rối cho xã) hoặc
-  //    máy có MÃ SỬA của đơn vị đó. Xem đầu api/vtvl.js để biết vì sao cần mã.
-  const coQuyenGhi = laTinhDV ? daDangNhap : (daDangNhap || !!maSua);
-  const docOnly = !coQuyenGhi;
-  // Bản của tỉnh tự lưu như trước. Bản của xã đi qua hàm máy chủ có đếm hạn mức nên
-  // KHÔNG tự lưu theo nhịp 1,5 giây — người dùng bấm "Lưu lên hệ thống" thì mới ghi.
-  const tuLuu = laTinhDV && daDangNhap;
-  const bao = useCallback((kieu, chu) => { setThongBao({ kieu, chu }); setTimeout(() => setThongBao(null), 6000); }, []);
-  const napDanhSach = useCallback(() => { fetchDanhSachDV().then(setDsDV); }, []);
+  const [doc, setDoc] = useState(null);
+  const [docGoc, setDocGoc] = useState(null);
+  const [tepGoc, setTepGoc] = useState(null);
+  const [buocId, setBuocId] = useState('nguon');
+  const [dangDoc, setDangDoc] = useState(null);
+  const [loi, setLoi] = useState('');
+  const [admin, setAdmin] = useState(false);
+  const [xem, setXem] = useState('');          // '' | 'DM' | 'A1' | 'A2' | 'C1'
+  const [dangXuat, setDangXuat] = useState(false);
+  const [ketQuaXuat, setKetQuaXuat] = useState('');
+  const [loiXuat, setLoiXuat] = useState('');
 
   useEffect(() => {
-    const off = onAuthChange((s) => setPhien(s || null));
-    napDanhSach();
-    return () => { off && off(); };
-  }, [napDanhSach]);
+    getSession().then((s) => setAdmin(!!s));
+    return onAuthChange((s) => setAdmin(!!s));
+  }, []);
 
-  // Nạp bộ biểu của đơn vị đang chọn (chạy lại mỗi lần đổi đơn vị).
+  const kq = useMemo(() => (doc ? tinhToan(doc) : null), [doc]);
+  const buoc = BUOC.find((b) => b.id === buocId) || BUOC[0];
+
+  // Số ô đã đổi so với tệp đã nhập — dùng cho nút xuất và cảnh báo rời trang
+  const soODoi = useMemo(() => {
+    if (!doc || !docGoc) return 0;
+    let n = 0;
+    for (const b of Object.keys(doc.bieu)) {
+      const cot = cotNhap(b);
+      if (!cot.length) continue;
+      (doc.bieu[b] || []).forEach((r, i) => {
+        const g = (docGoc.bieu[b] || []).find((x) => x._dongTep === r._dongTep) || (docGoc.bieu[b] || [])[i];
+        if (!g) return;
+        for (const c of cot) {
+          const a = r[c.k] === undefined ? '' : r[c.k];
+          const bb = g[c.k] === undefined ? '' : g[c.k];
+          if (typeof a === 'number' && typeof bb === 'number' ? Math.abs(a - bb) > 1e-9 : String(a) !== String(bb)) n++;
+        }
+      });
+    }
+    return n;
+  }, [doc, docGoc]);
+
+  // ⚠️ Dữ liệu không được lưu ở đâu cả → chặn rời trang khi còn thay đổi chưa xuất.
   useEffect(() => {
-    let alive = true;
-    setDaNap(false); setBanNhap(null); setLuu({ k: '' });
-    const local = readVTVL(slug);
-    setDoc(local.doc); setTs(local.ts); setChuaLuu(local.chuaLuu);
-    setMaSua(maSuaCua(slug));
-    Promise.all([getSession(), fetchVTVL(slug)]).then(([s, r]) => {
-      if (!alive) return;
-      setPhien(s || null);
-      setDaNap(true);
-      if (!r) return; // không đọc được máy chủ → giữ bản cache
-      if (r.ten) setTenDV(r.ten);
-      const dn = !!s && s.user?.email !== GUEST.email;
-      const ghiDuoc = slug ? (dn || !!maSuaCua(slug)) : dn;
-      if (local.chuaLuu && JSON.stringify(local.doc.bieu) !== JSON.stringify(r.doc.bieu)) {
-        // Máy này còn bản nháp chưa lưu: người ghi được thì được hỏi giữ bản nào;
-        // người CHỈ XEM luôn thấy bản trên máy chủ (bản nháp vẫn để nguyên, không ghi đè).
-        if (ghiDuoc) { setBanNhap(r); setTs(r.ts); return; }
-        setDoc(r.doc); setTs(r.ts); setChuaLuu(false);
-        return;
-      }
-      setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false);
-    });
-    return () => { alive = false; };
-  }, [slug]);
+    if (!soODoi) return undefined;
+    const h = (e) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', h);
+    return () => window.removeEventListener('beforeunload', h);
+  }, [soODoi]);
 
-  const kq = useMemo(() => tinhToan(doc), [doc]);
-  const vanDe = useMemo(() => kiemTraDuLieu(doc, kq), [doc, kq]);
-  const kb = useMemo(() => kichThuocKB(doc), [doc]);
-
-  const email = phien?.user?.email || '';
-
-  /** Ghi bản đang có lên máy chủ. Trả về kết quả để nơi gọi báo cho người dùng. */
-  const ghiLenMayChu = useCallback(async () => {
-    const dangGhi = docRef.current;
-    const r = slug
-      ? await luuDonVi({ ten: tenDV || dangGhi.donVi || slug, slug, doc: dangGhi, tsCu: ts, maSua, nguoi: email || 'khách' })
-      : await saveVTVL(dangGhi, ts, email);
-    if (r.ok) {
-      setTs(r.ts);
-      // Người dùng sửa tiếp trong lúc đang lưu thì vẫn còn thay đổi chưa lưu.
-      if (docRef.current === dangGhi) { setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false); } else cacheVTVL(slug, docRef.current, r.ts, true);
-      setDoc((d) => (d === dangGhi ? r.doc : { ...d, capNhat: r.doc.capNhat, nguoiCapNhat: r.doc.nguoiCapNhat }));
-      setLuu({ k: 'ok', luc: new Date() });
-      napDanhSach();
-    } else if (r.xungDot) setLuu({ k: 'xungdot' });
-    else setLuu({ k: 'loi', chu: r.loi });
-    return r;
-  }, [slug, tenDV, ts, maSua, email, napDanhSach]);
-
-  // Tự lưu 1,5 giây sau lần sửa cuối — CHỈ cho bản của tỉnh (xem `tuLuu`).
-  useEffect(() => {
-    if (!chuaLuu || !tuLuu || banNhap || luu.k === 'xungdot' || luu.k === 'dang') return;
-    const h = setTimeout(() => { setLuu({ k: 'dang' }); ghiLenMayChu(); }, 1500);
-    return () => clearTimeout(h);
-  }, [doc, chuaLuu, tuLuu, banNhap, luu.k, ghiLenMayChu]);
-
-  const luuTay = async () => {
-    if (luu.k === 'dang') return;
-    setLuu({ k: 'dang' });
-    const r = await ghiLenMayChu();
-    if (r.ok) bao('ok', `Đã lưu bộ biểu của ${slug ? (tenDV || 'đơn vị') : 'cơ quan tỉnh'} lên hệ thống.`);
-    else if (!r.xungDot) bao('loi', r.loi || 'Chưa lưu được lên hệ thống.');
-  };
-
-  const datDoc = (moi) => {
-    setDoc(moi); setChuaLuu(true);
-    if (!cacheVTVL(slug, moi, ts, true)) bao('canh', 'Trình duyệt hết chỗ lưu bản nháp (dữ liệu quá lớn) — hãy lưu lên hệ thống ngay.');
-    if (luu.k === 'loi' || luu.k === 'ok') setLuu({ k: '' });
-  };
-
-  // ── Chọn / tạo đơn vị ────────────────────────────────────────────────────
-  const chonDonVi = (s) => {
-    if (s === slug) return;
-    if (chuaLuu && coQuyenGhi && !window.confirm('Bộ biểu đang mở còn thay đổi CHƯA LƯU lên hệ thống. Vẫn chuyển sang đơn vị khác? (Bản nháp vẫn giữ trên máy này.)')) return;
-    setMaMoi(''); setTenDV(''); nhoSlug(s); setSlug(s);
-    setTab('tongquan'); setFormId(null); setQuayLai(null);
-  };
-
-  const taoDonVi = async (ten) => {
-    const s = slugDonVi(ten);
-    setDangTao(true);
-    // Tạo = ghi ngay một bộ biểu rỗng lên máy chủ, vì chính lượt ghi đó mới cấp MÃ SỬA.
-    const r = await luuDonVi({ ten, slug: s, doc: docMoiChoDonVi(ten), tsCu: null, nguoi: email || 'khách' });
-    setDangTao(false);
-    if (!r.ok) {
-      bao('loi', r.xungDot
-        ? 'Đơn vị này vừa được người khác tạo xong. Hãy chọn đơn vị đó trong hộp chọn ở trên.'
-        : (r.loi || 'Chưa tạo được bộ biểu cho đơn vị.'));
-      napDanhSach();
+  const napTepMoi = async (file) => {
+    if (!file) return;
+    const duoi = (file.name.split('.').pop() || '').toLowerCase();
+    if (!['xlsx', 'xlsm', 'json'].includes(duoi)) {
+      setLoi(`Cần tệp bộ biểu .xlsx, không phải ".${duoi}".`);
       return;
     }
-    cacheVTVL(s, r.doc, r.ts, false);
-    nhoSlug(s); setTenDV(r.ten); setSlug(s);
-    setMaMoi(r.maSua || '');
-    napDanhSach();
-    bao('ok', `Đã tạo bộ biểu cho ${r.ten}. Hãy ghi lại mã sửa.`);
+    setLoi(''); setKetQuaXuat(''); setDangDoc({ phan: 0, trang: '' });
+    try {
+      if (duoi === 'json') {
+        const d = JSON.parse(await file.text());
+        if (d?.loai !== 'vtvl-sao-luu' || !d.doc?.bieu) throw new Error('Tệp .json không phải bản sao lưu của phân hệ này.');
+        setDoc(d.doc); setDocGoc(JSON.parse(JSON.stringify(d.doc))); setTepGoc(null);
+      } else {
+        const { doc: d, thieuTrang } = await napTep(file, { onTienDo: setDangDoc });
+        if (!(d.bieu.C1 || []).length && !(d.bieu.B1 || []).length) {
+          throw new Error('Tệp không có dòng dữ liệu nào ở các biểu A1…D2. Hãy chọn đúng tệp BỘ BIỂU vị trí việc làm.');
+        }
+        if (thieuTrang.length > 6) {
+          throw new Error(`Tệp thiếu ${thieuTrang.length} trang của bộ biểu (${thieuTrang.slice(0, 3).join(', ')}…) — có thể không phải tệp bộ biểu.`);
+        }
+        setDoc(d); setDocGoc(JSON.parse(JSON.stringify(d))); setTepGoc(file);
+      }
+      setBuocId('B1');
+    } catch (e) { setLoi(e.message); } finally { setDangDoc(null); }
   };
 
-  const dungMaSua = (ma, loi) => {
-    if (!ma) { bao('loi', loi || 'Mã sửa không hợp lệ.'); return; }
-    nhoMaSua(slug, ma); setMaSua(ma);
-    bao('ok', 'Đã nhận mã sửa — bạn nhập liệu được cho đơn vị này. Nhập xong nhớ bấm Lưu lên hệ thống.');
+  const moMau = () => {
+    const d = boSoMau();
+    setDoc(d); setDocGoc(JSON.parse(JSON.stringify(d))); setTepGoc(null);
+    setLoi(''); setKetQuaXuat(''); setBuocId('B1');
   };
-  const boMaSua = () => {
-    if (!window.confirm('Xóa mã sửa khỏi máy này? Bạn sẽ chỉ còn XEM được bộ biểu của đơn vị này cho tới khi nhập lại mã.')) return;
-    xoaMaSua(slug); setMaSua('');
-  };
-  const suaO = (bId, id, k, v) => {
-    if (docOnly) return;
-    const d = docRef.current;
-    const rows = d.bieu[bId] || [];
-    const i = rows.findIndex((r) => r._id === id);
-    if (i < 0) return;
-    const cu = rows[i][k];
-    if (cu === v) return;
-    const b = BIEU_THEO_ID[bId];
-    const bieuMoi = { ...d.bieu, [bId]: rows.map((r, j) => (j === i ? { ...r, [k]: v } : r)) };
-    const kqNay = d === doc ? kq : tinhToan(d);
-    if (bId !== 'S' && dongDaXacNhan(bId, rows[i], kqNay.tinh[bId]?.[i])) {
-      const khoa = cotKhoa(b);
-      bieuMoi.S = [...(d.bieu.S || []), dongNhatKy({ ky: d.ky, bieu: b.sheet, ma: khoa ? rows[i][khoa.k] : `dòng ${i + 1}`, truong: `${k} · ${b.cot.find((c) => c.k === k)?.ten}`, cu, moi: v, nguoi: email })];
-    }
-    datDoc({ ...d, bieu: bieuMoi });
-  };
-  const themDong = (bId) => {
-    const r = newDong(bId);
-    if (bId === 'S') Object.assign(r, { A: doc.ky, H: email, I: new Date().toISOString().slice(0, 10) });
-    const cot1 = BIEU_THEO_ID[bId].cot[0];
-    if ((bId === 'Y' || bId === 'VUNG') && cot1.kieu === 'so') r.A = (doc.bieu[bId] || []).length + 1;
-    datDoc({ ...doc, bieu: { ...doc.bieu, [bId]: [...(doc.bieu[bId] || []), r] } });
-    setDiToi({ bieu: bId, id: r._id, n: Date.now() });
-  };
-  const xoaDong = (bId, id) => {
-    if (!window.confirm('Xóa dòng này?')) return;
-    const b = BIEU_THEO_ID[bId];
-    const r = (doc.bieu[bId] || []).find((x) => x._id === id);
-    const khoa = cotKhoa(b);
-    const bieuMoi = { ...doc.bieu, [bId]: doc.bieu[bId].filter((x) => x._id !== id) };
-    if (bId !== 'S' && r && khoa && !rong(r[khoa.k])) bieuMoi.S = [...(doc.bieu.S || []), dongNhatKy({ ky: doc.ky, bieu: b.sheet, ma: r[khoa.k], truong: '(xóa dòng)', cu: r[khoa.k], nguoi: email })];
-    datDoc({ ...doc, bieu: bieuMoi });
-    if (formId === id) setFormId(null);
-  };
-  const nhanBan = (bId, id) => {
-    const rows = doc.bieu[bId] || [];
-    const i = rows.findIndex((x) => x._id === id);
-    if (i < 0) return;
-    const ban = { ...rows[i], _id: newDong(bId)._id };
-    datDoc({ ...doc, bieu: { ...doc.bieu, [bId]: [...rows.slice(0, i + 1), ban, ...rows.slice(i + 1)] } });
-    setFormId(ban._id);
-  };
-  const xoaHet = (bId) => {
-    const b = BIEU_THEO_ID[bId];
-    if (!window.confirm(`Xóa TOÀN BỘ ${soDong(doc, bId)} dòng của biểu ${b.ma} — ${b.ten}?`)) return;
-    datDoc({ ...doc, bieu: { ...doc.bieu, [bId]: [], S: bId === 'S' ? [] : [...(doc.bieu.S || []), dongNhatKy({ ky: doc.ky, bieu: b.sheet, truong: '(xóa toàn bộ biểu)', cu: `${soDong(doc, bId)} dòng`, nguoi: email })] } });
-  };
-  const apDung = (ketQua, tenTep, cheDo, soSua = 0) => {
-    const tomTat = ketQua.tomTat.map((t) => `${t.ma}: +${t.them}${t.capNhat ? `, cập nhật ${t.capNhat}` : ''}`).join('; ');
-    const canhBaoThay = cheDo === 'thay' ? `\n\nChế độ THAY THẾ: dữ liệu hiện có của ${ketQua.tomTat.map((t) => t.ma).join(', ')} sẽ được thay bằng dữ liệu của tệp.` : '';
-    if (!window.confirm(`Áp dụng ${ketQua.tongNhap} dòng từ "${tenTep}"?\n${tomTat}${canhBaoThay}`)) return;
-    const moi = chuanHoaVTVL(ketQua.docMoi);
-    moi.bieu.S = [...(moi.bieu.S || []), dongNhatKy({ ky: moi.ky, bieu: '(nhập từ tệp)', truong: CHE_DO.find((m) => m.id === cheDo)?.ten || cheDo, moi: soSua ? `${tomTat} · tự động sửa ${soSua} chỗ` : tomTat, nguon: tenTep, nguoi: email })];
-    datDoc(moi);
-    setNhapTep({ cheDo, boQuaLoi: true });
-    setTab('tongquan');
-    bao('ok', `Đã nhập ${ketQua.tongNhap} dòng từ "${tenTep}". ${coQuyenGhi ? 'Đang lưu lên máy chủ…' : ''}`);
-  };
-  const danXong = (chu, viTri) => {
-    const pt = phanTichTep({ trang: [{ ten: `Dán vào ${BIEU_THEO_ID[bieuId].sheet}`, dong: docBangChu(chu) }] }, { chiBieu: bieuId, theoViTri: viTri });
-    setNhapTep({ ten: `Dữ liệu dán vào ${BIEU_THEO_ID[bieuId].ma} — ${BIEU_THEO_ID[bieuId].ten}`, phanTich: pt, cheDo: 'them', boQuaLoi: true, khongDoc: [] });
-    setDan(false);
-    setTab('tep');
-  };
-  const diToiO = (bId, id) => { setBieuId(bId); setTab('nhap'); setDiToi({ bieu: bId, id, n: Date.now() }); };
-  // Đi theo liên kết mã (vd A2!C "VT1" → dòng VT1 ở C1); nhớ chỗ xuất phát để "Quay lại".
-  const moMa = (refId, ma, tu) => {
-    const dich = ma ? timDongTheoMa(doc, refId, ma) : null;
-    if (tu) {
-      const b0 = BIEU_THEO_ID[tu.bieu];
-      const r0 = (doc.bieu[tu.bieu] || []).find((x) => x._id === tu.id);
-      const k0 = cotKhoa(b0);
-      setQuayLai({ ...tu, ma: r0 && k0 && !rong(r0[k0.k]) ? r0[k0.k] : '' });
-    }
-    setFormId(null);
-    if (dich) diToiO(refId, dich); else { setBieuId(refId); setTab('nhap'); }
-  };
-  const veLai = () => { if (!quayLai) return; const q = quayLai; setQuayLai(null); if (q.id && q.id.startsWith('b2-')) { setBieuId(q.bieu); setTab('nhap'); } else diToiO(q.bieu, q.id); };
-  const taiLaiMayChu = async () => {
-    const r = await fetchVTVL(slug);
-    if (!r) { bao('loi', 'Không tải được bản trên máy chủ.'); return; }
-    setDoc(r.doc); setTs(r.ts); setChuaLuu(false); cacheVTVL(slug, r.doc, r.ts, false); setLuu({ k: '' }); setBanNhap(null);
-    bao('ok', 'Đã tải bản mới nhất trên máy chủ.');
-  };
-  const ghiDe = async () => {
-    const r = await fetchVTVL(slug);
-    setTs(r?.ts || null); setLuu({ k: '' }); setChuaLuu(true); setBanNhap(null);
-  };
-  const taiMau = () => import('./lib/vtvlXuat').then((m) => m.xuatMau());
 
-  const b = BIEU_THEO_ID[bieuId];
-  const huyHieuLuu = !coQuyenGhi ? null
-    : luu.k === 'dang' ? 'Đang lưu…'
-      : luu.k === 'loi' ? 'Chưa lưu được'
-        : chuaLuu ? 'Có thay đổi chưa lưu'
-          : luu.k === 'ok' ? `Đã lưu ${luu.luc.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })}` : 'Đã đồng bộ';
+  const suaO = useCallback((bieuId, i, cot, giaTri) => {
+    setDoc((cu) => {
+      if (!cu) return cu;
+      const ds = [...(cu.bieu[bieuId] || [])];
+      ds[i] = { ...ds[i], [cot]: giaTri };
+      return { ...cu, bieu: { ...cu.bieu, [bieuId]: ds } };
+    });
+    setKetQuaXuat('');
+  }, []);
+
+  const xuat = async () => {
+    setDangXuat(true); setLoiXuat(''); setKetQuaXuat('');
+    try {
+      if (tepGoc) {
+        const { blob, soO, theoBieu, canhBao } = await ghiLaiTep(tepGoc, doc, { docGoc });
+        const ten = tenTepXuat(doc, 'da_sua');
+        taiVe(blob, ten);
+        setKetQuaXuat(`Đã xuất ${ten} — ghi ${soO} ô vào ${Object.keys(theoBieu).length} biểu (${Object.entries(theoBieu).map(([k, v]) => `${k}: ${v}`).join(' · ') || 'không có ô nào đổi'}). Giữ nguyên mọi trang và công thức của tệp gốc.`
+          + (canhBao.length ? ` ⚠️ ${canhBao.join(' ')}` : ''));
+      } else {
+        const ten = await xuatTepMoi(doc, kq);
+        setKetQuaXuat(`Đã xuất ${ten}. Đây là tệp gọn do phần mềm dựng, không phải bộ biểu gốc của Ban.`);
+      }
+    } catch (e) { setLoiXuat(e.message); } finally { setDangXuat(false); }
+  };
+
+  const iBuoc = BUOC.findIndex((b) => b.id === buocId);
+  const truoc = BUOC[iBuoc - 1];
+  const sau = BUOC[iBuoc + 1];
 
   return (
-    <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
-      <header className="bg-gradient-to-br from-[#082f49] via-[#0c4a6e] to-[#0369a1] text-white print:hidden">
-        <div className="max-w-[1500px] mx-auto px-4 sm:px-6 py-4 flex items-center justify-between gap-3 flex-wrap">
-          <div className="flex items-center gap-3">
-            <button onClick={onHome} title="Về Trang chủ (chọn phân hệ khác)" className="shrink-0 w-10 h-10 rounded-xl bg-white/10 border border-white/25 hover:bg-white/20 flex items-center justify-center transition-colors"><Home className="w-5 h-5" /></button>
-            <div className="shrink-0 w-12 h-12 rounded-full bg-white/95 flex items-center justify-center shadow-lg ring-2 ring-white/40 p-1.5">
-              <img src="/quoc-huy.svg" alt="Quốc huy Việt Nam" className="w-full h-full object-contain" />
-            </div>
-            <div>
-              <div className="flex items-center gap-2 flex-wrap">
-                <p className="text-[10px] font-semibold tracking-[0.2em] uppercase text-sky-200">Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa</p>
-                <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-300 text-amber-950">Bản demo thử nghiệm</span>
-              </div>
-              <h1 className="text-base sm:text-xl font-extrabold leading-tight">Bộ biểu Vị trí việc làm — nhập liệu, kiểm tra</h1>
-              <p className="text-white/80 text-[11px] sm:text-xs mt-0.5">A1–D2 · danh mục sản phẩm · dự báo 2027–2031 · tự tính đúng công thức bộ biểu</p>
-            </div>
+    <div className="min-h-screen bg-slate-50">
+      <header className="bg-gradient-to-r from-sky-800 to-sky-700 text-white">
+        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3 flex-wrap">
+          {onHome && (
+            <button onClick={onHome} className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-[12.5px] font-semibold">
+              <Home className="w-4 h-4" /> Trang chủ
+            </button>
+          )}
+          <img src="/quoc-huy.svg" alt="" className="w-8 h-8" />
+          <div className="min-w-0">
+            <p className="text-[10.5px] font-bold uppercase tracking-wider text-sky-100">Bộ biểu vị trí việc làm</p>
+            <h1 className="text-[15px] font-extrabold leading-tight truncate">
+              {doc ? (doc.donVi || doc.tenTep || 'Bộ biểu đang nhập') : 'Nhập tệp bộ biểu để bắt đầu'}
+            </h1>
           </div>
-          <div className="flex items-center gap-2 flex-wrap">
-            {huyHieuLuu && <span className={`text-[11px] px-2.5 py-1.5 rounded-lg border ${luu.k === 'loi' ? 'bg-rose-500/30 border-rose-200/40' : chuaLuu ? 'bg-amber-400/20 border-amber-200/30' : 'bg-white/10 border-white/20'}`}>{huyHieuLuu}</span>}
-            {coQuyenGhi && !tuLuu && (
-              <button onClick={luuTay} disabled={luu.k === 'dang' || !chuaLuu}
-                className={`text-[11.5px] font-bold px-3 py-1.5 rounded-lg inline-flex items-center gap-1.5 ${chuaLuu ? 'bg-amber-300 text-amber-950 hover:bg-amber-200' : 'bg-white/15 border border-white/25 text-white/80'} disabled:cursor-default`}>
-                <Save className="w-3.5 h-3.5" /> {luu.k === 'dang' ? 'Đang lưu…' : chuaLuu ? 'Lưu lên hệ thống' : 'Đã lưu'}
-              </button>
-            )}
-            <span className={`text-[11px] px-2.5 py-1.5 rounded-lg border ${coQuyenGhi ? 'bg-emerald-500/20 border-emerald-300/30 text-emerald-50' : 'bg-amber-400/20 border-amber-200/30 text-amber-50'}`}>
-              {daDangNhap ? 'Đã đăng nhập · nhập liệu được' : coQuyenGhi ? 'Có mã sửa · nhập liệu được' : 'Khách · xem và kiểm tra tệp'}
+          <div className="ml-auto flex items-center gap-2 flex-wrap">
+            {doc?.laMau && <span className="px-2 py-1 rounded-lg bg-violet-500/90 text-[11px] font-bold">BỘ SỐ MẪU</span>}
+            {soODoi > 0 && <span className="px-2 py-1 rounded-lg bg-amber-400 text-amber-950 text-[11px] font-bold">{soODoi} ô đã đổi · chưa xuất tệp</span>}
+            <span className="px-2 py-1 rounded-lg bg-white/15 text-[11px] font-semibold">
+              {admin ? 'Đã đăng nhập' : 'Khách'}
             </span>
-            {!daDangNhap && <a href="#/okr?login=1" className="text-[11px] font-semibold px-2.5 py-1.5 rounded-lg bg-white text-sky-900 inline-flex items-center gap-1.5"><LogIn className="w-3.5 h-3.5" /> Đăng nhập</a>}
           </div>
         </div>
-        <nav className="max-w-[1500px] mx-auto px-4 sm:px-6 flex gap-1 overflow-x-auto">
-          {TABS.map(({ id, ten, Ic }) => (
-            <button key={id} onClick={() => setTab(id)}
-              className={`shrink-0 inline-flex items-center gap-1.5 px-4 py-2.5 text-[13px] font-semibold rounded-t-xl transition-colors ${tab === id ? 'bg-slate-50 text-sky-900' : 'text-white/80 hover:bg-white/10'}`}>
-              {renderIcon(Ic)}{ten}
-              {id === 'kiemtra' && (vanDe.ds.filter((v) => v.muc === 'loi').length > 0) && <span className="ml-1 text-[10px] font-bold px-1.5 rounded-full bg-rose-500 text-white">{vanDe.ds.filter((v) => v.muc === 'loi').length}</span>}
-            </button>
-          ))}
-        </nav>
       </header>
 
-      <main className="max-w-[1500px] mx-auto px-4 sm:px-6 py-5 space-y-4">
-        {thongBao && (
-          <div className={`rounded-xl border px-4 py-2.5 text-[13px] flex items-start gap-2 ${thongBao.kieu === 'ok' ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : thongBao.kieu === 'canh' ? 'bg-amber-50 border-amber-200 text-amber-800' : 'bg-rose-50 border-rose-200 text-rose-800'}`}>
-            {thongBao.kieu === 'ok' ? <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> : <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />}<span>{thongBao.chu}</span>
-          </div>
-        )}
-        {/* Mã sửa vừa cấp — hiện NỔI BẬT vì mất mã thì chỉ còn xem được. */}
-        {maMoi && (
-          <div className="rounded-2xl border-2 border-emerald-400 bg-emerald-50 px-4 py-3.5 space-y-2">
-            <p className="text-[14px] font-extrabold text-emerald-900 flex items-center gap-2"><CheckCircle2 className="w-5 h-5" /> Đã tạo bộ biểu cho {tenDV}</p>
-            <p className="text-[13px] text-emerald-900">Hãy <b>ghi lại mã sửa</b> dưới đây. Máy này đã tự nhớ mã nên bạn nhập tiếp được ngay; nhưng muốn nhập từ <b>máy khác</b> — hoặc máy này bị xóa dữ liệu duyệt web — thì phải gõ lại mã.</p>
-            <div className="flex items-center gap-2 flex-wrap">
-              <code className="font-mono text-2xl font-extrabold tracking-[0.3em] bg-white border-2 border-emerald-300 rounded-xl px-4 py-2 text-emerald-900">{maMoi}</code>
-              <button onClick={() => { navigator.clipboard?.writeText(maMoi); bao('ok', 'Đã sao chép mã sửa.'); }} className={nutPhu}><Copy className="w-3.5 h-3.5" /> Sao chép mã</button>
-              <button onClick={() => setMaMoi('')} className={nutPhu}>Tôi đã ghi lại — ẩn đi</button>
-            </div>
-            <p className="text-[12px] text-emerald-800">Mã này chỉ để các đơn vị không ghi đè lên nhau, <b>không phải mật khẩu bảo vệ dữ liệu</b> — bộ biểu vốn không chứa thông tin cá nhân. Mất mã thì liên hệ Văn phòng Đoàn ĐBQH và HĐND tỉnh.</p>
-          </div>
-        )}
+      <main className="max-w-7xl mx-auto px-4 py-4 space-y-4">
+        <ThanhBuoc buoc={buocId} doc={doc} kq={kq} onChon={setBuocId} />
 
-        {/* Khối chọn đơn vị LUÔN hiện — kể cả lúc đang tải: ẩn đi thì người dùng không
-            còn thấy mình đang ở đơn vị nào và cũng không đổi sang đơn vị khác được. */}
-        <ChonDonVi ds={dsDV} slug={slug} ten={tenDV} coQuyenGhi={coQuyenGhi} daDangNhap={daDangNhap}
-          coMa={!!maSua} dangTao={dangTao} dangNap={!daNap} onChon={chonDonVi} onTao={taoDonVi} onNhapMa={dungMaSua} onBoMa={boMaSua} />
+        {doc && kq && buoc.bieu && <KhoiKetQua doc={doc} kq={kq} />}
 
-        {banNhap && coQuyenGhi && (
-          <div className="rounded-xl border border-amber-300 bg-amber-50 px-4 py-3 text-[13px] text-amber-900 flex items-center gap-3 flex-wrap">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span className="flex-1 min-w-[240px]">Máy này còn <b>bản nháp chưa lưu</b> khác với bản trên máy chủ{banNhap.doc.capNhat ? ` (máy chủ cập nhật lúc ${new Date(banNhap.doc.capNhat).toLocaleString('vi-VN')})` : ''}. Chọn bản muốn giữ:</span>
-            <button onClick={() => { setBanNhap(null); setChuaLuu(true); }} className={nutPhu}>Giữ bản nháp trên máy này</button>
-            <button onClick={taiLaiMayChu} className={nutPhu}>Dùng bản trên máy chủ</button>
-          </div>
-        )}
-        {luu.k === 'xungdot' && (
-          <div className="rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-[13px] text-rose-900 flex items-center gap-3 flex-wrap">
-            <AlertTriangle className="w-4 h-4 shrink-0" />
-            <span className="flex-1 min-w-[240px]">Người khác vừa lưu dữ liệu bộ biểu trên máy chủ nên thay đổi của bạn <b>chưa được ghi</b> (tránh ghi đè mất dữ liệu của nhau).</span>
-            <button onClick={taiLaiMayChu} className={nutPhu}>Tải bản mới (bỏ thay đổi của tôi)</button>
-            <button onClick={ghiDe} className={`${nutPhu} text-rose-700`}>Ghi đè bằng bản của tôi</button>
-          </div>
-        )}
-        {luu.k === 'loi' && <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-2.5 text-[13px] text-rose-800">Chưa lưu được lên máy chủ ({luu.chu}). Bản nháp vẫn giữ trên máy này; phần mềm sẽ thử lại ở lần sửa tiếp theo.</div>}
-        {kb > CANH_BAO_KB && <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2.5 text-[13px] text-amber-800">Dữ liệu đã khoảng {fmtSo(kb)} KB — lưu và tải sẽ chậm hơn. Cân nhắc tách theo đơn vị hoặc theo kỳ.</div>}
-        {docOnly && daNap && tab !== 'tep' && tab !== 'huongdan' && (
-          <div className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-2.5 text-[13px] text-sky-900 flex items-center gap-2 flex-wrap">
-            <Info className="w-4 h-4 shrink-0" />
-            <span className="flex-1">
-              {doc.capNhat
-                ? <>Chế độ xem: đang xem dữ liệu <b>{doc.nguoiCapNhat ? `do ${doc.nguoiCapNhat} nhập` : 'đã lưu trên hệ thống'}</b>, cập nhật lúc <b>{new Date(doc.capNhat).toLocaleString('vi-VN')}</b>. </>
-                : <>Chế độ xem: đơn vị này chưa có dữ liệu bộ biểu nào được lưu. </>}
-              Khách vẫn dùng được <button onClick={() => setTab('tep')} className="font-bold underline">Nhập từ tệp</button> để <b>kiểm tra lỗi tệp Excel</b>. Muốn <b>kê khai bộ biểu của HĐND xã, phường mình</b> thì bấm <b>Tạo bộ biểu đơn vị mới</b> ở trên — không cần tài khoản.
-            </span>
-          </div>
-        )}
+        <section className={theRong}>
+          {buocId === 'nguon' && (
+            <BuocNguon onNap={napTepMoi} onMau={moMau} dangDoc={dangDoc} loi={loi} doc={doc} />
+          )}
 
-        {tab === 'tongquan' && (
-          <TongQuan doc={doc} kq={kq} vanDe={vanDe} docOnly={docOnly} dbqhMacDinh={laTinhDV ? DBQH_TINH : null}
-            onSuaChung={(k, v) => { if (!docOnly && doc[k] !== v) datDoc({ ...doc, [k]: v }); }}
-            onMoBieu={(id) => { setBieuId(id); setTab('nhap'); }} onTab={setTab}
-            onXuat={() => import('./lib/vtvlXuat').then((m) => m.xuatDuLieu(doc, kq))} onTaiMau={taiMau}
-            onSaoLuu={() => import('./lib/vtvlXuat').then((m) => m.xuatSaoLuu(doc))} />
-        )}
-
-        {tab === 'nhap' && (
-          <div className="grid lg:grid-cols-[250px_minmax(0,1fr)] gap-4 items-start">
-            <aside className="bg-white rounded-2xl border border-slate-200 p-2 lg:sticky lg:top-3 max-h-[calc(100vh-1.5rem)] overflow-y-auto">
-              {NHOM_BIEU.map((n) => (
-                <div key={n.id} className="mb-1">
-                  <p className="px-2 pt-2 pb-1 text-[10px] font-bold uppercase tracking-wider text-slate-400">{n.ten}</p>
-                  {BIEU.filter((x) => x.nhom === n.id).map((x) => {
-                    const d = vanDe.demBieu[x.id] || {};
-                    const so = x.id === 'B2' ? kq.B2.length : x.id === 'DOI' ? kq.DOI.length : soDong(doc, x.id);
-                    return (
-                      <button key={x.id} onClick={() => setBieuId(x.id)}
-                        className={`w-full text-left px-2.5 py-1.5 rounded-lg text-[12.5px] flex items-center gap-2 ${bieuId === x.id ? 'bg-sky-700 text-white' : 'hover:bg-slate-100 text-slate-700'}`}>
-                        <span className={`font-mono text-[10px] w-[4.25rem] shrink-0 truncate ${bieuId === x.id ? 'text-sky-100' : 'text-slate-400'}`}>{x.ma}</span>
-                        <span className="flex-1 truncate">{x.ten}{x.tuTinh ? ' ∑' : ''}</span>
-                        {d.loi ? <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" title={`${d.loi} lỗi`} /> : d.canh ? <span className="w-2 h-2 rounded-full bg-amber-400 shrink-0" title={`${d.canh} cảnh báo`} /> : null}
-                        <span className={`text-[10.5px] tabular-nums ${bieuId === x.id ? 'text-sky-100' : 'text-slate-400'}`}>{so}</span>
-                      </button>
-                    );
-                  })}
+          {buoc.bieu && doc && kq && (
+            <>
+              <div className="flex items-start justify-between gap-3 flex-wrap mb-3">
+                <div>
+                  <h2 className="text-lg font-extrabold text-slate-800">Bước {iBuoc}: {buoc.ten}</h2>
+                  <p className="text-[12.5px] text-slate-500">{buoc.moTa}</p>
+                  <p className="text-[12.5px] text-sky-800 font-semibold mt-0.5">Cần nhập: {buoc.hoi}</p>
                 </div>
-              ))}
-            </aside>
-            <BangBieu b={b} doc={doc} kq={kq} vanDe={vanDe} docOnly={docOnly} diToi={diToi}
-              onSua={(id, k, v) => suaO(b.id, id, k, v)} onThem={() => themDong(b.id)} onXoa={(id) => xoaDong(b.id, id)}
-              onNhanBan={(id) => nhanBan(b.id, id)} onXoaHet={() => xoaHet(b.id)} onMoForm={setFormId} onDan={() => setDan(true)}
-              onMoMa={moMa} quayLai={quayLai && quayLai.bieu !== b.id ? quayLai : null} onQuayLai={veLai} />
+                {(() => {
+                  const t = tienDoBuoc(doc, kq, buoc);
+                  return (
+                    <div className="text-right">
+                      <p className="text-[13px] font-bold text-slate-800">{t.dat}/{t.tong} dòng đạt</p>
+                      {t.trong > 0 && <p className="text-[12px] text-amber-700">{t.trong} dòng chưa điền số</p>}
+                    </div>
+                  );
+                })()}
+              </div>
+              <BangNhapSo doc={doc} docGoc={docGoc} kq={kq} buoc={buoc} onSuaO={suaO} />
+            </>
+          )}
+
+          {buocId === 'xong' && doc && kq && (
+            <BuocXong doc={doc} kq={kq} tepGoc={tepGoc} soODoi={soODoi}
+              onXuat={xuat} dangXuat={dangXuat} ketQuaXuat={ketQuaXuat} loiXuat={loiXuat} />
+          )}
+        </section>
+
+        {doc && (
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <button onClick={() => truoc && setBuocId(truoc.id)} disabled={!truoc} className={nutPhu}>
+              <ArrowLeft className="w-4 h-4" /> {truoc ? truoc.nhan || truoc.ten : 'Trước'}
+            </button>
+            <button onClick={() => sau && setBuocId(sau.id)} disabled={!sau} className={nutChinh}>
+              {sau ? `Tiếp: ${sau.nhan || sau.ten}` : 'Xong'} <ArrowRight className="w-4 h-4" />
+            </button>
           </div>
         )}
 
-        {tab === 'tep' && <NhapTep trangThai={nhapTep} setTrangThai={setNhapTep} doc={doc} coQuyenGhi={coQuyenGhi} onApDung={apDung} onTaiMau={taiMau} />}
-        {tab === 'kiemtra' && <KiemTraTab doc={doc} kq={kq} vanDe={vanDe} onDiToi={diToiO} />}
-        {tab === 'baocao' && <BaoCaoTab doc={doc} dbqhMacDinh={laTinhDV ? DBQH_TINH : null} onTab={setTab} />}
-        {tab === 'nopcong' && <NopCongTab doc={doc} kq={kq} tenDonVi={doc.donVi || dsDV.find((x) => x.slug === slug)?.ten || TEN_TINH} />}
-        {tab === 'huongdan' && <HuongDanTab />}
+        {doc && (
+          <section className={theRong}>
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">Các biểu cố định</span>
+              {[['A1', 'Nhiệm vụ'], ['A2', 'Công việc'], ['C1', 'Vị trí việc làm'], ['DM', 'Danh mục sản phẩm']].map(([id, ten]) => (
+                <button key={id} onClick={() => setXem(xem === id ? '' : id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-[12px] font-semibold border-2 inline-flex items-center gap-1.5
+                    ${xem === id ? 'border-sky-600 bg-sky-50 text-sky-800' : 'border-slate-200 bg-white text-slate-600 hover:border-sky-300'}`}>
+                  <Table2 className="w-3.5 h-3.5" /> {ten}
+                  <span className="text-slate-400">({coDuLieu(doc, id).length})</span>
+                  {id === 'DM' && !admin && <Lock className="w-3 h-3 text-slate-400" />}
+                </button>
+              ))}
+              {xem && <button onClick={() => setXem('')} className={`${nutPhu} ml-auto`}><Undo2 className="w-3.5 h-3.5" /> Đóng</button>}
+            </div>
+            {xem === 'DM' && <div className="mt-3"><DanhMucSanPham doc={doc} docGoc={docGoc} admin={admin} onSuaO={suaO} /></div>}
+            {xem && xem !== 'DM' && <div className="mt-3"><XemCoDinh doc={doc} id={xem} /></div>}
+          </section>
+        )}
 
-        <p className="text-center text-[11px] text-slate-400 pt-4">Bản demo thử nghiệm, sử dụng nội bộ — không chịu trách nhiệm về tính pháp lý và dữ liệu. Không nhập họ tên, số định danh cá nhân vào bộ biểu (D1 dùng mã nguồn lực).</p>
+        <p className="text-[11.5px] text-slate-500 flex gap-1.5">
+          <Info className="w-4 h-4 shrink-0 text-slate-400" />
+          <span>
+            Phần mềm tính lại các cột tự tính của bộ biểu để anh/chị thấy ngay kết quả; tệp xuất ra <b>không ghi</b> số
+            vào các cột đó, để chính Excel tính — tránh hai nguồn số lệch nhau. Quỹ giờ quy đổi PP2 = {soVN(QUY_GIO_PP2, 0)} giờ/người/năm.
+          </span>
+        </p>
       </main>
-
-      {formId && tab === 'nhap' && (
-        <FormDong b={b} doc={doc} kq={kq} vanDe={vanDe} id={formId} docOnly={docOnly} onDong={() => setFormId(null)} onDi={setFormId}
-          onSua={(id, k, v) => suaO(b.id, id, k, v)} onXoa={(id) => xoaDong(b.id, id)} onNhanBan={(id) => nhanBan(b.id, id)} onMoMa={moMa} />
-      )}
-      {dan && <HopDan b={b} onDong={() => setDan(false)} onXong={danXong} />}
     </div>
   );
 }

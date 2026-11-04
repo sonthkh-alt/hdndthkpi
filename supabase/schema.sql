@@ -306,36 +306,23 @@ create policy "sach_data_public_read" on app_state
   for select using (id = 'sach_data');
 
 -- ---------------------------------------------------------------------
--- BƯỚC 11. PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" (id = 'vtvl_data')
---  ⚠️ NÊN CHẠY: theo nguyên tắc chung "khách và người đăng nhập đọc CÙNG MỘT
---  NGUỒN", khách cần đọc được dòng này để thấy đúng dữ liệu đã nhập. Chưa chạy
---  thì khách chỉ thấy bộ biểu trống (vẫn dùng được chức năng kiểm tra tệp —
---  chức năng đó chạy hoàn toàn trên trình duyệt, không ghi gì).
+-- BƯỚC 11. PHÂN HỆ "BỘ BIỂU VỊ TRÍ VIỆC LÀM" — KHÔNG CÒN CẦN CHẠY
+--  ⚠️ Phân hệ này đã được dựng lại (04/11/2026) theo hướng KHÔNG lưu dữ liệu
+--  trên máy chủ: người dùng nhập tệp bộ biểu .xlsx, sửa các con số ngay trong
+--  trình duyệt rồi xuất lại thành tệp mới. Dữ liệu CHỈ nằm trong bộ nhớ của
+--  trình duyệt, tắt thẻ là mất — không có dòng app_state nào cho phân hệ này.
 --
---  • Cho ĐỌC công khai: bộ biểu chỉ gồm nhiệm vụ, công việc, sản phẩm, VTVL,
---    giờ lao động, số người — KHÔNG có dữ liệu cá nhân theo thiết kế (D1 dùng
---    MÃ nguồn lực; hướng dẫn của bộ biểu dặn hạn chế thông tin cá nhân).
---    Nếu cơ quan coi phương án biên chế là thông tin hạn chế thì ĐỪNG chạy bước
---    này (khi đó chỉ người đăng nhập đọc được).
---  • Chưa chạy bước này thì khách VẪN xem được qua điểm chỉ đọc GET /api/vtvl
---    (api/vtvl.js, dùng khóa bí mật trên Vercel); chạy bước này thì trình duyệt
---    đọc thẳng, nhanh hơn và không phụ thuộc hàm máy chủ.
---  • GHI bộ biểu của CƠ QUAN TỈNH ('vtvl_data') vẫn phải đăng nhập (chính sách
---    app_state_auth_all ở BƯỚC 2). Phần mềm ghi kèm khóa lạc quan theo updated_at
---    để hai người nhập cùng lúc không ghi đè mất dữ liệu của nhau.
+--  Vì vậy các dòng/chính sách cũ (vtvl_data, vtvl_dv_%, vtvl_ma, vtvl_quota)
+--  KHÔNG còn được dùng. Nếu trước đây đã chạy bước này thì gỡ như sau
+--  (không bắt buộc; để lại cũng không ảnh hưởng gì):
 --
---  ⚠️ NHIỀU ĐƠN VỊ: mỗi HĐND xã, phường có bộ biểu riêng ở dòng 'vtvl_dv_<slug>'
---    (slug dựng từ tên đơn vị). Cán bộ xã KHÔNG có tài khoản trên hệ thống này
---    nên các dòng đó được GHI qua hàm máy chủ POST /api/vtvl (api/vtvl.js) bằng
---    khóa bí mật của Vercel, KHÔNG phải ghi thẳng từ trình duyệt. Vì vậy:
---      – KHÔNG mở quyền ghi (insert/update) cho anon ở đây. Toàn bộ chốt chặn
---        (tên đơn vị, mã sửa, trần dung lượng, trần số đơn vị, trần số lần lưu
---        mỗi ngày, khóa lạc quan) nằm trong api/vtvl.js. Mở quyền ghi trực tiếp
---        là vô hiệu hóa tất cả những chốt đó.
---      – Dòng 'vtvl_dv_%' có thêm trường maSuaBam = CHUỖI BĂM SHA-256 của mã sửa.
---        Mã sửa chỉ để các đơn vị không ghi đè lên nhau, không phải mật khẩu bảo
---        vệ dữ liệu; băm để người xem dữ liệu công khai không đọc được mã.
---      – Không có đường XÓA cho khách: chỉ Quản trị xóa được dòng trong Supabase.
+--    drop policy if exists "vtvl_data_public_read" on app_state;
+--    delete from app_state where id = 'vtvl_data' or id like 'vtvl_dv_%'
+--       or id in ('vtvl_ma', 'vtvl_quota');
+--
+--  ⚠️ Lệnh delete ở trên XÓA VĨNH VIỄN bộ biểu các đơn vị đã nhập trước đây.
+--  Chỉ chạy khi đã chắc chắn không cần nữa.
+
 -- ---------------------------------------------------------------------
 drop policy if exists "vtvl_data_public_read" on app_state;
 create policy "vtvl_data_public_read" on app_state
