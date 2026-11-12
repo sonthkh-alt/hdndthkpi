@@ -1,114 +1,30 @@
-# Bản tin pháp luật hằng ngày — chạy tự động trên máy này
+# tools/bantin — ghi bản dự phòng tin tức Thanh Hóa
 
-Mỗi sáng **07:30**, máy này tự lấy tin pháp luật từ các kênh RSS chính thống, vẽ ảnh
-infographic rồi đẩy lên GitHub. Vercel triển khai lại và Trang chủ
-`https://hdndthkpi.vercel.app/` hiện bản tin mới.
-
-**Không cần khóa API, không cần token, không gọi AI.** Tin lấy từ RSS công khai, ảnh vẽ
-bằng Pillow, đẩy bằng chính `git` của máy (đã đăng nhập sẵn).
-
-## Chạy tay
-
-```bash
-python tools/bantin/chay.py          # chạy đầy đủ rồi đẩy lên GitHub
-python tools/bantin/chay.py --thu    # làm mọi thứ nhưng KHÔNG đẩy (xem trước ảnh)
-python tools/bantin/chay.py --ep     # ra bản tin kể cả khi tin đã đưa hôm trước
-python tools/bantin/kiem_thu.py      # kiểm thử, không chạm mạng
+```
+node tools/bantin/chay.mjs          lấy tin → ghi public/bantin/tin.json → commit + push
+node tools/bantin/chay.mjs --thu    như trên nhưng KHÔNG commit, KHÔNG push
 ```
 
-## Bốn tệp
+- Cần **Node.js 18+** (có sẵn `fetch`). Không khóa API, không token, không gọi AI; đẩy bằng `git`
+  đã đăng nhập của máy.
+- Quy tắc chọn tin nằm ở **`src/lib/tinTuc.js`** — dùng chung với máy chủ (`api/tintuc.js`), sửa
+  một chỗ là cả hai đổi theo: chỉ giữ tin trong tỉnh Thanh Hóa, chấm điểm tin về HĐND tỉnh / Đoàn
+  ĐBQH tỉnh, giữ 10 ngày, tối đa 60 tin.
+- Bản dự phòng **tích lũy**: tin mới gộp với tin của các lượt trước.
+- Không đọc được kênh nào → dừng, **không ghi đè** bản cũ. Nội dung không đổi → không commit rỗng.
+- Chỉ commit đúng `public/bantin/tin.json`, không đụng thay đổi khác đang dở trong kho.
+- Nhật ký: `tools/bantin/nhat-ky.log` (không vào git).
 
-| Tệp | Việc |
-|---|---|
-| `tin.py` | Lấy và lọc tin. `doc_rss()` là chỗ **duy nhất** chạm mạng, phần còn lại là logic thuần nên kiểm thử được |
-| `poster.py` | Vẽ ảnh 3508×2480 bằng Pillow, phông Segoe UI/Arial của Windows |
-| `chay.py` | Nối cả dây: lấy tin → vẽ → ghi `public/bantin/` → **lưu vào kho** → commit → push |
-| `kiem_thu.py` | 36 phép kiểm, không cần mạng |
+## Tác vụ theo lịch
 
-Sổ chống trùng tin nằm ở `da-dua-tin.json` (giữ 200 tin gần nhất, có commit lên GitHub để
-máy khác biết đã đưa tin gì). Nhật ký chạy ở `nhat-ky.log` (không commit).
-
-## Kho lưu trữ bản tin cũ
-
-Mỗi lượt chạy chép thêm một bản vào `public/bantin/luu-tru/<ngày>.jpg` + `.json` rồi dựng
-lại `public/bantin/muc-luc.json`. Có từ **2 ngày trở lên** thì huy hiệu ngày trên Trang chủ
-biến thành **hộp chọn ngày** để xem lại bản tin cũ.
-
-Kho chỉ giữ **ảnh nhẹ**, không giữ bản PNG khổ lớn: mỗi ngày một tệp 1 MB thì một năm đã
-hơn 400 MB nằm trong kho mã. Giữ **90 ngày gần nhất** (~21 MB), bản cũ hơn tự bị dọn —
-đổi `SO_NGAY_LUU` trong `tin.py` nếu muốn khác. Số ngày tính theo **lịch** chứ không theo
-số tệp: máy tắt vài hôm thì kho vẫn phủ đủ khoảng thời gian đó.
-
-## Nguồn tin
-
-| Phạm vi | Kênh |
-|---|---|
-| Cả nước | `xaydungchinhsach.chinhphu.vn/rss` · `baochinhphu.vn/rss` |
-| Thanh Hóa | `baothanhhoa.vn/rss/thoi-su.xml` · `phap-luat.xml` · `kinh-te.xml` |
-
-Đổi nguồn thì sửa `NGUON_CA_NUOC` / `NGUON_THANH_HOA` trong `tin.py`.
-
-## Hai cái bẫy của tiếng Việt đã vấp và đã chặn
-
-Cả hai đều nằm ở khâu đoán chủ đề để chọn màu và hình minh họa:
-
-1. **Khớp chuỗi con là sai.** "quốc **gia**" chứa "gia" nên tin *Phòng thủ dân sự quốc gia*
-   từng bị gán chủ đề *Tài chính*. Nay khớp theo ranh giới từ.
-2. **Bỏ dấu để khớp cũng sai.** Tiếng Việt bỏ dấu thì "báo" và "bão" thành một, nên
-   *họp báo thường kỳ* từng bị nhận là tin bão. Nay khớp **có dấu** — nguồn chính thống
-   luôn viết đủ dấu nên không mất gì.
-
-Ngoài ra chủ đề được **chấm điểm** (từ khóa trong tiêu đề nặng gấp 3 lần trong mô tả) chứ
-không lấy chủ đề khớp đầu tiên. `kiem_thu.py` giữ cả hai ca lỗi này làm phép kiểm hồi quy.
-
-## Quản lý tác vụ theo lịch
+Tác vụ Windows **`BanTinPhapLuat`** (07:30 hằng ngày) vẫn gọi `pythonw.exe tools/bantin/chay.py`.
+`chay.py` nay chỉ là cầu nối gọi `node chay.mjs`, nên **không phải sửa tác vụ** — nhưng máy phải
+có lệnh `node` trong PATH của tài khoản chạy tác vụ. Thiếu thì nhật ký ghi
+`LOI: khong tim thay lenh node`.
 
 ```powershell
-Get-ScheduledTaskInfo -TaskName "BanTinPhapLuat"        # xem lần chạy tới, kết quả lần trước
-Start-ScheduledTask   -TaskName "BanTinPhapLuat"        # chạy ngay
-Disable-ScheduledTask -TaskName "BanTinPhapLuat"        # tạm dừng
-Enable-ScheduledTask  -TaskName "BanTinPhapLuat"        # bật lại
+Start-ScheduledTask -TaskName BanTinPhapLuat          # chạy ngay
+(Get-ScheduledTaskInfo -TaskName BanTinPhapLuat).LastTaskResult   # 0 = xong
 ```
 
-Tác vụ chạy bằng `pythonw.exe` nên **không hiện cửa sổ**; muốn biết chuyện gì đã xảy ra
-thì xem `nhat-ky.log`. `LastTaskResult = 0` là chạy xong bình thường.
-
-Đăng ký lại tác vụ (khi chuyển máy):
-
-```powershell
-$repo = "C:\Users\Admin\OneDrive\App\GoogleAnti\HDNDKPI"
-$py   = "C:\Users\Admin\AppData\Local\Programs\Python\Python314\pythonw.exe"
-$act = New-ScheduledTaskAction -Execute $py -Argument "`"$repo\tools\bantin\chay.py`"" -WorkingDirectory $repo
-$trg1 = New-ScheduledTaskTrigger -Daily -At 7:30am
-$trg2 = New-ScheduledTaskTrigger -AtLogOn -User "Admin"
-$trg2.Delay = "PT3M"
-$set = New-ScheduledTaskSettingsSet -StartWhenAvailable `
-       -ExecutionTimeLimit (New-TimeSpan -Minutes 20) -MultipleInstances IgnoreNew `
-       -DontStopIfGoingOnBatteries -AllowStartIfOnBatteries `
-       -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10)
-Register-ScheduledTask -TaskName "BanTinPhapLuat" -Action $act -Trigger $trg1,$trg2 -Settings $set -Force
-```
-
-`-StartWhenAvailable` để máy tắt lúc 07:30 thì bật lên vẫn chạy bù.
-
-⚠️ **Bài học ngày 10/9/2026: tác vụ KHÔNG chạy sáng hôm đó.** Hai nguyên nhân, đã vá:
-
-1. **`-RunOnlyIfNetworkAvailable` phản tác dụng.** Máy vừa bật, Windows chưa kết luận
-   được là "đã có mạng" nên hủy luôn lượt chạy và không thử lại. Điều kiện này thừa vì
-   `chay.py` đã tự xử lý mất mạng: dừng lại và **không ghi đè bản tin cũ**. Nay bỏ hẳn.
-2. **Chỉ có một mốc kích hoạt 07:30.** Máy không bật đúng lúc đó là mất cả ngày.
-   Nay thêm **mốc kích hoạt khi đăng nhập** (trễ 3 phút cho mạng lên) — chạy nhiều lần
-   trong ngày là vô hại vì script tự bỏ qua khi không đủ tin mới và không tạo commit rỗng.
-
-Thêm `-RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 10)` để lỡ hỏng thì thử lại.
-
-## Khi nào KHÔNG ra bản tin
-
-- Không đọc được kênh nào (mất mạng) → dừng, **không ghi đè bản tin cũ**, thoát mã 1.
-- Chưa đủ 5 tin mới so với hôm trước → không tạo bản tin, thoát mã 0 (bình thường).
-- Nội dung không đổi → không tạo commit rỗng.
-
-## Yêu cầu của máy
-
-Python 3 + Pillow (`pip install pillow`), phông Segoe UI hoặc Arial trong
-`C:\Windows\Fonts`, và `git` đã đăng nhập sẵn vào kho `sonthkh-alt/hdndthkpi`.
+Bộ sinh ảnh cũ (`tin.py`, `poster.py`, `kiem_thu.py`, `da-dua-tin.json`) đã gỡ ngày 12/11/2026.

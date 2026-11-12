@@ -5,7 +5,7 @@ import {
 } from 'lucide-react';
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
-import BanTin from './BanTin';
+import { KhoiTinTuc } from './TinTuc';
 import { countVisit } from './lib/visits';
 import NguoiHuongDan from './NguoiHuongDan';
 
@@ -116,8 +116,8 @@ export default function Portal({ onOpen }) {
 
       {/* ===== Phân hệ nghiệp vụ ===== */}
       <main id="phanhe" className="max-w-6xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
-        {/* Bản tin pháp luật hằng ngày — tự ẩn khi chưa có ảnh (xem src/BanTin.jsx). */}
-        <BanTin />
+        {/* Tin tức Thanh Hóa — tự ẩn khi không lấy được tin (xem src/TinTuc.jsx). */}
+        <KhoiTinTuc />
 
         <div className="flex items-end justify-between gap-4 mb-6 flex-wrap">
           <div>

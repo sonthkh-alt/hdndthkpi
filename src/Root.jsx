@@ -13,6 +13,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/sotay       → Sổ tay AI (hỏi đáp có trích dẫn nguồn)     (module riêng)
 //    #/tusach      → Tủ sách (giới thiệu sách của cán bộ cơ quan) (module riêng)
 //    #/vtvl        → Bộ biểu Vị trí việc làm (nhập liệu, kiểm tra tệp) (module riêng)
+//    #/tintuc      → Tin tức Thanh Hóa (tin trong tỉnh, ưu tiên HĐND)   (trang riêng, không có thẻ)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
 //    #/giamsat     → Giám sát số Thanh Hóa                     (hệ thống RIÊNG, tự chuyển tiếp)
@@ -29,6 +30,7 @@ const BieuQuyet = lazy(() => import('./BieuQuyet.jsx'));
 const SoTayAI = lazy(() => import('./SoTayAI.jsx'));
 const TuSach = lazy(() => import('./TuSach.jsx'));
 const VTVL = lazy(() => import('./VTVL.jsx'));
+const TinTuc = lazy(() => import('./TinTuc.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -36,6 +38,8 @@ function parseHash() {
   const full = (window.location.hash || '').replace(/^#\/?/, '').trim();
   const [raw, qs] = full.split('?');
   if (!raw) return HOME;
+  // Trang tin không phải phân hệ (không có thẻ ở Trang chủ) nên bắt riêng ở đây.
+  if (raw === 'tintuc') return { view: 'tintuc', moduleId: 'tintuc' };
   const m = moduleByRoute(raw);
   if (!m) return HOME;
   if (m.target.kind === 'tieuchi') return { view: 'tieuchi', moduleId: m.id };
@@ -123,6 +127,7 @@ export default function Root() {
     if (state.view === 'sotay') return <SoTayAI onHome={goHome} />;
     if (state.view === 'tusach') return <TuSach onHome={goHome} />;
     if (state.view === 'vtvl') return <VTVL onHome={goHome} />;
+    if (state.view === 'tintuc') return <TinTuc onHome={goHome} />;
     if (state.view === 'huongdan') return <HuongDan onHome={goHome} onOpenModule={goRoute} />;
     // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ
     // nghiệp vụ đã được chọn từ Trang chủ nên không cần chọn lại trong ứng dụng.
