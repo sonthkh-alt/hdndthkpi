@@ -1,6 +1,7 @@
 import { supabase } from './supabase.js';
 import { seedSoTay } from './soTaySeed.js';
 import { chuanHoaST, EMPTY_ST } from './soTayAI.js';
+import { hopNhatTraCuu } from './soTayTraCuu.js';
 
 // ============================================================================
 //  LƯU TRỮ của phân hệ "Sổ tay AI" — một dòng app_state, id = 'st_data'
@@ -50,8 +51,12 @@ export async function saveST(d) {
  * ghi bộ này lên máy chủ để mọi người cùng thấy một bản.
  */
 export function khoiTaoNeuTrong(doc) {
-  if (Array.isArray(doc?.soTay) && doc.soTay.length) return { doc: chuanHoaST(doc), moi: false };
-  return { doc: chuanHoaST({ ...chuanHoaST(doc), ...seedSoTay() }), moi: true };
+  const coSan = Array.isArray(doc?.soTay) && doc.soTay.length;
+  const goc = coSan ? chuanHoaST(doc) : chuanHoaST({ ...chuanHoaST(doc), ...seedSoTay() });
+  // Danh mục nguồn đã tra cứu trên Internet (soTayTraCuu.js) — hợp nhất MỘT lần;
+  // có hợp nhất thì `updatedAt` về rỗng để người đăng nhập đầu tiên ghi lên máy chủ.
+  const { doc: hn, them, dien } = hopNhatTraCuu(goc);
+  return { doc: chuanHoaST(hn), moi: !coSan || them + dien > 0, them, dien };
 }
 
 // ============================================================================

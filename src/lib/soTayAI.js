@@ -514,7 +514,7 @@ export const BUOC_DUNG_NLM = [
 /** Việc của người lập sổ tay (chủ notebook) — hướng dẫn cho Tổ công tác. */
 export const BUOC_LAP_NLM = [
   'Tạo một notebook riêng cho từng lĩnh vực, đặt tên trùng với mã và tên sổ tay (ví dụ: "ST-03 Hoạt động giám sát").',
-  'Nạp vào notebook các văn bản ĐÃ KIỂM TRA ở tab "Nguồn của sổ tay" (tải tệp hoặc dán đường dẫn bản công khai).',
+  'Nạp vào notebook các văn bản ĐÃ KIỂM TRA ở tab "Nguồn của sổ tay": bấm "Sao chép đường dẫn nguồn" ở thẻ sổ tay rồi dán vào NotebookLM (Thêm nguồn → Trang web), hoặc tải tệp lên.',
   'Chỉ nạp văn bản CÔNG KHAI, KHÔNG MẬT — nguồn tải lên được gửi và lưu trên máy chủ của Google.',
   'Chia sẻ notebook cho cán bộ theo quyền CHỈ XEM để người dùng hỏi đáp được nhưng không sửa, không xóa nguồn.',
   'Dán địa chỉ notebook vào ô "Liên kết NotebookLM" của sổ tay tương ứng trong phân hệ này.',
@@ -533,7 +533,7 @@ export const EMPTY_ST = {
   soTay: [], nguon: [], cauHoi: [],
   quyTac: { tieuDe: '', banHanh: '', nguoiKy: '', dieu: [], camKet: [] },
   huongDan: [], doThoiGian: [], nhatKy: [],
-  moc: { ...MOC_MAC_DINH }, updatedAt: '',
+  moc: { ...MOC_MAC_DINH }, traCuuV: 0, updatedAt: '',
 };
 
 const chuoi = (v) => (v == null ? '' : String(v));
@@ -555,6 +555,8 @@ export const chuanHoaST = (d) => ({
     nguoiKiemTra: chuoi(n?.nguoiKiemTra), ngayKiemTra: chuoi(n?.ngayKiemTra),
     ghiChu: chuoi(n?.ghiChu),
     napNLM: !!n?.napNLM, ngayNapNLM: chuoi(n?.ngayNapNLM),
+    // 'tai' = đường dẫn không dán thẳng vào NotebookLM được (trang thông tin, tệp .doc) — phải tải tệp về.
+    cachNap: n?.cachNap === 'tai' ? 'tai' : '',
     text: chuoi(n?.text).slice(0, MAX_CHU_MOI_NGUON),
     soKyTu: Math.min(Number(n?.soKyTu) || 0, MAX_CHU_MOI_NGUON),
     demo: !!n?.demo,
@@ -589,6 +591,8 @@ export const chuanHoaST = (d) => ({
     huongDan: chuoi(d?.moc?.huongDan) || MOC_MAC_DINH.huongDan,
     baoCao: chuoi(d?.moc?.baoCao) || MOC_MAC_DINH.baoCao,
   },
+  // Phiên bản danh mục nguồn tra cứu đã hợp nhất (src/lib/soTayTraCuu.js) — để chỉ hợp nhất MỘT lần.
+  traCuuV: Number(d?.traCuuV) || 0,
   updatedAt: chuoi(d?.updatedAt),
 });
 
@@ -598,7 +602,7 @@ export const newId = (p = 'x') => `${p}${Date.now().toString(36)}${(++seq).toStr
 export const newNguon = (soTayId, v = {}) => ({
   id: newId('ng'), soTayId, soHieu: '', ten: '', coQuan: '', ngayBanHanh: '',
   hieuLuc: 'chua-ro', lienKet: '', congKhai: false, kiemTra: 'chua',
-  nguoiKiemTra: '', ngayKiemTra: '', ghiChu: '', napNLM: false, ngayNapNLM: '', text: '', soKyTu: 0, ...v,
+  nguoiKiemTra: '', ngayKiemTra: '', ghiChu: '', napNLM: false, ngayNapNLM: '', cachNap: '', text: '', soKyTu: 0, ...v,
 });
 export const newCauHoi = (soTayId, v = {}) => ({
   id: newId('ch'), soTayId, cauHoi: '', dapAn: '', trichDan: [],

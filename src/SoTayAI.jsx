@@ -34,6 +34,7 @@ import {
   chuanHoaNLM, daGanNLM, NLM_HOST, NLM_MAU, BUOC_DUNG_NLM, BUOC_LAP_NLM,
 } from './lib/soTayAI';
 import { fetchST, saveST, khoiTaoNeuTrong, hoiSoTay, xemHanMucSoTay } from './lib/soTayStore';
+import { lienKetDeNap, NGAY_TRA_CUU } from './lib/soTayTraCuu';
 
 // Thứ tự tab theo ĐÚNG đường đi của người dùng: xem tiến độ → mở sổ tay trên
 // NotebookLM (nơi hỏi đáp CHÍNH) → chuẩn bị nguồn → câu hỏi mẫu → quy tắc →
@@ -52,7 +53,12 @@ const TABS = [
 const inp = 'w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] text-slate-700 outline-none focus:border-violet-400 disabled:bg-slate-50 disabled:text-slate-500';
 const lab = 'text-[11px] font-semibold text-slate-500 mb-1 block';
 const nutChinh = 'inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-violet-700 hover:bg-violet-800 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors';
-const nutPhu = 'inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-50';
+// Ghi vào bộ nhớ tạm. Trình duyệt có thể TỪ CHỐI (trang chưa có tiêu điểm, chưa cấp quyền,
+// http không an toàn) — khi đó lời hứa bị từ chối; phải bắt lại và báo thật, đừng báo "đã sao chép".
+async function saoChepChu(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch { return false; }
+}
+const nutPhu ='inline-flex items-center justify-center gap-2 px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold disabled:opacity-50';
 
 const homNay = () => new Date().toISOString().slice(0, 10);
 const ngayVN = (s) => { if (!s) return ''; const [y, m, d] = String(s).split('-'); return d ? `${d}/${m}/${y}` : s; };
@@ -287,6 +293,58 @@ function TheChiTieu({ ten, daLam, chiTieu, donVi, pct, dat, ghiChu, onClick, soL
 //  tài khoản Google của mình để mở. Phân hệ này giữ vai trò CỔNG VÀO + quản lý
 //  nguồn, câu hỏi mẫu, quy tắc và tiến độ thí điểm.
 // ============================================================================
+
+// Sao chép MỘT LƯỢT đường dẫn các văn bản nguồn của sổ tay để dán vào NotebookLM
+// (Thêm nguồn → Trang web). Mặc định bỏ văn bản đã nạp; có ô gồm cả văn bản đã nạp.
+function NapNguon({ doc, soTayId, bao }) {
+  const [caDaNap, setCaDaNap] = useState(false);
+  const [thuCong, setThuCong] = useState(false);   // không ghi được bộ nhớ tạm → hiện ô để tự chép
+  const { urls, phaiTai, chuaKiemTra } = lienKetDeNap(doc, soTayId, { caDaNap });
+  const saoChep = async () => {
+    if (!urls.length) return;
+    if (await saoChepChu(urls.join('\n'))) {
+      setThuCong(false);
+      bao('ok', `Đã sao chép ${urls.length} đường dẫn — mở notebook, chọn Thêm nguồn → Trang web rồi dán vào.`);
+    } else {
+      setThuCong(true);
+      bao('canh', 'Trình duyệt không cho sao chép tự động — bôi đen danh sách bên dưới rồi bấm Ctrl+C.');
+    }
+  };
+  return (
+    <div className="mt-3 rounded-xl border border-sky-200 bg-sky-50/60 p-3">
+      <div className="flex items-center justify-between gap-2 flex-wrap">
+        <p className="text-[12px] font-bold text-sky-900">Đường dẫn nguồn để nạp lên notebook</p>
+        <label className="flex items-center gap-1.5 text-[11px] text-slate-600">
+          <input type="checkbox" checked={caDaNap} onChange={(e) => setCaDaNap(e.target.checked)} className="w-3.5 h-3.5 accent-sky-600" /> gồm cả văn bản đã nạp
+        </label>
+      </div>
+      <button onClick={saoChep} disabled={!urls.length} className={`${nutPhu} mt-2 disabled:opacity-50 disabled:cursor-not-allowed`}>
+        <Copy className="w-3.5 h-3.5" /> Sao chép {urls.length} đường dẫn nguồn
+      </button>
+      {thuCong && urls.length > 0 && (
+        <textarea readOnly value={urls.join('\n')} rows={Math.min(urls.length, 6)} onFocus={(e) => e.target.select()} autoFocus
+          className="mt-2 w-full text-[10.5px] font-mono border border-amber-300 bg-white rounded-lg px-2 py-1.5 outline-none" />
+      )}
+      {phaiTai.length > 0 && (
+        <div className="mt-2">
+          <p className="text-[11px] font-semibold text-amber-800">{phaiTai.length} văn bản phải tải tệp về rồi tải lên notebook (NotebookLM không đọc được qua đường dẫn):</p>
+          <ul className="mt-1 space-y-0.5">
+            {phaiTai.map((x) => (
+              <li key={x.id} className="text-[11px] text-slate-600 truncate">
+                · <a href={x.lienKet} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline" title={x.ten}>{x.soHieu || x.ten}</a> — {x.ten}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      <p className="text-[11px] text-slate-600 mt-1.5 leading-relaxed">
+        Danh mục tra cứu trên Internet ngày {NGAY_TRA_CUU.split('-').reverse().join('/')}.
+        {chuaKiemTra > 0 && <> <b className="text-amber-800">{chuaKiemTra} văn bản chưa được cán bộ kiểm tra</b> — đối chiếu hiệu lực ở tab "Nguồn của sổ tay" trước khi nạp.</>}
+      </p>
+    </div>
+  );
+}
+
 function SoTayNotebook({ doc, onLuu, coQuyenGhi, onTab, onChon, bao }) {
   const [sua, setSua] = useState('');     // id sổ tay đang sửa liên kết
   const [nhap, setNhap] = useState('');
@@ -350,7 +408,7 @@ function SoTayNotebook({ doc, onLuu, coQuyenGhi, onTab, onChon, bao }) {
                   <a href={t.lienKetNLM} target="_blank" rel="noopener noreferrer" className={nutChinh}>
                     <ExternalLink className="w-4 h-4" /> Mở trên NotebookLM
                   </a>
-                  <button onClick={() => { navigator.clipboard?.writeText(t.lienKetNLM); bao('ok', 'Đã sao chép địa chỉ sổ tay.'); }} className={nutPhu}>
+                  <button onClick={async () => { if (await saoChepChu(t.lienKetNLM)) bao('ok', 'Đã sao chép địa chỉ sổ tay.'); else bao('canh', `Trình duyệt không cho sao chép tự động — địa chỉ: ${t.lienKetNLM}`); }} className={nutPhu}>
                     <Copy className="w-3.5 h-3.5" /> Sao chép địa chỉ
                   </button>
                   {coQuyenGhi && <button onClick={() => { setSua(s.id); setNhap(s.notebookLM || ''); }} className={nutPhu}>Sửa liên kết</button>}
@@ -379,6 +437,8 @@ function SoTayNotebook({ doc, onLuu, coQuyenGhi, onTab, onChon, bao }) {
                   </div>
                 </div>
               )}
+
+              <NapNguon doc={doc} soTayId={s.id} bao={bao} />
 
               <div className="flex gap-2 mt-3 pt-3 border-t border-slate-100">
                 <button onClick={() => { onChon(s.id); onTab('nguon'); }} className="text-[11.5px] font-semibold text-violet-700 hover:text-violet-900">Chuẩn bị nguồn →</button>
@@ -945,7 +1005,7 @@ function NganHangCauHoi({ doc, soTay, onLuu, coQuyenGhi }) {
                     {TRANG_THAI_CAU_HOI.map((x) => <option key={x.k} value={x.k}>{x.ten}</option>)}
                   </select>
                   <input value={c.nguoiDoiChieu} disabled={!coQuyenGhi} onChange={(e) => capNhat(c.id, { nguoiDoiChieu: e.target.value })} placeholder="Người đối chiếu" className="text-[11.5px] border border-slate-200 rounded-lg px-2 py-1.5 outline-none focus:border-violet-400 w-36" />
-                  <button onClick={() => navigator.clipboard?.writeText(c.cauHoi)} title="Sao chép câu hỏi để dán sang NotebookLM" className="text-slate-400 hover:text-violet-700 hover:bg-violet-50 p-1.5 rounded-lg"><Copy className="w-3.5 h-3.5" /></button>
+                  <button onClick={() => saoChepChu(c.cauHoi)} title="Sao chép câu hỏi để dán sang NotebookLM" className="text-slate-400 hover:text-violet-700 hover:bg-violet-50 p-1.5 rounded-lg"><Copy className="w-3.5 h-3.5" /></button>
                   {coQuyenGhi && <button onClick={() => onLuu({ ...doc, cauHoi: (doc.cauHoi || []).filter((x) => x.id !== c.id) })} className="text-rose-400 hover:bg-rose-50 p-1.5 rounded-lg"><Trash2 className="w-3.5 h-3.5" /></button>}
                 </div>
               </div>
