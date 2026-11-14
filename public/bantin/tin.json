@@ -1,8 +1,404 @@
 {
- "capNhat": "2026-11-13T00:30:07.880Z",
+ "capNhat": "2026-11-14T00:30:04.761Z",
  "nguon": "Báo và Phát thanh, Truyền hình Thanh Hóa",
  "trangNguon": "https://baothanhhoa.vn",
  "tin": [
+  {
+   "id": "308981",
+   "tieuDe": "Nhà thờ Tiến sĩ Nguyễn Lệnh Tân - dấu ấn truyền thống hiếu học trên đất Thiệu Hóa",
+   "moTa": "Tọa lạc trên vùng đất giàu truyền thống văn hóa và lịch sử xã Thiệu Hóa, nhà thờ Tiến sĩ Nguyễn Lệnh Tân là nơi lưu giữ nhiều giá trị văn hóa, lịch sử cùng truyền thống hiếu học quý báu. Không chỉ là nơi tri ân, tưởng nhớ một người con ưu tú có nhiều đóng góp cho quê hương, di tích còn góp phần bồi đắp lòng tự hào, giáo dục thế hệ trẻ hôm nay về tinh thần tôn sư trọng đạo, ý chí vươn lên và khát vọng cống hiến.",
+   "lienKet": "https://baothanhhoa.vn/nha-tho-tien-si-nguyen-lenh-tan-dau-an-truyen-thong-hieu-hoc-tren-dat-thieu-hoa-308981.htm",
+   "luc": "2026-11-13T23:00:00.000Z",
+   "kenh": "ve-voi-xu-thanh",
+   "chuyenMuc": "Về với xứ Thanh",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308989",
+   "tieuDe": "Thanh Hóa lan tỏa sức mạnh đại đoàn kết, chung tay chăm lo an sinh xã hội",
+   "moTa": "Từ năm 2024 đến nay, Thanh Hóa đã vận động được trên 1.652 tỷ đồng nguồn lực xã hội hóa, hỗ trợ xây dựng, sửa chữa gần 15.700 căn nhà Đại đoàn kết cho hộ nghèo, hộ có hoàn cảnh khó khăn. Những con số này không chỉ phản ánh hiệu quả của công tác vận động an sinh xã hội mà còn cho thấy sức mạnh của tinh thần “Đoàn kết, nhân ái, nghĩa tình, trách nhiệm”, với sự chung tay của các cấp, các ngành, cộng đồng doanh nghiệp, tổ chức, cá nhân và các tầng lớp Nhân dân trong và ngoài tỉnh, góp phần thực hiện mục tiêu không để ai bị bỏ lại phía sau.",
+   "lienKet": "https://baothanhhoa.vn/thanh-hoa-lan-toa-suc-manh-dai-doan-ket-chung-tay-cham-lo-an-sinh-xa-hoi-308989.htm",
+   "luc": "2026-11-13T15:03:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308976",
+   "tieuDe": "Truyền hình trực tiếp: Chung tay vì người nghèo và an sinh xã hội năm 2026",
+   "moTa": "Nhằm lan tỏa tinh thần nhân ái, ghi nhận những đóng góp tiêu biểu trong công tác an sinh xã hội giai đoạn 2024–2026 và phát động ủng hộ Quỹ “Vì người nghèo” năm 2026, tỉnh Thanh Hóa tổ chức chương trình “Chung tay vì người nghèo và an sinh xã hội năm 2026”.",
+   "lienKet": "https://baothanhhoa.vn/truyen-hinh-truc-tiep-chung-tay-vi-nguoi-ngheo-va-an-sinh-xa-hoi-nam-2026-308976.htm",
+   "luc": "2026-11-13T13:11:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308969",
+   "tieuDe": "Sớm hoàn thành xử lý nhà, đất dôi dư tại phường Hạc Thành và Sầm Sơn",
+   "moTa": "Chỉ còn một tuần nữa là tới mốc 20/11 về hoàn thành xử lý nhà, đất dôi dư. Tại buổi kiểm tra, làm việc với phường Hạc Thành và Sầm Sơn chiều 13/11, đồng chí Lê Quang Hùng, Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch UBND tỉnh đề nghị hai địa phương khẩn trương triển khai các phương án đã được phê duyệt. Với những cơ sở cần điều chỉnh phương án, hai phường phải sớm phối hợp với các sở, ngành rà soát, đề xuất hướng xử lý phù hợp.",
+   "lienKet": "https://baothanhhoa.vn/som-hoan-thanh-xu-ly-nha-dat-doi-du-tai-phuong-hac-thanh-va-sam-son-308969.htm",
+   "luc": "2026-11-13T11:49:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308972",
+   "tieuDe": "Cải cách hành chính trong Đảng: Đổi mới từ việc hằng ngày, lấy hiệu quả thực chất làm thước đo",
+   "moTa": "Chuyển trọng tâm từ sắp xếp tổ chức bộ máy sang nâng cao chất lượng vận hành theo Quyết định số 495-QĐ/TW của Ban Bí thư đòi hỏi cải cách hành chính phải bắt đầu ngay từ công việc hằng ngày. Tại Thanh Hóa, tinh thần xuyên suốt là rõ đầu mối, chuẩn hóa quy trình trước khi số hóa và cắt giảm thủ tục trùng lặp để cán bộ cơ sở có thêm thời gian gần dân, sát dân.",
+   "lienKet": "https://baothanhhoa.vn/cai-cach-hanh-chinh-trong-dang-doi-moi-tu-viec-hang-ngay-lay-hieu-qua-thuc-chat-lam-thuoc-do-308972.htm",
+   "luc": "2026-11-13T11:38:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308940",
+   "tieuDe": "Phó Chủ tịch UBND tỉnh Cao Văn Cường dự Ngày hội Đại đoàn kết toàn dân tộc tại xã Quan Sơn",
+   "moTa": "Chiều 13/11, đồng chí Cao Văn Cường, Tỉnh ủy viên, Phó Chủ tịch UBND tỉnh đã dự Ngày hội Đại đoàn kết toàn dân tộc gắn với Ngày Văn hóa Việt Nam tại bản Ngam, xã Quan Sơn.",
+   "lienKet": "https://baothanhhoa.vn/pho-chu-tich-ubnd-tinh-cao-van-cuong-du-ngay-hoi-dai-doan-ket-toan-dan-toc-tai-xa-quan-son-308940.htm",
+   "luc": "2026-11-13T10:55:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308959",
+   "tieuDe": "Xây dựng khu vực Hồ Thành thành điểm đến sôi động và tái hiện đậm nét dấu ấn Thành cổ",
+   "moTa": "Chiều 13/11, đồng chí Tô Anh Dũng, Phó Bí thư Tỉnh ủy, Chủ tịch UBND tỉnh chủ trì buổi làm việc với Công ty CP Tập đoàn Taseco về phương án đề xuất điều chỉnh quy hoạch chi tiết tỷ lệ 1/500 khu vực Hồ Thành, phường Hạc Thành.",
+   "lienKet": "https://baothanhhoa.vn/xay-dung-khu-vuc-ho-thanh-thanh-diem-den-soi-dong-va-tai-hien-dam-net-dau-an-thanh-co-308959.htm",
+   "luc": "2026-11-13T10:38:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308963",
+   "tieuDe": "Từ ngày 30/10 đến 12/11, tiếp nhận gần 880 triệu đồng ủng hộ Quỹ “Vì người nghèo”",
+   "moTa": "Tính từ ngày 30/10 đến 14 giờ ngày 12/11/2026, Quỹ “Vì người nghèo” tỉnh Thanh Hóa đã tiếp nhận 879.931.813 đồng từ 82 đơn vị, tổ chức, cá nhân trong và ngoài tỉnh ủng hộ.",
+   "lienKet": "https://baothanhhoa.vn/tu-ngay-30-10-den-12-11-tiep-nhan-gan-880-trieu-dong-ung-ho-quy-vi-nguoi-ngheo-308963.htm",
+   "luc": "2026-11-13T10:18:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308962",
+   "tieuDe": "Thông báo tìm bị hại trong vụ án “Lừa dối khách hàng” xảy ra tại Spa Sanghan Beauty",
+   "moTa": "Cơ quan Cảnh sát điều tra Công an tỉnh Thanh Hóa đề nghị những người từng sử dụng dịch vụ tại Spa Sanghan Beauty, địa chỉ số 07 Nguyễn Trinh Cơ, phường Hạc Thành, liên hệ cơ quan điều tra để cung cấp thông tin, phục vụ công tác điều tra vụ án “Lừa dối khách hàng”.",
+   "lienKet": "https://baothanhhoa.vn/thong-bao-tim-bi-hai-trong-vu-an-lua-doi-khach-hang-xay-ra-tai-spa-sanghan-beauty-308962.htm",
+   "luc": "2026-11-13T09:59:00.000Z",
+   "kenh": "phap-luat",
+   "chuyenMuc": "Pháp luật",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308850",
+   "tieuDe": "Ngày hội Đại đoàn kết toàn dân tộc tại thôn Vạn Vinh, xã Hà Trung",
+   "moTa": "Chiều 13/11, đồng chí Mai Văn Hải, Ủy viên Ban Thường vụ Tỉnh ủy, Bí thư Đảng ủy, Chủ tịch HĐND xã Sao Vàng đã đến dự, chung vui Ngày hội Đại đoàn kết toàn dân tộc với cán bộ và Nhân dân thôn Vạn Vinh, xã Hà Trung.",
+   "lienKet": "https://baothanhhoa.vn/ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-van-vinh-xa-ha-trung-308850.htm",
+   "luc": "2026-11-13T09:01:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 5,
+   "hdnd": false
+  },
+  {
+   "id": "308946",
+   "tieuDe": "Trưởng Ban Tổ chức Tỉnh ủy Nguyễn Văn Hùng dự Ngày hội Đại đoàn kết toàn dân tộc tại thôn Mai Vực",
+   "moTa": "Chiều 13/11, chung vui Ngày hội Đại đoàn kết toàn dân tộc gắn với Ngày Văn hóa Việt Nam cùng cán bộ và Nhân dân thôn Mai Vực, xã Biện Thượng, đồng chí Nguyễn Văn Hùng, Ủy viên Ban Thường vụ, Trưởng Ban Tổ chức Tỉnh ủy đề nghị cán bộ và Nhân dân phát huy sức mạnh khối đại đoàn kết toàn dân tộc, tạo sự đồng thuận trong thực hiện các mục tiêu, nhiệm vụ phát triển kinh tế - xã hội, xây dựng khu dân cư ấm no, văn minh, hạnh phúc",
+   "lienKet": "https://baothanhhoa.vn/truong-ban-to-chuc-tinh-uy-nguyen-van-hung-du-ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-mai-vuc-308946.htm",
+   "luc": "2026-11-13T08:43:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308912",
+   "tieuDe": "Hoàn thiện hồ sơ đề nghị tịch thu phương tiện của nam thanh niên đi xe máy bốc đầu",
+   "moTa": "Phòng Cảnh sát giao thông, Công an tỉnh Thanh Hóa vừa tiến hành xác minh, lập biên bản xử phạt vi phạm hành chính và hoàn thiện hồ sơ đề nghị tịch thu phương tiện của một nam thanh niên do vi phạm các quy định về trật tự giao thông, điều khiển xe bằng một bánh.",
+   "lienKet": "https://baothanhhoa.vn/hoan-thien-ho-so-de-nghi-tich-thu-phuong-tien-cua-nam-thanh-nien-di-xe-may-boc-dau-308912.htm",
+   "luc": "2026-11-13T07:59:00.000Z",
+   "kenh": "phap-luat",
+   "chuyenMuc": "Pháp luật",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308921",
+   "tieuDe": "30 năm World Vision đồng hành cùng tỉnh Thanh Hóa",
+   "moTa": "Sáng 13/11, Tổ chức World Vision International tại Việt Nam tổ chức kỷ niệm 30 năm đồng hành cùng tỉnh Thanh Hóa (1996-2026), với chủ đề “Vì trẻ em, Vì thay đổi tích cực, Vì cuộc sống trọn vẹn”. Dự hội nghị có đồng chí Lê Quang Hùng, Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch UBND tỉnh cùng đại diện các sở, ban, ngành và các địa phương thực hiện dự án.",
+   "lienKet": "https://baothanhhoa.vn/30-nam-world-vision-dong-hanh-cung-tinh-thanh-hoa-308921.htm",
+   "luc": "2026-11-13T06:41:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308920",
+   "tieuDe": "Khẩn trương hoàn thiện, sớm bàn giao Hệ thống thủy lợi sông Lèn",
+   "moTa": "Kiểm tra tiến độ Tiểu dự án Hệ thống thủy lợi sông Lèn tại Thanh Hóa, Thứ trưởng Bộ Nông nghiệp và Môi trường Nguyễn Hoàng Hiệp yêu cầu chủ đầu tư, nhà thầu khẩn trương hoàn thiện các hạng mục kỹ thuật, chỉnh trang cảnh quan, bảo đảm an toàn vận hành công trình, tổ chức đào tạo nhân lực tiếp nhận, phấn đấu nghiệm thu, bàn giao công trình trước ngày 31/12/2026.",
+   "lienKet": "https://baothanhhoa.vn/khan-truong-hoan-thien-som-ban-giao-he-thong-thuy-loi-song-len-308920.htm",
+   "luc": "2026-11-13T06:33:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308945",
+   "tieuDe": "Xã Thiệu Hóa khám sức khỏe định kỳ, khám sàng lọc miễn phí cho 900 người",
+   "moTa": "Thực hiện chủ trương chăm sóc sức khỏe toàn dân, ngày 13/11, UBND xã Thiệu Hóa phối hợp với Bệnh viện An Việt tổ chức khám sức khỏe định kỳ, khám sàng lọc miễn phí cho người dân trên địa bàn xã.",
+   "lienKet": "https://baothanhhoa.vn/xa-thieu-hoa-kham-suc-khoe-dinh-ky-kham-sang-loc-mien-phi-cho-900-nguoi-308945.htm",
+   "luc": "2026-11-13T06:30:00.000Z",
+   "kenh": "y-te-suc-khoe",
+   "chuyenMuc": "Y tế - Sức khỏe",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308918",
+   "tieuDe": "Trao nhà Đại đoàn kết cho hộ gia đình có hoàn cảnh khó khăn tại xã Quảng Bình",
+   "moTa": "Sáng 13/11, Ban Thường trực Ủy ban MTTQ xã Quảng Bình phối hợp với Công ty Cổ phần Tân Cảng - Cái Mép, Binh đoàn 20 tổ chức lễ trao tặng nhà Đại đoàn kết cho gia đình ông Lê Đình Hai, ở thôn Mậu Xương.",
+   "lienKet": "https://baothanhhoa.vn/trao-nha-dai-doan-ket-cho-ho-gia-dinh-co-hoan-canh-kho-khan-tai-xa-quang-binh-308918.htm",
+   "luc": "2026-11-13T06:02:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308915",
+   "tieuDe": "Chủ tịch UBND tỉnh Tô Anh Dũng kiểm tra công tác chuẩn bị các gian hàng trưng bày; Không gian văn hóa - Phố đi bộ - Chợ đêm Sầm Sơn",
+   "moTa": "Sáng 13/11, đồng chí Tô Anh Dũng, Phó Bí thư Tỉnh ủy, Chủ tịch UBND tỉnh cùng đại diện các ngành, đơn vị chức năng đã đi kiểm tra công tác chuẩn bị các gian hàng trưng bày; Không gian văn hóa - Phố đi bộ - Chợ đêm Sầm Sơn và động viên các đơn vị thi công lắp đặt sân khấu phục vụ Chương trình Gala Sao Mai 2026 tại phường Sầm Sơn.",
+   "lienKet": "https://baothanhhoa.vn/chu-tich-ubnd-tinh-to-anh-dung-kiem-tra-cong-tac-chuan-bi-cac-gian-hang-trung-bay-khong-gian-van-hoa-pho-di-bo-cho-dem-sam-son-308915.htm",
+   "luc": "2026-11-13T06:00:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308904",
+   "tieuDe": "Yêu cầu các đơn vị chậm đóng, trốn đóng bảo hiểm khắc phục nợ trước ngày 30/11",
+   "moTa": "Sáng 13/11, Bảo hiểm xã hội (BHXH) tỉnh Thanh Hóa phối hợp với Viện Kiểm sát nhân dân (VKSND) tỉnh, Công an tỉnh và VKSND khu vực I - Thanh Hóa tổ chức hội nghị làm việc với các đơn vị sử dụng lao động chậm đóng, trốn đóng BHXH, bảo hiểm y tế (BHYT), bảo hiểm thất nghiệp (BHTN) trên địa bàn tỉnh.",
+   "lienKet": "https://baothanhhoa.vn/yeu-cau-cac-don-vi-cham-dong-tron-dong-bao-hiem-khac-phuc-no-truoc-ngay-30-11-308904.htm",
+   "luc": "2026-11-13T05:50:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308914",
+   "tieuDe": "Tập huấn nâng cao năng lực giám sát, phòng chống bệnh dại",
+   "moTa": "Ngày 13/11, Sở Y tế Thanh Hóa phối hợp với Viện Vệ sinh dịch tễ Trung ương và Sở Nông nghiệp và Môi trường tổ chức lớp tập huấn hướng dẫn giám sát và mô hình phối hợp liên ngành Y tế - Thú y trong giám sát bệnh dại dựa vào người bị cắn đi tiêm chủng (IBCM) năm 2026.",
+   "lienKet": "https://baothanhhoa.vn/tap-huan-nang-cao-nang-luc-giam-sat-phong-chong-benh-dai-308914.htm",
+   "luc": "2026-11-13T05:47:00.000Z",
+   "kenh": "y-te-suc-khoe",
+   "chuyenMuc": "Y tế - Sức khỏe",
+   "diem": 6,
+   "hdnd": false
+  },
+  {
+   "id": "308907",
+   "tieuDe": "Tiếp nhận 600 triệu đồng ủng hộ Quỹ “Vì người nghèo”",
+   "moTa": "Sáng 13/11, đồng chí Đỗ Thị Toán, Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch Thường trực Ủy ban MTTQ tỉnh đã chủ trì tiếp nhận ủng hộ Quỹ “Vì người nghèo” tỉnh Thanh Hóa năm 2026.",
+   "lienKet": "https://baothanhhoa.vn/tiep-nhan-600-trieu-dong-ung-ho-quy-vi-nguoi-ngheo-308907.htm",
+   "luc": "2026-11-13T05:43:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308905",
+   "tieuDe": "Chủ tịch UBND tỉnh Tô Anh Dũng: Sự chủ động ở cơ sở và đồng lòng của Nhân dân là yếu tố quyết định",
+   "moTa": "Sáng 13/11, tại Trung tâm hội nghị xã Triệu Sơn, đồng chí Tô Anh Dũng, Phó Bí thư Tỉnh ủy, Chủ tịch UBND tỉnh và các đại biểu HĐND tỉnh: Lê Văn Diện, Phó Chủ tịch Ủy ban MTTQ tỉnh, Chủ tịch Hội Cựu chiến binh tỉnh; Nguyễn Thành Luân, Bí thư Đảng ủy, Chủ tịch HĐND xã Tân Ninh đã tiếp xúc cử tri các xã: Triệu Sơn, An Nông, Đồng Tiến và Tân Ninh trước Kỳ họp thường lệ cuối năm 2026, HĐND tỉnh Thanh Hóa khóa XIX.",
+   "lienKet": "https://baothanhhoa.vn/chu-tich-ubnd-tinh-to-anh-dung-su-chu-dong-o-co-so-va-dong-long-cua-nhan-dan-la-yeu-to-quyet-dinh-308905.htm",
+   "luc": "2026-11-13T05:07:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 31,
+   "hdnd": true
+  },
+  {
+   "id": "308935",
+   "tieuDe": "Cử tri kiến nghị nhiều vấn đề liên quan đến đời sống dân sinh",
+   "moTa": "Sáng 13/11, Tổ đại biểu HĐND tỉnh, đơn vị bầu cử số 16 gồm các đại biểu: Lê Ngọc Hợp, Tỉnh ủy viên, Giám đốc Sở Nội vụ; Nguyễn Quốc Tiến, Tỉnh ủy viên, Phó Chủ tịch Ủy ban MTTQ tỉnh, Chủ tịch Hội Nông dân tỉnh; Trịnh Hà Hoàng Linh, Phó Giám đốc Sở Tài chính đã tiếp xúc cử tri trước Kỳ họp thường lệ cuối năm 2026, HĐND tỉnh khóa XIX tại xã Thiệu Quang. Hội nghị được kết nối đến điểm cầu các xã: Thiệu Hóa, Thiệu Tiến, Thiệu Toán, Thiệu Trung.",
+   "lienKet": "https://baothanhhoa.vn/cu-tri-kien-nghi-nhieu-van-de-lien-quan-den-doi-song-dan-sinh-308935.htm",
+   "luc": "2026-11-13T05:01:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 40,
+   "hdnd": true
+  },
+  {
+   "id": "308891",
+   "tieuDe": "Phó Chủ tịch HĐND tỉnh Nguyễn Quang Hải chung vui Ngày hội Đại đoàn kết tại thôn Phát Vinh",
+   "moTa": "Sáng 13/11, dự chung vui ngày hội Đại đoàn kết toàn dân tộc với cán bộ và Nhân dân thôn Phát Vinh, xã Thanh Kỳ, đồng chí Nguyễn Quang Hải, Tỉnh ủy viên, Phó Chủ tịch HĐND tỉnh đề nghị cán bộ và Nhân dân trong thôn phát huy sức mạnh đoàn kết, xây dựng nông thôn mới và đời sống văn hoá, xây dựng thôn ngày càng giàu mạnh.",
+   "lienKet": "https://baothanhhoa.vn/pho-chu-tich-hdnd-tinh-nguyen-quang-hai-chung-vui-ngay-hoi-dai-doan-ket-tai-thon-phat-vinh-308891.htm",
+   "luc": "2026-11-13T04:48:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 42,
+   "hdnd": true
+  },
+  {
+   "id": "308878",
+   "tieuDe": "Thanh Hóa ban hành quy chế điều động, thuyên chuyển nhà giáo công lập",
+   "moTa": "UBND tỉnh Thanh Hóa vừa ban hành Quyết định số 133/2026/QĐ-UBND về Quy chế điều động, thuyên chuyển nhà giáo tại các cơ sở giáo dục công lập trên địa bàn tỉnh.",
+   "lienKet": "https://baothanhhoa.vn/thanh-hoa-ban-hanh-quy-che-dieu-dong-thuyen-chuyen-nha-giao-cong-lap-308878.htm",
+   "luc": "2026-11-13T04:44:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308864",
+   "tieuDe": "Nơi con chữ “bền gan bám núi”",
+   "moTa": "Sau sáp nhập, giáo dục xã Văn Phú bước vào giai đoạn chuyển mình với yêu cầu tinh gọn mạng lưới trường lớp, kiện toàn đội ngũ và nâng cao chất lượng dạy học. Giữa những đổi thay ấy, ở các điểm trường, con chữ vẫn miệt mài “bền gan bám núi”, khẳng định quyết tâm không để địa hình, khoảng cách hay khó khăn trở thành rào cản trên hành trình tìm tri thức của học sinh vùng cao.",
+   "lienKet": "https://baothanhhoa.vn/noi-con-chu-ben-gan-bam-nui-308864.htm",
+   "luc": "2026-11-13T03:45:00.000Z",
+   "kenh": "giao-duc",
+   "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308876",
+   "tieuDe": "Bất chấp nguy hiểm, người dân liều mình qua cầu hư hỏng",
+   "moTa": "Cầu Bái Sim trên tuyến đường Nghi Sơn - Bãi Trành, đoạn qua xã Thanh Kỳ, tỉnh Thanh Hóa bị sập một bên mố cầu do thiên tai. Dù cơ quan chức năng đã đặt biển cảnh báo nguy hiểm, nhưng một số người dân vẫn bất chấp vượt rào, băng qua phần đầu cầu bị sụt.",
+   "lienKet": "https://baothanhhoa.vn/bat-chap-nguy-hiem-nguoi-dan-lieu-minh-qua-cau-hu-hong-308876.htm",
+   "luc": "2026-11-13T03:30:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308889",
+   "tieuDe": "Thanh Hóa có ba nhà giáo được vinh danh giáo viên tiêu biểu cấp trung ương năm 2026",
+   "moTa": "Trung ương Đoàn TNCS Hồ Chí Minh đã công bố danh sách 100 nhà giáo trẻ tiêu biểu cấp trung ương năm 2026. Tuổi trẻ Thanh Hóa tự hào có ba nhà giáo trẻ được vinh danh.",
+   "lienKet": "https://baothanhhoa.vn/thanh-hoa-co-ba-nha-giao-duoc-vinh-danh-giao-vien-tieu-bieu-cap-trung-uong-nam-2026-308889.htm",
+   "luc": "2026-11-13T03:14:00.000Z",
+   "kenh": "giao-duc",
+   "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308861",
+   "tieuDe": "Na Mèo phát triển sinh kế bền vững từ nuôi thủy sản nước ngọt",
+   "moTa": "Tận dụng tiềm năng và lợi thế về tài nguyên nước, những năm qua, xã Na Mèo đã tuyên truyền, vận động Nhân dân phát triển nuôi trồng thủy sản nước ngọt. Đây được xác định là một trong những hướng đi quan trọng nhằm đa dạng hóa sinh kế, nâng cao thu nhập cho người dân và thúc đẩy phát triển kinh tế - xã hội.",
+   "lienKet": "https://baothanhhoa.vn/na-meo-phat-trien-sinh-ke-ben-vung-tu-nuoi-thuy-san-nuoc-ngot-308861.htm",
+   "luc": "2026-11-13T02:45:00.000Z",
+   "kenh": "kinh-te",
+   "chuyenMuc": "Kinh tế",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308890",
+   "tieuDe": "Mục tiêu và lộ trình thực hiện Đề án “Hệ thống học liệu số quốc gia đối với giáo dục phổ thông” trên địa bàn tỉnh Thanh Hóa",
+   "moTa": "Nhằm hiện thực hóa chiến lược chuyển đổi số quốc gia trong lĩnh vực giáo dục, tỉnh Thanh Hóa đang đẩy mạnh triển khai đồng bộ Đề án “Hệ thống học liệu số quốc gia đối với giáo dục phổ thông”, hướng tới mục tiêu nâng cao toàn diện chất lượng dạy và học .",
+   "lienKet": "https://baothanhhoa.vn/muc-tieu-va-lo-trinh-thuc-hien-de-an-he-thong-hoc-lieu-so-quoc-gia-doi-voi-giao-duc-pho-thong-tren-dia-ban-tinh-thanh-hoa-308890.htm",
+   "luc": "2026-11-13T02:34:00.000Z",
+   "kenh": "giao-duc",
+   "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308857",
+   "tieuDe": "Thôn mới, sức sống mới ở Hoằng Thanh",
+   "moTa": "Sau sáp nhập, xã Hoằng Thanh giảm từ 27 xuống còn 13 thôn. Địa bàn sau sắp xếp rộng hơn, số hộ dân đông hơn nên công việc của những người hoạt động không chuyên trách ở các thôn cũng tăng lên nhiều. Bởi thế, ở Hoằng Thanh, người trẻ có trình độ, năng động và biết sử dụng công nghệ đã được lựa chọn gánh vác “việc làng” để kết nối, tổ chức và phục vụ cộng đồng.",
+   "lienKet": "https://baothanhhoa.vn/thon-moi-suc-song-moi-o-hoang-thanh-308857.htm",
+   "luc": "2026-11-13T02:30:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308860",
+   "tieuDe": "Kỳ vọng lớn ở vụ nuôi tôm thu đông",
+   "moTa": "Sau nhiều năm “dè dặt” với vụ nuôi thu đông do rủi ro từ thời tiết, dịch bệnh thì giờ đây, người nuôi tôm trên địa bàn tỉnh đã làm chủ công nghệ, tư duy quản lý để mở rộng diện tích nuôi trồng. Hàng nghìn hộ dân đã tự tin biến vụ nuôi tôm thu đông từ “canh bạc nguy hiểm” trở thành vụ nuôi chính mang lại giá trị kinh tế vượt trội.",
+   "lienKet": "https://baothanhhoa.vn/ky-vong-lon-o-vu-nuoi-tom-thu-dong-308860.htm",
+   "luc": "2026-11-13T01:45:00.000Z",
+   "kenh": "kinh-te",
+   "chuyenMuc": "Kinh tế",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308854",
+   "tieuDe": "Siết chặt kỷ cương quản lý quy hoạch, trật tự xây dựng",
+   "moTa": "Từ những bất cập kéo dài trong thực hiện quy hoạch đô thị, nông thôn, nhất là tình trạng quy hoạch “treo” chậm giải phóng mặt bằng (GPMB), ảnh hưởng đến quyền lợi của người dân, ngành xây dựng và các địa phương trong tỉnh đang triển khai các giải pháp nhằm lập lại trật tự, kỷ cương trong quản lý quy hoạch và trật tự xây dựng, tăng cường kiểm tra, giám sát và từng bước tháo gỡ những vướng mắc phát sinh từ thực tiễn.",
+   "lienKet": "https://baothanhhoa.vn/siet-chat-ky-cuong-quan-ly-quy-hoach-trat-tu-xay-dung-308854.htm",
+   "luc": "2026-11-13T01:01:00.000Z",
+   "kenh": "kinh-te",
+   "chuyenMuc": "Kinh tế",
+   "diem": 2,
+   "hdnd": false
+  },
+  {
+   "id": "308855",
+   "tieuDe": "Dấu ấn lãnh đạo của Đảng trong cải cách hành chính",
+   "moTa": "Với tư duy đổi mới, hành động sáng tạo, điều hành quyết liệt gắn với trách nhiệm của người đứng đầu cấp ủy, công tác cải cách hành chính (CCHC) trên địa bàn tỉnh đã có nhiều chuyển biến tích cực, góp phần nâng cao chất lượng phục vụ người dân, doanh nghiệp.",
+   "lienKet": "https://baothanhhoa.vn/dau-an-lanh-dao-cua-dang-trong-cai-cach-hanh-chinh-308855.htm",
+   "luc": "2026-11-13T00:45:00.000Z",
+   "kenh": "xay-dung-dang",
+   "chuyenMuc": "Xây dựng Đảng",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308837",
+   "tieuDe": "Tăng tốc hành động, giữ vững mục tiêu",
+   "moTa": "Tại hội nghị giao ban toàn tỉnh tuần thứ 6 về thực hiện kịch bản tăng trưởng kinh tế quý IV, Phó Chủ tịch Thường trực UBND tỉnh Mai Xuân Liêm nhấn mạnh yêu cầu giữ nguyên mục tiêu tăng trưởng năm, các sở, ngành, địa phương, tập trung bù đắp ngay trong tháng 11 những chỉ tiêu chưa đạt mốc tháng 10.",
+   "lienKet": "https://baothanhhoa.vn/tang-toc-hanh-dong-giu-vung-muc-tieu-308837.htm",
+   "luc": "2026-11-13T00:30:00.000Z",
+   "kenh": "kinh-te",
+   "chuyenMuc": "Kinh tế",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308858",
+   "tieuDe": "Đổi mới phương thức quản trị, nâng cao chất lượng phục vụ Nhân dân",
+   "moTa": "Sau hơn 1 năm vận hành chính quyền địa phương 2 cấp, bộ máy chính quyền tỉnh Thanh Hóa cơ bản hoạt động ổn định, thông suốt. Phương thức quản lý, điều hành từng bước đổi mới theo hướng tinh gọn, chủ động, sát cơ sở; công tác phân cấp, phân quyền, cải cách hành chính và chuyển đổi số đạt nhiều kết quả tích cực, góp phần nâng cao hiệu lực, hiệu quả quản lý Nhà nước, phục vụ người dân và doanh nghiệp.",
+   "lienKet": "https://baothanhhoa.vn/doi-moi-phuong-thuc-quan-tri-nang-cao-chat-luong-phuc-vu-nhan-dan-308858.htm",
+   "luc": "2026-11-12T23:30:00.000Z",
+   "kenh": "xay-dung-dang",
+   "chuyenMuc": "Xây dựng Đảng",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "308843",
+   "tieuDe": "Huy động hơn 600 triệu đồng Quỹ Khuyến học xã Hồi Xuân năm 2026",
+   "moTa": "Tối 12/11, xã Hồi Xuân tổ chức chương trình nghệ thuật gây Quỹ Khuyến học năm 2026 với chủ đề: “Hồi Xuân - Lan tỏa sắc màu văn hóa, kết nối yêu thương, nâng bước em tới trường”. Với sự hưởng ứng của các cơ quan, đơn vị, tổ chức, cá nhân và nhà hảo tâm, chương trình đã huy động hơn 600 triệu đồng cho Quỹ Khuyến học xã năm 2026, góp phần hỗ trợ học sinh có hoàn cảnh khó khăn tiếp tục đến trường.",
+   "lienKet": "https://baothanhhoa.vn/huy-dong-hon-600-trieu-dong-quy-khuyen-hoc-xa-hoi-xuan-nam-2026-308843.htm",
+   "luc": "2026-11-12T15:00:00.000Z",
+   "kenh": "giao-duc",
+   "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
   {
    "id": "308835",
    "tieuDe": "VNPT Thanh Hóa giới thiệu hệ sinh thái giải pháp bảo đảm an toàn thông tin ngành y tế",
@@ -33,8 +429,8 @@
    "luc": "2026-11-12T11:15:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308824",
@@ -44,8 +440,8 @@
    "luc": "2026-11-12T10:16:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308822",
@@ -66,8 +462,8 @@
    "luc": "2026-11-12T09:07:00.000Z",
    "kenh": "quoc-phong-an-ninh",
    "chuyenMuc": "Quốc phòng - An ninh",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308818",
@@ -121,8 +517,8 @@
    "luc": "2026-11-12T03:25:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308780",
@@ -130,8 +526,8 @@
    "moTa": "Sáng 12/11, Ban Tổ chức Tỉnh ủy Thanh Hóa tổ chức Hội nghị triển khai kế hoạch của Ban Thường vụ Tỉnh ủy về tổ chức Lễ tuyên dương Bí thư cấp ủy xuất sắc ở cơ sở trong toàn Đảng bộ tỉnh năm 2027.",
    "lienKet": "https://baothanhhoa.vn/dau-nam-2027-to-chuc-le-tuyen-duong-bi-thu-cap-uy-xuat-sac-o-co-so-308780.htm",
    "luc": "2026-11-12T03:12:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
+   "kenh": "xay-dung-dang",
+   "chuyenMuc": "Xây dựng Đảng",
    "diem": 0,
    "hdnd": false
   },
@@ -231,8 +627,8 @@
    "luc": "2026-11-11T11:38:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308731",
@@ -242,8 +638,8 @@
    "luc": "2026-11-11T11:05:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 2,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 2
   },
   {
    "id": "308733",
@@ -253,8 +649,8 @@
    "luc": "2026-11-11T10:57:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 14,
-   "hdnd": true
+   "hdnd": true,
+   "diem": 14
   },
   {
    "id": "308693",
@@ -264,404 +660,8 @@
    "luc": "2026-11-11T09:25:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 44,
-   "hdnd": true
-  },
-  {
-   "id": "308708",
-   "tieuDe": "Cử tri kiến nghị các vấn đề về chính sách cán bộ cơ sở, giáo dục và thuế",
-   "moTa": "Chiều 11/11, tại phường Đông Sơn, Tổ đại biểu HĐND tỉnh Thanh Hóa, đơn vị bầu cử số 26, gồm các đại biểu: Nguyễn Quang Hải, Tỉnh ủy viên, Phó Chủ tịch HĐND tỉnh; Lê Văn Tiến, Tỉnh ủy viên, Giám đốc Sở Nông nghiệp và Môi trường; Lê Thị Phương, Phó Bí thư Thường trực Đảng ủy Phường Đông Sơn, đã tiếp xúc cử tri các phường Đông Sơn, Đông Tiến, Đông Quang trước Kỳ họp thường lệ cuối năm 2026, HĐND tỉnh khóa XIX.",
-   "lienKet": "https://baothanhhoa.vn/cu-tri-kien-nghi-cac-van-de-ve-chinh-sach-can-bo-co-so-giao-duc-va-thue-308708.htm",
-   "luc": "2026-11-11T09:13:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "diem": 40,
-   "hdnd": true
-  },
-  {
-   "id": "308717",
-   "tieuDe": "Công an tỉnh Thanh Hóa làm rõ thông tin liên quan đến vụ tai nạn giao thông xảy ra tại phường Quảng Phú",
-   "moTa": "Liên quan đến vụ tai nạn giao thông xảy ra ngày 05/5/2026 tại ngã tư giao nhau giữa đường Lê Niệm với đường nội thị, phố Hưng Thọ, phường Quảng Phú, tỉnh Thanh Hóa, lãnh đạo Công an tỉnh đã chỉ đạo các đơn vị nghiệp vụ rà soát, thẩm định toàn diện hồ sơ vụ án, làm rõ từng nội dung phản ánh. Kết quả thẩm định khẳng định không có việc cán bộ Công an cho ký khống giấy trắng; quá trình điều tra, khởi tố và tống đạt các quyết định tố tụng được thực hiện đúng trình tự, quy định của pháp luật. Cùng với đó, các đơn vị chức năng được giao xác minh, xử lý việc đăng tải thông tin sai sự thật theo quy định.",
-   "lienKet": "https://baothanhhoa.vn/cong-an-tinh-thanh-hoa-lam-ro-thong-tin-lien-quan-den-vu-tai-nan-giao-thong-xay-ra-tai-phuong-quang-phu-308717.htm",
-   "luc": "2026-11-11T09:05:00.000Z",
-   "kenh": "phap-luat",
-   "chuyenMuc": "Pháp luật",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308699",
-   "tieuDe": "Ngày hội Đại đoàn kết toàn dân tộc tại thôn Thanh Xuân",
-   "moTa": "Chiều 11/11, dự và phát biểu chung vui ngày hội Đại đoàn kết toàn dân tộc với cán bộ và Nhân dân thôn Thanh Xuân, xã Thanh Quân, đồng chí Mai Văn Hải, Ủy viên Ban Thường vụ Tỉnh ủy, Bí thư Đảng ủy, Chủ tịch HĐND xã Sao Vàng đề nghị cán bộ và Nhân dân tiếp tục củng cố sức mạnh đại đoàn kết, cùng nhau phát triển kinh tế - xã hội và giữ gìn, phát huy các giá trị văn hoá đặc sắc của đồng bào các dân tộc, xây dựng thôn ngày càng giàu mạnh.",
-   "lienKet": "https://baothanhhoa.vn/ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-thanh-xuan-308699.htm",
-   "luc": "2026-11-11T09:04:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "diem": 5,
-   "hdnd": false
-  },
-  {
-   "id": "308679",
-   "tieuDe": "Ngày hội Đại đoàn kết toàn dân tộc tại thôn Nga My, xã An Nông",
-   "moTa": "Chiều 11/11, Ban công tác Mặt trận thôn Nga My, xã An Nông tổ chức Ngày hội Đại đoàn kết toàn dân tộc gắn với Ngày Văn hóa Việt Nam năm 2026.",
-   "lienKet": "https://baothanhhoa.vn/ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-nga-my-xa-an-nong-308679.htm",
-   "luc": "2026-11-11T09:02:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308658",
-   "tieuDe": "Tập huấn cập nhật kiến thức cho cô đỡ thôn bản năm 2026",
-   "moTa": "Trong các ngày từ 9-13/11, Trung tâm Kiểm soát bệnh tật tỉnh Thanh Hóa phối hợp với Cục Bà mẹ và Trẻ em tổ chức lớp đào tạo cập nhật kiến thức cho cô đỡ thôn bản năm 2026.",
-   "lienKet": "https://baothanhhoa.vn/tap-huan-cap-nhat-kien-thuc-cho-co-do-thon-ban-nam-2026-308658.htm",
-   "luc": "2026-11-11T08:53:00.000Z",
-   "kenh": "y-te-suc-khoe",
-   "chuyenMuc": "Y tế - Sức khỏe",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308697",
-   "tieuDe": "Tháo gỡ khó khăn, nhân rộng sản xuất lúa thân thiện với môi trường",
-   "moTa": "Nhằm thúc đẩy sản xuất lúa theo hướng tiết kiệm tài nguyên, giảm chi phí và phát thải khí nhà kính, chiều 11/11, Hội Nông dân tỉnh Thanh Hóa tổ chức Hội nghị “Đối thoại với cán bộ, hội viên, nông dân về sản xuất lúa thân thiện với môi trường năm 2026” tại xã Thọ Long.",
-   "lienKet": "https://baothanhhoa.vn/thao-go-kho-khan-nhan-rong-san-xuat-lua-than-thien-voi-moi-truong-308697.htm",
-   "luc": "2026-11-11T08:43:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308702",
-   "tieuDe": "Ngày hội Đại đoàn kết toàn dân tộc tại thôn Vĩnh Thành 2, xã Vĩnh Lộc",
-   "moTa": "Chiều 11/11, Ban công tác Mặt trận thôn Vĩnh Thành 2, xã Vĩnh Lộc tổ chức Ngày hội Đại đoàn kết toàn dân tộc gắn với Ngày Văn hoá Việt Nam năm 2026.",
-   "lienKet": "https://baothanhhoa.vn/ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-vinh-thanh-2-xa-vinh-loc-308702.htm",
-   "luc": "2026-11-11T08:38:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308688",
-   "tieuDe": "Gần 2.400 cán bộ, chiến sỹ đặc công biểu diễn tại Triển lãm Quốc phòng 2026",
-   "moTa": "Sáng 11/11, tại Trường Sỹ quan Đặc công (xã Xuân Mai, Hà Nội), Thượng tướng Lê Quang Đạo, Phó Tổng Tham mưu trưởng Quân đội nhân dân Việt Nam, Trưởng ban Tổ chức Triển lãm Quốc phòng quốc tế Việt Nam 2026 chủ trì kiểm tra công tác huấn luyện lực lượng Đặc công phục vụ Lễ khai mạc Triển lãm.",
-   "lienKet": "https://baothanhhoa.vn/gan-2-400-can-bo-chien-sy-dac-cong-bieu-dien-tai-trien-lam-quoc-phong-2026-308688.htm",
-   "luc": "2026-11-11T07:46:00.000Z",
-   "kenh": "quoc-phong-an-ninh",
-   "chuyenMuc": "Quốc phòng - An ninh",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308645",
-   "tieuDe": "Thu thuế đất phi nông nghiệp: Tăng phối hợp, tạo thuận lợi cho người dân",
-   "moTa": "Thuế tỉnh Thanh Hóa đang tập trung chỉ đạo các đơn vị thuế cơ sở tập trung rà soát, chuẩn hóa dữ liệu, phối hợp với các địa phương tháo gỡ vướng mắc phát sinh; đồng thời đẩy mạnh tuyên truyền, hướng dẫn người dân kê khai, nộp thuế qua phương thức điện tử. Qua đó, từng bước nâng cao tính minh bạch, chính xác trong quản lý thuế và chất lượng phục vụ người nộp thuế.",
-   "lienKet": "https://baothanhhoa.vn/thu-thue-dat-phi-nong-nghiep-tang-phoi-hop-tao-thuan-loi-cho-nguoi-dan-308645.htm",
-   "luc": "2026-11-11T06:59:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308668",
-   "tieuDe": "Thanh Hóa thúc đẩy hợp tác đầu tư với Tập đoàn Sumitomo (Nhật Bản)",
-   "moTa": "Trong chuyến công tác cùng Tổng Bí thư, Chủ tịch nước Tô Lâm tại Nhật Bản, sáng 11/11, đồng chí Tô Anh Dũng, Phó Bí thư Tỉnh ủy, Chủ tịch UBND tỉnh đã có buổi làm việc với ông Yohei Kurisu, Tổng Giám đốc Ban Phát triển Khu công nghiệp và Đô thị bền vững, Tập đoàn Sumitomo Corporation (Nhật Bản) về tình hình thực hiện dự án Đầu tư xây dựng và kinh doanh kết cấu hạ tầng Khu công nghiệp Thăng Long Thanh Hóa .",
-   "lienKet": "https://baothanhhoa.vn/thanh-hoa-thuc-day-hop-tac-dau-tu-voi-tap-doan-sumitomo-nhat-ban-308668.htm",
-   "luc": "2026-11-11T06:27:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308667",
-   "tieuDe": "Cử tri xã Công Chính kiến nghị đẩy nhanh Dự án tiêu úng vùng 3 Nông Cống",
-   "moTa": "Sớm đưa Dự án tiêu úng vùng 3 Nông Cống vào vận hành, nâng cấp các tuyến giao thông và lưới điện xuống cấp, vướng mắc về hồ sơ đất đai, là những vấn đề cử tri xã Công Chính phản ánh, kiến nghị tại Hội nghị tiếp xúc cử tri sáng 11/11. Về vấn đề này, Phó Chủ tịch UBND tỉnh Lê Quang Hùng cho biết sẽ đôn đốc chủ đầu tư đẩy nhanh tiến độ Dự án tiêu úng vùng 3, giao địa phương rà soát về nguồn gốc đất đai để phối hợp giải quyết quyền lợi cho người dân sinh sống tại Nông trường Yên Mỹ.",
-   "lienKet": "https://baothanhhoa.vn/cu-tri-xa-cong-chinh-kien-nghi-day-nhanh-du-an-tieu-ung-vung-3-nong-cong-308667.htm",
-   "luc": "2026-11-11T06:21:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
    "hdnd": true,
-   "diem": 14
-  },
-  {
-   "id": "308634",
-   "tieuDe": "Ngày hội Đại đoàn kết toàn dân tộc tại thôn Mường Xim",
-   "moTa": "Sáng 11/11, Đại tá Đinh Bạt Văn, Ủy viên Ban Thường vụ Tỉnh ủy, Chỉ huy trưởng Bộ CHQS tỉnh Thanh Hóa đã đến dự, chung vui Ngày hội Đại đoàn kết toàn dân tộc và Ngày Văn hóa Việt Nam tại thôn Mường Xim, xã biên giới Quang Chiểu.",
-   "lienKet": "https://baothanhhoa.vn/ngay-hoi-dai-doan-ket-toan-dan-toc-tai-thon-muong-xim-308634.htm",
-   "luc": "2026-11-11T05:24:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308662",
-   "tieuDe": "Ủy ban MTTQ tỉnh tiếp nhận ủng hộ Quỹ “Vì người nghèo” năm 2026",
-   "moTa": "Sáng 11/11, tại Ủy ban MTTQ tỉnh, đồng chí Trịnh Tuấn Sinh, Phó Bí thư Tỉnh ủy, Chủ tịch Ủy ban MTTQ tỉnh và đồng chí Đỗ Thị Toán, Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch Thường trực Ủy ban MTTQ tỉnh đã chủ trì tiếp nhận ủng hộ Quỹ “Vì người nghèo” năm 2026 từ Chi nhánh Công ty TNHH Long Sơn tại Thanh Hóa - Nhà máy Xi măng Long Sơn.",
-   "lienKet": "https://baothanhhoa.vn/uy-ban-mttq-tinh-tiep-nhan-ung-ho-quy-vi-nguoi-ngheo-nam-2026-308662.htm",
-   "luc": "2026-11-11T04:52:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308652",
-   "tieuDe": "Cử tri các xã miền núi kiến nghị nhiều vấn đề về hạ tầng, chế độ chính sách",
-   "moTa": "Sáng 11/11, Tổ đại biểu HĐND tỉnh đơn vị bầu cử số 11 gồm các đại biểu: Đào Xuân Yên, Ủy viên Ban Thường vụ, Trưởng Ban Tuyên giáo Tỉnh ủy; Phạm Thị Nhàn, Bí thư Đảng ủy, Chủ tịch HĐND xã Cẩm Tú; Vũ Thị Thu, bác sĩ Bệnh viện Đa khoa Cẩm Thủy đã tiếp xúc cử tri các xã Cẩm Thạch, Cẩm Thủy, Cẩm Tú, Cẩm Vân, Cẩm Tân theo hình thức trực tiếp kết hợp trực tuyến.",
-   "lienKet": "https://baothanhhoa.vn/cu-tri-cac-xa-mien-nui-kien-nghi-nhieu-van-de-ve-ha-tang-che-do-chinh-sach-308652.htm",
-   "luc": "2026-11-11T04:10:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": true,
-   "diem": 36
-  },
-  {
-   "id": "308612",
-   "tieuDe": "Cao điểm quản lý thị trường cuối năm: Chủ động phòng ngừa, xử lý nghiêm vi phạm",
-   "moTa": "Những tháng cuối năm là thời điểm nhu cầu giao thương, mua sắm của Nhân dân tăng cao. Đây cũng là lúc nguy cơ gia tăng các hành vi buôn lậu, gian lận thương mại, hàng giả, hàng kém chất lượng diễn biến phức tạp. Để ổn định thị trường, bảo vệ quyền lợi người tiêu dùng, các lực lượng chức năng trên địa bàn tỉnh đang đồng loạt triển khai nhiều biện pháp nghiệp vụ: vừa tăng cường kiểm tra, xử lý nghiêm vi phạm, vừa đẩy mạnh tuyên truyền, phổ biến pháp luật.",
-   "lienKet": "https://baothanhhoa.vn/cao-diem-quan-ly-thi-truong-cuoi-nam-chu-dong-phong-ngua-xu-ly-nghiem-vi-pham-308612.htm",
-   "luc": "2026-11-11T04:00:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308613",
-   "tieuDe": "Chung tay giữ gìn môi trường xanh, sạch, đẹp",
-   "moTa": "Với sự tham gia tích cực của các tổ chức đoàn thể và người dân, phong trào vệ sinh môi trường (VSMT), chỉnh trang cảnh quan ở xã Thanh Quân đang từng bước đi vào nền nếp. Những việc làm thiết thực tại các thôn, bản góp phần cải thiện môi trường sống, xây dựng diện mạo nông thôn ngày càng khang trang, sạch đẹp.",
-   "lienKet": "https://baothanhhoa.vn/chung-tay-giu-gin-moi-truong-xanh-sach-dep-308613.htm",
-   "luc": "2026-11-11T03:45:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308647",
-   "tieuDe": "Đại biểu HĐND tỉnh tiếp xúc cử tri phường Hàm Rồng",
-   "moTa": "Sáng 11/11, Tổ đại biểu HĐND tỉnh, đơn vị bầu cử số 27 gồm các đại biểu: Lê Trọng Thụ, Tỉnh ủy viên, Giám đốc Sở Tài chính; Nguyễn Văn Biện, Tỉnh ủy viên, Bí thư Đảng ủy, Chủ tịch HĐND phường Hạc Thành; Nguyễn Quốc Hải, Trưởng Ban pháp chế HĐND tỉnh; Lê Thế Sơn, Chủ tịch HĐQT Công ty CP cấp nước Thanh Hóa đã tiếp xúc cử tri phường Hàm Rồng trước kỳ họp thường lệ cuối năm 2026, HĐND tỉnh khóa XIX.",
-   "lienKet": "https://baothanhhoa.vn/dai-bieu-hdnd-tinh-tiep-xuc-cu-tri-phuong-ham-rong-308647.htm",
-   "luc": "2026-11-11T03:32:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": true,
-   "diem": 92
-  },
-  {
-   "id": "308605",
-   "tieuDe": "Trường Cao đẳng Công nghiệp Thanh Hóa phát huy sáng kiến, nâng cao chất lượng đào tạo",
-   "moTa": "Xác định nghiên cứu khoa học, cải tiến kỹ thuật là động lực quan trọng nâng cao chất lượng đào tạo nghề, những năm qua, Công đoàn Trường Cao đẳng Công nghiệp Thanh Hóa đã phối hợp chặt chẽ với chuyên môn triển khai hiệu quả phong trào “Lao động giỏi, lao động sáng tạo”. Qua đó, khơi dậy tinh thần đổi mới, sáng tạo trong đội ngũ cán bộ, giảng viên, tạo ra nhiều công trình, sáng kiến có giá trị thực tiễn, góp phần nâng cao chất lượng đào tạo và hiệu quả sản xuất.",
-   "lienKet": "https://baothanhhoa.vn/truong-cao-dang-cong-nghiep-thanh-hoa-phat-huy-sang-kien-nang-cao-chat-luong-dao-tao-308605.htm",
-   "luc": "2026-11-11T03:20:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308609",
-   "tieuDe": "Chuẩn hóa quy trình kiểm soát nhiễm khuẩn tại các cơ sở khám, chữa bệnh",
-   "moTa": "Trong bối cảnh số lượng người bệnh đến khám, điều trị ngày càng tăng, các hoạt động phẫu thuật, can thiệp kỹ thuật cao được triển khai rộng rãi, nguy cơ nhiễm khuẩn, lây nhiễm chéo trong môi trường khám, chữa bệnh (KCB) đã đặt ra những yêu cầu về kiểm soát nhiễm khuẩn khắt khe hơn. Trước thực tế đó, các bệnh viện trên địa bàn tỉnh đang từng bước chuẩn hóa quy trình kiểm soát nhiễm khuẩn, xây dựng môi trường KCB an toàn, chuyên nghiệp.",
-   "lienKet": "https://baothanhhoa.vn/chuan-hoa-quy-trinh-kiem-soat-nhiem-khuan-tai-cac-co-so-kham-chua-benh-308609.htm",
-   "luc": "2026-11-11T03:00:00.000Z",
-   "kenh": "y-te-suc-khoe",
-   "chuyenMuc": "Y tế - Sức khỏe",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308606",
-   "tieuDe": "Nhiều giải pháp giải tỏa ách tắc trên kênh Nhà Lê",
-   "moTa": "Thực hiện Công văn số 19892 ngày 20/9/2026 của Chủ tịch UBND tỉnh Thanh Hóa và Công văn số 17814 ngày 21/9/2026 của Sở Nông nghiệp và Môi trường về việc tổ chức tổng ra quân nạo vét, khơi thông dòng chảy, xử lý ách tắc trên các trục tiêu, kênh tiêu sông Vinh thuộc hệ thống kênh Nhà Lê, đề phòng ngập lụt, úng do ảnh hưởng của mưa lớn trên địa bàn tỉnh; từ 20/9/2026 Công ty TNHH MTV Sông Chu đã chủ động tổ chức ra quân nạo vét, trục vớt rác, giải tỏa bè mảng rau muống và bèo tây. Mặc dù đã triển khai nhiều giải pháp, tuy nhiên do địa hình phức tạp, nhiều tuyến kênh bị lấn chiếm khiến máy móc, phương tiện cơ giới không vào thi công được, thời tiết lại có mưa nên đã làm chậm tiến độ.",
-   "lienKet": "https://baothanhhoa.vn/nhieu-giai-phap-giai-toa-ach-tac-tren-kenh-nha-le-308606.htm",
-   "luc": "2026-11-11T02:00:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308614",
-   "tieuDe": "Tăng cường kiểm tra, giám sát bảo vệ môi trường tại các cơ sở sản xuất, kinh doanh, dịch vụ",
-   "moTa": "Thực hiện chức năng quản lý Nhà nước về bảo vệ môi trường, Sở Nông nghiệp và Môi trường Thanh Hóa đã phối hợp với các ngành có liên quan tăng cường công tác kiểm tra, giám sát việc chấp hành pháp luật tại các cơ sở sản xuất, kinh doanh (SXKD), dịch vụ; kịp thời phát hiện, hướng dẫn khắc phục những tồn tại, hạn chế và xử lý nghiêm các hành vi vi phạm theo quy định.",
-   "lienKet": "https://baothanhhoa.vn/tang-cuong-kiem-tra-giam-sat-bao-ve-moi-truong-tai-cac-co-so-san-xuat-kinh-doanh-dich-vu-308614.htm",
-   "luc": "2026-11-11T01:45:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 6
-  },
-  {
-   "id": "308604",
-   "tieuDe": "Nỗ lực vượt chỉ tiêu giải quyết án hành chính",
-   "moTa": "Vốn là loại án khó, phức tạp, trong khi thẩm quyền thay đổi, tòa án hai cấp trong tỉnh đã thực hiện đồng bộ, linh hoạt, hiệu quả các giải pháp, vừa nâng cao chất lượng, vừa đảm bảo tiến độ giải quyết, xét xử.",
-   "lienKet": "https://baothanhhoa.vn/no-luc-vuot-chi-tieu-giai-quyet-an-hanh-chinh-308604.htm",
-   "luc": "2026-11-11T01:30:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308603",
-   "tieuDe": "Người “thắp lửa” tiếng khèn bản Mông",
-   "moTa": "Giữa nhịp sống đổi thay của vùng cao xứ Thanh, anh Hơ Pó Dinh (48 tuổi) ở bản Pha Đén, xã Pù Nhi, vẫn ngày đêm bền bỉ giữ gìn và trao truyền “linh hồn” văn hóa của đồng bào mình. Anh là tấm gương sáng, là người thầy không chuyên đang miệt mài tiếp nối mạch nguồn tiếng khèn Mông qua các thế hệ.",
-   "lienKet": "https://baothanhhoa.vn/nguoi-thap-lua-tieng-khen-ban-mong-308603.htm",
-   "luc": "2026-11-11T00:45:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308602",
-   "tieuDe": "“Mở lối” cho làng nghề mây tre đan Hoằng Thịnh",
-   "moTa": "Từ những sản phẩm đan lát gắn bó với đời sống làng quê, nghề mây tre đan Hoằng Thịnh (xã Hoằng Lộc) đang từng bước chuyển mình để thích ứng với những yêu cầu mới của thị trường.",
-   "lienKet": "https://baothanhhoa.vn/mo-loi-cho-lang-nghe-may-tre-dan-hoang-thinh-308602.htm",
-   "luc": "2026-11-10T23:42:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308610",
-   "tieuDe": "Thiệu Tiến chú trọng công tác tiếp công dân, giải quyết khiếu nại, tố cáo",
-   "moTa": "Sau khi thực hiện sắp xếp đơn vị hành chính và vận hành chính quyền địa phương 2 cấp, khối lượng công việc quản lý Nhà nước trên địa bàn xã Thiệu Tiến tăng, đặt ra yêu cầu cao hơn đối với công tác tiếp công dân, giải quyết khiếu nại, tố cáo (KNTC). Trước tình hình đó, cấp ủy, chính quyền xã đã tập trung lãnh đạo, chỉ đạo triển khai đồng bộ các giải pháp, đề cao trách nhiệm người đứng đầu, chú trọng giải quyết kiến nghị, phản ánh ngay từ cơ sở, góp phần giữ vững ổn định tình hình địa phương.",
-   "lienKet": "https://baothanhhoa.vn/thieu-tien-chu-trong-cong-tac-tiep-cong-dan-giai-quyet-khieu-nai-to-cao-308610.htm",
-   "luc": "2026-11-10T23:20:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308608",
-   "tieuDe": "Từ lợi thế nguyên liệu đến giá trị xuất khẩu",
-   "moTa": "Thanh Hóa có lợi thế về vùng nguyên liệu nông sản quy mô lớn, trong đó lúa và dứa là những sản phẩm giàu tiềm năng xuất khẩu. Phát huy lợi thế này, tỉnh đang chú trọng thu hút doanh nghiệp (DN) đầu tư chế biến, xây dựng vùng nguyên liệu đạt chuẩn, từng bước nâng cao giá trị và đưa nông sản địa phương vươn ra thị trường quốc tế.",
-   "lienKet": "https://baothanhhoa.vn/tu-loi-the-nguyen-lieu-den-gia-tri-xuat-khau-308608.htm",
-   "luc": "2026-11-10T23:20:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308598",
-   "tieuDe": "Phó Bí thư Tỉnh ủy Trịnh Tuấn Sinh kiểm tra Không gian văn hóa - Phố đi bộ - Chợ đêm Sầm Sơn",
-   "moTa": "Chiều 10/11, đồng chí Trịnh Tuấn Sinh, Phó Bí thư Tỉnh ủy, Chủ tịch Ủy ban MTTQ tỉnh đã đi kiểm tra Không gian văn hóa - Phố đi bộ - Chợ đêm và động viên các đơn vị thi công lắp đặt sân khấu phục vụ Chương trình Gala Sao Mai 2026 tại phường Sầm Sơn.",
-   "lienKet": "https://baothanhhoa.vn/pho-bi-thu-tinh-uy-trinh-tuan-sinh-kiem-tra-khong-gian-van-hoa-pho-di-bo-cho-dem-sam-son-308598.htm",
-   "luc": "2026-11-10T11:51:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308585",
-   "tieuDe": "Cử tri phường Sầm Sơn, Nam Sầm Sơn kiến nghị nhiều vấn đề dân sinh, hạ tầng đô thị",
-   "moTa": "Tại hội nghị, cử tri các phường Sầm Sơn, Nam Sầm Sơn đã kiến nghị nhiều vấn đề liên quan đến quản lý đất đai, thuế sử dụng đất phi nông nghiệp, tiến độ các dự án giao thông, hạ tầng tái định cư, bảo vệ môi trường và chế độ, chính sách đối với đội ngũ cán bộ cơ sở.",
-   "lienKet": "https://baothanhhoa.vn/cu-tri-phuong-sam-son-nam-sam-son-kien-nghi-nhieu-van-de-dan-sinh-ha-tang-do-thi-308585.htm",
-   "luc": "2026-11-10T11:03:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": true,
-   "diem": 9
-  },
-  {
-   "id": "308594",
-   "tieuDe": "Khôi phục cung cấp điện trở lại cho toàn bộ khách hàng bị ảnh hưởng bởi mưa lũ",
-   "moTa": "Với sự khẩn trương và nỗ lực cao, đến 16h ngày 10/11, toàn bộ khách hàng trên địa bàn tỉnh đã được khôi phục cấp điện trở lại sau khi ảnh hưởng bởi mưa lũ.",
-   "lienKet": "https://baothanhhoa.vn/khoi-phuc-cung-cap-dien-tro-lai-cho-toan-bo-khach-hang-bi-anh-huong-boi-mua-lu-308594.htm",
-   "luc": "2026-11-10T10:05:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308578",
-   "tieuDe": "Gia tăng bệnh nhân đột quỵ trong những ngày chuyển lạnh",
-   "moTa": "Thời tiết chuyển lạnh đột ngột không chỉ làm gia tăng nguy cơ mắc các bệnh đường hô hấp, tim mạch mà còn là yếu tố có thể khởi phát những cơn đột quỵ nguy hiểm. Ghi nhận tại Khoa Thần kinh - Đột quỵ, Bệnh viện Đa khoa tỉnh Thanh Hóa, chỉ trong 2 ngày thời tiết chuyển lạnh vừa qua, số bệnh nhân đột quỵ nhập viện cấp cứu đã tăng khoảng 20% so với thời điểm trước đó. Đây là cảnh báo về nguy cơ đột quỵ trong thời điểm giao mùa, nhất là ở những người có bệnh lý nền.",
-   "lienKet": "https://baothanhhoa.vn/gia-tang-benh-nhan-dot-quy-trong-nhung-ngay-chuyen-lanh-308578.htm",
-   "luc": "2026-11-10T09:20:00.000Z",
-   "kenh": "y-te-suc-khoe",
-   "chuyenMuc": "Y tế - Sức khỏe",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308467",
-   "tieuDe": "Giáo viên chờ kinh phí chi trả tiền dạy thêm giờ",
-   "moTa": "Vài chục tiết học mỗi tháng, vài trăm tiết học mỗi năm..., là số giờ mà rất nhiều giáo viên trên địa bàn tỉnh Thanh Hóa đã dạy thêm góp phần giải quyết tình trạng thiếu giáo viên, đảm bảo chất lượng giáo dục cho các nhà trường và đảm bảo quyền lợi cho học sinh. Nhưng từ năm học 2025-2026 đến nay, hầu hết các thầy cô giáo vẫn chưa nhận được kinh phí dạy thêm giờ theo quy định.",
-   "lienKet": "https://baothanhhoa.vn/giao-vien-cho-kinh-phi-chi-tra-tien-day-them-gio-308467.htm",
-   "luc": "2026-11-10T08:37:00.000Z",
-   "kenh": "giao-duc",
-   "chuyenMuc": "Giáo dục",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308275",
-   "tieuDe": "Đèn trang trí đô thị thiếu thẩm mỹ, gây khó cho người tham gia giao thông",
-   "moTa": "Việc đầu tư, lắp đặt đèn trang trí không chỉ đơn thuần đảm bảo tính mỹ quan mà còn mang đặc trưng của địa phương. Tuy nhiên, hệ thống đèn trang trí tại các đô thị của tỉnh Thanh Hóa lại đang bị “lạm dụng” màu sắc, thiếu thẩm mỹ, ảnh hưởng đến thị giác của người tham gia giao thông.",
-   "lienKet": "https://baothanhhoa.vn/den-trang-tri-do-thi-thieu-tham-my-gay-kho-cho-nguoi-tham-gia-giao-thong-308275.htm",
-   "luc": "2026-11-10T07:58:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "308549",
-   "tieuDe": "Mỗi cán bộ tuyên giáo Sầm Sơn phải là “người lính đi đầu” trong định hướng dư luận xã hội",
-   "moTa": "Trước những vấn đề mới nảy sinh từ thực tiễn, mỗi cán bộ tuyên giáo phường Sầm Sơn cần phát huy vai trò tiên phong, chủ động nắm bắt tình hình tư tưởng, nhạy bén định hướng dư luận xã hội, kịp thời đưa thông tin chính thống đến với cán bộ, đảng viên và Nhân dân. Muốn vậy, mỗi người phải thực sự bản lĩnh, sâu sát cơ sở, gần dân, hiểu dân và có trách nhiệm trước những vấn đề cuộc sống đặt ra.",
-   "lienKet": "https://baothanhhoa.vn/moi-can-bo-tuyen-giao-sam-son-phai-la-nguoi-linh-di-dau-trong-dinh-huong-du-luan-xa-hoi-308549.htm",
-   "luc": "2026-11-10T04:51:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308540",
-   "tieuDe": "Xây dựng mô hình, cách làm mới từ thực tiễn công tác xây dựng Đảng và hệ thống chính trị",
-   "moTa": "Xây dựng Đảng và hệ thống chính trị vững mạnh là nhiệm vụ có ý nghĩa quyết định đối với năng lực lãnh đạo của Đảng, hiệu lực, hiệu quả hoạt động của bộ máy và niềm tin của Nhân dân. Trước yêu cầu phát triển trong giai đoạn mới, tỉnh Thanh Hóa đang tập trung xây dựng các mô hình, cách làm mới đáp ứng yêu cầu từ thực tiễn, xây dựng hệ thống chính trị hoạt động hiệu năng, hiệu lực, hiệu quả, tạo nền tảng vững chắc thực hiện các mục tiêu phát triển của tỉnh.",
-   "lienKet": "https://baothanhhoa.vn/xay-dung-mo-hinh-cach-lam-moi-tu-thuc-tien-cong-tac-xay-dung-dang-va-he-thong-chinh-tri-308540.htm",
-   "luc": "2026-11-10T04:22:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308518",
-   "tieuDe": "Đưa nguồn vốn tín dụng đến nông dân",
-   "moTa": "Sáng 10/11, Ban Chỉ đạo Chương trình phối hợp tỉnh tổ chức kiểm tra việc triển khai chương trình phối hợp giữa Hội Nông dân, Hội Liên hiệp Phụ nữ và Agribank tại xã Điền Lư. Hoạt động nhằm đánh giá kết quả đưa nguồn vốn tín dụng đến hội viên, đồng thời nâng cao chất lượng quản lý và hiệu quả sử dụng vốn vay ở cơ sở.",
-   "lienKet": "https://baothanhhoa.vn/dua-nguon-von-tin-dung-den-nong-dan-308518.htm",
-   "luc": "2026-11-10T03:43:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308512",
-   "tieuDe": "Thường trực Ban Bí thư chỉ đạo về việc tổ chức các giải báo chí năm 2026",
-   "moTa": "Văn phòng Trung ương Đảng vừa ban hành Công văn gửi các tỉnh uỷ, thành uỷ, đảng uỷ trực thuộc Trung ương; các ban, bộ, ngành, đoàn thể Trung ương về việc tổ chức giải báo chí năm 2026 (Công văn số 6329-CV/VPTW, ngày 7/11/2026).",
-   "lienKet": "https://baothanhhoa.vn/thuong-truc-ban-bi-thu-chi-dao-ve-viec-to-chuc-cac-giai-bao-chi-nam-2026-308512.htm",
-   "luc": "2026-11-10T02:41:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
+   "diem": 44
   }
  ]
 }
