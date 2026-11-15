@@ -1,8 +1,30 @@
 {
- "capNhat": "2026-11-14T12:16:44.499Z",
+ "capNhat": "2026-11-15T00:30:03.435Z",
  "nguon": "Báo và Phát thanh, Truyền hình Thanh Hóa",
  "trangNguon": "https://baothanhhoa.vn",
  "tin": [
+  {
+   "id": "309092",
+   "tieuDe": "Lan tỏa những điển hình học và làm theo Bác ở xã Thiệu Tiến",
+   "moTa": "Lấy tư tưởng, đạo đức, phương pháp, phong cách Hồ Chí Minh làm “kim chỉ nam” cho mọi hoạt động, thời gian qua, Đảng bộ xã Thiệu Tiến đã chú trọng đưa việc học tập và làm theo Bác trở thành việc làm thường xuyên, tự giác của mỗi cán bộ, đảng viên và Nhân dân. Từ những việc làm bình dị, thiết thực trong đời sống, lao động, sản xuất, nhiều tập thể, cá nhân điển hình đã xuất hiện, góp phần lan tỏa những giá trị tốt đẹp trong cộng đồng.",
+   "lienKet": "https://baothanhhoa.vn/lan-toa-nhung-dien-hinh-hoc-va-lam-theo-bac-o-xa-thieu-tien-309092.htm",
+   "luc": "2026-11-14T23:30:00.000Z",
+   "kenh": "xay-dung-dang",
+   "chuyenMuc": "Xây dựng Đảng",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309111",
+   "tieuDe": "Người dân là chủ thể quyết định sức sống ngày hội",
+   "moTa": "Nếu lịch sử làm nên chiều sâu của một vùng đất, thì văn hóa chính là linh hồn làm nên sức sống của vùng đất ấy. Nếu tình đoàn kết tạo nên sức mạnh cộng đồng, thì lời ca, tiếng hát, điệu múa chính là nhịp cầu nối những trái tim, đưa con người đến gần nhau hơn. Đêm hội văn hoá, văn nghệ các dân tộc ở xã Thọ Bình được tổ chức trong không khí vui tươi, phấn khởi, thu hút đông đảo Nhân dân các dân tộc Thái, Mường, Kinh tham gia, góp phần tăng thêm tình đoàn kết và thắt chặt tình làng nghĩa xóm trong cộng đồng.",
+   "lienKet": "https://baothanhhoa.vn/nguoi-dan-la-chu-the-quyet-dinh-suc-song-ngay-hoi-309111.htm",
+   "luc": "2026-11-14T17:42:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
   {
    "id": "309075",
    "tieuDe": "Đoàn kết, hợp tác, thúc đẩy doanh nghiệp Tân Ninh phát triển",
@@ -429,8 +451,8 @@
    "luc": "2026-11-13T06:33:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308945",
@@ -462,8 +484,8 @@
    "luc": "2026-11-13T06:00:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "308904",
@@ -636,28 +658,6 @@
    "moTa": "Với tư duy đổi mới, hành động sáng tạo, điều hành quyết liệt gắn với trách nhiệm của người đứng đầu cấp ủy, công tác cải cách hành chính (CCHC) trên địa bàn tỉnh đã có nhiều chuyển biến tích cực, góp phần nâng cao chất lượng phục vụ người dân, doanh nghiệp.",
    "lienKet": "https://baothanhhoa.vn/dau-an-lanh-dao-cua-dang-trong-cai-cach-hanh-chinh-308855.htm",
    "luc": "2026-11-13T00:45:00.000Z",
-   "kenh": "xay-dung-dang",
-   "chuyenMuc": "Xây dựng Đảng",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308837",
-   "tieuDe": "Tăng tốc hành động, giữ vững mục tiêu",
-   "moTa": "Tại hội nghị giao ban toàn tỉnh tuần thứ 6 về thực hiện kịch bản tăng trưởng kinh tế quý IV, Phó Chủ tịch Thường trực UBND tỉnh Mai Xuân Liêm nhấn mạnh yêu cầu giữ nguyên mục tiêu tăng trưởng năm, các sở, ngành, địa phương, tập trung bù đắp ngay trong tháng 11 những chỉ tiêu chưa đạt mốc tháng 10.",
-   "lienKet": "https://baothanhhoa.vn/tang-toc-hanh-dong-giu-vung-muc-tieu-308837.htm",
-   "luc": "2026-11-13T00:30:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "308858",
-   "tieuDe": "Đổi mới phương thức quản trị, nâng cao chất lượng phục vụ Nhân dân",
-   "moTa": "Sau hơn 1 năm vận hành chính quyền địa phương 2 cấp, bộ máy chính quyền tỉnh Thanh Hóa cơ bản hoạt động ổn định, thông suốt. Phương thức quản lý, điều hành từng bước đổi mới theo hướng tinh gọn, chủ động, sát cơ sở; công tác phân cấp, phân quyền, cải cách hành chính và chuyển đổi số đạt nhiều kết quả tích cực, góp phần nâng cao hiệu lực, hiệu quả quản lý Nhà nước, phục vụ người dân và doanh nghiệp.",
-   "lienKet": "https://baothanhhoa.vn/doi-moi-phuong-thuc-quan-tri-nang-cao-chat-luong-phuc-vu-nhan-dan-308858.htm",
-   "luc": "2026-11-12T23:30:00.000Z",
    "kenh": "xay-dung-dang",
    "chuyenMuc": "Xây dựng Đảng",
    "diem": 0,
