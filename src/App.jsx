@@ -3,7 +3,7 @@ import { Award, BarChart3, BookOpen, Plus, Trash2, Printer, RotateCcw, ShieldChe
 import { supabase, loadState, saveState, listPeriods, loadAllPeriods } from './lib/supabase';
 import { readVersionCfg, fetchVersionCfg, saveVersionCfg } from './lib/versionCfg';
 import { countVisit } from './lib/visits';
-import { onAuthChange, getSession, signOut, ADMIN } from './lib/auth';
+import { onAuthChange, getSession, signOut, ADMIN_EMAILS } from './lib/auth';
 import Login from './Login.jsx';
 import SetPassword from './SetPassword.jsx';
 import { deptSummary } from './lib/dash';
@@ -35,7 +35,7 @@ const posOptions = (dept) => (ORG_UNITS.find((u) => u.dept === dept)?.positions)
 const SONHA_ORG_UNITS = ORG_UNITS.filter((u) => /^(Văn phòng|Phòng )/.test(u.dept));
 // Email được cấp quyền Quản trị ngay khi chưa dựng bảng phân quyền (bootstrap).
 // Có thể thêm email, hoặc chuyển hẳn sang bảng "profiles" để phân quyền chi tiết.
-const BOOTSTRAP_ADMIN_EMAILS = ['sonthkh@gmail.com', ADMIN.email];
+const BOOTSTRAP_ADMIN_EMAILS = ADMIN_EMAILS;   // khai ở lib/auth.js, khớp policy hr_data_admin_only
 // Hai phiên làm việc KHÔNG có tài khoản Supabase: 'guest' (khách, chỉ xem) và
 // 'localadmin' (quản trị cục bộ qua admin/Admin123). Cả hai đều dùng dữ liệu mẫu
 // và KHÔNG ghi lên máy chủ (RLS chỉ chấp nhận phiên đăng nhập thật).

@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react';
 import {
   Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, ArrowRight, Eye,
-  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, Vote, ExternalLink, BookMarked, Library, FileSpreadsheet,
+  LogIn, Sparkles, LayoutGrid, Phone, Mail, CalendarDays, ScanSearch, Database, Vote, ExternalLink, BookMarked, Library, FileSpreadsheet, FolderLock,
 } from 'lucide-react';
 import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
 import { KhoiTinTuc } from './TinTuc';
 import { countVisit } from './lib/visits';
+import { getSession, onAuthChange, laEmailQuanTri } from './lib/auth';
 import NguoiHuongDan from './NguoiHuongDan';
 
 // ============================================================================
@@ -14,7 +15,7 @@ import NguoiHuongDan from './NguoiHuongDan';
 //  Người dùng chọn phân hệ bằng cách bấm vào thẻ (icon) tương ứng.
 // ============================================================================
 
-const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database, Vote, BookMarked, Library, FileSpreadsheet };
+const ICONS = { Target, ShieldCheck, Landmark, Users, BookOpen, FlaskConical, CalendarDays, ScanSearch, Sparkles, Database, Vote, BookMarked, Library, FileSpreadsheet, FolderLock };
 
 // Viết đủ tên lớp Tailwind để không bị loại khi build.
 const TONE = {
@@ -67,6 +68,15 @@ function ModuleCard({ m, onOpen, big }) {
 export default function Portal({ onOpen }) {
   const [cfg, setCfg] = useState(readVersionCfg);
   const [visits, setVisits] = useState(null);
+  // Thẻ phân hệ `adminOnly` (Hồ sơ cán bộ) chỉ hiện khi phiên đăng nhập là email Quản trị.
+  const [quanTri, setQuanTri] = useState(false);
+  useEffect(() => {
+    let alive = true;
+    const xet = (s) => { if (alive) setQuanTri(laEmailQuanTri(s?.user?.email)); };
+    getSession().then(xet).catch(() => {});
+    const off = onAuthChange(xet);
+    return () => { alive = false; off && off(); };
+  }, []);
 
   useEffect(() => {
     let alive = true;
@@ -78,6 +88,7 @@ export default function Portal({ onOpen }) {
   // Phân hệ "Phòng thử nghiệm" chỉ hiện khi còn ít nhất một bộ tiêu chí chưa bị ẩn.
   const hidden = cfg.hidden || [];
   const visible = MODULES.filter((m) => {
+    if (m.adminOnly && !quanTri) return false;
     if (m.id === 'lab') {
       const left = (m.labVersions || []).filter((v) => !hidden.includes(v));
       return left.length > 0;

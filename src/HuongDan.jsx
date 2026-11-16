@@ -168,7 +168,7 @@ export default function HuongDan({ onHome, onOpenModule }) {
           <Section id="tongquan" title="1. Hệ thống gồm những gì" icon={BookOpen}
             note="Trang chủ hiển thị các phân hệ dưới dạng thẻ có biểu tượng; bấm vào thẻ để mở phân hệ tương ứng. Mỗi phân hệ có đường dẫn riêng, có thể lưu hoặc gửi cho người khác.">
             <div className="grid sm:grid-cols-2 gap-3">
-              {MODULES.filter((m) => m.id !== 'guide').map((m) => {
+              {MODULES.filter((m) => m.id !== 'guide' && !m.adminOnly).map((m) => {
                 const Ic = ICONS[m.icon] || BookOpen;
                 return (
                   <button key={m.id} onClick={() => open(m.route)} className="text-left rounded-2xl border border-slate-200 bg-white p-4 hover:border-slate-300 hover:shadow-sm transition">

@@ -9,6 +9,7 @@
 //    { kind: 'tusach' }             → mở module Tủ sách (giới thiệu sách của cán bộ cơ quan)
 //    { kind: 'vtvl' }               → mở module Bộ biểu Vị trí việc làm (nhập liệu, kiểm tra lỗi khi nhập tệp)
 //    { kind: 'huongdan' }           → mở module Hướng dẫn & hỗ trợ
+//    { kind: 'hoso' }               → mở module Hồ sơ cán bộ (dữ liệu QLCCVC tỉnh, CHỈ Quản trị — `adminOnly`)
 //    { kind: 'external', url }      → phân hệ chạy trên ĐỊA CHỈ RIÊNG (mã nguồn, cơ sở dữ liệu
 //                                     và tài khoản riêng); mở tab mới, #/<route> tự chuyển tiếp
 // ============================================================================
@@ -120,6 +121,16 @@ export const MODULES = [
     desc: 'Hồ sơ cán bộ theo Mẫu 2C/TCTW-98, nhắc việc nhân sự (nâng lương, nghỉ hưu, hợp đồng, sinh nhật) và theo dõi biên chế.',
     tags: ['Chỉ Quản trị'], icon: 'Users', tone: 'amber',
     target: { kind: 'app', version: 'sonha', tab: 'hr' },
+  },
+  {
+    // adminOnly: Trang chủ và trang Hướng dẫn CHỈ hiện thẻ khi phiên là Quản trị. Ẩn thẻ không phải
+    // cơ chế bảo mật — dữ liệu nằm ở dòng hr_data mà RLS (BƯỚC 4) chỉ cho email Quản trị đọc.
+    id: 'hoso', route: 'hoso', group: 'tool', adminOnly: true,
+    title: 'Hồ sơ cán bộ (dữ liệu QLCCVC tỉnh)',
+    short: 'Hồ sơ cán bộ',
+    desc: 'Hồ sơ đầy đủ của cán bộ, công chức, người lao động Văn phòng lấy từ Hệ thống quản lý CBCCVC tỉnh (qlccvc.thanhhoa.gov.vn): 13 nhóm thông tin, 30 bảng quá trình, nhắc việc nhân sự, thống kê, xuất Sơ yếu lý lịch 2C và Excel.',
+    tags: ['Chỉ Quản trị', 'Dữ liệu QLCCVC', 'Mẫu 2C'], icon: 'FolderLock', tone: 'red', badge: 'Mới',
+    target: { kind: 'hoso' },
   },
   {
     id: 'guide', route: 'hotro', group: 'tool',

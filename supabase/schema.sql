@@ -107,6 +107,11 @@ create policy "hr_data_admin_only" on app_state
   using (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com', 'admin@thanhhoa.gov.vn'))
   with check (id = 'hr_data' and lower(coalesce(auth.jwt() ->> 'email', '')) in ('sonthkh@gmail.com', 'admin@thanhhoa.gov.vn'));
 
+-- 📌 Từ 16/11/2026 dòng 'hr_data' còn chứa khóa "hoSo" = HỒ SƠ ĐẦY ĐỦ lấy từ Hệ thống quản lý
+--    CBCCVC tỉnh (phân hệ #/hoso: số định danh, gia đình, tài sản, lương, sức khỏe…). Đây là lý do
+--    BƯỚC 4 là BẮT BUỘC trước khi nhập dữ liệu đó: chưa chạy thì MỌI tài khoản đăng nhập đều
+--    đọc được toàn bộ hồ sơ qua API. Phân hệ cố ý không tạo dòng riêng vì dòng mới sẽ rơi vào
+--    chính sách chung "app_state_auth_all" ở trên.
 -- Nếu chưa chạy BƯỚC 4: module Quản lý cán bộ vẫn hoạt động (theo chính sách
 -- BƯỚC 2), nhưng hồ sơ KHÔNG được bảo vệ trước tài khoản đăng nhập khác.
 

@@ -103,7 +103,12 @@ Bản demo thử nghiệm, dùng nội bộ. Địa chỉ: ${SITE}
    - Phân hệ OKR/KPI lấy cán bộ, công chức, người lao động của Văn phòng (đơn vị là "Văn phòng" hoặc một phòng trực thuộc).
    Lãnh đạo Văn phòng vừa thuộc diện BTV vừa là cán bộ Văn phòng nên có mặt ở CẢ HAI phân hệ: hằng tháng chấm KPI, hằng quý kiểm điểm.
    Kèm khu vực DANH BẠ ĐIỆN THOẠI (đại biểu HĐND tỉnh + các Ban và Văn phòng): Quản trị nhập từ tệp danh sách (Stt · Họ và tên · Chức vụ · Số điện thoại) rồi bấm Lưu hồ sơ. Bạn ĐỌC ĐƯỢC danh bạ này khi câu hỏi nhắc tới số điện thoại/danh bạ — chỉ trả lời số của ĐÚNG người được hỏi, không liệt kê hàng loạt trừ khi được yêu cầu rõ; danh bạ chưa được nhập thì hướng dẫn Quản trị nhập.
-13. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
+13. Hồ sơ cán bộ — dữ liệu Hệ thống quản lý CBCCVC tỉnh (CHỈ Quản trị) — ${SITE}/#/hoso
+   Hồ sơ đầy đủ của cán bộ, công chức, người lao động Văn phòng lấy từ Hệ thống quản lý CBCCVC tỉnh Thanh Hóa (qlccvc.thanhhoa.gov.vn, phần mềm VNPT CCVC 3.0): 13 nhóm thông tin (chung, định danh, cư trú, công tác, lương - phụ cấp, trình độ, Đảng - đoàn thể, gia đình, quá trình công tác, khen thưởng - kỷ luật - đánh giá, sức khỏe - chính sách, kinh tế - tài sản, lịch sử bản thân) và các bảng quá trình (diễn biến lương, quá trình công tác, đào tạo, bồi dưỡng…).
+   Chức năng: tổng quan thống kê (đơn vị, loại cán bộ, độ tuổi, trình độ, lý luận chính trị), danh sách có tìm kiếm và lọc, nhắc việc tự rút từ hồ sơ (nâng lương, nghỉ hưu, hết thời hạn giữ chức vụ 05 năm, phụ cấp hết hạn, sinh nhật, hồ sơ thiếu trường bắt buộc), sửa hồ sơ, xuất Sơ yếu lý lịch Mẫu 2C và danh sách Excel. Dữ liệu đưa vào bằng tệp xuất từ hệ thống của tỉnh; sửa ở đây KHÔNG cập nhật ngược về hệ thống tỉnh.
+   Thẻ phân hệ chỉ hiện ở Trang chủ khi đăng nhập bằng tài khoản Quản trị; máy chủ cũng chỉ cho email Quản trị đọc dữ liệu.
+   ⚠️ Trợ lý KHÔNG đọc được nội dung các hồ sơ này và KHÔNG được trả lời số định danh, ngày sinh, gia đình, tài sản, lương của bất kỳ ai — chỉ chỉ đường dẫn cho Quản trị tự mở.
+14. Hướng dẫn và hỗ trợ sử dụng — ${SITE}/#/hotro
    Hướng dẫn cho toàn hệ thống: bắt đầu nhanh theo vai trò, tài khoản và phân quyền, cách tính điểm, quy trình và mốc thời gian, cơ sở pháp lý, hỏi đáp, liên hệ.
 
 ## Tài khoản và phân quyền

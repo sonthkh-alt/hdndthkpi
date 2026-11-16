@@ -15,6 +15,7 @@ import { moduleByRoute, moduleByVersion, isExternal } from './lib/modules';
 //    #/vtvl        → Bộ biểu Vị trí việc làm (nhập liệu, kiểm tra tệp) (module riêng)
 //    #/tintuc      → Tin tức Thanh Hóa (tin trong tỉnh, ưu tiên HĐND)   (trang riêng, không có thẻ)
 //    #/canbo       → Quản lý cán bộ (hồ sơ 2C)                 (App, tab 'hr')
+//    #/hoso        → Hồ sơ cán bộ — dữ liệu QLCCVC tỉnh        (module riêng, CHỈ Quản trị)
 //    #/hotro       → Hướng dẫn & hỗ trợ                        (App, tab 'guide')
 //    #/giamsat     → Giám sát số Thanh Hóa                     (hệ thống RIÊNG, tự chuyển tiếp)
 //    #/onedata     → Một dữ liệu – Không báo cáo lại           (hệ thống RIÊNG, tự chuyển tiếp)
@@ -31,6 +32,7 @@ const SoTayAI = lazy(() => import('./SoTayAI.jsx'));
 const TuSach = lazy(() => import('./TuSach.jsx'));
 const VTVL = lazy(() => import('./VTVL.jsx'));
 const TinTuc = lazy(() => import('./TinTuc.jsx'));
+const HoSoCanBo = lazy(() => import('./HoSoCanBo.jsx'));
 
 const HOME = { view: 'home' };
 
@@ -48,6 +50,7 @@ function parseHash() {
   if (m.target.kind === 'sotay') return { view: 'sotay', moduleId: m.id };
   if (m.target.kind === 'tusach') return { view: 'tusach', moduleId: m.id };
   if (m.target.kind === 'vtvl') return { view: 'vtvl', moduleId: m.id };
+  if (m.target.kind === 'hoso') return { view: 'hoso', moduleId: m.id };
   if (m.target.kind === 'huongdan') return { view: 'huongdan', moduleId: m.id };
   // Phân hệ chạy ở địa chỉ riêng: giữ đường dẫn #/<route> để chia sẻ được, mở ra thì tự chuyển tiếp.
   if (isExternal(m)) return { view: 'external', moduleId: m.id, url: m.target.url, title: m.title };
@@ -127,6 +130,7 @@ export default function Root() {
     if (state.view === 'sotay') return <SoTayAI onHome={goHome} />;
     if (state.view === 'tusach') return <TuSach onHome={goHome} />;
     if (state.view === 'vtvl') return <VTVL onHome={goHome} />;
+    if (state.view === 'hoso') return <HoSoCanBo onHome={goHome} />;
     if (state.view === 'tintuc') return <TinTuc onHome={goHome} />;
     if (state.view === 'huongdan') return <HuongDan onHome={goHome} onOpenModule={goRoute} />;
     // Thanh chọn bộ tiêu chí CHỈ hiện ở phân hệ "Phòng thử nghiệm" — các phân hệ

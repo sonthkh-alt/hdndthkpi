@@ -75,8 +75,10 @@ export async function exportLyLich2C(s, unit) {
   ], { size: 22, italics: true, spacingAfter: 40 }));
   line(13, 'Công việc chính được giao', s.mainWork);
   children.push(P([
-    { text: '14. Ngạch công chức: ', bold: true }, { text: `${ng.name} (${ng.code})` },
-    { text: '    Bậc: ', bold: true }, { text: `${s.bac}/${ng.bacMax}` },
+    // s.ngachText: ngạch/chức danh ghi nguyên văn theo hệ thống QLCCVC (phân hệ Hồ sơ cán bộ) —
+    // bảng HR_NGACH chỉ có 6 ngạch nên không tra được chức danh viên chức, lái xe… mà không in sai.
+    { text: '14. Ngạch công chức: ', bold: true }, { text: s.ngachText || `${ng.name} (${ng.code})` },
+    { text: '    Bậc: ', bold: true }, { text: s.ngachText ? String(s.bac ?? '') : `${s.bac}/${ng.bacMax}` },
     { text: '    Hệ số: ', bold: true }, { text: String(s.heso ?? '') },
     { text: '    Ngày hưởng: ', bold: true }, { text: fmtD(s.salaryDate) || '...' },
     { text: '    Vượt khung: ', bold: true }, { text: `${s.vuotKhungPct || 0}%` },
@@ -159,9 +161,10 @@ export async function exportLyLich2C(s, unit) {
   children.push(P(s.remark || DOTS, { size: 24, spacingAfter: 160 }));
 
   // ---------------- Mốc theo dõi của cơ quan (ngoài biểu mẫu gốc) ----------------
-  const raise = nextRaise(s), retire = retireDate(s.birth, s.gender);
+  const raise = s.ngachText ? null : nextRaise(s), retire = retireDate(s.birth, s.gender);
   children.push(P('Thông tin theo dõi của cơ quan quản lý (không thuộc biểu mẫu gốc):', { bold: true, italics: true, size: 21, spacingAfter: 40 }));
-  children.push(P(`- Đối tượng quản lý: ${catOf(s.category).label}.`, { size: 21, spacingAfter: 20 }));
+  if (s.nguon) children.push(P(`- Nguồn dữ liệu: ${s.nguon}.`, { size: 21, spacingAfter: 20 }));
+  children.push(P(`- Đối tượng quản lý: ${s.loaiText || catOf(s.category).label}.`, { size: 21, spacingAfter: 20 }));
   if (raise) children.push(P(`- ${raise.label}: dự kiến ${fmtD(raise.date)} (chu kỳ ${raise.cycle} tháng theo Thông tư 08/2013/TT-BNV).`, { size: 21, spacingAfter: 20 }));
   if (retire) children.push(P(`- Thời điểm nghỉ hưu dự kiến: ${fmtD(retire)} (lộ trình Nghị định 135/2020/NĐ-CP).`, { size: 21, spacingAfter: 20 }));
   if (s.contractTo) children.push(P(`- Hợp đồng lao động đến ngày: ${fmtD(s.contractTo)}.`, { size: 21, spacingAfter: 20 }));

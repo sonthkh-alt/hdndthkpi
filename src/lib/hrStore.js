@@ -46,11 +46,18 @@ export async function fetchHR() {
 }
 
 // Lưu (chỉ Quản trị gọi): ghi cache ngay + upsert lên Supabase.
+// ⚠️ Dòng hr_data còn chứa khóa `hoSo` của phân hệ HỒ SƠ CÁN BỘ (src/lib/hoSoStore.js), khóa này
+// CỐ Ý không đi qua normalize (không nằm trong state của App, không cache) — nên trước khi ghi
+// phải đọc lại `hoSo` đang có trên máy chủ và giữ nguyên, nếu không lưu hồ sơ 2C là XÓA SẠCH
+// toàn bộ hồ sơ đã nhập từ hệ thống QLCCVC. Đọc không được thì DỪNG, không ghi liều.
 export async function saveHR(d) {
   const c = normalize({ ...d, updatedAt: new Date().toISOString() });
   try { localStorage.setItem(KEY, JSON.stringify(c)); } catch { /* bỏ qua */ }
   if (!supabase) return { ok: false, reason: 'no-supabase' };
-  const { error } = await supabase.from('app_state').upsert({ id: 'hr_data', data: c, updated_at: new Date().toISOString() });
+  const { data: cu, error: e0 } = await supabase.from('app_state').select('hoSo:data->hoSo').eq('id', 'hr_data').maybeSingle();
+  if (e0) { console.warn('saveHR (đọc hoSo):', e0.message); return { ok: false, error: e0 }; }
+  const row = cu?.hoSo ? { ...c, hoSo: cu.hoSo } : c;
+  const { error } = await supabase.from('app_state').upsert({ id: 'hr_data', data: row, updated_at: new Date().toISOString() });
   if (error) { console.warn('saveHR:', error.message); return { ok: false, error }; }
   return { ok: true };
 }

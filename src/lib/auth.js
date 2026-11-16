@@ -16,6 +16,10 @@ export const isGuestCredential = (email, password) =>
 // ---------------------------------------------------------------------------
 export const ADMIN = { user: 'admin', email: 'admin@thanhhoa.gov.vn', password: 'Admin123' };
 const norm = (s) => (s || '').trim().toLowerCase();
+// Email Quản trị — PHẢI KHỚP danh sách trong policy `hr_data_admin_only` (BƯỚC 4, supabase/schema.sql):
+// máy chủ mới là chốt chặn thật, danh sách này chỉ để giao diện biết nên hiện gì.
+export const ADMIN_EMAILS = ['sonthkh@gmail.com', ADMIN.email];
+export const laEmailQuanTri = (email) => ADMIN_EMAILS.includes(norm(email));
 // Cho phép gõ "admin" thay cho địa chỉ email đầy đủ.
 export const resolveLoginEmail = (input) => (norm(input) === ADMIN.user ? ADMIN.email : (input || '').trim());
 export const isAdminCredential = (email, password) =>
