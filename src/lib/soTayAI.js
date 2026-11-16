@@ -1,3 +1,4 @@
+import { urlAnToan } from './urlAnToan.js';
 // ============================================================================
 //  SỔ TAY AI — LÕI TRA CỨU CÓ TRÍCH DẪN NGUỒN (logic THUẦN, chạy được bằng Node)
 //
@@ -550,7 +551,7 @@ export const chuanHoaST = (d) => ({
   nguon: mang(d?.nguon).slice(0, MAX_NGUON).map((n) => ({
     id: chuoi(n?.id), soTayId: chuoi(n?.soTayId), soHieu: chuoi(n?.soHieu), ten: chuoi(n?.ten),
     coQuan: chuoi(n?.coQuan), ngayBanHanh: chuoi(n?.ngayBanHanh),
-    hieuLuc: chuoi(n?.hieuLuc) || 'chua-ro', lienKet: chuoi(n?.lienKet),
+    hieuLuc: chuoi(n?.hieuLuc) || 'chua-ro', lienKet: urlAnToan(n?.lienKet),   // chặn javascript: (XSS)
     congKhai: !!n?.congKhai, kiemTra: chuoi(n?.kiemTra) || 'chua',
     nguoiKiemTra: chuoi(n?.nguoiKiemTra), ngayKiemTra: chuoi(n?.ngayKiemTra),
     ghiChu: chuoi(n?.ghiChu),

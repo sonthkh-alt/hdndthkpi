@@ -86,12 +86,11 @@ create policy "visit_counter_public_read" on app_state
 --  không phải cơ chế bảo mật). Đoạn dưới siết lại: chỉ email Quản trị mới
 --  đọc/ghi được dòng 'hr_data'.
 --  👉 Sửa danh sách email trong hai chỗ dưới cho khớp thực tế.
---  💡 TÀI KHOẢN QUẢN TRỊ "admin / Admin123": ứng dụng ánh xạ tên đăng nhập "admin"
---     sang email admin@thanhhoa.gov.vn. Muốn tài khoản này LƯU ĐƯỢC LÊN MÁY CHỦ,
---     hãy tạo user đó trong Supabase Dashboard -> Authentication -> Users -> Add user
---     (email: admin@thanhhoa.gov.vn, password: Admin123, tick "Auto Confirm User").
---     Nếu KHÔNG tạo, đăng nhập admin vẫn vào được nhưng ở chế độ "quản trị cục bộ"
---     (thao tác đầy đủ, dữ liệu chỉ lưu trên trình duyệt của máy đó).
+--  ⛔ (16/11/2026) KHÔNG tạo tài khoản admin@thanhhoa.gov.vn với mật khẩu "Admin123" trên
+--     máy chủ: mật khẩu đó nằm công khai trong mã nguồn (src/lib/auth.js), ai đọc mã cũng
+--     đăng nhập được. Đăng nhập "admin" vẫn dùng được ở chế độ "quản trị cục bộ" (dữ liệu
+--     chỉ trên trình duyệt). Đã lỡ tạo thì XÓA hoặc ĐỔI MẬT KHẨU trong Authentication → Users.
+--     Dữ liệu nhân sự (hr_data) nay khóa theo MÃ TÀI KHOẢN ở BƯỚC 12 — chạy BƯỚC 12 thay đoạn dưới.
 -- ---------------------------------------------------------------------
 -- Loại 'hr_data' ra khỏi chính sách chung (RLS cộng dồn kiểu OR nên phải sửa
 -- chính sách cũ, thêm chính sách mới là không đủ để siết).
@@ -332,3 +331,40 @@ create policy "sach_data_public_read" on app_state
 drop policy if exists "vtvl_data_public_read" on app_state;
 create policy "vtvl_data_public_read" on app_state
   for select using (id = 'vtvl_data' or id like 'vtvl\_dv\_%');
+
+-- =====================================================================
+-- BƯỚC 12 (16/11/2026). SIẾT DỮ LIỆU NHÂN SỰ — ⚠️ BẮT BUỘC CHẠY
+-- ---------------------------------------------------------------------
+--  Dòng 'hr_data' chứa hồ sơ đầy đủ lấy từ Hệ thống quản lý CBCCVC tỉnh (số
+--  định danh, gia đình, tài sản, lương, sức khỏe của 45 người). Rà soát bảo mật
+--  phát hiện:
+--   (1) BƯỚC 4 cho cả email admin@thanhhoa.gov.vn đọc dòng này — mà mật khẩu
+--       "Admin123" của tài khoản đó nằm CÔNG KHAI trong mã nguồn (src/lib/auth.js)
+--       và trong chính ghi chú BƯỚC 4. Ai đọc mã cũng đăng nhập được.
+--   (2) Khóa theo EMAIL yếu hơn khóa theo MÃ TÀI KHOẢN: đăng ký tài khoản đang mở,
+--       email chưa có ai dùng (như admin@…) có thể bị người khác chiếm.
+--  Đoạn dưới thay BƯỚC 4: chỉ ĐÚNG MỘT tài khoản (sonthkh@gmail.com, mã tài khoản
+--  bên dưới) đọc/ghi được 'hr_data'. Mã tài khoản (uuid) không phải bí mật — biết
+--  mã cũng không đăng nhập được. Muốn thêm người: Authentication → Users → sao chép
+--  User UID → thêm vào danh sách `in (...)` ở cả hai dòng.
+-- ---------------------------------------------------------------------
+drop policy if exists "app_state_auth_all" on app_state;
+create policy "app_state_auth_all" on app_state
+  for all
+  using (auth.role() = 'authenticated' and id <> 'hr_data')
+  with check (auth.role() = 'authenticated' and id <> 'hr_data');
+
+drop policy if exists "hr_data_admin_only" on app_state;
+create policy "hr_data_admin_only" on app_state
+  for all
+  using (id = 'hr_data' and auth.uid() in ('719526a4-1ce7-4aa4-bfa3-7afa07e31e87'::uuid))
+  with check (id = 'hr_data' and auth.uid() in ('719526a4-1ce7-4aa4-bfa3-7afa07e31e87'::uuid));
+
+-- TỰ KIỂM sau khi chạy: chỉ được thấy ĐÚNG HAI chính sách nhắc tới hr_data như trên,
+-- và KHÔNG chính sách nào khác (kể cả *_public_read) cho đọc hr_data.
+--   select policyname, cmd, qual from pg_policies where tablename = 'app_state' order by 1;
+-- Việc NÊN làm thêm trong Supabase Dashboard (không làm được bằng SQL ở đây):
+--   • Authentication → Users: XÓA hoặc ĐỔI MẬT KHẨU tài khoản admin@thanhhoa.gov.vn (nếu đã tạo).
+--   • Authentication → Sign In / Providers: TẮT "Allow new users to sign up" — đang MỞ, ai cũng
+--     tự tạo được tài khoản và GHI được mọi dòng khác của app_state (chính sách chung ở trên).
+--     Cán bộ mới thì Quản trị mời qua "Invite user".

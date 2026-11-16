@@ -20,6 +20,11 @@ const norm = (s) => (s || '').trim().toLowerCase();
 // máy chủ mới là chốt chặn thật, danh sách này chỉ để giao diện biết nên hiện gì.
 export const ADMIN_EMAILS = ['sonthkh@gmail.com', ADMIN.email];
 export const laEmailQuanTri = (email) => ADMIN_EMAILS.includes(norm(email));
+// Tài khoản được mở DỮ LIỆU NHÂN SỰ (dòng hr_data: hồ sơ QLCCVC, hồ sơ 2C, danh bạ) — PHẢI KHỚP
+// BƯỚC 12 của supabase/schema.sql (máy chủ khóa theo MÃ TÀI KHOẢN auth.uid(), không theo email).
+// ⚠️ CỐ Ý KHÔNG có admin@thanhhoa.gov.vn: mật khẩu tài khoản đó nằm công khai ngay trong tệp này.
+export const NHAN_SU_EMAILS = ['sonthkh@gmail.com'];
+export const laQuanTriNhanSu = (email) => NHAN_SU_EMAILS.includes(norm(email));
 // Cho phép gõ "admin" thay cho địa chỉ email đầy đủ.
 export const resolveLoginEmail = (input) => (norm(input) === ADMIN.user ? ADMIN.email : (input || '').trim());
 export const isAdminCredential = (email, password) =>

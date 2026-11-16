@@ -19,6 +19,7 @@ import {
   CheckCircle2, AlertTriangle, Info, Maximize2, Tag,
 } from 'lucide-react';
 import { getSession, onAuthChange } from './lib/auth';
+import { urlAnToan } from './lib/urlAnToan';
 import {
   TRANG_THAI, trangThaiOf, THE_LOAI, newSach, newId,
   sachNoiBat, sapXep, docDuoc, nhomMucLuc, thongKe, timSach, nhanMuc,
@@ -36,7 +37,7 @@ const nutPhu = 'inline-flex items-center justify-center gap-2 px-3 py-2 rounded-
 function Bia({ s, className = '' }) {
   const [loi, setLoi] = useState(false);
   if (s.anhBia && !loi) {
-    return <img src={s.anhBia} alt={`Bìa sách ${s.ten}`} onError={() => setLoi(true)}
+    return <img src={urlAnToan(s.anhBia)} alt={`Bìa sách ${s.ten}`} onError={() => setLoi(true)}
       className={`w-full h-full object-cover ${className}`} />;
   }
   return (
@@ -278,7 +279,7 @@ function GioiThieuSach({ s, onVe, onDoc }) {
           {mo ? (
             <div className="space-y-2">
               <button onClick={onDoc} className={`${nutChinh} w-full`}><BookOpen className="w-4 h-4" /> Đọc sách</button>
-              <a href={s.tepToanVan} download className={`${nutPhu} w-full`}><Download className="w-4 h-4" /> Tải bản toàn văn</a>
+              <a href={urlAnToan(s.tepToanVan)} download className={`${nutPhu} w-full`}><Download className="w-4 h-4" /> Tải bản toàn văn</a>
             </div>
           ) : (
             <p className="text-[12px] text-slate-500 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 leading-relaxed">
@@ -405,7 +406,7 @@ function GioiThieuSach({ s, onVe, onDoc }) {
               <h3 className="text-[11px] font-bold uppercase tracking-[0.18em] text-slate-400">Liên kết</h3>
               <div className="mt-2 flex flex-wrap gap-2">
                 {s.lienKet.map((l, i) => (
-                  <a key={i} href={l.url} target="_blank" rel="noopener noreferrer" className={nutPhu}><ExternalLink className="w-3.5 h-3.5" /> {l.ten}</a>
+                  <a key={i} href={urlAnToan(l.url)} target="_blank" rel="noopener noreferrer" className={nutPhu}><ExternalLink className="w-3.5 h-3.5" /> {l.ten}</a>
                 ))}
               </div>
             </section>
@@ -429,14 +430,14 @@ function DocSach({ s, onVe }) {
       <div className="flex items-center justify-between gap-3 flex-wrap">
         <button onClick={onVe} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-800"><ArrowLeft className="w-4 h-4" /> Về phần giới thiệu</button>
         <div className="flex gap-2">
-          <a href={s.tepToanVan} target="_blank" rel="noopener noreferrer" className={nutPhu}><Maximize2 className="w-3.5 h-3.5" /> Mở ở tab mới</a>
-          <a href={s.tepToanVan} download className={nutPhu}><Download className="w-3.5 h-3.5" /> Tải về</a>
+          <a href={urlAnToan(s.tepToanVan)} target="_blank" rel="noopener noreferrer" className={nutPhu}><Maximize2 className="w-3.5 h-3.5" /> Mở ở tab mới</a>
+          <a href={urlAnToan(s.tepToanVan)} download className={nutPhu}><Download className="w-3.5 h-3.5" /> Tải về</a>
         </div>
       </div>
       <h2 className="text-lg font-extrabold text-slate-800 mt-3">{s.ten}</h2>
       <p className="text-[12px] text-slate-500">{s.tacGia}{s.soTrang ? ` · ${s.soTrang} trang` : ''}</p>
       <div className="mt-3 rounded-2xl border border-slate-300 overflow-hidden bg-slate-200" style={{ height: 'calc(100vh - 230px)', minHeight: 420 }}>
-        <iframe src={s.tepToanVan} title={`Toàn văn sách ${s.ten}`} className="w-full h-full" />
+        <iframe src={urlAnToan(s.tepToanVan)} title={`Toàn văn sách ${s.ten}`} className="w-full h-full" />
       </div>
       <p className="text-[11px] text-slate-400 mt-2">
         Không hiện được bản đọc? Bấm <b>Mở ở tab mới</b> hoặc <b>Tải về</b> rồi mở bằng chương trình đọc PDF trên máy.

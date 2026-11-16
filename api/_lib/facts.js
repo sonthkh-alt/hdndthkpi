@@ -3,7 +3,7 @@
 //  Nguyên tắc: chỉ đưa vào những gì cần cho câu trả lời, KHÔNG đưa dữ liệu
 //  cá nhân nhạy cảm (CCCD, BHXH, quan hệ gia đình trong hồ sơ 2C).
 // ============================================================================
-import { getRow, listPeriodIds } from './store.js';
+import { getRow, getRowParts, listPeriodIds } from './store.js';
 import { computeTC, applyQuotaXuatSac, gradeName, kindInfo } from '../../src/lib/khungTieuChi.js';
 import { buildAlerts, DEFAULT_LEAD } from '../../src/lib/hr.js';
 import { ketQua, tenKyHop, kyHopCua, danhSachKyHop } from '../../src/lib/bieuQuyet.js';
@@ -148,7 +148,8 @@ export function fmtTieuChi(doc) {
 //  Không đưa CCCD/BHXH/quan hệ gia đình vào ngữ cảnh của AI.
 // ---------------------------------------------------------------------------
 export async function nhanSuFacts() {
-  const row = await getRow('hr_data');
+  // CHỈ đọc phần hồ sơ 2C — dòng hr_data còn có khóa hoSo (hồ sơ QLCCVC) bot không được đụng tới.
+  const row = await getRowParts('hr_data', ['staff', 'duties', 'quota', 'lead']);
   return fmtNhanSu(row?.data);
 }
 
@@ -208,7 +209,7 @@ export function fmtBieuQuyet(doc) {
 //  chủ thì nơi gọi tự quyết bằng tùy chọn `danhBa` của gatherFacts.
 // ---------------------------------------------------------------------------
 export async function danhBaFacts() {
-  const row = await getRow('hr_data');
+  const row = await getRowParts('hr_data', ['danhBa']);   // không kéo hồ sơ QLCCVC (khóa hoSo) về
   return fmtDanhBa(row?.data);
 }
 

@@ -1,3 +1,4 @@
+import { urlAnToan } from './urlAnToan.js';
 // ============================================================================
 //  TỦ SÁCH — MÔ HÌNH DỮ LIỆU & LOGIC THUẦN (chạy, kiểm thử được bằng Node)
 //
@@ -59,7 +60,8 @@ export const chuanHoaSach = (s) => ({
   theLoai: chuoi(s?.theLoai), namHoanThanh: chuoi(s?.namHoanThanh), nhaXB: chuoi(s?.nhaXB), isbn: chuoi(s?.isbn),
   soTrang: so(s?.soTrang), soChuong: so(s?.soChuong), soPhuLuc: so(s?.soPhuLuc),
   trangThai: chuoi(s?.trangThai) || 'ban-thao', noiBat: !!s?.noiBat,
-  anhBia: chuoi(s?.anhBia), tepToanVan: chuoi(s?.tepToanVan), choTai: !!s?.choTai,
+  // Đường dẫn qua urlAnToan: chặn javascript:/data: (XSS) — sach_data ai đăng nhập cũng ghi được.
+  anhBia: urlAnToan(s?.anhBia), tepToanVan: urlAnToan(s?.tepToanVan), choTai: !!s?.choTai,
   tomTat: chuoi(s?.tomTat),
   diemNoiBat: mang(s?.diemNoiBat).map(chuoi).filter(Boolean),
   doiTuong: mang(s?.doiTuong).map((d) => ({ ten: chuoi(d?.ten), moTa: chuoi(d?.moTa) })).filter((d) => d.ten),
@@ -69,7 +71,7 @@ export const chuanHoaSach = (s) => ({
   })).filter((m) => m.ten),
   tuKhoa: mang(s?.tuKhoa).map(chuoi).filter(Boolean),
   trichLoiNoiDau: chuoi(s?.trichLoiNoiDau), tieuSuTacGia: chuoi(s?.tieuSuTacGia),
-  lienKet: mang(s?.lienKet).map((l) => ({ ten: chuoi(l?.ten), url: chuoi(l?.url) })).filter((l) => l.ten && l.url),
+  lienKet: mang(s?.lienKet).map((l) => ({ ten: chuoi(l?.ten), url: urlAnToan(l?.url) })).filter((l) => l.ten && l.url),
   capNhat: chuoi(s?.capNhat),
 });
 

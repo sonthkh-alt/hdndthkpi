@@ -39,6 +39,18 @@ export async function getRow(id) {
   return (rows && rows[0]) || null;
 }
 
+/** Đọc MỘT PHẦN của cột data (vd ['staff','danhBa']) — trả { data:{khóa:giá trị}, updated_at } hoặc null.
+ *  Dùng cho dòng hr_data: dòng đó còn chứa hồ sơ đầy đủ lấy từ QLCCVC (khóa hoSo, ~1 MB dữ liệu cá nhân)
+ *  mà bot KHÔNG được và KHÔNG cần đọc — chỉ lấy đúng phần cần (nguyên tắc tối thiểu dữ liệu). */
+export async function getRowParts(id, keys) {
+  const sel = keys.filter((k) => /^[A-Za-z_][A-Za-z0-9_]*$/.test(k)).map((k) => `${k}:data->${k}`).join(',');
+  const rows = await rest(`app_state?id=eq.${encodeURIComponent(id)}&select=${encodeURIComponent(sel)},updated_at`);
+  const r = rows && rows[0];
+  if (!r) return null;
+  const { updated_at, ...data } = r;
+  return { data, updated_at };
+}
+
 /** Ghi đè một dòng app_state (upsert). */
 export async function putRow(id, data) {
   await rest('app_state', {

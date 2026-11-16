@@ -7,7 +7,7 @@ import { MODULES, isExternal } from './lib/modules';
 import { readVersionCfg, fetchVersionCfg } from './lib/versionCfg';
 import { KhoiTinTuc } from './TinTuc';
 import { countVisit } from './lib/visits';
-import { getSession, onAuthChange, laEmailQuanTri } from './lib/auth';
+import { getSession, onAuthChange, laQuanTriNhanSu } from './lib/auth';
 import NguoiHuongDan from './NguoiHuongDan';
 
 // ============================================================================
@@ -72,7 +72,7 @@ export default function Portal({ onOpen }) {
   const [quanTri, setQuanTri] = useState(false);
   useEffect(() => {
     let alive = true;
-    const xet = (s) => { if (alive) setQuanTri(laEmailQuanTri(s?.user?.email)); };
+    const xet = (s) => { if (alive) setQuanTri(laQuanTriNhanSu(s?.user?.email)); };
     getSession().then(xet).catch(() => {});
     const off = onAuthChange(xet);
     return () => { alive = false; off && off(); };

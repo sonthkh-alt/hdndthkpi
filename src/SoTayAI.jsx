@@ -35,6 +35,7 @@ import {
 } from './lib/soTayAI';
 import { fetchST, saveST, khoiTaoNeuTrong, hoiSoTay, xemHanMucSoTay } from './lib/soTayStore';
 import { lienKetDeNap, NGAY_TRA_CUU } from './lib/soTayTraCuu';
+import { urlAnToan } from './lib/urlAnToan';
 
 // Thứ tự tab theo ĐÚNG đường đi của người dùng: xem tiến độ → mở sổ tay trên
 // NotebookLM (nơi hỏi đáp CHÍNH) → chuẩn bị nguồn → câu hỏi mẫu → quy tắc →
@@ -331,7 +332,7 @@ function NapNguon({ doc, soTayId, bao }) {
           <ul className="mt-1 space-y-0.5">
             {phaiTai.map((x) => (
               <li key={x.id} className="text-[11px] text-slate-600 truncate">
-                · <a href={x.lienKet} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline" title={x.ten}>{x.soHieu || x.ten}</a> — {x.ten}
+                · <a href={urlAnToan(x.lienKet)} target="_blank" rel="noopener noreferrer" className="text-sky-700 hover:underline" title={x.ten}>{x.soHieu || x.ten}</a> — {x.ten}
               </li>
             ))}
           </ul>
@@ -893,7 +894,7 @@ function KhoNguon({ doc, soTay, hienTai, onChon, onLuu, coQuyenGhi, bao }) {
                       <button onClick={() => { setDanId(n.id); setChu(n.text || ''); }} className={nutPhu}><FileText className="w-3.5 h-3.5" /> Dán nguyên văn</button>
                       <p className="text-[10px] text-slate-400 leading-snug max-w-[11rem]">Nạp nguyên văn vào đây là <b>tùy chọn</b>, chỉ để tra nhanh tại chỗ. Nơi hỏi đáp chính là NotebookLM.</p>
                     </>)}
-                    {n.lienKet && <a href={n.lienKet} target="_blank" rel="noopener noreferrer" className={nutPhu}><Link2 className="w-3.5 h-3.5" /> Mở bản gốc</a>}
+                    {n.lienKet && <a href={urlAnToan(n.lienKet)} target="_blank" rel="noopener noreferrer" className={nutPhu}><Link2 className="w-3.5 h-3.5" /> Mở bản gốc</a>}
                     {coQuyenGhi && <button onClick={() => xoa(n.id)} className="inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-lg text-rose-500 hover:bg-rose-50 text-xs font-semibold"><Trash2 className="w-3.5 h-3.5" /> Xóa</button>}
                   </div>
                 </div>

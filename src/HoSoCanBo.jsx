@@ -5,7 +5,7 @@ import {
   User, IdCard, MapPin, Wallet, GraduationCap, Flag, History, HeartPulse, FileText, Building2, CheckCircle2, AlertTriangle,
 } from 'lucide-react';
 import Login from './Login.jsx';
-import { getSession, onAuthChange, signOut, laEmailQuanTri } from './lib/auth';
+import { getSession, onAuthChange, signOut, laQuanTriNhanSu } from './lib/auth';
 import { fetchHoSo, saveHoSo } from './lib/hoSoStore';
 import {
   NHOM, BANG, CHON, hienThi, dmy, tomTat, doHoanThien, truongKhac, loc, sapXep, thongKe, nhacViec, NGUONG,
@@ -20,6 +20,8 @@ import {
 
 const ICON_NHOM = { User, IdCard, MapPin, Briefcase, Wallet, GraduationCap, Flag, Users, History, Award, HeartPulse, Home, FileText };
 const DON_VI = 'Văn phòng Đoàn ĐBQH và HĐND tỉnh Thanh Hóa';
+// Tự ẩn hồ sơ sau 15 phút không thao tác (đổi được qua window.__HOSO_KHOA_MS khi kiểm thử).
+const KHOA_SAU_MS = (typeof window !== 'undefined' && Number(window.__HOSO_KHOA_MS)) || 15 * 60 * 1000;
 const MUC = {
   quaHan: { nhan: 'Quá hạn', mau: 'bg-red-50 text-red-700 border-red-200', vach: 'bg-red-500' },
   khan: { nhan: 'Khẩn', mau: 'bg-orange-50 text-orange-700 border-orange-200', vach: 'bg-orange-500' },
@@ -46,7 +48,7 @@ export default function HoSoCanBo({ onHome }) {
   const [thongBao, setThongBao] = useState(null);
 
   const email = phien?.user?.email || '';
-  const quanTri = !!phien && laEmailQuanTri(email);
+  const quanTri = !!phien && laQuanTriNhanSu(email);
   const bao = useCallback((kieu, chu) => { setThongBao({ kieu, chu }); setTimeout(() => setThongBao(null), 6000); }, []);
 
   useEffect(() => {
@@ -64,6 +66,20 @@ export default function HoSoCanBo({ onHome }) {
     setGoi(r.goi);
   }, []);
   useEffect(() => { if (quanTri) taiLai(); else setGoi(null); }, [quanTri, taiLai]);
+
+  // TỰ ẨN sau KHOA_SAU_MS không thao tác: xóa hồ sơ khỏi bộ nhớ trang (máy để quên đang mở thì người
+  // đi ngang không đọc được). Mở lại = đọc lại từ máy chủ, vẫn cần phiên Quản trị hợp lệ.
+  const [khoa, setKhoa] = useState(false);
+  useEffect(() => {
+    if (!quanTri || !goi) return undefined;
+    let hen;
+    const datLai = () => { clearTimeout(hen); hen = setTimeout(() => { setGoi(null); setChon(null); setKhoa(true); }, KHOA_SAU_MS); };
+    const sk = ['mousemove', 'keydown', 'click', 'scroll', 'touchstart'];
+    sk.forEach((e) => window.addEventListener(e, datLai, { passive: true }));
+    datLai();
+    return () => { clearTimeout(hen); sk.forEach((e) => window.removeEventListener(e, datLai)); };
+  }, [quanTri, goi]);
+  const moKhoa = () => { setKhoa(false); setMan('tongquan'); taiLai(); };
 
   const ds = useMemo(() => sapXep(goi?.ds || []), [goi]);
   const hoSoChon = useMemo(() => ds.find((h) => h.vnpt_ma_nhan_vien === chon) || null, [ds, chon]);
@@ -154,8 +170,16 @@ export default function HoSoCanBo({ onHome }) {
               <button onClick={taiLai} className="mt-3 inline-flex items-center gap-1.5 text-[12px] font-semibold px-3 py-1.5 rounded-lg bg-white border border-red-200"><RefreshCw className="w-3.5 h-3.5" /> Thử lại</button></div>
           </div>
         )}
-        {quanTri && !dangTai && !loiTai && !goi && <ChuaCoDuLieu onNhap={() => setMan('nhapxuat')} manNhap={man === 'nhapxuat'} />}
-        {quanTri && (goi || man === 'nhapxuat') && !loiTai && (
+        {quanTri && khoa && (
+          <div className="max-w-xl mx-auto mt-10 rounded-3xl bg-white border border-slate-200 p-8 text-center">
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center"><Lock className="w-8 h-8" /></div>
+            <h2 className="mt-4 text-lg font-extrabold text-slate-800">Đã ẩn hồ sơ</h2>
+            <p className="mt-2 text-sm text-slate-500">Phân hệ tự ẩn dữ liệu sau {Math.round(KHOA_SAU_MS / 60000)} phút không thao tác để bảo vệ thông tin cá nhân. Thay đổi chưa lưu (nếu có) đã bị bỏ.</p>
+            <button onClick={moKhoa} className="mt-5 inline-flex items-center gap-1.5 text-sm font-semibold px-4 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white"><RefreshCw className="w-4 h-4" /> Mở lại</button>
+          </div>
+        )}
+        {quanTri && !khoa && !dangTai && !loiTai && !goi && <ChuaCoDuLieu onNhap={() => setMan('nhapxuat')} manNhap={man === 'nhapxuat'} />}
+        {quanTri && !khoa && (goi || man === 'nhapxuat') && !loiTai && (
           <>
             {man === 'tongquan' && goi && <TongQuan goi={goi} ds={ds} onMo={moHoSo} onNhacViec={() => setMan('nhacviec')} />}
             {man === 'danhsach' && goi && <DanhSach ds={ds} onMo={moHoSo} onThem={(h) => { luuHoSo(h).then((okk) => okk && moHoSo(h.vnpt_ma_nhan_vien)); }} />}
