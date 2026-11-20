@@ -1,8 +1,63 @@
 {
- "capNhat": "2026-11-19T11:05:51.722Z",
+ "capNhat": "2026-11-20T00:35:48.819Z",
  "nguon": "Báo và Phát thanh, Truyền hình Thanh Hóa",
  "trangNguon": "https://baothanhhoa.vn",
  "tin": [
+  {
+   "id": "309739",
+   "tieuDe": "Những bài giảng gợi miền ký ức",
+   "moTa": "Giữa gian bếp nhỏ ở thôn Xuân Tiến, xã Xuân Du, cô Bùi Thị Mỹ (74 tuổi) lại đứng bên chiếc bàn gỗ cũ được tận dụng làm bảng. Vài hộp phấn đặt cạnh, cô say sưa giảng những bài Toán, Vật lý đã thuộc lòng từ nhiều năm trước. Không có học trò ngồi nghe, cũng chẳng có tiếng trống báo giờ, nhưng dáng đứng và lời giảng vẫn vẹn nguyên tình yêu nghề năm nào.",
+   "lienKet": "https://baothanhhoa.vn/nhung-bai-giang-goi-mien-ky-uc-309739.htm",
+   "luc": "2026-11-19T11:55:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309740",
+   "tieuDe": "Lãnh đạo Sở Giáo dục và Đào tạo Thanh Hóa thăm, tặng quà những cô giáo giàu lòng nhân ái ở Hóa Quỳ",
+   "moTa": "Những ngày qua, câu chuyện về 3 cô giáo mầm non ở Thanh Hóa thay nhau đưa đón em học sinh mồ côi đến trường đã lan tỏa rộng rãi trên các nền tảng mạng xã hội, gây xúc động trong dư luận. Ngày 18/11, lãnh đạo Sở Giáo dục và Đào tạo Thanh Hóa đã đến thăm cô trò điểm lẻ Liên Hiệp, Trường Mầm non Hóa Quỳ, nơi diễn ra câu chuyện nhân văn, ý nghĩa trên.",
+   "lienKet": "https://baothanhhoa.vn/lanh-dao-so-giao-duc-va-dao-tao-thanh-hoa-tham-tang-qua-nhung-co-giao-giau-long-nhan-ai-o-hoa-quy-309740.htm",
+   "luc": "2026-11-19T11:48:00.000Z",
+   "kenh": "giao-duc",
+   "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309737",
+   "tieuDe": "Tăng cường bảo mật, quản lý và sử dụng sản phẩm mật mã đúng quy định",
+   "moTa": "Công tác bảo đảm bảo mật, quản lý sử dụng sản phẩm mật mã đã đạt kết quả cao, hoàn thành đúng theo kế hoạch, tiến độ của Trung ương. Các cấp ủy đảng, chính quyền, các cơ quan, đơn vị trên địa bàn tỉnh luôn quan tâm đến công tác bảo mật, sử dụng sản phẩm mật mã để bảo vệ thông tin bí mật nhà nước.",
+   "lienKet": "https://baothanhhoa.vn/tang-cuong-bao-mat-quan-ly-va-su-dung-san-pham-mat-ma-dung-quy-dinh-309737.htm",
+   "luc": "2026-11-19T11:30:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309732",
+   "tieuDe": "Phân hiệu Trường Đại học Y Hà Nội Thanh Hóa: Nơi đào tạo nguồn nhân lực y tế chất lượng cao",
+   "moTa": "Trải qua hành trình hình thành và phát triển, Phân hiệu Trường Đại học Y Hà Nội tại tỉnh Thanh Hóa đã và đang tiếp nối truyền thống hiếu học quý báu của dân tộc, trở thành nơi chắp cánh ước mơ cho nhiều thế hệ sinh viên trên con đường chinh phục tri thức và thực hiện sứ mệnh cao cả của người thầy thuốc. Nơi đây không chỉ là mái trường đào tạo nguồn nhân lực y tế có kiến thức chuyên môn, kỹ năng nghề nghiệp mà còn là môi trường nuôi dưỡng y đức, tinh thần trách nhiệm và lòng nhân ái.",
+   "lienKet": "https://baothanhhoa.vn/phan-hieu-truong-dai-hoc-y-ha-noi-thanh-hoa-noi-dao-tao-nguon-nhan-luc-y-te-chat-luong-cao-309732.htm",
+   "luc": "2026-11-19T10:48:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309730",
+   "tieuDe": "Chuẩn bị tốt các điều kiện phục vụ hội thảo khoa học cấp quốc gia về nâng cao năng lực quản trị và kiến tạo phát triển",
+   "moTa": "Chiều 19/11, đồng chí Tô Anh Dũng, Phó Bí thư Tỉnh ủy, Chủ tịch UBND tỉnh đã chủ trì hội nghị nghe báo cáo kết quả chuẩn bị Hội thảo khoa học cấp quốc gia “Nâng cao năng lực quản trị và kiến tạo phát triển - từ thực tiễn vận hành chính quyền địa phương 2 cấp ở tỉnh Thanh Hóa”.",
+   "lienKet": "https://baothanhhoa.vn/chuan-bi-tot-cac-dieu-kien-phuc-vu-hoi-thao-khoa-hoc-cap-quoc-gia-ve-nang-cao-nang-luc-quan-tri-va-kien-tao-phat-trien-309730.htm",
+   "luc": "2026-11-19T10:32:00.000Z",
+   "kenh": "thoi-su",
+   "chuyenMuc": "Thời sự",
+   "diem": 0,
+   "hdnd": false
+  },
   {
    "id": "309724",
    "tieuDe": "Phó Chủ tịch UBND tỉnh Đầu Thanh Tùng kiểm tra công tác chuẩn bị Lễ kỷ niệm 140 năm Khởi nghĩa Ba Đình",
@@ -99,6 +154,17 @@
    "luc": "2026-11-19T08:19:00.000Z",
    "kenh": "giao-duc",
    "chuyenMuc": "Giáo dục",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309614",
+   "tieuDe": "Người dân phố Mật Sơn lo ngại ô nhiễm từ điểm tập kết rác gần hồ",
+   "moTa": "Thời gian gần đây, tình trạng rác thải, bèo và bùn đất tập kết tại khu vực gần hồ nước, tiếp giáp Khu đô thị Núi Long, thuộc phường Hạc Thành khiến người dân tổ dân phố Mật Sơn lo ngại. Không chỉ ảnh hưởng đến mỹ quan đô thị và sinh hoạt, tình trạng này còn làm dấy lên những băn khoăn về nguy cơ ô nhiễm nguồn nước.",
+   "lienKet": "https://baothanhhoa.vn/nguoi-dan-pho-mat-son-lo-ngai-o-nhiem-tu-diem-tap-ket-rac-gan-ho-309614.htm",
+   "luc": "2026-11-19T07:30:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
    "diem": 0,
    "hdnd": false
   },
@@ -330,8 +396,8 @@
    "luc": "2026-11-18T11:52:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309567",
@@ -341,8 +407,8 @@
    "luc": "2026-11-18T11:16:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309583",
@@ -352,8 +418,8 @@
    "luc": "2026-11-18T11:11:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309559",
@@ -385,8 +451,8 @@
    "luc": "2026-11-18T09:46:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309571",
@@ -396,8 +462,8 @@
    "luc": "2026-11-18T09:41:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309572",
@@ -407,8 +473,8 @@
    "luc": "2026-11-18T09:28:00.000Z",
    "kenh": "thoi-su",
    "chuyenMuc": "Thời sự",
-   "diem": 12,
-   "hdnd": true
+   "hdnd": true,
+   "diem": 12
   },
   {
    "id": "309560",
@@ -548,8 +614,8 @@
    "moTa": "UBND tỉnh Thanh Hóa ban hành Công văn số 24892/UBND-VHXH, ngày 16/11/2026 về việc tăng cường công tác quản lý nhà nước về phòng, chống tác hại của rượu, bia trên địa bàn tỉnh.",
    "lienKet": "https://baothanhhoa.vn/tang-cuong-cong-tac-quan-ly-nha-nuoc-ve-phong-chong-tac-hai-cua-ruou-bia-309514.htm",
    "luc": "2026-11-18T03:06:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
+   "kenh": "phap-luat",
+   "chuyenMuc": "Pháp luật",
    "diem": 0,
    "hdnd": false
   },
@@ -596,72 +662,6 @@
    "chuyenMuc": "Đời sống - Xã hội",
    "hdnd": false,
    "diem": 0
-  },
-  {
-   "id": "309458",
-   "tieuDe": "Ấm áp bữa cơm đại đoàn kết",
-   "moTa": "Đã trở thành nét đẹp truyền thống, mỗi dịp kỷ niệm Ngày thành lập MTTQ Việt Nam (18/11), tại nhiều nhà văn hóa thôn, khu phố trên địa bàn tỉnh, người dân lại nô nức sum họp trong không khí ấm áp của “Bữa cơm đại đoàn kết”. Không chỉ là dịp để bà con gặp gỡ, giao lưu, hoạt động ý nghĩa này còn góp phần thắt chặt tình làng nghĩa xóm, vun đắp tinh thần đoàn kết bền chặt trong cộng đồng dân cư.",
-   "lienKet": "https://baothanhhoa.vn/am-ap-bua-com-dai-doan-ket-309458.htm",
-   "luc": "2026-11-18T01:45:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "309451",
-   "tieuDe": "Giữ an toàn từ mỗi ca sản xuất",
-   "moTa": "An toàn vệ sinh lao động (ATVSLĐ) không chỉ nằm ở những quy định, quy trình mà bắt đầu từ ý thức, trách nhiệm và những thao tác cụ thể của mỗi người lao động (NLĐ). Chủ động nhận diện, kiểm soát nguy cơ ngay tại nơi làm việc đang được nhiều doanh nghiệp trên địa bàn tỉnh chú trọng, nhằm hạn chế tai nạn, bảo đảm sản xuất ổn định.",
-   "lienKet": "https://baothanhhoa.vn/giu-an-toan-tu-moi-ca-san-xuat-309451.htm",
-   "luc": "2026-11-18T01:00:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "309470",
-   "tieuDe": "Củng cố quan hệ đoàn kết, hữu nghị Thanh Hóa - Hủa Phăn",
-   "moTa": "Sáng 18/11, tại trụ sở Tỉnh ủy Hủa Phăn (nước CHDCND Lào), đồng chí Phút Phăn Kẹo Vông Xay, Ủy viên Ban Chấp hành Trung ương Đảng Nhân dân Cách mạng Lào, Bí thư Tỉnh ủy Hủa Phăn đã tiếp xã giao đoàn đại biểu tỉnh Thanh Hóa do đồng chí Lê Quang Hùng, Ủy viên Ban Thường vụ Tỉnh ủy, Phó Chủ tịch UBND tỉnh làm trưởng đoàn.",
-   "lienKet": "https://baothanhhoa.vn/cung-co-quan-he-doan-ket-huu-nghi-thanh-hoa-hua-phan-309470.htm",
-   "luc": "2026-11-18T00:50:00.000Z",
-   "kenh": "thoi-su",
-   "chuyenMuc": "Thời sự",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "309452",
-   "tieuDe": "Chủ động nguồn lực, nâng cao hiệu quả hỗ trợ từ quỹ phòng, chống thiên tai năm 2026",
-   "moTa": "Mỗi mùa mưa bão đi qua, những công trình giao thông, thủy lợi bị hư hỏng, những tuyến đường sạt lở lại đặt ra yêu cầu cấp thiết về kinh phí sửa chữa, khắc phục. Với địa hình trải dài từ miền núi đến đồng bằng, Thanh Hóa luôn tiềm ẩn nguy cơ chịu tác động của nhiều loại hình thiên tai, kéo theo nhu cầu lớn về nguồn lực để chủ động phòng ngừa và xử lý các tình huống phát sinh.",
-   "lienKet": "https://baothanhhoa.vn/chu-dong-nguon-luc-nang-cao-hieu-qua-ho-tro-tu-quy-phong-chong-thien-tai-nam-2026-309452.htm",
-   "luc": "2026-11-18T00:45:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "309469",
-   "tieuDe": "Sẻ chia đau thương, trọn nghĩa tình hậu phương",
-   "moTa": "Hai chiến sĩ trẻ quê Thanh Hóa đã hy sinh khi làm nhiệm vụ huấn luyện sẵn sàng chiến đấu, để lại niềm tiếc thương sâu sắc cho gia đình, đồng đội và quê hương. Giữa những ngày đau buồn ấy, những lời thăm hỏi và sự chăm lo thiết thực đang góp phần nâng đỡ thân nhân các anh, để mỗi gia đình có thêm điểm tựa trong cuộc sống.",
-   "lienKet": "https://baothanhhoa.vn/se-chia-dau-thuong-tron-nghia-tinh-hau-phuong-309469.htm",
-   "luc": "2026-11-18T00:42:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
-  },
-  {
-   "id": "309445",
-   "tieuDe": "Phát triển nông sản chủ lực theo hướng hàng hóa",
-   "moTa": "Với lợi thế về điều kiện tự nhiên, quỹ đất và cơ cấu cây trồng đa dạng, Thanh Hóa có nhiều tiềm năng phát triển nông sản chủ lực theo hướng hàng hóa. Những năm qua, các vùng nguyên liệu tập trung từng bước hình thành, liên kết sản xuất được mở rộng. Tuy nhiên, tổ chức sản xuất theo chuỗi, gắn vùng nguyên liệu với chế biến và tiêu thụ đang là yêu cầu quan trọng để nâng cao giá trị nông sản.",
-   "lienKet": "https://baothanhhoa.vn/phat-trien-nong-san-chu-luc-theo-huong-hang-hoa-309445.htm",
-   "luc": "2026-11-18T00:00:00.000Z",
-   "kenh": "kinh-te",
-   "chuyenMuc": "Kinh tế",
-   "diem": 0,
-   "hdnd": false
   }
  ]
 }
