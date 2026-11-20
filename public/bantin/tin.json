@@ -1,8 +1,30 @@
 {
- "capNhat": "2026-11-20T00:35:48.819Z",
+ "capNhat": "2026-11-20T00:41:16.434Z",
  "nguon": "Báo và Phát thanh, Truyền hình Thanh Hóa",
  "trangNguon": "https://baothanhhoa.vn",
  "tin": [
+  {
+   "id": "309748",
+   "tieuDe": "Định vị thương hiệu, dẫn dắt, kết nối điểm đến",
+   "moTa": "Là địa phương đầu tiên của Thanh Hóa xây dựng bộ nhận diện thương hiệu du lịch, Pù Luông đang cho thấy bước đi mới trong cách quảng bá và phát triển điểm đến. Việc làm này không chỉ góp phần định vị hình ảnh, mà còn cho thấy sự chủ động của địa phương trong khai thác lợi thế, kết nối các nguồn lực phát triển du lịch.",
+   "lienKet": "https://baothanhhoa.vn/dinh-vi-thuong-hieu-dan-dat-ket-noi-diem-den-309748.htm",
+   "luc": "2026-11-20T00:30:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
+  {
+   "id": "309747",
+   "tieuDe": "Đợi... trường",
+   "moTa": "Hơn hai năm sau khi công bố tình huống khẩn cấp do sạt lở đất, hàng trăm học sinh Trường THCS Lâm Phú, nay là phân hiệu Lâm Phú, Trường THCS Tam Văn (xã Văn Phú) vẫn phải học nhờ, học tạm. Sau thời gian dài chậm trễ do vướng mắc thủ tục đầu tư, dự án xây dựng trường mới đã được triển khai. Đây là kết quả từ những nỗ lực tháo gỡ khó khăn của chính quyền địa phương, mở ra hy vọng sớm ổn định điều kiện dạy và học cho thầy trò nhà trường.",
+   "lienKet": "https://baothanhhoa.vn/doi-truong-309747.htm",
+   "luc": "2026-11-19T23:30:00.000Z",
+   "kenh": "doi-song-xa-hoi",
+   "chuyenMuc": "Đời sống - Xã hội",
+   "diem": 0,
+   "hdnd": false
+  },
   {
    "id": "309739",
    "tieuDe": "Những bài giảng gợi miền ký ức",
@@ -605,8 +627,8 @@
    "luc": "2026-11-18T03:30:00.000Z",
    "kenh": "doi-song-xa-hoi",
    "chuyenMuc": "Đời sống - Xã hội",
-   "diem": 0,
-   "hdnd": false
+   "hdnd": false,
+   "diem": 0
   },
   {
    "id": "309514",
@@ -640,28 +662,6 @@
    "chuyenMuc": "Về với xứ Thanh",
    "diem": 0,
    "hdnd": false
-  },
-  {
-   "id": "309454",
-   "tieuDe": "Đẩy nhanh lộ trình bỏ bệnh án giấy tại các bệnh viện",
-   "moTa": "Việc triển khai hồ sơ bệnh án điện tử (EMR), từng bước thay thế bệnh án giấy đang tạo chuyển biến trong hoạt động khám, chữa bệnh tại các cơ sở y tế trên địa bàn tỉnh Thanh Hóa. Đến nay, 48/61 bệnh viện đã chấm dứt sử dụng bệnh án giấy. Đây là bước tiến trong chuyển đổi số y tế, góp phần đổi mới quy trình chuyên môn, nâng cao hiệu quả quản lý và chất lượng phục vụ người bệnh.",
-   "lienKet": "https://baothanhhoa.vn/day-nhanh-lo-trinh-bo-benh-an-giay-tai-cac-benh-vien-309454.htm",
-   "luc": "2026-11-18T02:30:00.000Z",
-   "kenh": "y-te-suc-khoe",
-   "chuyenMuc": "Y tế - Sức khỏe",
-   "diem": 0,
-   "hdnd": false
-  },
-  {
-   "id": "309449",
-   "tieuDe": "Để những mái nhà thôi thấp thỏm",
-   "moTa": "Sau những trận mưa bão, sạt lở đất, nhiều hộ dân miền núi Thanh Hóa phải rời bỏ nhà cửa, có hộ đi ở nhờ nhà người thân, có hộ trở về nơi ở cũ trong niềm thấp thỏm chờ đợi nơi ở mới. Từ những khu tái định cư (TĐC) đang dần hình thành đến những địa bàn còn bộn bề khó khăn, hành trình đưa người dân đến nơi an toàn đang được các địa phương khẩn trương thực hiện.",
-   "lienKet": "https://baothanhhoa.vn/de-nhung-mai-nha-thoi-thap-thom-309449.htm",
-   "luc": "2026-11-18T02:00:00.000Z",
-   "kenh": "doi-song-xa-hoi",
-   "chuyenMuc": "Đời sống - Xã hội",
-   "hdnd": false,
-   "diem": 0
   }
  ]
 }
