@@ -38,6 +38,26 @@ export const loaiMucOf = (k) => LOAI_MUC.find((x) => x.k === k) || LOAI_MUC[1];
 export const THE_LOAI = ['Cẩm nang thực hành', 'Chuyên khảo', 'Giáo trình', 'Tài liệu bồi dưỡng', 'Sách tham khảo', 'Kỷ yếu'];
 
 // ---------------------------------------------------------------------------
+//  BẢN RIÊNG (kho riêng tư, chỉ Quản trị đọc — phần đọc/ghi mạng ở sachRieng.js)
+// ---------------------------------------------------------------------------
+/** Chỉ nhận tên tệp phẳng dạng `s-03.pdf` — không dấu `/`, không `..`, không đường dẫn ngoài. */
+export const duongRieng = (v) => {
+  const s = (v == null ? '' : String(v)).trim();
+  return /^[a-z0-9][a-z0-9._-]{0,100}\.pdf$/.test(s) && !s.includes('..') ? s : '';
+};
+
+/** Địa chỉ blob: do chính trang tạo ra (URL.createObjectURL) — thứ DUY NHẤT được đưa vào href/src của bản riêng. */
+export const chiBlob = (u) => (typeof u === 'string' && u.startsWith('blob:') ? u : '');
+
+/** Tên tệp trong kho suy từ mã sách (S-03 → `s-03.pdf`), ổn định để tải lại là thay đúng tệp cũ. */
+export function tenTepRieng(s) {
+  const goc = String(s?.ma || s?.id || 'sach');
+  const ten = goc.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/đ/g, 'd').replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'sach';
+  return `${ten}.pdf`;
+}
+
+// ---------------------------------------------------------------------------
 //  MỘT CUỐN SÁCH
 // ---------------------------------------------------------------------------
 export function newSach(v = {}) {
@@ -47,7 +67,7 @@ export function newSach(v = {}) {
     theLoai: THE_LOAI[0], namHoanThanh: '', nhaXB: '', isbn: '',
     soTrang: 0, soChuong: 0, soPhuLuc: 0,
     trangThai: 'ban-thao', noiBat: false,
-    anhBia: '', tepToanVan: '', choTai: false,
+    anhBia: '', tepToanVan: '', choTai: false, tepRieng: '',
     tomTat: '', diemNoiBat: [], doiTuong: [], mucLuc: [], tuKhoa: [],
     trichLoiNoiDau: '', tieuSuTacGia: '', lienKet: [],
     capNhat: '', ...v,
@@ -62,6 +82,8 @@ export const chuanHoaSach = (s) => ({
   trangThai: chuoi(s?.trangThai) || 'ban-thao', noiBat: !!s?.noiBat,
   // Đường dẫn qua urlAnToan: chặn javascript:/data: (XSS) — sach_data ai đăng nhập cũng ghi được.
   anhBia: urlAnToan(s?.anhBia), tepToanVan: urlAnToan(s?.tepToanVan), choTai: !!s?.choTai,
+  // Tên tệp trong KHO RIÊNG TƯ (chỉ Quản trị đọc — xem sachRieng.js). Chỉ là tên tệp, không phải đường dẫn công khai.
+  tepRieng: duongRieng(s?.tepRieng),
   tomTat: chuoi(s?.tomTat),
   diemNoiBat: mang(s?.diemNoiBat).map(chuoi).filter(Boolean),
   doiTuong: mang(s?.doiTuong).map((d) => ({ ten: chuoi(d?.ten), moTa: chuoi(d?.moTa) })).filter((d) => d.ten),
@@ -103,6 +125,9 @@ export function sapXep(ds) {
 
 /** Có bản toàn văn để đọc hay không — PHẢI có cả tệp lẫn sự cho phép của tác giả. */
 export const docDuoc = (s) => !!(s && s.choTai && s.tepToanVan);
+
+/** Có bản toàn văn trong kho riêng tư (chỉ Quản trị mở được) hay không. KHÔNG tính vào `docDuoc`. */
+export const coBanRieng = (s) => !!(s && s.tepRieng);
 
 /** Gom mục lục theo loại để hiển thị thành từng khối (Chương · Phụ lục…). */
 export function nhomMucLuc(mucLuc) {

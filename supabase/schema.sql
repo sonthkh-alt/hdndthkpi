@@ -368,3 +368,30 @@ create policy "hr_data_admin_only" on app_state
 --   • Authentication → Sign In / Providers: TẮT "Allow new users to sign up" — đang MỞ, ai cũng
 --     tự tạo được tài khoản và GHI được mọi dòng khác của app_state (chính sách chung ở trên).
 --     Cán bộ mới thì Quản trị mời qua "Invite user".
+
+-- ---------------------------------------------------------------------
+-- BƯỚC 13 (23/11/2026). KHO RIÊNG TƯ CỦA TỦ SÁCH — bản thảo chỉ Quản trị đọc
+-- ---------------------------------------------------------------------
+--  Sách chưa phát hành (vd Tập 3, bản thảo lấy ý kiến góp ý) KHÔNG được đặt vào
+--  public/sach/ (công khai với mọi người) và KHÔNG vào kho mã (kho mã công khai).
+--  Tệp PDF nằm trong Supabase Storage, bucket 'sach-rieng' KHÔNG công khai; chỉ
+--  ĐÚNG mã tài khoản dưới đây (cùng tài khoản với BƯỚC 12) đọc/ghi được. Khách
+--  và mọi tài khoản đăng nhập khác bị Storage từ chối, kể cả khi gọi thẳng API.
+--  Chưa chạy bước này: nút "Tải tệp PDF lên" ở #/tusach báo "chưa có kho riêng tư".
+--  Muốn thêm người đọc: thêm User UID vào `in (...)` ở cả hai dòng VÀ thêm email
+--  vào NHAN_SU_EMAILS trong src/lib/auth.js (để giao diện hiện nút).
+-- ---------------------------------------------------------------------
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('sach-rieng', 'sach-rieng', false, 52428800, array['application/pdf'])
+on conflict (id) do update
+  set public = false, file_size_limit = 52428800, allowed_mime_types = array['application/pdf'];
+
+drop policy if exists "sach_rieng_admin_only" on storage.objects;
+create policy "sach_rieng_admin_only" on storage.objects
+  for all
+  using (bucket_id = 'sach-rieng' and auth.uid() in ('719526a4-1ce7-4aa4-bfa3-7afa07e31e87'::uuid))
+  with check (bucket_id = 'sach-rieng' and auth.uid() in ('719526a4-1ce7-4aa4-bfa3-7afa07e31e87'::uuid));
+
+-- TỰ KIỂM: bucket phải có public = false, và chỉ MỘT chính sách nhắc tới 'sach-rieng'.
+--   select id, public from storage.buckets where id = 'sach-rieng';
+--   select policyname, cmd, qual from pg_policies where schemaname = 'storage' and tablename = 'objects';

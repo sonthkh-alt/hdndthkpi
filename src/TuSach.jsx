@@ -11,22 +11,28 @@
 //     (xem `docDuoc` trong src/lib/tuSach.js). Trang web này công khai nên việc
 //     công khai toàn văn phải là quyết định có ý thức của tác giả, không phải
 //     mặc định của phần mềm.
+//
+//  🔒 BẢN RIÊNG: sách chưa phát hành có thể có tệp trong KHO RIÊNG TƯ (`tepRieng`,
+//     xem src/lib/sachRieng.js). Chỉ tài khoản Quản trị (`laQuanTriNhanSu`) thấy
+//     nút đọc/tải lên; chốt chặn thật là chính sách Storage ở BƯỚC 13 của
+//     supabase/schema.sql — người khác gọi thẳng cũng bị máy chủ từ chối.
 // ============================================================================
 import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import {
   Home, Library, BookOpen, Search, ArrowLeft, Download, ExternalLink, Pencil,
   Plus, Trash2, Save, X, Users, ListTree, Quote, UserRound, FileText, Layers,
-  CheckCircle2, AlertTriangle, Info, Maximize2, Tag,
+  CheckCircle2, AlertTriangle, Info, Maximize2, Tag, Lock, Upload,
 } from 'lucide-react';
-import { getSession, onAuthChange } from './lib/auth';
+import { getSession, onAuthChange, laQuanTriNhanSu } from './lib/auth';
 import { urlAnToan } from './lib/urlAnToan';
 import {
   TRANG_THAI, trangThaiOf, THE_LOAI, newSach, newId,
-  sachNoiBat, sapXep, docDuoc, nhomMucLuc, thongKe, timSach, nhanMuc,
+  sachNoiBat, sapXep, docDuoc, coBanRieng, chiBlob, nhomMucLuc, thongKe, timSach, nhanMuc,
   dongThanhMang, mangThanhDong, dongThanhMucLuc, mucLucThanhDong,
   dongThanhCap, capThanhDong,
 } from './lib/tuSach';
 import { fetchTS, saveTS, khoiTaoNeuTrong } from './lib/tuSachStore';
+import { taiLenRieng, taiVeRieng, MAX_MB_RIENG } from './lib/sachRieng';
 
 const inp = 'w-full border border-slate-200 rounded-lg px-2.5 py-2 text-[13px] text-slate-700 outline-none focus:border-amber-400 disabled:bg-slate-50 disabled:text-slate-500';
 const lab = 'text-[11px] font-semibold text-slate-500 mb-1 block';
@@ -64,6 +70,8 @@ export default function TuSach({ onHome }) {
   const daKhoiTao = useRef(false);
 
   const coQuyenGhi = !!phien;
+  // Quản trị = tài khoản được mở kho riêng tư (KHỚP danh sách mã tài khoản ở BƯỚC 13).
+  const laQT = laQuanTriNhanSu(phien?.user?.email);
   const bao = useCallback((kieu, chu) => { setThongBao({ kieu, chu }); setTimeout(() => setThongBao(null), 5200); }, []);
 
   useEffect(() => {
@@ -100,6 +108,15 @@ export default function TuSach({ onHome }) {
   if (!doc) return <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-400 text-sm">Đang nạp tủ sách…</div>;
 
   const moSach = (id) => { setMan({ k: 'sach', id }); window.scrollTo({ top: 0 }); };
+
+  // Tải bản thảo lên kho riêng tư rồi ghi tên tệp vào cuốn sách.
+  const taiLenBanRieng = async (s, file) => {
+    setDangLuu(true);
+    const r = await taiLenRieng(s, file);
+    setDangLuu(false);
+    if (!r.ok) { bao('loi', r.loi); return; }
+    await luu({ ...doc, sach: doc.sach.map((x) => (x.id === s.id ? { ...x, tepRieng: r.path } : x)) });
+  };
 
   return (
     <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Be Vietnam Pro', 'Segoe UI', system-ui, sans-serif" }}>
@@ -145,13 +162,20 @@ export default function TuSach({ onHome }) {
 
       <main className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {man.k === 'tusach' && (
-          <KeSach doc={doc} ds={dsLoc} tong={dsSapXep} tim={tim} onTim={setTim} onMo={moSach} onDoc={(id) => setMan({ k: 'doc', id })} />
+          <KeSach doc={doc} ds={dsLoc} tong={dsSapXep} tim={tim} onTim={setTim} onMo={moSach} onDoc={(id) => setMan({ k: 'doc', id })}
+            laQT={laQT} onDocRieng={(id) => setMan({ k: 'doc', id, rieng: true })} />
         )}
         {man.k === 'sach' && dangXem && (
-          <GioiThieuSach s={dangXem} onVe={() => setMan({ k: 'tusach' })} onDoc={() => setMan({ k: 'doc', id: dangXem.id })} />
+          <GioiThieuSach s={dangXem} onVe={() => setMan({ k: 'tusach' })} onDoc={() => setMan({ k: 'doc', id: dangXem.id })}
+            laQT={laQT} dangLuu={dangLuu} onDocRieng={() => setMan({ k: 'doc', id: dangXem.id, rieng: true })} onTaiLen={(f) => taiLenBanRieng(dangXem, f)} />
         )}
-        {man.k === 'doc' && dangXem && (
+        {man.k === 'doc' && dangXem && !man.rieng && (
           <DocSach s={dangXem} onVe={() => setMan({ k: 'sach', id: dangXem.id })} />
+        )}
+        {man.k === 'doc' && dangXem && man.rieng && (
+          laQT
+            ? <DocSachRieng key={dangXem.id + dangXem.tepRieng} s={dangXem} onVe={() => setMan({ k: 'sach', id: dangXem.id })} />
+            : <p className="text-sm text-slate-500">Bản này chỉ dành cho tài khoản Quản trị. <button onClick={() => setMan({ k: 'sach', id: dangXem.id })} className="text-amber-700 font-semibold underline">Về phần giới thiệu</button></p>
         )}
         {(man.k === 'sach' || man.k === 'doc') && !dangXem && (
           <p className="text-sm text-slate-500">Không tìm thấy cuốn sách này. <button onClick={() => setMan({ k: 'tusach' })} className="text-amber-700 font-semibold underline">Về tủ sách</button></p>
@@ -171,7 +195,7 @@ export default function TuSach({ onHome }) {
 // ============================================================================
 //  ① KỆ SÁCH — cuốn tiêu điểm + lưới các cuốn còn lại
 // ============================================================================
-function KeSach({ doc, ds, tong, tim, onTim, onMo, onDoc }) {
+function KeSach({ doc, ds, tong, tim, onTim, onMo, onDoc, laQT, onDocRieng }) {
   const tk = useMemo(() => thongKe(tong), [tong]);
   const noiBat = sachNoiBat(ds);
   const conLai = ds.filter((s) => s.id !== noiBat?.id);
@@ -230,6 +254,7 @@ function KeSach({ doc, ds, tong, tim, onTim, onMo, onDoc }) {
               <div className="mt-5 flex flex-wrap gap-2">
                 <button onClick={() => onMo(noiBat.id)} className={nutChinh}><Info className="w-4 h-4" /> Xem giới thiệu</button>
                 {docDuoc(noiBat) && <button onClick={() => onDoc(noiBat.id)} className={nutPhu}><BookOpen className="w-4 h-4" /> Đọc sách</button>}
+                {!docDuoc(noiBat) && laQT && coBanRieng(noiBat) && <button onClick={() => onDocRieng(noiBat.id)} className={nutPhu}><Lock className="w-4 h-4" /> Đọc bản thảo (riêng Quản trị)</button>}
               </div>
             </div>
           </div>
@@ -262,7 +287,7 @@ function KeSach({ doc, ds, tong, tim, onTim, onMo, onDoc }) {
 // ============================================================================
 //  ② GIỚI THIỆU MỘT CUỐN SÁCH
 // ============================================================================
-function GioiThieuSach({ s, onVe, onDoc }) {
+function GioiThieuSach({ s, onVe, onDoc, laQT, dangLuu, onDocRieng, onTaiLen }) {
   const nhom = useMemo(() => nhomMucLuc(s.mucLuc), [s]);
   const doan = (s.tomTat || '').split('\n\n').filter(Boolean);
   const tieuSu = (s.tieuSuTacGia || '').split('\n\n').filter(Boolean);
@@ -285,6 +310,20 @@ function GioiThieuSach({ s, onVe, onDoc }) {
             <p className="text-[12px] text-slate-500 bg-slate-100 border border-slate-200 rounded-xl px-3 py-2.5 leading-relaxed">
               Cuốn này hiện <b>chỉ giới thiệu</b>, chưa mở bản toàn văn trên trang. Liên hệ tác giả để xin bản đầy đủ.
             </p>
+          )}
+          {!mo && laQT && (
+            <div className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-3 space-y-2">
+              <p className="text-[11px] font-bold uppercase tracking-wider text-amber-900 inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> Bản riêng · chỉ Quản trị</p>
+              {coBanRieng(s)
+                ? <button onClick={onDocRieng} className={`${nutChinh} w-full`}><BookOpen className="w-4 h-4" /> Đọc bản thảo</button>
+                : <p className="text-[12px] text-amber-900 leading-relaxed">Chưa có tệp. Tải bản PDF lên kho riêng tư để đọc ngay tại đây.</p>}
+              <label className={`${nutPhu} w-full cursor-pointer ${dangLuu ? 'opacity-50 pointer-events-none' : ''}`}>
+                <Upload className="w-4 h-4" /> {dangLuu ? 'Đang tải lên…' : coBanRieng(s) ? 'Thay tệp PDF' : 'Tải tệp PDF lên'}
+                <input id="ts-tep-rieng" type="file" accept="application/pdf,.pdf" className="hidden" disabled={dangLuu}
+                  onChange={(e) => { const f = e.target.files?.[0]; e.target.value = ''; if (f) onTaiLen(f); }} />
+              </label>
+              <p className="text-[11px] text-amber-800 leading-relaxed">Tệp nằm trong kho riêng tư trên máy chủ (tối đa {MAX_MB_RIENG} MB). Khách và tài khoản khác không thấy khối này và không tải được tệp.</p>
+            </div>
           )}
           <dl className="rounded-2xl border border-slate-200 bg-white divide-y divide-slate-100 text-[12px]">
             {[
@@ -442,6 +481,41 @@ function DocSach({ s, onVe }) {
       <p className="text-[11px] text-slate-400 mt-2">
         Không hiện được bản đọc? Bấm <b>Mở ở tab mới</b> hoặc <b>Tải về</b> rồi mở bằng chương trình đọc PDF trên máy.
       </p>
+    </>
+  );
+}
+
+// ----------------------------------------------------------------------------
+//  ③b ĐỌC BẢN RIÊNG — tệp trong kho riêng tư, tải về kèm phiên đăng nhập rồi mở
+//  bằng địa chỉ blob: (CSP đã cho `frame-src blob:`). Không có đường dẫn công
+//  khai nào tới tệp; rời màn hình thì thu hồi địa chỉ blob.
+// ----------------------------------------------------------------------------
+function DocSachRieng({ s, onVe }) {
+  const [tt, setTt] = useState({ k: 'dang' });   // dang | ok | loi
+  useEffect(() => {
+    let alive = true; let url = '';
+    taiVeRieng(s.tepRieng).then((r) => {
+      if (!alive) return;
+      if (!r.ok) { setTt({ k: 'loi', chu: r.loi }); return; }
+      url = URL.createObjectURL(r.blob);
+      setTt({ k: 'ok', url });
+    });
+    return () => { alive = false; if (url) URL.revokeObjectURL(url); };
+  }, [s.tepRieng]);
+
+  return (
+    <>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <button onClick={onVe} className="inline-flex items-center gap-1.5 text-[13px] font-semibold text-slate-500 hover:text-slate-800"><ArrowLeft className="w-4 h-4" /> Về phần giới thiệu</button>
+        {tt.k === 'ok' && <a href={chiBlob(tt.url)} download={`${s.ma || 'sach'}-ban-thao.pdf`} className={nutPhu}><Download className="w-3.5 h-3.5" /> Tải về</a>}
+      </div>
+      <h2 className="text-lg font-extrabold text-slate-800 mt-3">{s.ten}</h2>
+      <p className="text-[12px] text-amber-800 font-semibold inline-flex items-center gap-1.5"><Lock className="w-3.5 h-3.5" /> Bản thảo chưa phát hành · chỉ tài khoản Quản trị đọc được</p>
+      <div className="mt-3 rounded-2xl border border-slate-300 overflow-hidden bg-slate-200 flex items-center justify-center" style={{ height: 'calc(100vh - 230px)', minHeight: 420 }}>
+        {tt.k === 'dang' && <p className="text-sm text-slate-500">Đang tải bản thảo từ kho riêng tư…</p>}
+        {tt.k === 'loi' && <p className="text-sm text-rose-700 px-6 text-center">{tt.chu}</p>}
+        {tt.k === 'ok' && <iframe src={chiBlob(tt.url)} title={`Bản thảo sách ${s.ten}`} className="w-full h-full" />}
+      </div>
     </>
   );
 }
