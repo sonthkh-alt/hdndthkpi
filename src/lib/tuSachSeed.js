@@ -105,7 +105,7 @@ export const SACH_AI_TAP_2 = {
   theLoai: 'Cẩm nang thực hành',
   namHoanThanh: '2026', nhaXB: '', isbn: '',
   soTrang: 335, soChuong: 20, soPhuLuc: 6,
-  trangThai: 'gioi-thieu', noiBat: true,
+  trangThai: 'gioi-thieu', noiBat: false,   // tiêu điểm đã nhường cho Tập 3
   anhBia: BIA_SACH_AI_2, tepToanVan: TEP_SACH_AI_2, choTai: true,
 
   tomTat: [
@@ -174,8 +174,105 @@ export const SACH_AI_TAP_2 = {
   capNhat: '',
 };
 
+// ---------------------------------------------------------------------------
+//  TẬP 3 — "Từ ứng dụng đến dữ liệu" (BẢN THẢO tháng 11-2026, 194 trang).
+//  Đọc từ tệp tác giả đưa vào `docs/Tap_3_Tu_ung_dung_den_du_lieu_…docx`:
+//  tên phần, chương, phụ lục và số trang lấy từ MỤC LỤC của bản thảo; tóm tắt,
+//  đóng góp mới, bạn đọc rút từ Lời nói đầu và phần Mở đầu.
+//
+//  ⚠️ Trang bìa bản thảo ghi: "Bản thảo để lấy ý kiến góp ý, CHƯA PHÁT HÀNH".
+//     Vì vậy cuốn này CHỈ GIỚI THIỆU: `trangThai = 'ban-thao'`, `choTai = false`,
+//     `tepToanVan` để trống và KHÔNG đặt tệp nào vào `public/sach/` (tệp ở đó
+//     là công khai với mọi người, bất kể cờ `choTai`). Khi tác giả quyết định
+//     phát hành: đặt PDF vào `public/sach/`, điền `tepToanVan`, bật `choTai`.
+// ---------------------------------------------------------------------------
+export const BIA_SACH_AI_3 = '/sach/bia-ttnt-tham-muu-tap-3.svg';
+
+export const SACH_AI_TAP_3 = {
+  id: 's-ai-tham-muu-tap-3', ma: 'S-03',
+  ten: 'Trí tuệ nhân tạo trong công tác tham mưu — Tập 3: Từ ứng dụng đến dữ liệu',
+  phuDe: 'Phương pháp và chiến lược dữ liệu tập trung, thống nhất, dùng chung trong hệ thống chính trị cấp tỉnh',
+  tacGia: 'Hà Ngọc Sơn',
+  hocVi: 'Tiến sĩ Quản lý Kinh tế',
+  chucDanh: 'Phó Chánh Văn phòng Đoàn Đại biểu Quốc hội và Hội đồng nhân dân tỉnh Thanh Hóa',
+  theLoai: 'Chuyên khảo',
+  namHoanThanh: '2026', nhaXB: '', isbn: '',
+  soTrang: 194, soChuong: 20, soPhuLuc: 6,
+  trangThai: 'ban-thao', noiBat: true,
+  anhBia: BIA_SACH_AI_3, tepToanVan: '', choTai: false,
+
+  tomTat: [
+    'Tập 1 bàn về người làm tham mưu trong vai NGƯỜI SỬ DỤNG trí tuệ nhân tạo, Tập 2 bàn về vai NGƯỜI KIẾN TẠO. Thực tiễn của hai tập trước dẫn đến một nhận xét: công cụ nào, dù do chuyên viên tự làm hay do doanh nghiệp cung cấp, cũng dừng lại ở cùng một chỗ — dữ liệu. Phần mềm có thể thay sau vài năm, mô hình AI có thể thay sau vài tháng, còn dữ liệu của một cơ quan thì ở lại hàng chục năm. Tập 3 vì vậy chuyển trọng tâm từ ứng dụng sang dữ liệu, và được viết theo thể loại sách chuyên khảo.',
+    'Câu hỏi xuyên suốt: dữ liệu "tập trung" nên được hiểu và tổ chức thế nào ở một tỉnh. Câu trả lời tác giả đề xuất là luận điểm BA TẬP TRUNG, MỘT TẠI NGUỒN — tập trung về chuẩn, tập trung về trách nhiệm, tập trung về cửa chia sẻ, còn dữ liệu gốc ở lại nơi nó sinh ra — đi cùng một thứ tự ưu tiên: làm dữ liệu trước, làm trí tuệ nhân tạo sau.',
+    'Sách gồm năm phần, hai mươi chương. Ba phần đầu dành cho cơ sở lý luận, cơ sở chính trị - pháp lý, kinh nghiệm, xu hướng, thực trạng và chiến lược dữ liệu cấp tỉnh đến năm 2031. Phần thứ tư là phương pháp triển khai bảy bước, viết đủ cụ thể để dùng như một cuốn sổ tay. Phần thứ năm bàn về trách nhiệm của người đứng đầu, lộ trình và rủi ro. Tỉnh Thanh Hóa là địa bàn nghiên cứu; cơ quan dân cử có một chương riêng. Văn bản của Đảng và Nhà nước được đối chiếu đến ngày 21-11-2026.',
+    'Đây là BẢN THẢO để lấy ý kiến góp ý, chưa phát hành — Tủ sách hiện chỉ giới thiệu nội dung và mục lục, chưa có bản đọc toàn văn.',
+  ].join('\n\n'),
+
+  diemNoiBat: [
+    'Luận điểm "ba tập trung, một tại nguồn" làm cách hiểu thống nhất về dữ liệu tập trung ở cấp tỉnh, kèm sáu câu hỏi để quyết định khi nào gom dữ liệu về kho, khi nào để tại nguồn.',
+    'Thang năm bậc trưởng thành dữ liệu và bộ sáu tiêu chí chất lượng (đúng, đủ, sạch, sống, thống nhất, dùng chung) kèm phép thử, đủ đơn giản để một cơ quan cấp xã tự đánh giá.',
+    'Khung chiến lược dữ liệu cấp tỉnh đến năm 2031, mô hình quản trị cho cả bốn khối của hệ thống chính trị và kiến trúc bốn lớp, ba dòng chảy.',
+    'Phương pháp bảy bước: kiểm kê, xác định chủ quản và định danh, chuẩn hóa, làm sạch, kết nối, khai thác, duy trì — cùng bộ mẫu phiếu, bảng kiểm, quy chế.',
+    'Một chương riêng về dữ liệu của cơ quan dân cử: bộ cơ sở dữ liệu Hội đồng nhân dân hai cấp — lĩnh vực hầu như chưa có tài liệu riêng ở trong nước.',
+    'Mười quyết định về dữ liệu của người đứng đầu và lộ trình theo ba mốc: tháng 12-2026, năm 2027 và đến năm 2031.',
+    'Tác giả nêu rõ giới hạn của bản thảo: trường hợp nghiên cứu chính chưa có kết quả vận hành, đánh giá thực trạng còn định tính, tình huống giả định đều được ghi là giả định.',
+  ],
+
+  doiTuong: [
+    { ten: 'Cán bộ lãnh đạo, quản lý và đại biểu dân cử', moTa: 'Người phải quyết định về dữ liệu của cơ quan: chỉ định chủ quản, bãi bỏ báo cáo khi đã có dữ liệu, và đặt câu hỏi đúng trong các cuộc họp có số liệu.' },
+    { ten: 'Cán bộ tham mưu ở các cơ quan đảng, chính quyền, Mặt trận Tổ quốc', moTa: 'Người tổng hợp, kết nối và khai thác dữ liệu phục vụ lãnh đạo, chỉ đạo, quản lý và giám sát.' },
+    { ten: 'Công chức cấp xã', moTa: 'Người hằng ngày tạo ra dữ liệu và chịu tải báo cáo — phần phương pháp bảy bước viết để làm được bằng công cụ sẵn có.' },
+  ],
+
+  mucLuc: [
+    { loai: 'mo-dau', so: '', ten: 'Lời nói đầu', trang: 3, moTa: 'Hai con số khác nhau cho cùng một câu hỏi; vì sao Tập 3 chuyển trọng tâm từ ứng dụng sang dữ liệu.' },
+    { loai: 'mo-dau', so: '', ten: 'Danh mục chữ viết tắt, bảng, hình và hộp', trang: 13, moTa: '' },
+    { loai: 'mo-dau', so: '', ten: 'Mở đầu', trang: 17, moTa: 'Tính cấp thiết, tổng quan nghiên cứu, mục tiêu và câu hỏi nghiên cứu, đối tượng, phạm vi, phương pháp, đóng góp mới, kết cấu.' },
+    chuong(1, 'Vấn đề dữ liệu trong hoạt động của hệ thống chính trị cấp tỉnh', 23, 'Phần thứ nhất — Cơ sở lý luận và cơ sở chính trị - pháp lý. Đường đi của một con số; có phần mềm mà chưa có dữ liệu; vì sao dữ liệu phải đi trước.'),
+    chuong(2, 'Dữ liệu: khái niệm, phân loại, chất lượng và mức độ trưởng thành', 31, 'Sáu loại dữ liệu; sáu tiêu chí chất lượng và sáu phép thử; thang năm bậc trưởng thành; sáu ngộ nhận thường gặp.'),
+    chuong(3, 'Dữ liệu tập trung, thống nhất, dùng chung: các mô hình tổ chức và luận điểm ba tập trung, một tại nguồn', 40, 'Ba cách tổ chức dữ liệu; pháp luật Việt Nam đã chọn hướng nào; khi nào gom, khi nào nối; bảy nguyên tắc.'),
+    chuong(4, 'Chủ trương của Đảng, chính sách, pháp luật của Nhà nước về dữ liệu', 51, 'Luật Dữ liệu và văn bản hướng dẫn; kết nối, chia sẻ bắt buộc; ba lớp bảo vệ; các mốc thời hạn; mười yêu cầu tuân thủ.'),
+    chuong(5, 'Kinh nghiệm quốc tế và trong nước về tổ chức dữ liệu khu vực công', 63, 'Phần thứ hai — Kinh nghiệm, xu hướng và thực tiễn. Estonia, Singapore, Đan Mạch, Hàn Quốc, Ấn Độ, Anh và EU; những thất bại cần nghiên cứu; bài học cho Thanh Hóa.'),
+    chuong(6, 'Những xu hướng chủ yếu về dữ liệu giai đoạn 2027 - 2031 và hàm ý đối với cấp tỉnh', 71, 'Tám xu hướng và cách sàng lọc xu hướng ở tầm cấp tỉnh.'),
+    chuong(7, 'Thực trạng dữ liệu trong hệ thống chính trị tỉnh Thanh Hóa', 78, 'Thực trạng theo bốn khối; cấp xã — nơi tạo ra dữ liệu và nơi chịu tải; đánh giá theo thang năm bậc; các điểm nghẽn.'),
+    chuong(8, 'Quan điểm, mục tiêu và nội dung chiến lược dữ liệu cấp tỉnh đến năm 2031', 86, 'Phần thứ ba — Chiến lược, quản trị và kiến trúc dữ liệu cấp tỉnh. Quan điểm, tầm nhìn, năm trụ cột, thứ tự ưu tiên, nguồn lực.'),
+    chuong(9, 'Quản trị dữ liệu: tổ chức, vai trò và trách nhiệm', 93, 'Các vai trò đối với một bộ dữ liệu; năm công cụ quản trị; xử lý khi dữ liệu sai hoặc hai nguồn mâu thuẫn; quy chế quản trị.'),
+    chuong(10, 'Kiến trúc dữ liệu dùng chung cấp tỉnh: bốn lớp, ba dòng chảy', 100, 'Mã định danh và dữ liệu chủ; sổ chỉ tiêu: một chỉ tiêu, một công thức, một nơi tính; an toàn và phân vùng.'),
+    chuong(11, 'Dữ liệu của cơ quan dân cử: bộ cơ sở dữ liệu Hội đồng nhân dân hai cấp', 107, 'Đặc thù dữ liệu cơ quan dân cử; cấu trúc bộ dữ liệu; năm quyết định thiết kế; ba làn triển khai; những vấn đề còn mở.'),
+    chuong(12, 'Kiểm kê dữ liệu và xác định chủ quản', 116, 'Phần thứ tư — Phương pháp triển khai: bảy bước từ kiểm kê đến duy trì. Bản đồ dữ liệu, phiếu dữ liệu một trang, định danh, xếp bậc.'),
+    chuong(13, 'Chuẩn hóa và làm sạch dữ liệu', 123, 'Sáu quy tắc của một bảng dữ liệu; danh mục và từ điển trường; sáu loại lỗi; đối soát; vai trò của AI.'),
+    chuong(14, 'Từ hồ sơ giấy đến dữ liệu: hồ sơ điện tử, số hóa và lưu trữ số', 130, 'Lập hồ sơ điện tử ngay từ đầu; số hóa có chọn lọc; ba mức từ bản số hóa đến dữ liệu; nộp lưu.'),
+    chuong(15, 'Kết nối và chia sẻ dữ liệu', 136, 'Chia sẻ là nghĩa vụ; bốn mức kết nối; cam kết giữa bên cung cấp và bên sử dụng; dữ liệu có thông tin cá nhân; dữ liệu mở.'),
+    chuong(16, 'Khai thác dữ liệu: cảnh báo, chỉ tiêu, phân tích và trí tuệ nhân tạo', 142, 'Bốn tầng khai thác; cảnh báo thời hạn; bảng điều hành; chuẩn bị dữ liệu cho AI.'),
+    chuong(17, 'Bảo vệ, lưu trữ và duy trì dữ liệu', 148, 'Giữ cho dữ liệu sống, đúng, an toàn và dùng được lâu dài; giữ con người; kinh phí duy trì.'),
+    chuong(18, 'Trách nhiệm của người đứng đầu: mười quyết định về dữ liệu', 155, 'Phần thứ năm — Tổ chức thực hiện, lộ trình và tầm nhìn. Mười quyết định; năm câu hỏi trong các cuộc họp có số liệu.'),
+    chuong(19, 'Lộ trình thực hiện: tháng 12-2026, năm 2027 và đến năm 2031', 161, 'Ba mươi ngày đầu; năm 2027 — năm đặt nền; 2028 - 2029 kết nối và khai thác; 2030 - 2031 sẵn sàng cho AI.'),
+    chuong(20, 'Những sai lầm thường gặp, rủi ro và tầm nhìn sau năm 2031', 168, 'Hai mươi sai lầm thường gặp; rủi ro của lộ trình; những vấn đề cần tiếp tục nghiên cứu.'),
+    { loai: 'cuoi-sach', so: '', ten: 'Kết luận', trang: 173, moTa: 'Trả lời năm câu hỏi nghiên cứu; nêu giới hạn của bản thảo.' },
+    { loai: 'cuoi-sach', so: '', ten: 'Tài liệu tham khảo', trang: 176, moTa: '' },
+    { loai: 'phu-luc', so: '1', ten: 'Thuật ngữ sử dụng thống nhất trong cuốn sách', trang: 185, moTa: '' },
+    { loai: 'phu-luc', so: '2', ten: 'Câu lệnh mẫu cho công cụ trí tuệ nhân tạo trong công việc dữ liệu', trang: 186, moTa: '' },
+    { loai: 'phu-luc', so: '3', ten: 'Mẫu bản đồ dữ liệu, phiếu dữ liệu và sổ chỉ tiêu', trang: 188, moTa: '' },
+    { loai: 'phu-luc', so: '4', ten: 'Mẫu quy chế khung quản trị dữ liệu', trang: 189, moTa: '' },
+    { loai: 'phu-luc', so: '5', ten: 'Danh mục văn bản chủ yếu về dữ liệu', trang: 191, moTa: '' },
+    { loai: 'phu-luc', so: '6', ten: 'Bảng kiểm', trang: 192, moTa: '' },
+  ],
+
+  tuKhoa: ['dữ liệu', 'dữ liệu dùng chung', 'quản trị dữ liệu', 'chiến lược dữ liệu', 'trí tuệ nhân tạo', 'AI', 'tham mưu', 'Luật Dữ liệu', 'Hội đồng nhân dân', 'cơ quan dân cử', 'chuyển đổi số', 'tập 3'],
+
+  trichLoiNoiDau: 'Câu hỏi xuyên suốt cuốn sách là: dữ liệu "tập trung" nên được hiểu và tổ chức thế nào ở một tỉnh. Câu trả lời mà chúng tôi đề xuất gồm ba vế tập trung và một vế tại nguồn: tập trung về chuẩn, tập trung về trách nhiệm, tập trung về cửa chia sẻ, còn dữ liệu gốc ở lại nơi nó sinh ra. Đi cùng luận điểm ấy là một thứ tự ưu tiên: làm dữ liệu trước, làm trí tuệ nhân tạo sau.',
+
+  tieuSuTacGia: SACH_AI_THAM_MUU.tieuSuTacGia,
+
+  lienKet: [
+    { ten: 'Tập 1 — "Trí tuệ nhân tạo trong công tác tham mưu" (PDF)', url: TEP_SACH_AI },
+    { ten: 'Tập 2 — "Từ người dùng đến người kiến tạo" (PDF)', url: TEP_SACH_AI_2 },
+  ],
+  capNhat: '',
+};
+
 /** Các cuốn có sẵn trong bộ khởi tạo — máy chủ thiếu cuốn nào thì `khoiTaoNeuTrong` bổ sung cuốn đó. */
-export const SACH_KHOI_TAO = [SACH_AI_TAP_2, SACH_AI_THAM_MUU];
+export const SACH_KHOI_TAO = [SACH_AI_TAP_3, SACH_AI_TAP_2, SACH_AI_THAM_MUU];
 
 export const GIOI_THIEU_TU_SACH = [
   'Tủ sách giới thiệu các công trình do cán bộ, công chức của cơ quan biên soạn — sách chuyên môn, cẩm nang nghiệp vụ, tài liệu bồi dưỡng.',

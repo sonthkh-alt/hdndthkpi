@@ -37,3 +37,6 @@ docs/Bo_bieu_VTVL*.xlsx
 # không commit. Chỉ CẤU TRÚC (tên trường, nhãn, danh mục chọn, luồng bước) được đưa
 # vào mã nguồn — không đưa một dòng dữ liệu thật nào.
 docs/btctw/
+
+# Bản thảo Tập 3 ghi "chưa phát hành" — không đưa lên kho công khai
+docs/Tap_3_*.docx
